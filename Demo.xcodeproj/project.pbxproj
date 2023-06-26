@@ -16,7 +16,6 @@
 		28F4593B2A49860400504BF6 /* FontDesignableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459372A49860400504BF6 /* FontDesignableView.swift */; };
 		28F459402A49867100504BF6 /* BasicCellDesignableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F4593E2A49867100504BF6 /* BasicCellDesignableView.swift */; };
 		28F459412A49867100504BF6 /* BasicCellVariationsDesignableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F4593F2A49867100504BF6 /* BasicCellVariationsDesignableView.swift */; };
-		28F459442A49880400504BF6 /* ButtonDesignableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459432A49880400504BF6 /* ButtonDesignableView.swift */; };
 		28F459472A49882C00504BF6 /* BottomSheetDesignableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459462A49882C00504BF6 /* BottomSheetDesignableViewController.swift */; };
 		28F4594A2A498B6B00504BF6 /* LabelDesignableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459492A498B6B00504BF6 /* LabelDesignableView.swift */; };
 		28F4594E2A498C8F00504BF6 /* SwitchViewDefaultData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F4594C2A498C8F00504BF6 /* SwitchViewDefaultData.swift */; };
@@ -36,7 +35,6 @@
 		28F459372A49860400504BF6 /* FontDesignableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FontDesignableView.swift; sourceTree = "<group>"; };
 		28F4593E2A49867100504BF6 /* BasicCellDesignableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BasicCellDesignableView.swift; sourceTree = "<group>"; };
 		28F4593F2A49867100504BF6 /* BasicCellVariationsDesignableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BasicCellVariationsDesignableView.swift; sourceTree = "<group>"; };
-		28F459432A49880400504BF6 /* ButtonDesignableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ButtonDesignableView.swift; sourceTree = "<group>"; };
 		28F459462A49882C00504BF6 /* BottomSheetDesignableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BottomSheetDesignableViewController.swift; sourceTree = "<group>"; };
 		28F459492A498B6B00504BF6 /* LabelDesignableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LabelDesignableView.swift; sourceTree = "<group>"; };
 		28F4594C2A498C8F00504BF6 /* SwitchViewDefaultData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwitchViewDefaultData.swift; sourceTree = "<group>"; };
@@ -110,7 +108,6 @@
 				28F4594B2A498C8F00504BF6 /* Switch */,
 				28F459482A498B6B00504BF6 /* Label */,
 				28F459452A49882C00504BF6 /* BottomSheet */,
-				28F459422A49880400504BF6 /* Button */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -164,14 +161,6 @@
 				28F4593F2A49867100504BF6 /* BasicCellVariationsDesignableView.swift */,
 			);
 			path = BasicTableViewCell;
-			sourceTree = "<group>";
-		};
-		28F459422A49880400504BF6 /* Button */ = {
-			isa = PBXGroup;
-			children = (
-				28F459432A49880400504BF6 /* ButtonDesignableView.swift */,
-			);
-			path = Button;
 			sourceTree = "<group>";
 		};
 		28F459452A49882C00504BF6 /* BottomSheet */ = {
@@ -291,7 +280,6 @@
 				28F459412A49867100504BF6 /* BasicCellVariationsDesignableView.swift in Sources */,
 				28F4594A2A498B6B00504BF6 /* LabelDesignableView.swift in Sources */,
 				28F4593A2A49860400504BF6 /* SpacingDesignableView.swift in Sources */,
-				28F459442A49880400504BF6 /* ButtonDesignableView.swift in Sources */,
 				28F4594F2A498C8F00504BF6 /* SwitchViewDesignableView.swift in Sources */,
 				28AAFA612A49F3E900E1CA35 /* Config.swift in Sources */,
 				2847DF4C2A48903E009A6B8E /* AppDelegate.swift in Sources */,

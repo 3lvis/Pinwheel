@@ -22,24 +22,24 @@ class RootViewController: UIViewController {
 
     private let showDraggableLabel: Bool
 
-    private lazy var expandButton: Button = {
-        let button = Button(style: .callToAction)
+    private lazy var expandButton: UIButton = {
+        let button = UIButton(type: .system)
         button.setTitle("Expand", for: .normal)
         button.addTarget(self, action: #selector(expandButtonPressed), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
 
-    private lazy var compactButton: Button = {
-        let button = Button(style: .callToAction)
+    private lazy var compactButton: UIButton = {
+        let button = UIButton(type: .system)
         button.setTitle("Compact", for: .normal)
         button.addTarget(self, action: #selector(compactButtonPressed), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
 
-    private lazy var dismissButton: Button = {
-        let button = Button(style: .callToAction)
+    private lazy var dismissButton: UIButton = {
+        let button = UIButton(type: .system)
         button.setTitle("Dismiss", for: .normal)
         button.addTarget(self, action: #selector(dismissButtonPressed), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -119,32 +119,32 @@ class BottomSheetDesignableViewController: UIViewController {
         return switchView
     }()
 
-    private lazy var presentAllDraggableButton: Button = {
-        let button = Button(style: .callToAction)
+    private lazy var presentAllDraggableButton: UIButton = {
+        let button = UIButton(type: .system)
         button.setTitle("Present - everything draggable", for: .normal)
         button.addTarget(self, action: #selector(presentAllDraggableButtonPressed), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
 
-    private lazy var presentNavBarDraggableButton: Button = {
-        let button = Button(style: .callToAction)
+    private lazy var presentNavBarDraggableButton: UIButton = {
+        let button = UIButton(type: .system)
         button.setTitle("Present - navBar draggable", for: .normal)
         button.addTarget(self, action: #selector(presentNavBarDraggableButtonPressed), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
 
-    private lazy var presentTopAreaDraggableButton: Button = {
-        let button = Button(style: .callToAction)
+    private lazy var presentTopAreaDraggableButton: UIButton = {
+        let button = UIButton(type: .system)
         button.setTitle("Present - topArea draggable", for: .normal)
         button.addTarget(self, action: #selector(presentTopAreaDraggableButtonPressed), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
 
-    private lazy var presentCustomDraggableButton: Button = {
-        let button = Button(style: .callToAction)
+    private lazy var presentCustomDraggableButton: UIButton = {
+        let button = UIButton(type: .system)
         button.setTitle("Present - custom draggable", for: .normal)
         button.addTarget(self, action: #selector(presentCustomDraggableButtonPressed), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
