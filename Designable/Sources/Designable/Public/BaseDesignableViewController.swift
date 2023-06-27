@@ -108,7 +108,7 @@ public class BaseDesignableViewController<View: UIView>: UIViewController, Conta
 
         switch dismissType {
         case .dismissButton:
-            let button = Button(style: .callToAction)
+            let button = UIButton(type: .system)
             button.setTitle("Dismiss", for: .normal)
             button.addTarget(self, action: #selector(didDoubleTap), for: .touchUpInside)
             button.translatesAutoresizingMaskIntoConstraints = false

@@ -22,24 +22,24 @@ class RootViewController: UIViewController {
 
     private let showDraggableLabel: Bool
 
-    private lazy var expandButton: Button = {
-        let button = Button(style: .callToAction)
+    private lazy var expandButton: UIButton = {
+        let button = UIButton(type: .system)
         button.setTitle("Expand", for: .normal)
         button.addTarget(self, action: #selector(expandButtonPressed), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
 
-    private lazy var compactButton: Button = {
-        let button = Button(style: .callToAction)
+    private lazy var compactButton: UIButton = {
+        let button = UIButton(type: .system)
         button.setTitle("Compact", for: .normal)
         button.addTarget(self, action: #selector(compactButtonPressed), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
 
-    private lazy var dismissButton: Button = {
-        let button = Button(style: .callToAction)
+    private lazy var dismissButton: UIButton = {
+        let button = UIButton(type: .system)
         button.setTitle("Dismiss", for: .normal)
         button.addTarget(self, action: #selector(dismissButtonPressed), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -106,45 +106,45 @@ class RootViewController: UIViewController {
 }
 
 class BottomSheetDesignableViewController: UIViewController {
-    private lazy var requireConfirmationOnDragSwitch: SwitchView = {
-        let switchView = SwitchView(withAutoLayout: true)
-        switchView.configure(with:
-            SwitchViewDefaultModel(
-                title: "Confirm Dismiss",
-                detail: "Set if bottom sheets require confirmation before they can be dismissed.",
-                initialSwitchValue: true
-            )
-        )
+    private lazy var switchLabel: UILabel = {
+        let label = UILabel(withAutoLayout: true)
+        label.font = .body
+        label.text = "Require confirmation before dismissed"
+        return label
+    }()
+
+    private lazy var requireConfirmationOnDragSwitch: UISwitch = {
+        let switchView = UISwitch(withAutoLayout: true)
         switchView.isOn = false
         return switchView
     }()
 
-    private lazy var presentAllDraggableButton: Button = {
-        let button = Button(style: .callToAction)
+    private lazy var presentAllDraggableButton: UIButton = {
+        let button = UIButton(type: .system)
         button.setTitle("Present - everything draggable", for: .normal)
         button.addTarget(self, action: #selector(presentAllDraggableButtonPressed), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
 
-    private lazy var presentNavBarDraggableButton: Button = {
-        let button = Button(style: .callToAction)
+    private lazy var presentNavBarDraggableButton: UIButton = {
+        let button = UIButton(type: .system)
         button.setTitle("Present - navBar draggable", for: .normal)
         button.addTarget(self, action: #selector(presentNavBarDraggableButtonPressed), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
 
-    private lazy var presentTopAreaDraggableButton: Button = {
-        let button = Button(style: .callToAction)
+    private lazy var presentTopAreaDraggableButton: UIButton = {
+        let button = UIButton(type: .system)
         button.setTitle("Present - topArea draggable", for: .normal)
         button.addTarget(self, action: #selector(presentTopAreaDraggableButtonPressed), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
 
-    private lazy var presentCustomDraggableButton: Button = {
-        let button = Button(style: .callToAction)
+    private lazy var presentCustomDraggableButton: UIButton = {
+        let button = UIButton(type: .system)
         button.setTitle("Present - custom draggable", for: .normal)
         button.addTarget(self, action: #selector(presentCustomDraggableButtonPressed), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -156,6 +156,7 @@ class BottomSheetDesignableViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .primaryBackground
+        view.addSubview(switchLabel)
         view.addSubview(requireConfirmationOnDragSwitch)
         view.addSubview(presentAllDraggableButton)
         view.addSubview(presentNavBarDraggableButton)
@@ -163,7 +164,10 @@ class BottomSheetDesignableViewController: UIViewController {
         view.addSubview(presentCustomDraggableButton)
 
         NSLayoutConstraint.activate([
-            requireConfirmationOnDragSwitch.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: .spacingXL),
+            switchLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: .spacingXL),
+            switchLabel.bottomAnchor.constraint(equalTo: presentAllDraggableButton.topAnchor, constant: -.spacingXXL),
+            switchLabel.trailingAnchor.constraint(equalTo: requireConfirmationOnDragSwitch.leadingAnchor, constant: .spacingXL),
+
             requireConfirmationOnDragSwitch.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -.spacingXL),
             requireConfirmationOnDragSwitch.bottomAnchor.constraint(equalTo: presentAllDraggableButton.topAnchor, constant: -.spacingXXL),
 
@@ -284,6 +288,6 @@ extension BottomSheetDesignableViewController: BottomSheetDelegate {
     }
 
     func bottomSheet(_ bottomSheet: BottomSheet, didDismissBy action: BottomSheet.DismissAction) {
-        // BottomSheet dismissed.
+        print("Bottom sheet did dismiss")
     }
 }

@@ -1,9 +1,9 @@
 import UIKit
 
-public class ScrollViewController: UIViewController, UIScrollViewDelegate {
+class ScrollViewController: UIViewController, UIScrollViewDelegate {
     private(set) lazy var topShadowView = ShadowView()
 
-    public override func viewDidLoad() {
+    override func viewDidLoad() {
         super.viewDidLoad()
         view.addSubview(topShadowView)
         NSLayoutConstraint.activate([
@@ -13,7 +13,7 @@ public class ScrollViewController: UIViewController, UIScrollViewDelegate {
         ])
     }
 
-    public func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
         topShadowView.update(with: scrollView)
     }
 }

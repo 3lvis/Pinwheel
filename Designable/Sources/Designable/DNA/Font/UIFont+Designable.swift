@@ -14,6 +14,19 @@ public extension UIFont {
     }
 
     /// ## Usage:
+    /// - Less important information can be shown as detail text, not for long sentences.
+    /// - This is slightly smaller than body text.
+    class var detail: UIFont {
+        Config.fontProvider.detail
+    }
+
+    /// ## Usage:
+    /// - Used for small, bold headlines.
+    class var detailStrong: UIFont {
+        Config.fontProvider.detailStrong
+    }
+
+    /// ## Usage:
     /// - Used for short amount of text if neither the Body or Detail is appropriate.
     /// - This is slightly smaller than body text.
     class var caption: UIFont {
@@ -26,20 +39,6 @@ public extension UIFont {
     /// - This is slightly smaller than body text.
     class var captionStrong: UIFont {
         Config.fontProvider.captionStrong
-    }
-
-
-    /// ## Usage:
-    /// - Less important information can be shown as detail text, not for long sentences.
-    /// - This is slightly smaller than body text.
-    class var detail: UIFont {
-        Config.fontProvider.detail
-    }
-
-    /// ## Usage:
-    /// - Used for small, bold headlines.
-    class var detailStrong: UIFont {
-        Config.fontProvider.detailStrong
     }
 
     func scaledFont(forTextStyle textStyle: UIFont.TextStyle) -> UIFont {

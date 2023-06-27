@@ -1,6 +1,6 @@
 import UIKit
 
-public final class FloatingButton: UIButton {
+class FloatingButton: UIButton {
     private var style: FloatingButton.Style {
         didSet {
             configureStyle()

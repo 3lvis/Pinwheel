@@ -13,10 +13,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 DesignableItem(title: "Spacing", viewController: DesignableViewController<SpacingDesignableView>()),
             ]),
             DesignableSection(title: "Components", items: [
-                DesignableItem(title: "Button", viewController: DesignableViewController<ButtonDesignableView>()),
                 DesignableItem(title: "BottomSheet", viewController: BottomSheetDesignableViewController()),
                 DesignableItem(title: "Label", viewController: DesignableViewController<LabelDesignableView>()),
-                DesignableItem(title: "Swich", viewController: DesignableViewController<SwitchViewDesignableView>()),
             ]),
             DesignableSection(title: "Cells", items: [
                 DesignableItem(title: "Basic", viewController: DesignableViewController<BasicCellDesignableView>()),
