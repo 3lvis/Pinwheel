@@ -1,20 +1,5 @@
 import UIKit
 
-public protocol FontProvider {
-    var body: UIFont { get }
-    var bodyStrong: UIFont { get }
-
-    var caption: UIFont { get }
-    var captionStrong: UIFont { get }
-
-    var detail: UIFont { get }
-    var detailStrong: UIFont { get }
-
-    func font(ofSize size: CGFloat, weight: UIFont.Weight) -> UIFont
-}
-
-// MARK: - Default fonts
-
 public struct DefaultFontProvider: FontProvider {
     /// OpenSans-Light with a size of 16 scaled for UIFontTextStyle.body
     ///
@@ -90,49 +75,5 @@ public struct DefaultFontProvider: FontProvider {
 
     public func font(ofSize size: CGFloat, weight: UIFont.Weight) -> UIFont {
         return UIFont.systemFont(ofSize: size, weight: weight)
-    }
-}
-
-// MARK: - Private extensions
-
-private extension UIFont {
-    static func registerFont(with filenameString: String) {
-        if let bundleURL = Bundle.designable.url(forResource: "Designable", withExtension: "bundle") {
-            if let bundle = Bundle(url: bundleURL) {
-                registerFontFor(bundle: bundle, forResource: filenameString)
-                return
-            }
-        }
-
-        if let bundleIdentifier = Bundle.designable.bundleIdentifier {
-            if let bundle = Bundle(identifier: bundleIdentifier) {
-                registerFontFor(bundle: bundle, forResource: filenameString)
-            }
-        }
-    }
-
-    private static func registerFontFor(bundle: Bundle, forResource: String) {
-        guard let pathForResourceString = bundle.path(forResource: forResource, ofType: "ttf") else {
-            print("UIFont+: Failed to register font - path for resource not found.")
-            return
-        }
-
-        guard let fontData = NSData(contentsOfFile: pathForResourceString) else {
-            print("UIFont+: Failed to register font - font data could not be loaded.")
-            return
-        }
-
-        guard let dataProvider = CGDataProvider(data: fontData) else {
-            print("UIFont+: Failed to register font - data provider could not be loaded.")
-            return
-        }
-
-        guard let fontRef = CGFont(dataProvider) else {
-            print("UIFont+: Failed to register font - font could not be loaded.")
-            return
-        }
-
-        var errorRef: Unmanaged<CFError>?
-        CTFontManagerRegisterGraphicsFont(fontRef, &errorRef)
     }
 }
