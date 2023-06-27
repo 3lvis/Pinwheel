@@ -117,7 +117,6 @@ public class BaseDesignableViewController<View: UIView>: UIViewController, Conta
                 button.centerXAnchor.constraint(equalTo: view.centerXAnchor),
                 button.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -.spacingXXL)
             ])
-            print("hello")
         case .doubleTap:
             let doubleTap = UITapGestureRecognizer(target: self, action: #selector(didDoubleTap))
             doubleTap.numberOfTapsRequired = 2

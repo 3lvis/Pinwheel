@@ -1,6 +1,6 @@
 import UIKit
 
-public struct Device {
+struct Device {
     public enum Kind: String {
         case phone4inch = "iPhone 5S (4-inch)"
 

@@ -1,26 +1,26 @@
 import UIKit
 
-public protocol SelectorTitleViewDelegate: AnyObject {
+protocol SelectorTitleViewDelegate: AnyObject {
     func selectorTitleViewDidSelectButton(_ view: SelectorTitleView)
 }
 
-public class SelectorTitleView: UIView {
+class SelectorTitleView: UIView {
     // MARK: - Public
 
-    public enum ArrowDirection {
+    enum ArrowDirection {
         case up
         case down
     }
 
-    public weak var delegate: SelectorTitleViewDelegate?
+    weak var delegate: SelectorTitleViewDelegate?
 
-    public var arrowDirection: ArrowDirection = .down {
+    var arrowDirection: ArrowDirection = .down {
         didSet {
             updateArrowDirection()
         }
     }
 
-    public var title: String? {
+    var title: String? {
         didSet {
             button.setTitle(title, for: .normal)
         }
@@ -71,7 +71,7 @@ public class SelectorTitleView: UIView {
 
     // MARK: - Init
 
-    public init(heading: String) {
+    init(heading: String) {
         self.heading = heading
         super.init(frame: .zero)
         setup()
@@ -117,7 +117,7 @@ public class SelectorTitleView: UIView {
 
     // MARK: - Public
 
-    public func updateButtonColor(_ buttonColor: UIColor = .primaryAction, buttonDisabledColor: UIColor = .tertiaryText) {
+    func updateButtonColor(_ buttonColor: UIColor = .primaryAction, buttonDisabledColor: UIColor = .tertiaryText) {
         button.setTitleColor(buttonColor, for: .normal)
         button.setTitleColor(buttonColor.withAlphaComponent(0.5), for: .highlighted)
         button.setTitleColor(buttonColor.withAlphaComponent(0.5), for: .selected)

@@ -288,6 +288,6 @@ extension BottomSheetDesignableViewController: BottomSheetDelegate {
     }
 
     func bottomSheet(_ bottomSheet: BottomSheet, didDismissBy action: BottomSheet.DismissAction) {
-        // BottomSheet dismissed.
+        print("Bottom sheet did dismiss")
     }
 }

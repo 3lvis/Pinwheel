@@ -168,7 +168,7 @@ public extension DesignableTableViewController {
 // MARK: - SelectorTitleViewDelegate
 
 extension DesignableTableViewController: SelectorTitleViewDelegate {
-    public func selectorTitleViewDidSelectButton(_ selectorTitleView: SelectorTitleView) {
+    func selectorTitleViewDidSelectButton(_ selectorTitleView: SelectorTitleView) {
         guard State.lastSelectedSection <= sections.count else { return }
 
         let items = sections.map { BasicTableViewItem(title: $0.title.uppercased()) }

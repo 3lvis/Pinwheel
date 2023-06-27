@@ -1,6 +1,6 @@
 import UIKit
 
-public extension FloatingButton {
+extension FloatingButton {
     struct Style: Equatable {
         let tintColor: UIColor
         let titleColor: UIColor
@@ -78,7 +78,7 @@ public extension FloatingButton {
 }
 
 // MARK: - Styles
-public extension FloatingButton.Style {
+extension FloatingButton.Style {
     static var `default`: FloatingButton.Style {
         FloatingButton.Style(
             tintColor: .primaryAction,
