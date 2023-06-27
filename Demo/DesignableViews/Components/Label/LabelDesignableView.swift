@@ -17,7 +17,7 @@ public class LabelDesignableView: UIView {
         headlineSemibold.text = "Headline Semibold"
 
         let headlineBold = Label(style: .headlineBold)
-        headlineBold.text = "Headline Semibold"
+        headlineBold.text = "Headline Bold"
 
         let body = Label(style: .body)
         body.text = "Body"
