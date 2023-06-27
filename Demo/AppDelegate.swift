@@ -30,8 +30,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         self.window = UIWindow(frame: UIScreen.main.bounds)
         guard let window = self.window else { fatalError("Window not found") }
 
-        Config.colorProvider = DemoColorProvider()
-        Config.fontProvider = DemoFontProvider()
+        // Config.colorProvider = DemoColorProvider()
+        // Config.fontProvider = DemoFontProvider()
 
         let viewController = DesignableTableViewController(sections: data)
         window.rootViewController = NavigationController(rootViewController: viewController)

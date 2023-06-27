@@ -22,13 +22,13 @@ public class FontDesignableView: UIView {
 
     lazy var items: [FontItem] = {
         return [
-            FontItem(font: .headline, title: "headline"),
-            FontItem(font: .headlineSemibold, title: "headlineSemibold"),
-            FontItem(font: .headlineBold, title: "headlineBold"),
-            FontItem(font: .body, title: "body"),
-            FontItem(font: .subheadline, title: "subheadline"),
-            FontItem(font: .subheadlineBold, title: "subheadlineBold"),
-            FontItem(font: .caption, title: "caption")
+            FontItem(font: .headline, title: "Headline"),
+            FontItem(font: .headlineSemibold, title: "Headline Semibold"),
+            FontItem(font: .headlineBold, title: "Headline Bold"),
+            FontItem(font: .body, title: "Body"),
+            FontItem(font: .subheadline, title: "Subheadline"),
+            FontItem(font: .subheadlineBold, title: "Subheadline Bold"),
+            FontItem(font: .caption, title: "Caption")
         ]
     }()
 

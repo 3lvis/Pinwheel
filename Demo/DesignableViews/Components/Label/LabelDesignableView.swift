@@ -11,25 +11,25 @@ public class LabelDesignableView: UIView {
 
     private func setup() {
         let headline = Label(style: .headline)
-        headline.text = "headline"
+        headline.text = "Headline"
 
         let headlineSemibold = Label(style: .headlineSemibold)
-        headlineSemibold.text = "headlineSemibold"
+        headlineSemibold.text = "Headline Semibold"
 
         let headlineBold = Label(style: .headlineBold)
-        headlineBold.text = "headlineBold"
+        headlineBold.text = "Headline Semibold"
 
         let body = Label(style: .body)
-        body.text = "body"
+        body.text = "Body"
 
         let subheadline = Label(style: .subheadline)
-        subheadline.text = "subheadline"
+        subheadline.text = "Subheadline"
 
         let subheadlineBold = Label(style: .subheadlineBold)
-        subheadlineBold.text = "subheadlineBold"
+        subheadlineBold.text = "Subheadline Bold"
 
         let caption = Label(style: .caption)
-        caption.text = "caption"
+        caption.text = "Caption"
 
         addSubview(headline)
         addSubview(headlineSemibold)
