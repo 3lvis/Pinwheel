@@ -13,12 +13,10 @@ let package = Package(
     targets: [
         .target(
             name: "Designable",
-            path: "Designable/Sources",
-            exclude: ["Demo"]),
+            path: "Designable/Sources"),
         .testTarget(
             name: "DesignableTests",
             dependencies: ["Designable"],
             path: "Designable/Tests"),
-            exclude: ["Demo"]),
     ]
 )
