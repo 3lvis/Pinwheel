@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		283C980A2A4AB7D8000547F5 /* Designable in Frameworks */ = {isa = PBXBuildFile; productRef = 283C98092A4AB7D8000547F5 /* Designable */; };
 		2847DF4C2A48903E009A6B8E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2847DF4B2A48903E009A6B8E /* AppDelegate.swift */; };
 		2847DF552A48903F009A6B8E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2847DF542A48903F009A6B8E /* Assets.xcassets */; };
-		2893C64C2A48908700039B8A /* Designable in Frameworks */ = {isa = PBXBuildFile; productRef = 2893C64B2A48908700039B8A /* Designable */; };
 		28AAFA612A49F3E900E1CA35 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28AAFA602A49F3E900E1CA35 /* Config.swift */; };
 		28F459392A49860400504BF6 /* ColorDesignableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459332A49860400504BF6 /* ColorDesignableView.swift */; };
 		28F4593A2A49860400504BF6 /* SpacingDesignableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459352A49860400504BF6 /* SpacingDesignableView.swift */; };
@@ -22,11 +22,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		283C98082A4AB7B2000547F5 /* Designable */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Designable; sourceTree = "<group>"; };
 		2847DF482A48903E009A6B8E /* Demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Demo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2847DF4B2A48903E009A6B8E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2847DF542A48903F009A6B8E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2847DF592A48903F009A6B8E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		2893C6492A48908000039B8A /* Designable */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Designable; sourceTree = "<group>"; };
 		28AAFA602A49F3E900E1CA35 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		28F459332A49860400504BF6 /* ColorDesignableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorDesignableView.swift; sourceTree = "<group>"; };
 		28F459352A49860400504BF6 /* SpacingDesignableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SpacingDesignableView.swift; sourceTree = "<group>"; };
@@ -43,17 +43,25 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2893C64C2A48908700039B8A /* Designable in Frameworks */,
+				283C980A2A4AB7D8000547F5 /* Designable in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		283C98072A4AB7B2000547F5 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				283C98082A4AB7B2000547F5 /* Designable */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
 		2847DF3F2A48903D009A6B8E = {
 			isa = PBXGroup;
 			children = (
-				2893C6492A48908000039B8A /* Designable */,
+				283C98072A4AB7B2000547F5 /* Packages */,
 				2847DF4A2A48903E009A6B8E /* Demo */,
 				2847DF492A48903E009A6B8E /* Products */,
 				2893C64A2A48908700039B8A /* Frameworks */,
@@ -207,7 +215,7 @@
 			);
 			name = Demo;
 			packageProductDependencies = (
-				2893C64B2A48908700039B8A /* Designable */,
+				283C98092A4AB7D8000547F5 /* Designable */,
 			);
 			productName = Demo;
 			productReference = 2847DF482A48903E009A6B8E /* Demo.app */;
@@ -478,7 +486,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		2893C64B2A48908700039B8A /* Designable */ = {
+		283C98092A4AB7D8000547F5 /* Designable */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Designable;
 		};
