@@ -49,7 +49,7 @@ class RootViewController: UIViewController {
     private lazy var draggableLabel: UILabel = {
         let label = UILabel(frame: draggableLabelFrame)
         label.textAlignment = .center
-        label.font = UIFont.bodyStrong
+        label.font = UIFont.body
         label.text = "👆😎👇"
         label.backgroundColor = .criticalBackground
         return label

@@ -1,33 +1,37 @@
 import Designable
 
 struct DemoFontProvider: FontProvider {
+    var headline: UIFont {
+        let font = UIFont.rounded(ofSize: 22, weight: .medium)
+        return font.scaledFont(forTextStyle: .headline)
+    }
+
+    var headlineSemibold: UIFont {
+        let font = UIFont.rounded(ofSize: 22, weight: .semibold)
+        return font.scaledFont(forTextStyle: .headline)
+    }
+
+    var headlineBold: UIFont {
+        let font = UIFont.rounded(ofSize: 22, weight: .bold)
+        return font.scaledFont(forTextStyle: .headline)
+    }
+
     var body: UIFont {
-        let font = UIFont.rounded(ofSize: 17, weight: .regular)
+        let font = UIFont.rounded(ofSize: 20, weight: .medium)
         return font.scaledFont(forTextStyle: .body)
     }
 
-    var bodyStrong: UIFont {
-        let font = UIFont.rounded(ofSize: 17, weight: .medium)
-        return font.scaledFont(forTextStyle: .body)
-    }
-
-    var detail: UIFont {
-        let font = UIFont.rounded(ofSize: 15, weight: .regular)
+    var subheadline: UIFont {
+        let font = UIFont.rounded(ofSize: 18, weight: .medium)
         return font.scaledFont(forTextStyle: .subheadline)
     }
-
-    var detailStrong: UIFont {
-        let font = UIFont.rounded(ofSize: 15, weight: .bold)
+    var subheadlineBold: UIFont {
+        let font = UIFont.rounded(ofSize: 18, weight: .bold)
         return font.scaledFont(forTextStyle: .subheadline)
     }
 
     var caption: UIFont {
-        let font = UIFont.rounded(ofSize: 13, weight: .light)
-        return font.scaledFont(forTextStyle: .caption1)
-    }
-
-    var captionStrong: UIFont {
-        let font = UIFont.rounded(ofSize: 13, weight: .medium)
+        let font = UIFont.rounded(ofSize: 14, weight: .medium)
         return font.scaledFont(forTextStyle: .caption1)
     }
 

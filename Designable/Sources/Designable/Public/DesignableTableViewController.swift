@@ -156,7 +156,7 @@ public extension DesignableTableViewController {
     override func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
         if let headerView = view as? UITableViewHeaderFooterView {
             headerView.textLabel?.textColor = .secondaryText
-            headerView.textLabel?.font = UIFont.captionStrong
+            headerView.textLabel?.font = UIFont.caption
         }
     }
 

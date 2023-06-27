@@ -2,21 +2,26 @@ import UIKit
 
 public extension Label {
     enum Style {
-        case bodyStrong
-        case detailStrong
+        case headline
+        case headlineSemibold
+        case headlineBold
+
         case body
-        case captionStrong
+
+        case subheadline
+        case subheadlineBold
+
         case caption
-        case detail
 
         public var font: UIFont {
             switch self {
-            case .bodyStrong: return UIFont.bodyStrong
-            case .detailStrong: return UIFont.detailStrong
+            case .headline: return UIFont.headline
+            case .headlineSemibold: return UIFont.headlineSemibold
+            case .headlineBold: return UIFont.headlineBold
             case .body: return UIFont.body
-            case .captionStrong: return UIFont.captionStrong
+            case .subheadline: return UIFont.subheadline
+            case .subheadlineBold: return UIFont.subheadlineBold
             case .caption: return UIFont.caption
-            case .detail: return UIFont.detail
             }
         }
 

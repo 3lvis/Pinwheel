@@ -11,7 +11,7 @@ public class SpacingDesignableView: UIView {
     public required init?(coder aDecoder: NSCoder) { fatalError() }
 
     func makeLabel(text: String) -> Label {
-        let label = Label(style: .bodyStrong)
+        let label = Label(style: .body)
         label.text = text
         label.translatesAutoresizingMaskIntoConstraints = false
         label.backgroundColor = .secondaryBackground

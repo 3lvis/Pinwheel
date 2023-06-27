@@ -73,7 +73,7 @@ extension ColorDesignableView: UITableViewDataSource {
         whiteTitle.addAttribute(NSAttributedString.Key.foregroundColor, value: UIColor.white, range: NSRange(location: 0, length: title.count))
         attributedTitle.append(whiteTitle)
         cell.textLabel?.attributedText = attributedTitle
-        cell.textLabel?.font = UIFont.detail
+        cell.textLabel?.font = UIFont.subheadline
         cell.selectionStyle = .none
 
         return cell
