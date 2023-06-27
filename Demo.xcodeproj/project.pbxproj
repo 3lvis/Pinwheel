@@ -18,8 +18,6 @@
 		28F459412A49867100504BF6 /* BasicCellVariationsDesignableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F4593F2A49867100504BF6 /* BasicCellVariationsDesignableView.swift */; };
 		28F459472A49882C00504BF6 /* BottomSheetDesignableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459462A49882C00504BF6 /* BottomSheetDesignableViewController.swift */; };
 		28F4594A2A498B6B00504BF6 /* LabelDesignableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459492A498B6B00504BF6 /* LabelDesignableView.swift */; };
-		28F4594E2A498C8F00504BF6 /* SwitchViewDefaultData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F4594C2A498C8F00504BF6 /* SwitchViewDefaultData.swift */; };
-		28F4594F2A498C8F00504BF6 /* SwitchViewDesignableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F4594D2A498C8F00504BF6 /* SwitchViewDesignableView.swift */; };
 		28F459532A498CFF00504BF6 /* BasicTableViewDesignableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459522A498CFF00504BF6 /* BasicTableViewDesignableView.swift */; };
 /* End PBXBuildFile section */
 
@@ -37,8 +35,6 @@
 		28F4593F2A49867100504BF6 /* BasicCellVariationsDesignableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BasicCellVariationsDesignableView.swift; sourceTree = "<group>"; };
 		28F459462A49882C00504BF6 /* BottomSheetDesignableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BottomSheetDesignableViewController.swift; sourceTree = "<group>"; };
 		28F459492A498B6B00504BF6 /* LabelDesignableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LabelDesignableView.swift; sourceTree = "<group>"; };
-		28F4594C2A498C8F00504BF6 /* SwitchViewDefaultData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwitchViewDefaultData.swift; sourceTree = "<group>"; };
-		28F4594D2A498C8F00504BF6 /* SwitchViewDesignableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwitchViewDesignableView.swift; sourceTree = "<group>"; };
 		28F459522A498CFF00504BF6 /* BasicTableViewDesignableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BasicTableViewDesignableView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -105,7 +101,6 @@
 		28F4592F2A49860400504BF6 /* Components */ = {
 			isa = PBXGroup;
 			children = (
-				28F4594B2A498C8F00504BF6 /* Switch */,
 				28F459482A498B6B00504BF6 /* Label */,
 				28F459452A49882C00504BF6 /* BottomSheet */,
 			);
@@ -177,15 +172,6 @@
 				28F459492A498B6B00504BF6 /* LabelDesignableView.swift */,
 			);
 			path = Label;
-			sourceTree = "<group>";
-		};
-		28F4594B2A498C8F00504BF6 /* Switch */ = {
-			isa = PBXGroup;
-			children = (
-				28F4594C2A498C8F00504BF6 /* SwitchViewDefaultData.swift */,
-				28F4594D2A498C8F00504BF6 /* SwitchViewDesignableView.swift */,
-			);
-			path = Switch;
 			sourceTree = "<group>";
 		};
 		28F459502A498CFF00504BF6 /* Reciclable */ = {
@@ -280,11 +266,9 @@
 				28F459412A49867100504BF6 /* BasicCellVariationsDesignableView.swift in Sources */,
 				28F4594A2A498B6B00504BF6 /* LabelDesignableView.swift in Sources */,
 				28F4593A2A49860400504BF6 /* SpacingDesignableView.swift in Sources */,
-				28F4594F2A498C8F00504BF6 /* SwitchViewDesignableView.swift in Sources */,
 				28AAFA612A49F3E900E1CA35 /* Config.swift in Sources */,
 				2847DF4C2A48903E009A6B8E /* AppDelegate.swift in Sources */,
 				28F459472A49882C00504BF6 /* BottomSheetDesignableViewController.swift in Sources */,
-				28F4594E2A498C8F00504BF6 /* SwitchViewDefaultData.swift in Sources */,
 				28F459392A49860400504BF6 /* ColorDesignableView.swift in Sources */,
 				28F459402A49867100504BF6 /* BasicCellDesignableView.swift in Sources */,
 				28F4593B2A49860400504BF6 /* FontDesignableView.swift in Sources */,

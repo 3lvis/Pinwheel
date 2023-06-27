@@ -106,15 +106,15 @@ class RootViewController: UIViewController {
 }
 
 class BottomSheetDesignableViewController: UIViewController {
-    private lazy var requireConfirmationOnDragSwitch: SwitchView = {
-        let switchView = SwitchView(withAutoLayout: true)
-        switchView.configure(with:
-            SwitchViewDefaultModel(
-                title: "Confirm Dismiss",
-                detail: "Set if bottom sheets require confirmation before they can be dismissed.",
-                initialSwitchValue: true
-            )
-        )
+    private lazy var switchLabel: UILabel = {
+        let label = UILabel(withAutoLayout: true)
+        label.font = .body
+        label.text = "Require confirmation before dismissed"
+        return label
+    }()
+
+    private lazy var requireConfirmationOnDragSwitch: UISwitch = {
+        let switchView = UISwitch(withAutoLayout: true)
         switchView.isOn = false
         return switchView
     }()
@@ -156,6 +156,7 @@ class BottomSheetDesignableViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .primaryBackground
+        view.addSubview(switchLabel)
         view.addSubview(requireConfirmationOnDragSwitch)
         view.addSubview(presentAllDraggableButton)
         view.addSubview(presentNavBarDraggableButton)
@@ -163,7 +164,10 @@ class BottomSheetDesignableViewController: UIViewController {
         view.addSubview(presentCustomDraggableButton)
 
         NSLayoutConstraint.activate([
-            requireConfirmationOnDragSwitch.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: .spacingXL),
+            switchLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: .spacingXL),
+            switchLabel.bottomAnchor.constraint(equalTo: presentAllDraggableButton.topAnchor, constant: -.spacingXXL),
+            switchLabel.trailingAnchor.constraint(equalTo: requireConfirmationOnDragSwitch.leadingAnchor, constant: .spacingXL),
+
             requireConfirmationOnDragSwitch.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -.spacingXL),
             requireConfirmationOnDragSwitch.bottomAnchor.constraint(equalTo: presentAllDraggableButton.topAnchor, constant: -.spacingXXL),
 
