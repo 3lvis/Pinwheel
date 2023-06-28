@@ -17,7 +17,7 @@ public class NavigationController: UINavigationController {
     }
 
     private func setup() {
-        setBottomBorderColor(navigationBar: navigationBar, color: .tertiaryBackground, height: 0.5)
+        setBottomBorderColor(navigationBar: navigationBar, color: .secondaryBackground, height: 0.5)
 
         if #available(iOS 13.0, *) {
             let appearance = UINavigationBarAppearance()

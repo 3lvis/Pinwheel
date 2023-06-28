@@ -29,15 +29,15 @@ public class ColorDesignableView: UIView {
 
             ColorItem(color: .primaryBackground, title: ""),
 
-            ColorItem(color: .primaryAction, title: "primaryAction"),
-            ColorItem(color: .criticalAction, title: "criticalAction"),
+            ColorItem(color: .primaryBackground, title: "primaryBackground"),
+            ColorItem(color: .secondaryBackground, title: "secondaryBackground"),
 
             ColorItem(color: .primaryBackground, title: ""),
 
-            ColorItem(color: .primaryBackground, title: "primaryBackground"),
-            ColorItem(color: .secondaryBackground, title: "secondaryBackground"),
-            ColorItem(color: .tertiaryBackground, title: ".tertiaryBackground"),
-            ColorItem(color: .criticalBackground, title: ".criticalBackground")
+            ColorItem(color: .primaryAction, title: "primaryAction"),
+            ColorItem(color: .activeBackground, title: "activeBackground"),
+            ColorItem(color: .criticalAction, title: "criticalAction"),
+            ColorItem(color: .criticalBackground, title: "criticalBackground")
         ]
     }()
 

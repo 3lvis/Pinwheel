@@ -25,22 +25,6 @@ public struct DefaultColorProvider: ColorProvider {
         }
     }
 
-    public var primaryAction: UIColor {
-        if #available(iOS 13.0, *) {
-            return UIColor.systemBlue
-        } else {
-            return UIColor(hex: "007AFF")
-        }
-   }
-
-    public var criticalAction: UIColor {
-        if #available(iOS 13.0, *) {
-            return UIColor.systemRed
-        } else {
-            return UIColor(hex: "FF3B30")
-        }
-    }
-
     public var primaryBackground: UIColor {
         if #available(iOS 13.0, *) {
             return UIColor.systemBackground
@@ -57,11 +41,27 @@ public struct DefaultColorProvider: ColorProvider {
         }
     }
 
-    public var tertiaryBackground: UIColor {
+    public var primaryAction: UIColor {
         if #available(iOS 13.0, *) {
-            return UIColor.separator
+            return UIColor.systemBlue
         } else {
-            return UIColor(hex: "3C3C434A")
+            return UIColor(hex: "007AFF")
+        }
+    }
+
+    public var activeBackground: UIColor {
+        if #available(iOS 13.0, *) {
+            return UIColor(hex: "B3D7FF")
+        } else {
+            return UIColor(hex: "B3D7FF")
+        }
+    }
+
+    public var criticalAction: UIColor {
+        if #available(iOS 13.0, *) {
+            return UIColor.systemRed
+        } else {
+            return UIColor(hex: "FF3B30")
         }
     }
 
