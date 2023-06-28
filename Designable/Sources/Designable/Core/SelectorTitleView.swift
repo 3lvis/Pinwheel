@@ -34,9 +34,8 @@ class SelectorTitleView: UIView {
         }
     }
 
-    private lazy var titleLabel: UILabel = {
-        let label = UILabel(withAutoLayout: true)
-        label.font = UIFont.captionStrong.withSize(12).scaledFont(forTextStyle: .footnote)
+    private lazy var titleLabel: Label = {
+        let label = Label(style: .caption)
         label.adjustsFontForContentSizeCategory = true
         label.textAlignment = .center
         label.text = heading
@@ -46,7 +45,7 @@ class SelectorTitleView: UIView {
 
     private lazy var button: UIButton = {
         let button = UIButton(withAutoLayout: true)
-        button.titleLabel?.font = UIFont.bodyStrong.withSize(17).scaledFont(forTextStyle: .footnote)
+        button.titleLabel?.font = .body
         button.titleLabel?.adjustsFontForContentSizeCategory = true
 
         let spacing: CGFloat = .spacingXXS

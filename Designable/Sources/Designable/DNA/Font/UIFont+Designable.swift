@@ -1,44 +1,32 @@
 import UIKit
 
 public extension UIFont {
-    /// ## Usage:
-    /// - Regular text below titles is called body text
+    class var headline: UIFont {
+        Config.fontProvider.headline
+    }
+
+    class var headlineSemibold: UIFont {
+        Config.fontProvider.headlineSemibold
+    }
+
+    class var headlineBold: UIFont {
+        Config.fontProvider.headlineBold
+    }
+
     class var body: UIFont {
         Config.fontProvider.body
     }
 
-    /// ## Usage:
-    /// - This have the same size as the body text, but is always bolded to differenciate them.
-    class var bodyStrong: UIFont {
-        Config.fontProvider.bodyStrong
+    class var subheadline: UIFont {
+        Config.fontProvider.subheadline
     }
 
-    /// ## Usage:
-    /// - Less important information can be shown as detail text, not for long sentences.
-    /// - This is slightly smaller than body text.
-    class var detail: UIFont {
-        Config.fontProvider.detail
+    class var subheadlineBold: UIFont {
+        Config.fontProvider.subheadlineBold
     }
 
-    /// ## Usage:
-    /// - Used for small, bold headlines.
-    class var detailStrong: UIFont {
-        Config.fontProvider.detailStrong
-    }
-
-    /// ## Usage:
-    /// - Used for short amount of text if neither the Body or Detail is appropriate.
-    /// - This is slightly smaller than body text.
     class var caption: UIFont {
         Config.fontProvider.caption
-    }
-
-    /// ## Usage:
-    /// - Used for short amount of text if neither the Body or Detail is appropriate.
-    /// - Bold version of Caption
-    /// - This is slightly smaller than body text.
-    class var captionStrong: UIFont {
-        Config.fontProvider.captionStrong
     }
 
     func scaledFont(forTextStyle textStyle: UIFont.TextStyle) -> UIFont {

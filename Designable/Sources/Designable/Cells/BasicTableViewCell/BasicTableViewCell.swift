@@ -25,7 +25,7 @@ open class BasicTableViewCell: UITableViewCell {
 
     open lazy var detailLabel: UILabel = {
         let label = UILabel(withAutoLayout: true)
-        label.font = .detail
+        label.font = .subheadline
         label.textColor = .secondaryText
         return label
     }()

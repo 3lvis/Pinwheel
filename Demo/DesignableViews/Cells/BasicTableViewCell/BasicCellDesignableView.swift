@@ -24,7 +24,7 @@ class BasicCellDesignableView: UIView {
         tableView.register(BasicTableViewCell.self)
         tableView.separatorInset = .leadingInset(frame.width)
         tableView.backgroundColor = .primaryBackground
-        tableView.separatorColor = .tertiaryBackground
+        tableView.separatorColor = .secondaryBackground
         return tableView
     }()
 
