@@ -51,7 +51,7 @@ public struct DefaultColorProvider: ColorProvider {
 
     public var activeBackground: UIColor {
         if #available(iOS 13.0, *) {
-            return UIColor(hex: "B3D7FF")
+            return UIColor.systemBlue.withAlphaComponent(0.4)
         } else {
             return UIColor(hex: "B3D7FF")
         }
@@ -67,7 +67,7 @@ public struct DefaultColorProvider: ColorProvider {
 
     public var criticalBackground: UIColor {
         if #available(iOS 13.0, *) {
-            return UIColor.systemRed.withAlphaComponent(0.3)
+            return UIColor.systemRed.withAlphaComponent(0.4)
         } else {
             return UIColor(hex: "FF3B30")
         }
