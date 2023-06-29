@@ -93,7 +93,7 @@ public class BottomSheet: UIViewController {
 
     public let dimView: UIView
 
-    let notch = Notch(withAutoLayout: true)
+    let notch = Notch()
 
     var draggableRect: CGRect? {
         switch draggableArea {
@@ -217,12 +217,17 @@ final class Notch: UIView {
     private let notchSize = CGSize(width: 25, height: 4)
     private let handle: UIView = {
         let view = UIView(withAutoLayout: true)
-        view.backgroundColor = .tertiaryText //DARK
+        view.backgroundColor = .tertiaryText
         view.layer.cornerRadius = 2
         return view
     }()
 
     // MARK: - Init
+    init() {
+        super.init(frame: .zero)
+        translatesAutoresizingMaskIntoConstraints = false
+        setup()
+    }
 
     override init(frame: CGRect) {
         super.init(frame: frame)

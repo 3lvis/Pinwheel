@@ -35,10 +35,9 @@ class FloatingButton: UIButton {
     private var badgeWidthConstraint: NSLayoutConstraint?
 
     // MARK: - Init
-
-    public convenience init(withAutoLayout autoLayout: Bool, style: FloatingButton.Style) {
-        self.init(style: style)
-        translatesAutoresizingMaskIntoConstraints = !autoLayout
+    public convenience init(style: FloatingButton.Style) {
+        self.init(frame: .zero, style: style)
+        translatesAutoresizingMaskIntoConstraints = false
     }
 
     public override convenience init(frame: CGRect) {
@@ -49,10 +48,6 @@ class FloatingButton: UIButton {
         self.style = style
         super.init(frame: frame)
         setup()
-    }
-
-    public convenience init(style: FloatingButton.Style) {
-        self.init(frame: .zero, style: style)
     }
 
     public required init?(coder aDecoder: NSCoder) {

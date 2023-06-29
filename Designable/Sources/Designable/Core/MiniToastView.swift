@@ -3,6 +3,7 @@ import UIKit
 class MiniToastView: UIView {
     lazy var titleLabel: Label = {
         let label = Label(style: .body)
+        label.text = "Example"
         label.textColor = .secondaryText
         label.textAlignment = .center
         return label
@@ -21,7 +22,6 @@ class MiniToastView: UIView {
 
     func show(in view: UIView, text: String) {
         titleLabel.text = text
-
         view.addSubview(self)
         alpha = 0
         transform = CGAffineTransform(scaleX: 0.1, y: 0.1)
@@ -29,6 +29,8 @@ class MiniToastView: UIView {
             self.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -.spacingXL),
             self.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
+
+        titleLabel.text = text
 
         animate()
     }
