@@ -1,11 +1,10 @@
 import UIKit
 
-public class MiniToastView: UIView {
+class MiniToastView: UIView {
     lazy var titleLabel: Label = {
         let label = Label(style: .body)
         label.text = "Example"
         label.textColor = .secondaryText
-        label.translatesAutoresizingMaskIntoConstraints = false
         label.textAlignment = .center
         return label
     }()
@@ -21,7 +20,8 @@ public class MiniToastView: UIView {
 
     required init?(coder aDecoder: NSCoder) { fatalError("") }
 
-    public func show(in view: UIView, text: String) {
+    func show(in view: UIView, text: String) {
+        titleLabel.text = text
         view.addSubview(self)
         alpha = 0
         transform = CGAffineTransform(scaleX: 0.1, y: 0.1)
