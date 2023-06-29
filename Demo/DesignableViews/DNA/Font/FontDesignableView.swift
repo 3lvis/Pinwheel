@@ -1,17 +1,12 @@
 import UIKit
+import Designable
 
 struct FontItem {
     let font: UIFont
     let title: String
 }
 
-public class FontDesignableView: UIView {
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-
-        setup()
-    }
-
+class FontDesignableView: View {
     lazy var tableView: UITableView = {
         let view = UITableView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -32,11 +27,10 @@ public class FontDesignableView: UIView {
         ]
     }()
 
-    public required init?(coder aDecoder: NSCoder) { fatalError() }
-
-    private func setup() {
+    override func setup() {
         addSubview(tableView)
         tableView.dataSource = self
+
         NSLayoutConstraint.activate([
             tableView.leadingAnchor.constraint(equalTo: leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: trailingAnchor),
@@ -49,11 +43,11 @@ public class FontDesignableView: UIView {
 }
 
 extension FontDesignableView: UITableViewDataSource {
-    public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return items.count
     }
 
-    public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeue(UITableViewCell.self, for: indexPath)
         let item = items[indexPath.row]
         cell.textLabel?.text = item.title.capitalized

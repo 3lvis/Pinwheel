@@ -1,15 +1,7 @@
 import UIKit
 import Designable
 
-public class SpacingDesignableView: UIView {
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-
-        setup()
-    }
-
-    public required init?(coder aDecoder: NSCoder) { fatalError() }
-
+class SpacingDesignableView: View {
     func makeLabel(text: String) -> Label {
         let label = Label(style: .body)
         label.text = text
@@ -20,7 +12,7 @@ public class SpacingDesignableView: UIView {
         return label
     }
 
-    private func setup() {
+    override func setup() {
         let spacingXXSView = makeLabel(text: "👈        spacingXXS        👉")
         addSubview(spacingXXSView)
 

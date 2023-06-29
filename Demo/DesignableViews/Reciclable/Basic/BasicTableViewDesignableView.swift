@@ -1,15 +1,6 @@
 import Designable
 
-class BasicTableViewDesignableView: UIView {
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setup()
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
+class BasicTableViewDesignableView: View {
     lazy var basicTableView: BasicTableView = {
         let view = BasicTableView(items: items)
         view.delegate = self
@@ -32,7 +23,7 @@ class BasicTableViewDesignableView: UIView {
         return items
     }()
 
-    func setup() {
+    override func setup() {
         addSubview(basicTableView)
         basicTableView.fillInSuperview()
     }

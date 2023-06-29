@@ -7,7 +7,7 @@ private struct ViewModel: BasicTableViewCellViewModel {
     var hasChevron: Bool
 }
 
-class BasicCellVariationsDesignableView: UIView {
+class BasicCellVariationsDesignableView: View {
     private let viewModels = [
         ViewModel(title: "Hagemøbler", subtitle: nil, detailText: nil, hasChevron: false),
         ViewModel(title: "Kattepuser", subtitle: "Fin-fine kattunger", detailText: nil, hasChevron: true),
@@ -29,18 +29,9 @@ class BasicCellVariationsDesignableView: UIView {
         return tableView
     }()
 
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setup()
-    }
-
-    private func setup() {
+    override func setup() {
         addSubview(tableView)
         tableView.fillInSuperview()
-    }
-
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
     }
 }
 

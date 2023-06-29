@@ -6,13 +6,7 @@ struct ColorItem {
     let title: String
 }
 
-public class ColorDesignableView: UIView {
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-
-        setup()
-    }
-
+class ColorDesignableView: View {
     lazy var tableView: UITableView = {
         let view = UITableView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -41,9 +35,7 @@ public class ColorDesignableView: UIView {
         ]
     }()
 
-    public required init?(coder aDecoder: NSCoder) { fatalError() }
-
-    private func setup() {
+    override func setup() {
         addSubview(tableView)
         tableView.dataSource = self
         NSLayoutConstraint.activate([
