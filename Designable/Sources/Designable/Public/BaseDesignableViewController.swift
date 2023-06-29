@@ -46,7 +46,6 @@ public class BaseDesignableViewController<View: UIView>: UIViewController, Conta
     private lazy var miniToastView: MiniToastView = {
         let view = MiniToastView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.titleLabel.text = "Double tap to dismiss"
         return view
     }()
 
@@ -130,7 +129,7 @@ public class BaseDesignableViewController<View: UIView>: UIViewController, Conta
         super.viewDidAppear(animated)
 
         if State.shouldShowDismissInstructions {
-            miniToastView.show(in: view)
+            miniToastView.show(in: view, text: "Double tap to dismiss")
             State.shouldShowDismissInstructions = false
         }
     }
