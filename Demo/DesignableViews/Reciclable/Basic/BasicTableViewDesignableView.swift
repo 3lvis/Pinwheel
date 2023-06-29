@@ -1,6 +1,22 @@
 import Designable
 
-public class BasicTableViewDesignableView: UIView {
+class BasicTableViewDesignableView: UIView {
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setup()
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    lazy var basicTableView: BasicTableView = {
+        let view = BasicTableView(items: items)
+        view.delegate = self
+        return view
+    }()
+
+
     lazy var items: [BasicTableViewItem] = {
         var items = [BasicTableViewItem]()
         items.append(BasicTableViewItem(title: "Uno"))
@@ -16,22 +32,13 @@ public class BasicTableViewDesignableView: UIView {
         return items
     }()
 
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-
-        setup()
-    }
-
-    public required init?(coder aDecoder: NSCoder) { fatalError() }
-
-    private func setup() {
-        let view = BasicTableView(items: items)
-        view.delegate = self
-        addSubview(view)
-        view.fillInSuperview()
+    func setup() {
+        addSubview(basicTableView)
+        basicTableView.fillInSuperview()
     }
 }
 
 extension BasicTableViewDesignableView: BasicTableViewDelegate {
-    public func basicTableView(_ basicTableView: BasicTableView, didSelectItemAtIndex index: Int) {}
+    func basicTableView(_ basicTableView: BasicTableView, didSelectItemAtIndex index: Int) {
+    }
 }

@@ -2,7 +2,7 @@ import UIKit
 
 public extension UIView {
     convenience init(withAutoLayout autoLayout: Bool) {
-        self.init()
+        self.init(frame: .zero)
         translatesAutoresizingMaskIntoConstraints = !autoLayout
     }
 

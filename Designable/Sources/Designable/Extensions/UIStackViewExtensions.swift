@@ -5,10 +5,12 @@ public extension UIStackView {
         axis: NSLayoutConstraint.Axis,
         spacing: CGFloat? = nil,
         alignment: UIStackView.Alignment? = nil,
-        distribution: UIStackView.Distribution? = nil,
-        withAutoLayout: Bool = false
+        distribution: UIStackView.Distribution? = nil
     ) {
-        self.init(withAutoLayout: withAutoLayout)
+        self.init()
+
+        self.translatesAutoresizingMaskIntoConstraints = false
+
         self.axis = axis
 
         if let spacing = spacing {
