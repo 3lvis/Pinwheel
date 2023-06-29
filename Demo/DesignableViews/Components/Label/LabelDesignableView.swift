@@ -35,6 +35,6 @@ class LabelDesignableView: View {
         ])
 
         addSubview(stackView)
-        stackView.anchorInTopSafeArea(margin: .spacingM)
+        stackView.anchorToTopSafeArea(margin: .spacingM)
     }
 }
