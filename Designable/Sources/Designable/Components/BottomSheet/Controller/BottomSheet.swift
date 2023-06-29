@@ -143,6 +143,7 @@ public class BottomSheet: UIViewController {
         let rootViewController = UIViewController()
         rootViewController.view.backgroundColor = .primaryBackground
         rootViewController.view.addSubview(view)
+        view.translatesAutoresizingMaskIntoConstraints = false
         view.fillInSuperview()
 
         self.init(rootViewController: rootViewController, height: height, draggableArea: draggableArea)

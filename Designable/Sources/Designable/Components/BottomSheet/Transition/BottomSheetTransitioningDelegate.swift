@@ -12,6 +12,7 @@ class BottomSheetTransitioningDelegate: NSObject, UIViewControllerTransitioningD
         let view = UIView(frame: .zero)
         view.backgroundColor = UIColor.black.withAlphaComponent(0.4)
         view.alpha = 0
+        view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
 
