@@ -1,6 +1,12 @@
 import UIKit
 
 open class View: UIView {
+    public init() {
+        super.init(frame: .zero)
+        baseSetup()
+        setup()
+    }
+
     public override init(frame: CGRect) {
         super.init(frame: frame)
         baseSetup()
