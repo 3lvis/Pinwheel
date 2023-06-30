@@ -15,6 +15,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             DesignableSection(title: "Components", items: [
                 DesignableItem(title: "BottomSheet", viewController: BottomSheetDesignableViewController()),
                 DesignableItem(title: "Label", viewController: DesignableViewController<LabelDesignableView>()),
+                DesignableItem(title: "Tweakable", viewController: DesignableViewController<TweakableDesignableView>()),
             ]),
             DesignableSection(title: "Cells", items: [
                 DesignableItem(title: "Basic", viewController: DesignableViewController<BasicCellDesignableView>()),

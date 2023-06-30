@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		2847DF4C2A48903E009A6B8E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2847DF4B2A48903E009A6B8E /* AppDelegate.swift */; };
 		2847DF552A48903F009A6B8E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2847DF542A48903F009A6B8E /* Assets.xcassets */; };
+		286CF2C22A4F86A4008D3B26 /* TweakableDesignableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 286CF2C12A4F86A4008D3B26 /* TweakableDesignableView.swift */; };
 		2893C64C2A48908700039B8A /* Designable in Frameworks */ = {isa = PBXBuildFile; productRef = 2893C64B2A48908700039B8A /* Designable */; };
 		28AAFA612A49F3E900E1CA35 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28AAFA602A49F3E900E1CA35 /* Config.swift */; };
 		28F459392A49860400504BF6 /* ColorDesignableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459332A49860400504BF6 /* ColorDesignableView.swift */; };
@@ -26,6 +27,7 @@
 		2847DF4B2A48903E009A6B8E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2847DF542A48903F009A6B8E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2847DF592A48903F009A6B8E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		286CF2C12A4F86A4008D3B26 /* TweakableDesignableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TweakableDesignableView.swift; sourceTree = "<group>"; };
 		2893C6492A48908000039B8A /* Designable */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Designable; sourceTree = "<group>"; };
 		28AAFA602A49F3E900E1CA35 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		28F459332A49860400504BF6 /* ColorDesignableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorDesignableView.swift; sourceTree = "<group>"; };
@@ -80,6 +82,14 @@
 			path = Demo;
 			sourceTree = "<group>";
 		};
+		286CF2C02A4F8699008D3B26 /* Tweakable */ = {
+			isa = PBXGroup;
+			children = (
+				286CF2C12A4F86A4008D3B26 /* TweakableDesignableView.swift */,
+			);
+			path = Tweakable;
+			sourceTree = "<group>";
+		};
 		2893C64A2A48908700039B8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -101,6 +111,7 @@
 		28F4592F2A49860400504BF6 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				286CF2C02A4F8699008D3B26 /* Tweakable */,
 				28F459482A498B6B00504BF6 /* Label */,
 				28F459452A49882C00504BF6 /* BottomSheet */,
 			);
@@ -264,6 +275,7 @@
 			files = (
 				28F459532A498CFF00504BF6 /* BasicTableViewDesignableView.swift in Sources */,
 				28F459412A49867100504BF6 /* BasicCellVariationsDesignableView.swift in Sources */,
+				286CF2C22A4F86A4008D3B26 /* TweakableDesignableView.swift in Sources */,
 				28F4594A2A498B6B00504BF6 /* LabelDesignableView.swift in Sources */,
 				28F4593A2A49860400504BF6 /* SpacingDesignableView.swift in Sources */,
 				28AAFA612A49F3E900E1CA35 /* Config.swift in Sources */,
