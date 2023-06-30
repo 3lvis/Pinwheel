@@ -83,16 +83,16 @@ extension FloatingButton.Style {
         FloatingButton.Style(
             tintColor: .primaryAction,
             titleColor: .tertiaryText,
-            primaryBackgroundColor: .primaryBackground,
-            highlightedBackgroundColor: .secondaryBackground,
+            primaryBackgroundColor: .secondaryBackground,
+            highlightedBackgroundColor: .tertiaryText,
             borderWidth: 0,
             borderColor: nil,
             badgeBackgroundColor: .primaryAction,
             badgeTextColor: .primaryText,
             badgeSize: 30,
-            shadowColor: .black.withAlphaComponent(0.6),
-            shadowOffset: CGSize(width: 0, height: 5),
-            shadowRadius: 8
+            shadowColor: .black.withAlphaComponent(0.2),
+            shadowOffset: CGSize(width: 0, height: 6),
+            shadowRadius: 6
         )
     }
 }
