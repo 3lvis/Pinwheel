@@ -7,7 +7,7 @@ protocol CornerAnchoringViewDelegate: AnyObject {
 class CornerAnchoringView: UIView {
     weak var delegate: CornerAnchoringViewDelegate?
 
-    private lazy var anchoredView: FloatingButton = {
+    private lazy var settingsButton: FloatingButton = {
         let button = FloatingButton(withAutoLayout: true)
         if #available(iOS 13.0, *) {
             let config = UIImage.SymbolConfiguration(textStyle: .title2)
@@ -28,7 +28,7 @@ class CornerAnchoringView: UIView {
 
     public var itemsCount: Int = 0 {
         didSet {
-            anchoredView.itemsCount = itemsCount
+            settingsButton.itemsCount = itemsCount
         }
     }
 
@@ -55,7 +55,7 @@ class CornerAnchoringView: UIView {
         let bottomRightView = addAnchorAreaView()
         bottomRightView.accessibilityIdentifier = "CornerAnchoringView-bottomRightView"
 
-        addSubview(anchoredView)
+        addSubview(settingsButton)
 
         let buttonSize = CGFloat.spacingXXL
         let halfButtonSize = buttonSize / 2.0
@@ -73,21 +73,21 @@ class CornerAnchoringView: UIView {
             bottomRightView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingM - halfButtonSize),
             bottomRightView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -.spacingM - halfButtonSize),
 
-            anchoredView.widthAnchor.constraint(equalToConstant: buttonSize),
-            anchoredView.heightAnchor.constraint(equalToConstant: buttonSize)
+            settingsButton.widthAnchor.constraint(equalToConstant: buttonSize),
+            settingsButton.heightAnchor.constraint(equalToConstant: buttonSize)
         ])
 
         panRecognizer.addTarget(self, action: #selector(anchoredViewPanned(recognizer:)))
-        anchoredView.addGestureRecognizer(panRecognizer)
+        settingsButton.addGestureRecognizer(panRecognizer)
     }
 
     override func layoutSubviews() {
         super.layoutSubviews()
 
         if let index = State.lastCornerForTweakingButton {
-            anchoredView.center = anchorPositions[index]
+            settingsButton.center = anchorPositions[index]
         } else {
-            anchoredView.center = anchorPositions.last ?? .zero
+            settingsButton.center = anchorPositions.last ?? .zero
         }
     }
 
@@ -107,26 +107,26 @@ class CornerAnchoringView: UIView {
         let touchPoint = recognizer.location(in: self)
         switch recognizer.state {
         case .began:
-            initialOffset = CGPoint(x: touchPoint.x - anchoredView.center.x, y: touchPoint.y - anchoredView.center.y)
+            initialOffset = CGPoint(x: touchPoint.x - settingsButton.center.x, y: touchPoint.y - settingsButton.center.y)
         case .changed:
-            anchoredView.center = CGPoint(x: touchPoint.x - initialOffset.x, y: touchPoint.y - initialOffset.y)
+            settingsButton.center = CGPoint(x: touchPoint.x - initialOffset.x, y: touchPoint.y - initialOffset.y)
         case .ended, .cancelled:
             let decelerationRate = UIScrollView.DecelerationRate.normal.rawValue
             let velocity = recognizer.velocity(in: self)
             let projectedPosition = CGPoint(
-                x: anchoredView.center.x + project(initialVelocity: velocity.x, decelerationRate: decelerationRate),
-                y: anchoredView.center.y + project(initialVelocity: velocity.y, decelerationRate: decelerationRate)
+                x: settingsButton.center.x + project(initialVelocity: velocity.x, decelerationRate: decelerationRate),
+                y: settingsButton.center.y + project(initialVelocity: velocity.y, decelerationRate: decelerationRate)
             )
             let (index, nearestCornerPosition) = nearestCorner(to: projectedPosition)
             let relativeInitialVelocity = CGVector(
-                dx: relativeVelocity(forVelocity: velocity.x, from: anchoredView.center.x, to: nearestCornerPosition.x),
-                dy: relativeVelocity(forVelocity: velocity.y, from: anchoredView.center.y, to: nearestCornerPosition.y)
+                dx: relativeVelocity(forVelocity: velocity.x, from: settingsButton.center.x, to: nearestCornerPosition.x),
+                dy: relativeVelocity(forVelocity: velocity.y, from: settingsButton.center.y, to: nearestCornerPosition.y)
             )
             State.lastCornerForTweakingButton = index
             let timingParameters = UISpringTimingParameters(damping: 1, response: 0.4, initialVelocity: relativeInitialVelocity)
             let animator = UIViewPropertyAnimator(duration: 0, timingParameters: timingParameters)
             animator.addAnimations {
-                self.anchoredView.center = nearestCornerPosition
+                self.settingsButton.center = nearestCornerPosition
             }
             animator.startAnimation()
         default: break
