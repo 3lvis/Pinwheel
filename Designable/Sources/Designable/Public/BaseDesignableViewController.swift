@@ -107,15 +107,7 @@ public class BaseDesignableViewController<View: UIView>: UIViewController, Conta
 
         switch dismissType {
         case .dismissButton:
-            let button = UIButton(type: .system)
-            button.setTitle("Dismiss", for: .normal)
-            button.addTarget(self, action: #selector(didDoubleTap), for: .touchUpInside)
-            button.translatesAutoresizingMaskIntoConstraints = false
-            view.addSubview(button)
-            NSLayoutConstraint.activate([
-                button.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-                button.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -.spacingXXL)
-            ])
+            break
         case .doubleTap:
             let doubleTap = UITapGestureRecognizer(target: self, action: #selector(didDoubleTap))
             doubleTap.numberOfTapsRequired = 2

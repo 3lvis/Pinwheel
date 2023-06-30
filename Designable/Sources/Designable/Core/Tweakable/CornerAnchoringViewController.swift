@@ -2,10 +2,22 @@ import UIKit
 
 protocol CornerAnchoringViewDelegate: AnyObject {
     func cornerAnchoringViewDidSelectTweakButton(_ cornerAnchoringView: CornerAnchoringView)
+    func cornerAnchoringViewDidSelectCloseButton(_ cornerAnchoringView: CornerAnchoringView)
 }
 
 class CornerAnchoringView: UIView {
     weak var delegate: CornerAnchoringViewDelegate?
+
+    private lazy var closeButton: FloatingButton = {
+        let button = FloatingButton(withAutoLayout: true)
+        if #available(iOS 13.0, *) {
+            let config = UIImage.SymbolConfiguration(textStyle: .title2)
+            let image = UIImage(systemName: "xmark", withConfiguration: config)!
+            button.setImage(image.withRenderingMode(.alwaysTemplate), for: .normal)
+        }
+        button.addTarget(self, action: #selector(closeButtonAction), for: .touchUpInside)
+        return button
+    }()
 
     private lazy var settingsButton: FloatingButton = {
         let button = FloatingButton(withAutoLayout: true)
@@ -16,6 +28,43 @@ class CornerAnchoringView: UIView {
         }
         button.addTarget(self, action: #selector(tweakButtonAction), for: .touchUpInside)
         return button
+    }()
+
+    private lazy var buttonsView: UIView = {
+        let views = UIView()
+        views.translatesAutoresizingMaskIntoConstraints = false
+        if showCloseButton {
+            views.addSubview(closeButton)
+        }
+        views.addSubview(settingsButton)
+
+        let buttonSize = CGFloat.spacingXXL
+        let halfButtonSize = buttonSize / 2.0
+
+        NSLayoutConstraint.activate([
+            settingsButton.leadingAnchor.constraint(equalTo: views.leadingAnchor),
+            settingsButton.trailingAnchor.constraint(equalTo: views.trailingAnchor),
+            settingsButton.topAnchor.constraint(equalTo: views.topAnchor),
+            settingsButton.widthAnchor.constraint(equalToConstant: buttonSize),
+            settingsButton.heightAnchor.constraint(equalToConstant: buttonSize),
+        ])
+
+        if showCloseButton {
+            NSLayoutConstraint.activate([
+                settingsButton.bottomAnchor.constraint(equalTo: closeButton.topAnchor, constant: -.spacingS),
+                closeButton.leadingAnchor.constraint(equalTo: views.leadingAnchor),
+                closeButton.trailingAnchor.constraint(equalTo: views.trailingAnchor),
+                closeButton.widthAnchor.constraint(equalToConstant: buttonSize),
+                closeButton.heightAnchor.constraint(equalToConstant: buttonSize),
+                closeButton.bottomAnchor.constraint(equalTo: views.bottomAnchor)
+            ])
+        } else {
+            NSLayoutConstraint.activate([
+                settingsButton.bottomAnchor.constraint(equalTo: views.bottomAnchor)
+            ])
+        }
+
+        return views
     }()
 
     private var anchorAreaViews = [UIView]()
@@ -30,6 +79,14 @@ class CornerAnchoringView: UIView {
         didSet {
             settingsButton.itemsCount = itemsCount
         }
+    }
+
+    var showCloseButton = false
+    init(showCloseButton: Bool) {
+        super.init(frame: .zero)
+        self.showCloseButton = showCloseButton
+        translatesAutoresizingMaskIntoConstraints = false
+        setup()
     }
 
     override init(frame: CGRect) {
@@ -55,39 +112,36 @@ class CornerAnchoringView: UIView {
         let bottomRightView = addAnchorAreaView()
         bottomRightView.accessibilityIdentifier = "CornerAnchoringView-bottomRightView"
 
-        addSubview(settingsButton)
+        addSubview(buttonsView)
 
-        let buttonSize = CGFloat.spacingXXL
-        let halfButtonSize = buttonSize / 2.0
+        let buttonHeight = showCloseButton ? CGFloat.spacingXXL * 2 + .spacingS : CGFloat.spacingXXL
+        let buttonWidth = CGFloat.spacingXXL
 
         NSLayoutConstraint.activate([
-            topLeftView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingM + halfButtonSize),
-            topLeftView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: .spacingM + halfButtonSize),
+            topLeftView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingM + buttonWidth / 2),
+            topLeftView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: .spacingM + buttonHeight / 2),
 
-            topRightView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingM - halfButtonSize),
-            topRightView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: .spacingM + halfButtonSize),
+            topRightView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingM - buttonWidth / 2),
+            topRightView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: .spacingM + buttonHeight / 2),
 
-            bottomLeftView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingM + halfButtonSize),
-            bottomLeftView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -.spacingM - halfButtonSize),
+            bottomLeftView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingM + buttonWidth / 2),
+            bottomLeftView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -.spacingM - buttonHeight / 2),
 
-            bottomRightView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingM - halfButtonSize),
-            bottomRightView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -.spacingM - halfButtonSize),
-
-            settingsButton.widthAnchor.constraint(equalToConstant: buttonSize),
-            settingsButton.heightAnchor.constraint(equalToConstant: buttonSize)
+            bottomRightView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingM - buttonWidth / 2),
+            bottomRightView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -.spacingM - buttonHeight / 2),
         ])
 
         panRecognizer.addTarget(self, action: #selector(anchoredViewPanned(recognizer:)))
-        settingsButton.addGestureRecognizer(panRecognizer)
+        buttonsView.addGestureRecognizer(panRecognizer)
     }
 
     override func layoutSubviews() {
         super.layoutSubviews()
 
         if let index = State.lastCornerForTweakingButton {
-            settingsButton.center = anchorPositions[index]
+            buttonsView.center = anchorPositions[index]
         } else {
-            settingsButton.center = anchorPositions.last ?? .zero
+            buttonsView.center = anchorPositions.last ?? .zero
         }
     }
 
@@ -107,26 +161,26 @@ class CornerAnchoringView: UIView {
         let touchPoint = recognizer.location(in: self)
         switch recognizer.state {
         case .began:
-            initialOffset = CGPoint(x: touchPoint.x - settingsButton.center.x, y: touchPoint.y - settingsButton.center.y)
+            initialOffset = CGPoint(x: touchPoint.x - buttonsView.center.x, y: touchPoint.y - buttonsView.center.y)
         case .changed:
-            settingsButton.center = CGPoint(x: touchPoint.x - initialOffset.x, y: touchPoint.y - initialOffset.y)
+            buttonsView.center = CGPoint(x: touchPoint.x - initialOffset.x, y: touchPoint.y - initialOffset.y)
         case .ended, .cancelled:
             let decelerationRate = UIScrollView.DecelerationRate.normal.rawValue
             let velocity = recognizer.velocity(in: self)
             let projectedPosition = CGPoint(
-                x: settingsButton.center.x + project(initialVelocity: velocity.x, decelerationRate: decelerationRate),
-                y: settingsButton.center.y + project(initialVelocity: velocity.y, decelerationRate: decelerationRate)
+                x: buttonsView.center.x + project(initialVelocity: velocity.x, decelerationRate: decelerationRate),
+                y: buttonsView.center.y + project(initialVelocity: velocity.y, decelerationRate: decelerationRate)
             )
             let (index, nearestCornerPosition) = nearestCorner(to: projectedPosition)
             let relativeInitialVelocity = CGVector(
-                dx: relativeVelocity(forVelocity: velocity.x, from: settingsButton.center.x, to: nearestCornerPosition.x),
-                dy: relativeVelocity(forVelocity: velocity.y, from: settingsButton.center.y, to: nearestCornerPosition.y)
+                dx: relativeVelocity(forVelocity: velocity.x, from: buttonsView.center.x, to: nearestCornerPosition.x),
+                dy: relativeVelocity(forVelocity: velocity.y, from: buttonsView.center.y, to: nearestCornerPosition.y)
             )
             State.lastCornerForTweakingButton = index
             let timingParameters = UISpringTimingParameters(damping: 1, response: 0.4, initialVelocity: relativeInitialVelocity)
             let animator = UIViewPropertyAnimator(duration: 0, timingParameters: timingParameters)
             animator.addAnimations {
-                self.settingsButton.center = nearestCornerPosition
+                self.buttonsView.center = nearestCornerPosition
             }
             animator.startAnimation()
         default: break
@@ -169,6 +223,10 @@ class CornerAnchoringView: UIView {
 
     @objc private func tweakButtonAction() {
         delegate?.cornerAnchoringViewDidSelectTweakButton(self)
+    }
+
+    @objc private func closeButtonAction() {
+        delegate?.cornerAnchoringViewDidSelectCloseButton(self)
     }
 }
 

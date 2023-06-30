@@ -62,7 +62,7 @@ public class DesignableViewController<View: UIView>: UIViewController, Containab
 
         let tweakablePlaygroundView = (childViewController?.playgroundView as? Tweakable) ?? (self as? Tweakable)
         let options = tweakablePlaygroundView?.tweakingOptions ?? [TweakingOption]()
-        let overlayView = CornerAnchoringView(withAutoLayout: true)
+        let overlayView = CornerAnchoringView(showCloseButton: dismissType == .dismissButton)
         overlayView.itemsCount = options.count
         overlayView.delegate = self
         view.addSubview(overlayView)
@@ -82,6 +82,11 @@ extension DesignableViewController: CornerAnchoringViewDelegate {
         if let controller = bottomSheet {
             present(controller, animated: true)
         }
+    }
+
+    func cornerAnchoringViewDidSelectCloseButton(_ cornerAnchoringView: CornerAnchoringView) {
+        State.lastSelectedIndexPath = nil
+        dismiss(animated: true, completion: nil)
     }
 }
 
