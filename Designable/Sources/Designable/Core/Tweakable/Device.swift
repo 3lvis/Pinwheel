@@ -2,8 +2,6 @@ import UIKit
 
 struct Device {
     public enum Kind: String {
-        case phone4inch = "iPhone 5S (4-inch)"
-
         case phone4_7inch = "iPhone 8 (4.7-inch)"
 
         case phone5_1inch = "iPhone 12 mini (5.1-inch)"
@@ -41,7 +39,7 @@ struct Device {
 
     var isEnabled: Bool {
         switch kind {
-        case .phone4inch, .phone4_7inch, .phone5_1inch, .phone5_5inch, .phone5_8inch, .phone6_1inch, .phone6_7inch:
+        case .phone4_7inch, .phone5_1inch, .phone5_5inch, .phone5_8inch, .phone6_1inch, .phone6_7inch:
             let currentSize = UIScreen.main.bounds.size
             return frame.width <= currentSize.width && frame.height <= currentSize.height
         case .padLandscapeOneThird, .padLandscapeOneHalf, .padPortraitOneThird, .padPortraitTwoThirds, .padPortraitFull, .padLandscapeFull, .padLandscapeTwoThirds:
@@ -57,8 +55,6 @@ struct Device {
         let autoresizingMask: UIView.AutoresizingMask
 
         switch kind {
-        case .phone4inch:
-            size = .init(width: 320, height: 568)
         case .phone4_7inch:
             size = .init(width: 375, height: 667)
         case .phone5_1inch:
@@ -91,7 +87,7 @@ struct Device {
         let y: CGFloat = (UIScreen.main.bounds.height - size.height) / 2
 
         switch kind {
-        case .phone4inch, .phone4_7inch, .phone5_1inch, .phone5_5inch, .phone5_8inch, .phone6_1inch, .phone6_7inch:
+        case .phone4_7inch, .phone5_1inch, .phone5_5inch, .phone5_8inch, .phone6_1inch, .phone6_7inch:
             horizontalSizeClass = .compact
             userInterfaceIdiom = .phone
             autoresizingMask = [.flexibleRightMargin, .flexibleLeftMargin, .flexibleTopMargin, .flexibleBottomMargin]
@@ -121,7 +117,6 @@ struct Device {
 
     public static var all: [Device] {
         var devices: [Device] = [
-            Device(kind: .phone4inch),
             Device(kind: .phone4_7inch),
             Device(kind: .phone5_1inch),
             Device(kind: .phone5_5inch),
