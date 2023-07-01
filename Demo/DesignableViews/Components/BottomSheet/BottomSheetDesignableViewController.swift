@@ -110,6 +110,7 @@ class BottomSheetDesignableViewController: UIViewController {
         let label = UILabel(withAutoLayout: true)
         label.font = .body
         label.text = "Require confirmation before dismissed"
+        label.numberOfLines = 0
         return label
     }()
 
@@ -151,42 +152,36 @@ class BottomSheetDesignableViewController: UIViewController {
         return button
     }()
 
+    private lazy var presentTableViewButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Present - table view", for: .normal)
+        button.addTarget(self, action: #selector(presentTableView), for: .touchUpInside)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
     private var bottomSheet: BottomSheet?
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .primaryBackground
-        view.addSubview(switchLabel)
-        view.addSubview(requireConfirmationOnDragSwitch)
-        view.addSubview(presentAllDraggableButton)
-        view.addSubview(presentNavBarDraggableButton)
-        view.addSubview(presentTopAreaDraggableButton)
-        view.addSubview(presentCustomDraggableButton)
 
-        NSLayoutConstraint.activate([
-            switchLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: .spacingXL),
-            switchLabel.bottomAnchor.constraint(equalTo: presentAllDraggableButton.topAnchor, constant: -.spacingXXL),
-            switchLabel.trailingAnchor.constraint(equalTo: requireConfirmationOnDragSwitch.leadingAnchor, constant: .spacingXL),
-
-            requireConfirmationOnDragSwitch.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -.spacingXL),
-            requireConfirmationOnDragSwitch.bottomAnchor.constraint(equalTo: presentAllDraggableButton.topAnchor, constant: -.spacingXXL),
-
-            presentAllDraggableButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: .spacingXL),
-            presentAllDraggableButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -.spacingXL),
-            presentAllDraggableButton.bottomAnchor.constraint(equalTo: presentNavBarDraggableButton.topAnchor, constant: -.spacingXL),
-
-            presentNavBarDraggableButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: .spacingXL),
-            presentNavBarDraggableButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -.spacingXL),
-            presentNavBarDraggableButton.bottomAnchor.constraint(equalTo: presentTopAreaDraggableButton.topAnchor, constant: -.spacingXL),
-
-            presentTopAreaDraggableButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: .spacingXL),
-            presentTopAreaDraggableButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -.spacingXL),
-            presentTopAreaDraggableButton.bottomAnchor.constraint(equalTo: presentCustomDraggableButton.topAnchor, constant: -.spacingXL),
-
-            presentCustomDraggableButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: .spacingXL),
-            presentCustomDraggableButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -.spacingXL),
-            presentCustomDraggableButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -.spacingXL)
+        let stackView = UIStackView(axis: .vertical, spacing: .spacingM, alignment: .center)
+        let firstRow = UIStackView(axis: .horizontal, spacing: .spacingS, distribution: .equalCentering)
+        firstRow.addArrangedSubviews([
+            switchLabel,
+            requireConfirmationOnDragSwitch
         ])
+        stackView.addArrangedSubviews([
+            firstRow,
+            presentAllDraggableButton,
+            presentNavBarDraggableButton,
+            presentTopAreaDraggableButton,
+            presentCustomDraggableButton,
+            presentTableViewButton
+        ])
+        view.addSubview(stackView)
+        stackView.anchorToBottomSafeArea(margin: .spacingM)
 
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap))
         tapGesture.numberOfTapsRequired = 2
@@ -241,6 +236,14 @@ class BottomSheetDesignableViewController: UIViewController {
         let rootController = RootViewController(showDraggableLabel: true)
         rootController.delegate = self
         let bottomSheet = BottomSheet(rootViewController: rootController, draggableArea: .customRect(rootController.draggableLabelFrame))
+        bottomSheet.delegate = self
+        present(bottomSheet, animated: true)
+        self.bottomSheet = bottomSheet
+    }
+
+    @objc private func presentTableView() {
+        let rootController = DesignableViewController<BasicTableViewDesignableView>()
+        let bottomSheet = BottomSheet(rootViewController: rootController, draggableArea: .everything)
         bottomSheet.delegate = self
         present(bottomSheet, animated: true)
         self.bottomSheet = bottomSheet

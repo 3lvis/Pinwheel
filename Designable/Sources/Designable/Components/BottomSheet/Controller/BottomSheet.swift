@@ -242,6 +242,7 @@ final class Notch: UIView {
     // MARK: - Setup
 
     private func setup() {
+        backgroundColor = .primaryBackground
         addSubview(handle)
 
         NSLayoutConstraint.activate([
