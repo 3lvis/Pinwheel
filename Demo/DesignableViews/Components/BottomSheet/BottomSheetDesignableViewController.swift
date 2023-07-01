@@ -242,8 +242,10 @@ class BottomSheetDesignableViewController: UIViewController {
     }
 
     @objc private func presentTableView() {
+        let screenSize = UIScreen.main.bounds.size.height - 64
+        let height = BottomSheet.Height(compact: 313, expanded: screenSize)
         let rootController = DesignableViewController<BasicTableViewDesignableView>()
-        let bottomSheet = BottomSheet(rootViewController: rootController, draggableArea: .everything)
+        let bottomSheet = BottomSheet(rootViewController: rootController, height: height, draggableArea: .everything)
         bottomSheet.delegate = self
         present(bottomSheet, animated: true)
         self.bottomSheet = bottomSheet
