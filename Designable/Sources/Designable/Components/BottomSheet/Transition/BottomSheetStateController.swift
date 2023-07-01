@@ -3,8 +3,8 @@ import UIKit
 class BottomSheetStateController {
 
     var frame: CGRect = .zero
-    var state: BottomSheet.State
-    var height: BottomSheet.Height
+    var state: BottomSheetState
+    var height: BottomSheetHeight
 
     var targetPosition: CGPoint {
         return targetPosition(for: state)
@@ -21,7 +21,7 @@ class BottomSheetStateController {
     private let threshold: CGFloat = 75
     private var isExpandedByDefault = false
 
-    init(height: BottomSheet.Height) {
+    init(height: BottomSheetHeight) {
         self.height = height
         self.isExpandedByDefault = height.compact == height.expanded
         self.state = isExpandedByDefault ? .expanded : .compact
@@ -33,7 +33,7 @@ class BottomSheetStateController {
 }
 
 private extension BottomSheetStateController {
-    func nextState(forTranslation translation: CGPoint, withCurrent current: BottomSheet.State, usingThreshold threshold: CGFloat) -> BottomSheet.State {
+    func nextState(forTranslation translation: CGPoint, withCurrent current: BottomSheetState, usingThreshold threshold: CGFloat) -> BottomSheetState {
         switch current {
         case .compact:
             if translation.y < -threshold {
@@ -53,7 +53,7 @@ private extension BottomSheetStateController {
         return current
     }
 
-    func targetPosition(for state: BottomSheet.State) -> CGPoint {
+    func targetPosition(for state: BottomSheetState) -> CGPoint {
         switch state {
         case .compact:
             return compactPosition

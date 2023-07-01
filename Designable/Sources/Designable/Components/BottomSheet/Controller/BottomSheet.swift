@@ -11,66 +11,64 @@ public protocol BottomSheetDelegate: AnyObject {
     /// from happening.
     func bottomSheetDidCancelDismiss(_ bottomSheet: BottomSheet)
 
-    func bottomSheet(_ bottomSheet: BottomSheet, willDismissBy action: BottomSheet.DismissAction)
-    func bottomSheet(_ bottomSheet: BottomSheet, didDismissBy action: BottomSheet.DismissAction)
+    func bottomSheet(_ bottomSheet: BottomSheet, willDismissBy action: BottomSheetDismissAction)
+    func bottomSheet(_ bottomSheet: BottomSheet, didDismissBy action: BottomSheetDismissAction)
 }
 
 public protocol BottomSheetDragDelegate: AnyObject {
     func bottomSheetDidBeginDrag(_ bottomSheet: BottomSheet)
 }
 
-extension BottomSheet {
-    public struct Height: Equatable {
-        public let compact: CGFloat
-        public let expanded: CGFloat
+public struct BottomSheetHeight: Equatable {
+    public let compact: CGFloat
+    public let expanded: CGFloat
 
-        public static var defaultFilterHeight: Height {
-            let screenSize = UIScreen.main.bounds.size
-            if screenSize.height <= 568 {
-                return Height(compact: 510, expanded: 510)
-            }
-            if screenSize.height >= 812 {
-                return Height(compact: 570, expanded: screenSize.height - 64)
-            }
-            return Height(compact: 510, expanded: screenSize.height - 64)
+    public static var defaultFilterHeight: BottomSheetHeight {
+        let screenSize = UIScreen.main.bounds.size
+        if screenSize.height <= 568 {
+            return BottomSheetHeight(compact: 510, expanded: 510)
         }
-
-        public static let zero = Height(compact: 0, expanded: 0)
-
-        public init(compact: CGFloat, expanded: CGFloat) {
-            self.compact = compact
-            self.expanded = expanded
+        if screenSize.height >= 812 {
+            return BottomSheetHeight(compact: 570, expanded: screenSize.height - 64)
         }
+        return BottomSheetHeight(compact: 510, expanded: screenSize.height - 64)
     }
 
-    public enum State {
-        case expanded
-        case compact
-        case dismissed
-    }
+    public static let zero = BottomSheetHeight(compact: 0, expanded: 0)
 
-    public enum DismissAction {
-        case tap
-        case drag
-        case none
+    public init(compact: CGFloat, expanded: CGFloat) {
+        self.compact = compact
+        self.expanded = expanded
     }
 }
 
-public class BottomSheet: UIViewController {
-    public enum DraggableArea {
-        case everything
-        case navigationBar
-        case topArea(height: CGFloat)
-        case customRect(CGRect)
-    }
+public enum BottomSheetState {
+    case expanded
+    case compact
+    case dismissed
+}
 
+public enum BottomSheetDismissAction {
+    case tap
+    case drag
+    case none
+}
+
+public enum BottomSheetDraggableArea {
+    case everything
+    case navigationBar
+    case topArea(height: CGFloat)
+    case customRect(CGRect)
+}
+
+public class BottomSheet: UIViewController {
     // MARK: - Public properties
 
     public let rootViewController: UIViewController
     public weak var delegate: BottomSheetDelegate?
     public weak var dragDelegate: BottomSheetDragDelegate?
 
-    public var state: State {
+    public var state: BottomSheetState {
         get { transitionDelegate.presentationController?.state ?? .dismissed }
         set {
             transitionDelegate.presentationController?.state = newValue
@@ -81,7 +79,7 @@ public class BottomSheet: UIViewController {
         }
     }
 
-    public var height: Height {
+    public var height: BottomSheetHeight {
         get { transitionDelegate.height }
         set { transitionDelegate.height = newValue }
     }
@@ -118,15 +116,13 @@ public class BottomSheet: UIViewController {
     // MARK: - Private properties
 
     private let transitionDelegate: BottomSheetTransitioningDelegate
-    private let draggableArea: DraggableArea
+    private let draggableArea: BottomSheetDraggableArea
 
     private let cornerRadius: CGFloat = 16
 
     // MARK: - Setup
 
-    public init(rootViewController: UIViewController,
-                height: Height = .defaultFilterHeight,
-                draggableArea: DraggableArea = .everything) {
+    public init(rootViewController: UIViewController, height: BottomSheetHeight = .defaultFilterHeight, draggableArea: BottomSheetDraggableArea = .everything) {
         self.rootViewController = rootViewController
         self.transitionDelegate = BottomSheetTransitioningDelegate(height: height)
         self.dimView = transitionDelegate.dimView
@@ -137,9 +133,7 @@ public class BottomSheet: UIViewController {
         modalPresentationStyle = .custom
     }
 
-    public convenience init(view: UIView,
-                            height: Height = .defaultFilterHeight,
-                            draggableArea: DraggableArea = .everything) {
+    public convenience init(view: UIView, height: BottomSheetHeight = .defaultFilterHeight, draggableArea: BottomSheetDraggableArea = .everything) {
         let rootViewController = UIViewController()
         rootViewController.view.backgroundColor = .primaryBackground
         rootViewController.view.addSubview(view)
@@ -158,7 +152,7 @@ public class BottomSheet: UIViewController {
         view.backgroundColor = rootViewController.view.backgroundColor ?? .primaryBackground
         view.clipsToBounds = true
         view.layer.cornerRadius = cornerRadius
-        view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
         view.addSubview(notch)
 
         addChild(rootViewController)
@@ -191,65 +185,15 @@ extension BottomSheet: BottomSheetPresentationControllerDelegate {
         delegate?.bottomSheetDidCancelDismiss(self)
     }
 
-    func bottomSheetPresentationController(_ presentationController: BottomSheetPresentationController, willDismissPresentedViewController presentedViewController: UIViewController, by action: BottomSheet.DismissAction) {
+    func bottomSheetPresentationController(_ presentationController: BottomSheetPresentationController, willDismissPresentedViewController presentedViewController: UIViewController, by action: BottomSheetDismissAction) {
         delegate?.bottomSheet(self, willDismissBy: action)
     }
 
-    func bottomSheetPresentationController(_ presentationController: BottomSheetPresentationController, didDismissPresentedViewController presentedViewController: UIViewController, by action: BottomSheet.DismissAction) {
+    func bottomSheetPresentationController(_ presentationController: BottomSheetPresentationController, didDismissPresentedViewController presentedViewController: UIViewController, by action: BottomSheetDismissAction) {
         delegate?.bottomSheet(self, didDismissBy: action)
     }
 
     func bottomSheetPresentationControllerDidBeginDrag(_ presentationController: BottomSheetPresentationController) {
         dragDelegate?.bottomSheetDidBeginDrag(self)
-    }
-}
-
-// MARK: - Notch
-
-final class Notch: UIView {
-    var isHandleHidden: Bool {
-        get { handle.isHidden }
-        set { handle.isHidden = newValue }
-    }
-
-    // MARK: - private properties
-
-    private let notchSize = CGSize(width: 25, height: 4)
-    private let handle: UIView = {
-        let view = UIView(withAutoLayout: true)
-        view.backgroundColor = .tertiaryText
-        view.layer.cornerRadius = 2
-        return view
-    }()
-
-    // MARK: - Init
-    init() {
-        super.init(frame: .zero)
-        translatesAutoresizingMaskIntoConstraints = false
-        setup()
-    }
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setup()
-    }
-
-    required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        setup()
-    }
-
-    // MARK: - Setup
-
-    private func setup() {
-        backgroundColor = .primaryBackground
-        addSubview(handle)
-
-        NSLayoutConstraint.activate([
-            handle.centerXAnchor.constraint(equalTo: centerXAnchor),
-            handle.centerYAnchor.constraint(equalTo: centerYAnchor),
-            handle.heightAnchor.constraint(equalToConstant: notchSize.height),
-            handle.widthAnchor.constraint(equalToConstant: notchSize.width)
-        ])
     }
 }

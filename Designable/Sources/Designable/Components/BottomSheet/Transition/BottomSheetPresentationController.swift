@@ -13,8 +13,8 @@ import UIKit
 protocol BottomSheetPresentationControllerDelegate: AnyObject {
     func bottomSheetPresentationControllerShouldDismiss(_ presentationController: BottomSheetPresentationController) -> Bool
     func bottomSheetPresentationControllerDidCancelDismiss(_ presentationController: BottomSheetPresentationController)
-    func bottomSheetPresentationController(_ presentationController: BottomSheetPresentationController, willDismissPresentedViewController presentedViewController: UIViewController, by action: BottomSheet.DismissAction)
-    func bottomSheetPresentationController(_ presentationController: BottomSheetPresentationController, didDismissPresentedViewController presentedViewController: UIViewController, by action: BottomSheet.DismissAction)
+    func bottomSheetPresentationController(_ presentationController: BottomSheetPresentationController, willDismissPresentedViewController presentedViewController: UIViewController, by action: BottomSheetDismissAction)
+    func bottomSheetPresentationController(_ presentationController: BottomSheetPresentationController, didDismissPresentedViewController presentedViewController: UIViewController, by action: BottomSheetDismissAction)
     func bottomSheetPresentationControllerDidBeginDrag(_ presentationController: BottomSheetPresentationController)
 }
 
@@ -22,7 +22,7 @@ class BottomSheetPresentationController: UIPresentationController {
 
     // MARK: - Internal properties
 
-    var state: BottomSheet.State {
+    var state: BottomSheetState {
         get { return stateController.state }
         set { updateState(newValue) }
     }
@@ -31,7 +31,7 @@ class BottomSheetPresentationController: UIPresentationController {
 
     // MARK: - Private properties
 
-    var height: BottomSheet.Height {
+    var height: BottomSheetHeight {
         didSet {
             guard height != stateController.height else { return }
 
@@ -49,7 +49,7 @@ class BottomSheetPresentationController: UIPresentationController {
     private lazy var stateController = BottomSheetStateController(height: height)
 
     private var hasReachExpandedPosition = false
-    private var dismissAction: BottomSheet.DismissAction = .none
+    private var dismissAction: BottomSheetDismissAction = .none
 
     private var currentPosition: CGPoint {
         guard let constraint = constraint else { return .zero }
@@ -62,7 +62,7 @@ class BottomSheetPresentationController: UIPresentationController {
 
     // MARK: - Init
 
-    init(presentedViewController: UIViewController, presenting: UIViewController?, height: BottomSheet.Height, interactionController: BottomSheetInteractionController, dimView: UIView) {
+    init(presentedViewController: UIViewController, presenting: UIViewController?, height: BottomSheetHeight, interactionController: BottomSheetInteractionController, dimView: UIView) {
         self.height = height
         self.interactionController = interactionController
         self.dimView = dimView
@@ -142,7 +142,7 @@ private extension BottomSheetPresentationController {
         return (containerView.bounds.height - position.y) / height.compact
     }
 
-    func updateState(_ state: BottomSheet.State) {
+    func updateState(_ state: BottomSheetState) {
         guard state != stateController.state else { return }
         stateController.state = state
         animate(to: stateController.targetPosition)

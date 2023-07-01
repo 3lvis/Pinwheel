@@ -243,7 +243,7 @@ class BottomSheetDesignableViewController: UIViewController {
 
     @objc private func presentTableView() {
         let screenSize = UIScreen.main.bounds.size.height - 64
-        let height = BottomSheet.Height(compact: 313, expanded: screenSize)
+        let height = BottomSheetHeight(compact: 313, expanded: screenSize)
         let rootController = DesignableViewController<BasicTableViewDesignableView>()
         let bottomSheet = BottomSheet(rootViewController: rootController, height: height, draggableArea: .everything)
         bottomSheet.delegate = self
@@ -288,11 +288,11 @@ extension BottomSheetDesignableViewController: BottomSheetDelegate {
         bottomSheet.present(alertController, animated: true)
     }
 
-    func bottomSheet(_ bottomSheet: BottomSheet, willDismissBy action: BottomSheet.DismissAction) {
+    func bottomSheet(_ bottomSheet: BottomSheet, willDismissBy action: BottomSheetDismissAction) {
         print("Bottom sheet will dismiss")
     }
 
-    func bottomSheet(_ bottomSheet: BottomSheet, didDismissBy action: BottomSheet.DismissAction) {
+    func bottomSheet(_ bottomSheet: BottomSheet, didDismissBy action: BottomSheetDismissAction) {
         print("Bottom sheet did dismiss")
     }
 }

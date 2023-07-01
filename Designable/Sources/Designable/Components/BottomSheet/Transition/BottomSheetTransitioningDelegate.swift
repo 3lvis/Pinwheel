@@ -16,13 +16,13 @@ class BottomSheetTransitioningDelegate: NSObject, UIViewControllerTransitioningD
         return view
     }()
 
-    var height: BottomSheet.Height {
+    var height: BottomSheetHeight {
         didSet {
             presentationController?.height = height
         }
     }
 
-    init(height: BottomSheet.Height) {
+    init(height: BottomSheetHeight) {
         self.height = height
         animationController = BottomSheetAnimationController()
         interactionController = BottomSheetInteractionController(animationController: animationController)
