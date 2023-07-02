@@ -118,7 +118,7 @@ public class BottomSheet: UIViewController {
     private let transitionDelegate: BottomSheetTransitioningDelegate
     private let draggableArea: BottomSheetDraggableArea
 
-    private let cornerRadius: CGFloat = 16
+    private let cornerRadius: CGFloat = 42
 
     // MARK: - Setup
 
@@ -152,6 +152,9 @@ public class BottomSheet: UIViewController {
         view.backgroundColor = rootViewController.view.backgroundColor ?? .primaryBackground
         view.clipsToBounds = true
         view.layer.cornerRadius = cornerRadius
+        if #available(iOS 13.0, *) {
+            view.layer.cornerCurve = .continuous
+        }
         view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
         view.addSubview(notch)
 
