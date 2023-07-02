@@ -8,21 +8,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     lazy var data: [PinwheelSection] = {
         return [
             PinwheelSection(title: "DNA", items: [
-                PinwheelItem(title: "Font", viewController: PinwheelViewController<FontPinwheelView>()),
-                PinwheelItem(title: "Color", viewController: PinwheelViewController<ColorPinwheelView>()),
-                PinwheelItem(title: "Spacing", viewController: PinwheelViewController<SpacingPinwheelView>()),
+                PinwheelItem(title: "Font", viewController: PinwheelViewController<PinFont>()),
+                PinwheelItem(title: "Color", viewController: PinwheelViewController<PinColor>()),
+                PinwheelItem(title: "Spacing", viewController: PinwheelViewController<PinSpacing>()),
             ]),
             PinwheelSection(title: "Components", items: [
-                PinwheelItem(title: "BottomSheet", viewController: BottomSheetPinwheelViewController()),
-                PinwheelItem(title: "Label", viewController: PinwheelViewController<LabelPinwheelView>()),
-                PinwheelItem(title: "Tweakable", viewController: PinwheelViewController<TweakablePinwheelView>()),
+                PinwheelItem(title: "BottomSheet", viewController: PinControllerBottomSheet()),
+                PinwheelItem(title: "Label", viewController: PinwheelViewController<PinLabel>()),
+                PinwheelItem(title: "Tweakable", viewController: PinwheelViewController<PinTweakable>()),
             ]),
             PinwheelSection(title: "Cells", items: [
-                PinwheelItem(title: "Basic", viewController: PinwheelViewController<BasicCellPinwheelView>()),
-                PinwheelItem(title: "Basic Variations", viewController: PinwheelViewController<BasicCellVariationsPinwheelView>()),
+                PinwheelItem(title: "Basic", viewController: PinwheelViewController<PinBasicTableViewCell>()),
+                PinwheelItem(title: "Basic Variations", viewController: PinwheelViewController<PinVariationsBasicTableViewCell>()),
             ]),
             PinwheelSection(title: "Reciclable", items: [
-                PinwheelItem(title: "Basic", viewController: PinwheelViewController<BasicTableViewPinwheelView>()),
+                PinwheelItem(title: "Basic", viewController: PinwheelViewController<PinBasicTableView>()),
             ]),
         ]
     }()

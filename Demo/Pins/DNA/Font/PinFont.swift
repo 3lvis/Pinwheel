@@ -6,7 +6,7 @@ struct FontItem {
     let title: String
 }
 
-class FontPinwheelView: View {
+class PinFont: View {
     lazy var tableView: UITableView = {
         let view = UITableView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -42,7 +42,7 @@ class FontPinwheelView: View {
     }
 }
 
-extension FontPinwheelView: UITableViewDataSource {
+extension PinFont: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return items.count
     }

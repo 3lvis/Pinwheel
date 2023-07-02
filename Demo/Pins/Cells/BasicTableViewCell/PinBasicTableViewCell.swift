@@ -7,7 +7,7 @@ private struct ViewModel: BasicTableViewCellViewModel {
     let hasChevron: Bool = false
 }
 
-class BasicCellPinwheelView: View {
+class PinBasicTableViewCell: View {
     private let viewModels = [
         ViewModel(title: "Hagemøbler"),
         ViewModel(title: "Kattepuser"),
@@ -34,7 +34,7 @@ class BasicCellPinwheelView: View {
     }
 }
 
-extension BasicCellPinwheelView: UITableViewDelegate {
+extension PinBasicTableViewCell: UITableViewDelegate {
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         let isLastCell = indexPath.row == (viewModels.count - 1)
         if isLastCell {
@@ -47,7 +47,7 @@ extension BasicCellPinwheelView: UITableViewDelegate {
     }
 }
 
-extension BasicCellPinwheelView: UITableViewDataSource {
+extension PinBasicTableViewCell: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return viewModels.count
     }

@@ -105,7 +105,7 @@ class RootViewController: UIViewController {
     }
 }
 
-class BottomSheetPinwheelViewController: UIViewController {
+class PinControllerBottomSheet: UIViewController {
     private lazy var switchLabel: UILabel = {
         let label = UILabel(withAutoLayout: true)
         label.font = .body
@@ -244,7 +244,7 @@ class BottomSheetPinwheelViewController: UIViewController {
     @objc private func presentTableView() {
         let screenSize = UIScreen.main.bounds.size.height - 64
         let height = BottomSheetHeight(compact: 313, expanded: screenSize)
-        let rootController = PinwheelViewController<BasicTableViewPinwheelView>()
+        let rootController = PinwheelViewController<PinBasicTableView>()
         let bottomSheet = BottomSheet(rootViewController: rootController, height: height, draggableArea: .everything)
         bottomSheet.delegate = self
         present(bottomSheet, animated: true)
@@ -252,7 +252,7 @@ class BottomSheetPinwheelViewController: UIViewController {
     }
 }
 
-extension BottomSheetPinwheelViewController: RootViewControllerDelegate {
+extension PinControllerBottomSheet: RootViewControllerDelegate {
     func rootViewControllerDidPressExpandButton(_ controller: RootViewController) {
         bottomSheet?.state = .expanded
     }
@@ -266,7 +266,7 @@ extension BottomSheetPinwheelViewController: RootViewControllerDelegate {
     }
 }
 
-extension BottomSheetPinwheelViewController: BottomSheetDelegate {
+extension PinControllerBottomSheet: BottomSheetDelegate {
     func bottomSheetShouldDismiss(_ bottomSheet: BottomSheet) -> Bool {
         return !requireConfirmationOnDragSwitch.isOn
     }

@@ -6,7 +6,7 @@ struct ColorItem {
     let title: String
 }
 
-class ColorPinwheelView: View {
+class PinColor: View {
     lazy var tableView: UITableView = {
         let view = UITableView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -49,7 +49,7 @@ class ColorPinwheelView: View {
     }
 }
 
-extension ColorPinwheelView: UITableViewDataSource {
+extension PinColor: UITableViewDataSource {
     public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return items.count
     }

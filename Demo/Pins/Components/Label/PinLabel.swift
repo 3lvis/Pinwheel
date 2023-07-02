@@ -1,6 +1,6 @@
 import Pinwheel
 
-class LabelPinwheelView: View {
+class PinLabel: View {
     override func setup() {
         let headline = Label(style: .headline)
         headline.text = "Headline"

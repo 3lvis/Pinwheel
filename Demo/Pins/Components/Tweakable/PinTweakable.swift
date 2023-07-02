@@ -1,6 +1,6 @@
 import Pinwheel
 
-class TweakablePinwheelView: View, Tweakable {
+class PinTweakable: View, Tweakable {
     lazy var tweakingOptions: [TweakingOption] = {
         var options = [TweakingOption]()
 

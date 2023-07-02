@@ -1,6 +1,6 @@
 import Pinwheel
 
-class BasicTableViewPinwheelView: View {
+class PinBasicTableView: View {
     lazy var basicTableView: BasicTableView = {
         let view = BasicTableView(items: items)
         view.delegate = self
@@ -29,7 +29,7 @@ class BasicTableViewPinwheelView: View {
     }
 }
 
-extension BasicTableViewPinwheelView: BasicTableViewDelegate {
+extension PinBasicTableView: BasicTableViewDelegate {
     func basicTableView(_ basicTableView: BasicTableView, didSelectItemAtIndex index: Int) {
     }
 }
