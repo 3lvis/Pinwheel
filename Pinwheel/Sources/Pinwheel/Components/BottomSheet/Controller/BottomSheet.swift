@@ -21,14 +21,11 @@ public protocol BottomSheetDragDelegate: AnyObject {
 
 public extension CGFloat {
     static var defaultBottomSheetHeight: CGFloat {
-        let screenSize = UIScreen.main.bounds.size
-        if screenSize.height <= 568 {
-            return 510
-        }
-        if screenSize.height >= 812 {
-            return 570
-        }
-        return 510
+        return -999
+    }
+
+    static func evaluateCompactHeight(forView view: UIView) -> CGFloat {
+        return view.frame.height * 0.4
     }
 }
 
@@ -114,7 +111,8 @@ public class BottomSheet: UIViewController {
 
     public init(rootViewController: UIViewController, compactHeight: CGFloat = .defaultBottomSheetHeight, draggableArea: BottomSheetDraggableArea = .everything) {
         self.rootViewController = rootViewController
-        self.transitionDelegate = BottomSheetTransitioningDelegate(compactHeight: compactHeight)
+        let height = (compactHeight == .defaultBottomSheetHeight) ? CGFloat.evaluateCompactHeight(forView: rootViewController.view) : compactHeight
+        self.transitionDelegate = BottomSheetTransitioningDelegate(compactHeight: height)
         self.dimView = transitionDelegate.dimView
         self.draggableArea = draggableArea
         super.init(nibName: nil, bundle: nil)
@@ -130,7 +128,8 @@ public class BottomSheet: UIViewController {
         view.translatesAutoresizingMaskIntoConstraints = false
         view.fillInSuperview()
 
-        self.init(rootViewController: rootViewController, compactHeight: compactHeight, draggableArea: draggableArea)
+        let height = (compactHeight == .defaultBottomSheetHeight) ? CGFloat.evaluateCompactHeight(forView: rootViewController.view) : compactHeight
+        self.init(rootViewController: rootViewController, compactHeight: height, draggableArea: draggableArea)
     }
 
     public required init?(coder aDecoder: NSCoder) {
