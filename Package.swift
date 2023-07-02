@@ -4,19 +4,19 @@
 import PackageDescription
 
 let package = Package(
-    name: "Designable",
+    name: "Pinwheel",
     products: [
         .library(
-            name: "Designable",
-            targets: ["Designable"]),
+            name: "Pinwheel",
+            targets: ["Pinwheel"]),
     ],
     targets: [
         .target(
-            name: "Designable",
-            path: "Designable/Sources"),
+            name: "Pinwheel",
+            path: "Pinwheel/Sources"),
         .testTarget(
-            name: "DesignableTests",
-            dependencies: ["Designable"],
-            path: "Designable/Tests"),
+            name: "PinwheelTests",
+            dependencies: ["Pinwheel"],
+            path: "Pinwheel/Tests"),
     ]
 )

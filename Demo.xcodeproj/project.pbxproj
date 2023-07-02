@@ -9,17 +9,17 @@
 /* Begin PBXBuildFile section */
 		2847DF4C2A48903E009A6B8E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2847DF4B2A48903E009A6B8E /* AppDelegate.swift */; };
 		2847DF552A48903F009A6B8E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2847DF542A48903F009A6B8E /* Assets.xcassets */; };
-		286CF2C22A4F86A4008D3B26 /* TweakableDesignableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 286CF2C12A4F86A4008D3B26 /* TweakableDesignableView.swift */; };
-		2893C64C2A48908700039B8A /* Designable in Frameworks */ = {isa = PBXBuildFile; productRef = 2893C64B2A48908700039B8A /* Designable */; };
+		286CF2C22A4F86A4008D3B26 /* TweakablePinwheelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 286CF2C12A4F86A4008D3B26 /* TweakablePinwheelView.swift */; };
+		2893C64C2A48908700039B8A /* Pinwheel in Frameworks */ = {isa = PBXBuildFile; productRef = 2893C64B2A48908700039B8A /* Pinwheel */; };
 		28AAFA612A49F3E900E1CA35 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28AAFA602A49F3E900E1CA35 /* Config.swift */; };
-		28F459392A49860400504BF6 /* ColorDesignableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459332A49860400504BF6 /* ColorDesignableView.swift */; };
-		28F4593A2A49860400504BF6 /* SpacingDesignableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459352A49860400504BF6 /* SpacingDesignableView.swift */; };
-		28F4593B2A49860400504BF6 /* FontDesignableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459372A49860400504BF6 /* FontDesignableView.swift */; };
-		28F459402A49867100504BF6 /* BasicCellDesignableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F4593E2A49867100504BF6 /* BasicCellDesignableView.swift */; };
-		28F459412A49867100504BF6 /* BasicCellVariationsDesignableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F4593F2A49867100504BF6 /* BasicCellVariationsDesignableView.swift */; };
-		28F459472A49882C00504BF6 /* BottomSheetDesignableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459462A49882C00504BF6 /* BottomSheetDesignableViewController.swift */; };
-		28F4594A2A498B6B00504BF6 /* LabelDesignableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459492A498B6B00504BF6 /* LabelDesignableView.swift */; };
-		28F459532A498CFF00504BF6 /* BasicTableViewDesignableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459522A498CFF00504BF6 /* BasicTableViewDesignableView.swift */; };
+		28F459392A49860400504BF6 /* ColorPinwheelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459332A49860400504BF6 /* ColorPinwheelView.swift */; };
+		28F4593A2A49860400504BF6 /* SpacingPinwheelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459352A49860400504BF6 /* SpacingPinwheelView.swift */; };
+		28F4593B2A49860400504BF6 /* FontPinwheelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459372A49860400504BF6 /* FontPinwheelView.swift */; };
+		28F459402A49867100504BF6 /* BasicCellPinwheelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F4593E2A49867100504BF6 /* BasicCellPinwheelView.swift */; };
+		28F459412A49867100504BF6 /* BasicCellVariationsPinwheelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F4593F2A49867100504BF6 /* BasicCellVariationsPinwheelView.swift */; };
+		28F459472A49882C00504BF6 /* BottomSheetPinwheelViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459462A49882C00504BF6 /* BottomSheetPinwheelViewController.swift */; };
+		28F4594A2A498B6B00504BF6 /* LabelPinwheelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459492A498B6B00504BF6 /* LabelPinwheelView.swift */; };
+		28F459532A498CFF00504BF6 /* BasicTableViewPinwheelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459522A498CFF00504BF6 /* BasicTableViewPinwheelView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,17 +27,17 @@
 		2847DF4B2A48903E009A6B8E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2847DF542A48903F009A6B8E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2847DF592A48903F009A6B8E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		286CF2C12A4F86A4008D3B26 /* TweakableDesignableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TweakableDesignableView.swift; sourceTree = "<group>"; };
-		2893C6492A48908000039B8A /* Designable */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Designable; sourceTree = "<group>"; };
+		286CF2C12A4F86A4008D3B26 /* TweakablePinwheelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TweakablePinwheelView.swift; sourceTree = "<group>"; };
+		2893C6492A48908000039B8A /* Pinwheel */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Pinwheel; sourceTree = "<group>"; };
 		28AAFA602A49F3E900E1CA35 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
-		28F459332A49860400504BF6 /* ColorDesignableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorDesignableView.swift; sourceTree = "<group>"; };
-		28F459352A49860400504BF6 /* SpacingDesignableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SpacingDesignableView.swift; sourceTree = "<group>"; };
-		28F459372A49860400504BF6 /* FontDesignableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FontDesignableView.swift; sourceTree = "<group>"; };
-		28F4593E2A49867100504BF6 /* BasicCellDesignableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BasicCellDesignableView.swift; sourceTree = "<group>"; };
-		28F4593F2A49867100504BF6 /* BasicCellVariationsDesignableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BasicCellVariationsDesignableView.swift; sourceTree = "<group>"; };
-		28F459462A49882C00504BF6 /* BottomSheetDesignableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BottomSheetDesignableViewController.swift; sourceTree = "<group>"; };
-		28F459492A498B6B00504BF6 /* LabelDesignableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LabelDesignableView.swift; sourceTree = "<group>"; };
-		28F459522A498CFF00504BF6 /* BasicTableViewDesignableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BasicTableViewDesignableView.swift; sourceTree = "<group>"; };
+		28F459332A49860400504BF6 /* ColorPinwheelView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorPinwheelView.swift; sourceTree = "<group>"; };
+		28F459352A49860400504BF6 /* SpacingPinwheelView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SpacingPinwheelView.swift; sourceTree = "<group>"; };
+		28F459372A49860400504BF6 /* FontPinwheelView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FontPinwheelView.swift; sourceTree = "<group>"; };
+		28F4593E2A49867100504BF6 /* BasicCellPinwheelView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BasicCellPinwheelView.swift; sourceTree = "<group>"; };
+		28F4593F2A49867100504BF6 /* BasicCellVariationsPinwheelView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BasicCellVariationsPinwheelView.swift; sourceTree = "<group>"; };
+		28F459462A49882C00504BF6 /* BottomSheetPinwheelViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BottomSheetPinwheelViewController.swift; sourceTree = "<group>"; };
+		28F459492A498B6B00504BF6 /* LabelPinwheelView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LabelPinwheelView.swift; sourceTree = "<group>"; };
+		28F459522A498CFF00504BF6 /* BasicTableViewPinwheelView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BasicTableViewPinwheelView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -45,7 +45,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2893C64C2A48908700039B8A /* Designable in Frameworks */,
+				2893C64C2A48908700039B8A /* Pinwheel in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -55,7 +55,7 @@
 		2847DF3F2A48903D009A6B8E = {
 			isa = PBXGroup;
 			children = (
-				2893C6492A48908000039B8A /* Designable */,
+				2893C6492A48908000039B8A /* Pinwheel */,
 				2847DF4A2A48903E009A6B8E /* Demo */,
 				2847DF492A48903E009A6B8E /* Products */,
 				2893C64A2A48908700039B8A /* Frameworks */,
@@ -74,7 +74,7 @@
 			isa = PBXGroup;
 			children = (
 				2847DF4B2A48903E009A6B8E /* AppDelegate.swift */,
-				28F4592E2A49860400504BF6 /* DesignableViews */,
+				28F4592E2A49860400504BF6 /* PinwheelViews */,
 				2847DF542A48903F009A6B8E /* Assets.xcassets */,
 				2847DF592A48903F009A6B8E /* Info.plist */,
 				28AAFA602A49F3E900E1CA35 /* Config.swift */,
@@ -85,7 +85,7 @@
 		286CF2C02A4F8699008D3B26 /* Tweakable */ = {
 			isa = PBXGroup;
 			children = (
-				286CF2C12A4F86A4008D3B26 /* TweakableDesignableView.swift */,
+				286CF2C12A4F86A4008D3B26 /* TweakablePinwheelView.swift */,
 			);
 			path = Tweakable;
 			sourceTree = "<group>";
@@ -97,7 +97,7 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		28F4592E2A49860400504BF6 /* DesignableViews */ = {
+		28F4592E2A49860400504BF6 /* PinwheelViews */ = {
 			isa = PBXGroup;
 			children = (
 				28F4593C2A49867100504BF6 /* Cells */,
@@ -105,7 +105,7 @@
 				28F459312A49860400504BF6 /* DNA */,
 				28F459502A498CFF00504BF6 /* Reciclable */,
 			);
-			path = DesignableViews;
+			path = PinwheelViews;
 			sourceTree = "<group>";
 		};
 		28F4592F2A49860400504BF6 /* Components */ = {
@@ -131,7 +131,7 @@
 		28F459322A49860400504BF6 /* Color */ = {
 			isa = PBXGroup;
 			children = (
-				28F459332A49860400504BF6 /* ColorDesignableView.swift */,
+				28F459332A49860400504BF6 /* ColorPinwheelView.swift */,
 			);
 			path = Color;
 			sourceTree = "<group>";
@@ -139,7 +139,7 @@
 		28F459342A49860400504BF6 /* Spacing */ = {
 			isa = PBXGroup;
 			children = (
-				28F459352A49860400504BF6 /* SpacingDesignableView.swift */,
+				28F459352A49860400504BF6 /* SpacingPinwheelView.swift */,
 			);
 			path = Spacing;
 			sourceTree = "<group>";
@@ -147,7 +147,7 @@
 		28F459362A49860400504BF6 /* Font */ = {
 			isa = PBXGroup;
 			children = (
-				28F459372A49860400504BF6 /* FontDesignableView.swift */,
+				28F459372A49860400504BF6 /* FontPinwheelView.swift */,
 			);
 			path = Font;
 			sourceTree = "<group>";
@@ -163,8 +163,8 @@
 		28F4593D2A49867100504BF6 /* BasicTableViewCell */ = {
 			isa = PBXGroup;
 			children = (
-				28F4593E2A49867100504BF6 /* BasicCellDesignableView.swift */,
-				28F4593F2A49867100504BF6 /* BasicCellVariationsDesignableView.swift */,
+				28F4593E2A49867100504BF6 /* BasicCellPinwheelView.swift */,
+				28F4593F2A49867100504BF6 /* BasicCellVariationsPinwheelView.swift */,
 			);
 			path = BasicTableViewCell;
 			sourceTree = "<group>";
@@ -172,7 +172,7 @@
 		28F459452A49882C00504BF6 /* BottomSheet */ = {
 			isa = PBXGroup;
 			children = (
-				28F459462A49882C00504BF6 /* BottomSheetDesignableViewController.swift */,
+				28F459462A49882C00504BF6 /* BottomSheetPinwheelViewController.swift */,
 			);
 			path = BottomSheet;
 			sourceTree = "<group>";
@@ -180,7 +180,7 @@
 		28F459482A498B6B00504BF6 /* Label */ = {
 			isa = PBXGroup;
 			children = (
-				28F459492A498B6B00504BF6 /* LabelDesignableView.swift */,
+				28F459492A498B6B00504BF6 /* LabelPinwheelView.swift */,
 			);
 			path = Label;
 			sourceTree = "<group>";
@@ -196,7 +196,7 @@
 		28F459512A498CFF00504BF6 /* Basic */ = {
 			isa = PBXGroup;
 			children = (
-				28F459522A498CFF00504BF6 /* BasicTableViewDesignableView.swift */,
+				28F459522A498CFF00504BF6 /* BasicTableViewPinwheelView.swift */,
 			);
 			path = Basic;
 			sourceTree = "<group>";
@@ -218,7 +218,7 @@
 			);
 			name = Demo;
 			packageProductDependencies = (
-				2893C64B2A48908700039B8A /* Designable */,
+				2893C64B2A48908700039B8A /* Pinwheel */,
 			);
 			productName = Demo;
 			productReference = 2847DF482A48903E009A6B8E /* Demo.app */;
@@ -273,17 +273,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				28F459532A498CFF00504BF6 /* BasicTableViewDesignableView.swift in Sources */,
-				28F459412A49867100504BF6 /* BasicCellVariationsDesignableView.swift in Sources */,
-				286CF2C22A4F86A4008D3B26 /* TweakableDesignableView.swift in Sources */,
-				28F4594A2A498B6B00504BF6 /* LabelDesignableView.swift in Sources */,
-				28F4593A2A49860400504BF6 /* SpacingDesignableView.swift in Sources */,
+				28F459532A498CFF00504BF6 /* BasicTableViewPinwheelView.swift in Sources */,
+				28F459412A49867100504BF6 /* BasicCellVariationsPinwheelView.swift in Sources */,
+				286CF2C22A4F86A4008D3B26 /* TweakablePinwheelView.swift in Sources */,
+				28F4594A2A498B6B00504BF6 /* LabelPinwheelView.swift in Sources */,
+				28F4593A2A49860400504BF6 /* SpacingPinwheelView.swift in Sources */,
 				28AAFA612A49F3E900E1CA35 /* Config.swift in Sources */,
 				2847DF4C2A48903E009A6B8E /* AppDelegate.swift in Sources */,
-				28F459472A49882C00504BF6 /* BottomSheetDesignableViewController.swift in Sources */,
-				28F459392A49860400504BF6 /* ColorDesignableView.swift in Sources */,
-				28F459402A49867100504BF6 /* BasicCellDesignableView.swift in Sources */,
-				28F4593B2A49860400504BF6 /* FontDesignableView.swift in Sources */,
+				28F459472A49882C00504BF6 /* BottomSheetPinwheelViewController.swift in Sources */,
+				28F459392A49860400504BF6 /* ColorPinwheelView.swift in Sources */,
+				28F459402A49867100504BF6 /* BasicCellPinwheelView.swift in Sources */,
+				28F4593B2A49860400504BF6 /* FontPinwheelView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -415,6 +415,7 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = C6K65RDJHL;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Demo/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Pinwheel;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -425,7 +426,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.elvisnunez.Designable;
+				PRODUCT_BUNDLE_IDENTIFIER = com.elvisnunez.Pinwheel;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "26 Jun iOS Development Profile";
@@ -446,6 +447,7 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = C6K65RDJHL;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Demo/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Pinwheel;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -456,7 +458,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.elvisnunez.Designable;
+				PRODUCT_BUNDLE_IDENTIFIER = com.elvisnunez.Pinwheel;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "26 Jun iOS Development Profile";
@@ -490,9 +492,9 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		2893C64B2A48908700039B8A /* Designable */ = {
+		2893C64B2A48908700039B8A /* Pinwheel */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = Designable;
+			productName = Pinwheel;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

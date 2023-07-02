@@ -1,28 +1,28 @@
 import UIKit
-import Designable
+import Pinwheel
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
-    lazy var data: [DesignableSection] = {
+    lazy var data: [PinwheelSection] = {
         return [
-            DesignableSection(title: "DNA", items: [
-                DesignableItem(title: "Font", viewController: DesignableViewController<FontDesignableView>()),
-                DesignableItem(title: "Color", viewController: DesignableViewController<ColorDesignableView>()),
-                DesignableItem(title: "Spacing", viewController: DesignableViewController<SpacingDesignableView>()),
+            PinwheelSection(title: "DNA", items: [
+                PinwheelItem(title: "Font", viewController: PinwheelViewController<FontPinwheelView>()),
+                PinwheelItem(title: "Color", viewController: PinwheelViewController<ColorPinwheelView>()),
+                PinwheelItem(title: "Spacing", viewController: PinwheelViewController<SpacingPinwheelView>()),
             ]),
-            DesignableSection(title: "Components", items: [
-                DesignableItem(title: "BottomSheet", viewController: BottomSheetDesignableViewController()),
-                DesignableItem(title: "Label", viewController: DesignableViewController<LabelDesignableView>()),
-                DesignableItem(title: "Tweakable", viewController: DesignableViewController<TweakableDesignableView>()),
+            PinwheelSection(title: "Components", items: [
+                PinwheelItem(title: "BottomSheet", viewController: BottomSheetPinwheelViewController()),
+                PinwheelItem(title: "Label", viewController: PinwheelViewController<LabelPinwheelView>()),
+                PinwheelItem(title: "Tweakable", viewController: PinwheelViewController<TweakablePinwheelView>()),
             ]),
-            DesignableSection(title: "Cells", items: [
-                DesignableItem(title: "Basic", viewController: DesignableViewController<BasicCellDesignableView>()),
-                DesignableItem(title: "Basic Variations", viewController: DesignableViewController<BasicCellVariationsDesignableView>()),
+            PinwheelSection(title: "Cells", items: [
+                PinwheelItem(title: "Basic", viewController: PinwheelViewController<BasicCellPinwheelView>()),
+                PinwheelItem(title: "Basic Variations", viewController: PinwheelViewController<BasicCellVariationsPinwheelView>()),
             ]),
-            DesignableSection(title: "Reciclable", items: [
-                DesignableItem(title: "Basic", viewController: DesignableViewController<BasicTableViewDesignableView>()),
+            PinwheelSection(title: "Reciclable", items: [
+                PinwheelItem(title: "Basic", viewController: PinwheelViewController<BasicTableViewPinwheelView>()),
             ]),
         ]
     }()
@@ -34,7 +34,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Config.colorProvider = DemoColorProvider()
         // Config.fontProvider = DemoFontProvider()
 
-        let viewController = DesignableTableViewController(sections: data)
+        let viewController = PinwheelTableViewController(sections: data)
         window.rootViewController = NavigationController(rootViewController: viewController)
         window.makeKeyAndVisible()
 

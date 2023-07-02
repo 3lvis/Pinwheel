@@ -28,10 +28,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "Designable"
-               BuildableName = "Designable"
-               BlueprintName = "Designable"
-               ReferencedContainer = "container:Designable">
+               BlueprintIdentifier = "Pinwheel"
+               BuildableName = "Pinwheel"
+               BlueprintName = "Pinwheel"
+               ReferencedContainer = "container:Pinwheel">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>

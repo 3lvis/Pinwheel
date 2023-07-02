@@ -1,4 +1,4 @@
-import Designable
+import Pinwheel
 
 struct DemoFontProvider: FontProvider {
     var headline: UIFont {
