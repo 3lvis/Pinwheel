@@ -33,7 +33,7 @@ public protocol Containable {
 ///  Container class for components. Wraps the UIView in a container to be displayed.
 ///  If the view conforms to the `Tweakable` protocol it will display a control to show additional options.
 ///  Usage: `BasePinwheelViewController<ColorPinwheelView>()`
-public class BasePinwheelViewController<View: UIView>: UIViewController, Containable {
+open class BasePinwheelViewController<View: UIView>: UIViewController, Containable {
 
     private(set) lazy var playgroundView: View = {
         let playgroundView = View(frame: view.frame)
@@ -80,7 +80,7 @@ public class BasePinwheelViewController<View: UIView>: UIViewController, Contain
         fatalError("init(coder:) has not been implemented")
     }
 
-    public override func viewDidLoad() {
+    open override func viewDidLoad() {
         super.viewDidLoad()
 
         view.addSubview(playgroundView)
