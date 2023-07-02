@@ -31,22 +31,24 @@ class BottomSheetPresentationController: UIPresentationController {
 
     // MARK: - Private properties
 
-    var height: BottomSheetHeight {
+    var compactHeight: CGFloat {
         didSet {
-            guard height != stateController.height else { return }
-
-            stateController.height = height
+            stateController.compactHeight = compactHeight
             stateController.state = state
             animate(to: stateController.targetPosition)
         }
     }
+
+//    stateController.height = height
+//    stateController.state = state
+//    animate(to: stateController.targetPosition)
 
     private let interactionController: BottomSheetInteractionController
     private let dimView: UIView
     private var constraint: NSLayoutConstraint? // Constraint is used to set the y position of the bottom sheet
     private var gestureController: BottomSheetGestureController?
     private let springAnimator = SpringAnimator(dampingRatio: 0.78, frequencyResponse: 0.5)
-    private lazy var stateController = BottomSheetStateController(height: height)
+    private lazy var stateController = BottomSheetStateController(compactHeight: compactHeight, view: containerView)
 
     private var hasReachExpandedPosition = false
     private var dismissAction: BottomSheetDismissAction = .none
@@ -62,8 +64,8 @@ class BottomSheetPresentationController: UIPresentationController {
 
     // MARK: - Init
 
-    init(presentedViewController: UIViewController, presenting: UIViewController?, height: BottomSheetHeight, interactionController: BottomSheetInteractionController, dimView: UIView) {
-        self.height = height
+    init(presentedViewController: UIViewController, presenting: UIViewController?, compactHeight: CGFloat, interactionController: BottomSheetInteractionController, dimView: UIView) {
+        self.compactHeight = compactHeight
         self.interactionController = interactionController
         self.dimView = dimView
         super.init(presentedViewController: presentedViewController, presenting: presenting)
@@ -131,7 +133,7 @@ private extension BottomSheetPresentationController {
             constraint,
             presentedView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             presentedView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-            presentedView.heightAnchor.constraint(greaterThanOrEqualToConstant: height.compact),
+            presentedView.heightAnchor.constraint(greaterThanOrEqualToConstant: compactHeight),
             presentedView.bottomAnchor.constraint(greaterThanOrEqualTo: containerView.bottomAnchor),
         ])
         self.constraint = constraint
@@ -139,7 +141,7 @@ private extension BottomSheetPresentationController {
 
     func alphaValue(for position: CGPoint) -> CGFloat {
         guard let containerView = containerView else { return 0 }
-        return (containerView.bounds.height - position.y) / height.compact
+        return (containerView.bounds.height - position.y) / compactHeight
     }
 
     func updateState(_ state: BottomSheetState) {
@@ -219,7 +221,7 @@ extension BottomSheetPresentationController: BottomSheetGestureControllerDelegat
 
     func stateAdjustedPosition(forGestureController controller: BottomSheetGestureController) -> CGPoint {
         let canDismiss = presentationControllerDelegate?.bottomSheetPresentationControllerShouldDismiss(self) ?? true
-        let thresholdPoint = stateController.frame.height - height.compact
+        let thresholdPoint = stateController.frame.height - compactHeight
 
         let ycomponent: CGFloat
         if !canDismiss, controller.position.y >= thresholdPoint {

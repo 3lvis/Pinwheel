@@ -19,26 +19,16 @@ public protocol BottomSheetDragDelegate: AnyObject {
     func bottomSheetDidBeginDrag(_ bottomSheet: BottomSheet)
 }
 
-public struct BottomSheetHeight: Equatable {
-    public let compact: CGFloat
-    public let expanded: CGFloat
-
-    public static var defaultFilterHeight: BottomSheetHeight {
+public extension CGFloat {
+    static var defaultBottomSheetHeight: CGFloat {
         let screenSize = UIScreen.main.bounds.size
         if screenSize.height <= 568 {
-            return BottomSheetHeight(compact: 510, expanded: 510)
+            return 510
         }
         if screenSize.height >= 812 {
-            return BottomSheetHeight(compact: 570, expanded: screenSize.height - 64)
+            return 570
         }
-        return BottomSheetHeight(compact: 510, expanded: screenSize.height - 64)
-    }
-
-    public static let zero = BottomSheetHeight(compact: 0, expanded: 0)
-
-    public init(compact: CGFloat, expanded: CGFloat) {
-        self.compact = compact
-        self.expanded = expanded
+        return 510
     }
 }
 
@@ -79,9 +69,9 @@ public class BottomSheet: UIViewController {
         }
     }
 
-    public var height: BottomSheetHeight {
-        get { transitionDelegate.height }
-        set { transitionDelegate.height = newValue }
+    public var compactHeight: CGFloat {
+        get { transitionDelegate.compactHeight }
+        set { transitionDelegate.compactHeight = newValue }
     }
 
     public var isNotchHidden: Bool {
@@ -122,9 +112,9 @@ public class BottomSheet: UIViewController {
 
     // MARK: - Setup
 
-    public init(rootViewController: UIViewController, height: BottomSheetHeight = .defaultFilterHeight, draggableArea: BottomSheetDraggableArea = .everything) {
+    public init(rootViewController: UIViewController, compactHeight: CGFloat = .defaultBottomSheetHeight, draggableArea: BottomSheetDraggableArea = .everything) {
         self.rootViewController = rootViewController
-        self.transitionDelegate = BottomSheetTransitioningDelegate(height: height)
+        self.transitionDelegate = BottomSheetTransitioningDelegate(compactHeight: compactHeight)
         self.dimView = transitionDelegate.dimView
         self.draggableArea = draggableArea
         super.init(nibName: nil, bundle: nil)
@@ -133,14 +123,14 @@ public class BottomSheet: UIViewController {
         modalPresentationStyle = .custom
     }
 
-    public convenience init(view: UIView, height: BottomSheetHeight = .defaultFilterHeight, draggableArea: BottomSheetDraggableArea = .everything) {
+    public convenience init(view: UIView, compactHeight: CGFloat = .defaultBottomSheetHeight, draggableArea: BottomSheetDraggableArea = .everything) {
         let rootViewController = UIViewController()
         rootViewController.view.backgroundColor = .primaryBackground
         rootViewController.view.addSubview(view)
         view.translatesAutoresizingMaskIntoConstraints = false
         view.fillInSuperview()
 
-        self.init(rootViewController: rootViewController, height: height, draggableArea: draggableArea)
+        self.init(rootViewController: rootViewController, compactHeight: compactHeight, draggableArea: draggableArea)
     }
 
     public required init?(coder aDecoder: NSCoder) {
