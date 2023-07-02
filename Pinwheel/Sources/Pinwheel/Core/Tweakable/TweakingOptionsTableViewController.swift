@@ -110,7 +110,7 @@ class TweakingOptionsTableViewController: ScrollViewController {
         tableView.alpha = 0
 
         UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseInOut, animations: ({ [weak self] in
-            self?.devicesTableView.frame.origin.y = -.spacingXXL
+            self?.devicesTableView.frame.origin.y = -.spacingXL
             self?.devicesTableView.alpha = 0
         }), completion: ({ [weak self] _ in
             guard self?.devicesTableView.superview != nil else { return }

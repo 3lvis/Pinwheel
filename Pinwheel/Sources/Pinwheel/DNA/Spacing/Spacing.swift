@@ -1,9 +1,6 @@
 import Foundation
 
 public extension CGFloat {
-    /// Separation of 2 points.
-    static let spacingXXS: CGFloat = 2
-
     /// Separation of 4 points.
     static let spacingXS: CGFloat = 4
 
@@ -18,7 +15,4 @@ public extension CGFloat {
 
     /// Separation of 32 points.
     static let spacingXL: CGFloat = 32
-
-    /// Separation of 64 points.
-    static let spacingXXL: CGFloat = 64
 }

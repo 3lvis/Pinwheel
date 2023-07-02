@@ -7,6 +7,7 @@ protocol CornerAnchoringViewDelegate: AnyObject {
 
 class CornerAnchoringView: UIView {
     weak var delegate: CornerAnchoringViewDelegate?
+    let buttonSize = CGFloat.spacingXL * 2
 
     private lazy var closeButton: FloatingButton = {
         let button = FloatingButton(withAutoLayout: true)
@@ -38,7 +39,6 @@ class CornerAnchoringView: UIView {
         }
         views.addSubview(settingsButton)
 
-        let buttonSize = CGFloat.spacingXXL
         let halfButtonSize = buttonSize / 2.0
 
         NSLayoutConstraint.activate([
@@ -114,8 +114,8 @@ class CornerAnchoringView: UIView {
 
         addSubview(buttonsView)
 
-        let buttonHeight = showCloseButton ? CGFloat.spacingXXL * 2 + .spacingS : CGFloat.spacingXXL
-        let buttonWidth = CGFloat.spacingXXL
+        let buttonHeight = showCloseButton ? buttonSize * 2 + .spacingS : buttonSize
+        let buttonWidth = buttonSize
 
         NSLayoutConstraint.activate([
             topLeftView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingM + buttonWidth / 2),

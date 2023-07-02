@@ -48,9 +48,9 @@ class SelectorTitleView: UIView {
         button.titleLabel?.font = .body
         button.titleLabel?.adjustsFontForContentSizeCategory = true
 
-        let spacing: CGFloat = .spacingXXS
+        let spacing: CGFloat = .spacingXS
         button.semanticContentAttribute = .forceRightToLeft
-        button.imageEdgeInsets = UIEdgeInsets(top: spacing, leading: spacing, bottom: 0, trailing: -spacing)
+        button.imageEdgeInsets = UIEdgeInsets(top: 0, leading: spacing, bottom: 0, trailing: -spacing)
         button.titleEdgeInsets = UIEdgeInsets(top: 0, leading: -spacing, bottom: 0, trailing: spacing)
         button.addTarget(self, action: #selector(handleButtonTap), for: .touchUpInside)
 
@@ -103,7 +103,7 @@ class SelectorTitleView: UIView {
                 titleLabel.topAnchor.constraint(equalTo: topAnchor),
                 titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
 
-                button.widthAnchor.constraint(lessThanOrEqualToConstant: 250),
+                button.widthAnchor.constraint(lessThanOrEqualToConstant: 350),
             ])
         }
     }

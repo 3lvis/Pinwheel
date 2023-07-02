@@ -88,7 +88,7 @@ class BottomSheetExampleViewController: UIViewController {
 
             dismissButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: .spacingXL),
             dismissButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -.spacingXL),
-            dismissButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -.spacingXXL),
+            dismissButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -.spacingXL),
         ])
     }
 
