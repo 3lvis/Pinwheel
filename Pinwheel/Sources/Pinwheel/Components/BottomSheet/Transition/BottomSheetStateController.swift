@@ -4,26 +4,36 @@ class BottomSheetStateController {
 
     var frame: CGRect = .zero
     var state: BottomSheetState
-    var height: BottomSheetHeight
+    var compactHeight: CGFloat
 
     var targetPosition: CGPoint {
         return targetPosition(for: state)
     }
 
     var expandedPosition: CGPoint {
-        return CGPoint(x: 0, y: frame.height - height.expanded)
+        var expanded = 0.0
+        if let aView = view {
+            expanded = aView.frame.height - aView.layoutMargins.top
+        }
+        return CGPoint(x: 0, y: frame.height - expanded)
     }
 
     var compactPosition: CGPoint {
-        return CGPoint(x: 0, y: frame.height - height.compact)
+        return CGPoint(x: 0, y: frame.height - compactHeight)
     }
 
     private let threshold: CGFloat = 75
     private var isExpandedByDefault = false
+    var view: UIView?
 
-    init(height: BottomSheetHeight) {
-        self.height = height
-        self.isExpandedByDefault = height.compact == height.expanded
+    init(compactHeight: CGFloat, view: UIView?) {
+        self.view = view
+        var expanded = 0.0
+        if let aView = view {
+            expanded = aView.frame.height - aView.layoutMargins.top
+        }
+        self.compactHeight = compactHeight
+        self.isExpandedByDefault = compactHeight == expanded
         self.state = isExpandedByDefault ? .expanded : .compact
     }
 
