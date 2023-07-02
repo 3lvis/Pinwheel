@@ -19,16 +19,6 @@ public protocol BottomSheetDragDelegate: AnyObject {
     func bottomSheetDidBeginDrag(_ bottomSheet: BottomSheet)
 }
 
-public extension CGFloat {
-    static var defaultBottomSheetHeight: CGFloat {
-        return -999
-    }
-
-    static func evaluateCompactHeight(forView view: UIView) -> CGFloat {
-        return view.frame.height * 0.4
-    }
-}
-
 public enum BottomSheetState {
     case expanded
     case compact
@@ -109,9 +99,9 @@ public class BottomSheet: UIViewController {
 
     // MARK: - Setup
 
-    public init(rootViewController: UIViewController, compactHeight: CGFloat = .defaultBottomSheetHeight, draggableArea: BottomSheetDraggableArea = .everything) {
+    public init(rootViewController: UIViewController, compactHeight: CGFloat = -999, draggableArea: BottomSheetDraggableArea = .everything) {
         self.rootViewController = rootViewController
-        let height = (compactHeight == .defaultBottomSheetHeight) ? CGFloat.evaluateCompactHeight(forView: rootViewController.view) : compactHeight
+        let height = (compactHeight == -999) ? rootViewController.view.frame.height * 0.4 : compactHeight
         self.transitionDelegate = BottomSheetTransitioningDelegate(compactHeight: height)
         self.dimView = transitionDelegate.dimView
         self.draggableArea = draggableArea
@@ -121,14 +111,14 @@ public class BottomSheet: UIViewController {
         modalPresentationStyle = .custom
     }
 
-    public convenience init(view: UIView, compactHeight: CGFloat = .defaultBottomSheetHeight, draggableArea: BottomSheetDraggableArea = .everything) {
+    public convenience init(view: UIView, compactHeight: CGFloat = -999, draggableArea: BottomSheetDraggableArea = .everything) {
         let rootViewController = UIViewController()
         rootViewController.view.backgroundColor = .primaryBackground
         rootViewController.view.addSubview(view)
         view.translatesAutoresizingMaskIntoConstraints = false
         view.fillInSuperview()
 
-        let height = (compactHeight == .defaultBottomSheetHeight) ? CGFloat.evaluateCompactHeight(forView: rootViewController.view) : compactHeight
+        let height = (compactHeight == -999) ? rootViewController.view.frame.height * 0.4 : compactHeight
         self.init(rootViewController: rootViewController, compactHeight: height, draggableArea: draggableArea)
     }
 
@@ -144,7 +134,7 @@ public class BottomSheet: UIViewController {
         if #available(iOS 13.0, *) {
             view.layer.cornerCurve = .continuous
         }
-        view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+        view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         view.addSubview(notch)
 
         addChild(rootViewController)
