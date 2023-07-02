@@ -13,7 +13,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 PinwheelItem(title: "Spacing", viewController: PinwheelViewController<PinSpacing>()),
             ]),
             PinwheelSection(title: "Components", items: [
-                PinwheelItem(title: "BottomSheet", viewController: PinControllerBottomSheet()),
+                PinwheelItem(title: "BottomSheet", viewController: PinViewControllerBottomSheet()),
                 PinwheelItem(title: "Label", viewController: PinwheelViewController<PinLabel>()),
                 PinwheelItem(title: "Tweakable", viewController: PinwheelViewController<PinTweakable>()),
             ]),

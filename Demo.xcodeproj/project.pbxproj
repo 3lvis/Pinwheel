@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		2847DF4C2A48903E009A6B8E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2847DF4B2A48903E009A6B8E /* AppDelegate.swift */; };
 		2847DF552A48903F009A6B8E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2847DF542A48903F009A6B8E /* Assets.xcassets */; };
+		284D78022A5215E9001F20B3 /* BottomSheetExampleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 284D78012A5215E9001F20B3 /* BottomSheetExampleViewController.swift */; };
 		286CF2C22A4F86A4008D3B26 /* PinTweakable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 286CF2C12A4F86A4008D3B26 /* PinTweakable.swift */; };
 		2893C64C2A48908700039B8A /* Pinwheel in Frameworks */ = {isa = PBXBuildFile; productRef = 2893C64B2A48908700039B8A /* Pinwheel */; };
 		28AAFA612A49F3E900E1CA35 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28AAFA602A49F3E900E1CA35 /* Config.swift */; };
@@ -17,7 +18,7 @@
 		28F4593B2A49860400504BF6 /* PinFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459372A49860400504BF6 /* PinFont.swift */; };
 		28F459402A49867100504BF6 /* PinBasicTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F4593E2A49867100504BF6 /* PinBasicTableViewCell.swift */; };
 		28F459412A49867100504BF6 /* PinVariationsBasicTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F4593F2A49867100504BF6 /* PinVariationsBasicTableViewCell.swift */; };
-		28F459472A49882C00504BF6 /* PinControllerBottomSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459462A49882C00504BF6 /* PinControllerBottomSheet.swift */; };
+		28F459472A49882C00504BF6 /* PinViewControllerBottomSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459462A49882C00504BF6 /* PinViewControllerBottomSheet.swift */; };
 		28F4594A2A498B6B00504BF6 /* PinLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459492A498B6B00504BF6 /* PinLabel.swift */; };
 		28F459532A498CFF00504BF6 /* PinBasicTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459522A498CFF00504BF6 /* PinBasicTableView.swift */; };
 /* End PBXBuildFile section */
@@ -27,6 +28,7 @@
 		2847DF4B2A48903E009A6B8E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2847DF542A48903F009A6B8E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2847DF592A48903F009A6B8E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		284D78012A5215E9001F20B3 /* BottomSheetExampleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomSheetExampleViewController.swift; sourceTree = "<group>"; };
 		286CF2C12A4F86A4008D3B26 /* PinTweakable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinTweakable.swift; sourceTree = "<group>"; };
 		2893C6492A48908000039B8A /* Pinwheel */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Pinwheel; sourceTree = "<group>"; };
 		28AAFA602A49F3E900E1CA35 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
@@ -35,7 +37,7 @@
 		28F459372A49860400504BF6 /* PinFont.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinFont.swift; sourceTree = "<group>"; };
 		28F4593E2A49867100504BF6 /* PinBasicTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinBasicTableViewCell.swift; sourceTree = "<group>"; };
 		28F4593F2A49867100504BF6 /* PinVariationsBasicTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinVariationsBasicTableViewCell.swift; sourceTree = "<group>"; };
-		28F459462A49882C00504BF6 /* PinControllerBottomSheet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinControllerBottomSheet.swift; sourceTree = "<group>"; };
+		28F459462A49882C00504BF6 /* PinViewControllerBottomSheet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinViewControllerBottomSheet.swift; sourceTree = "<group>"; };
 		28F459492A498B6B00504BF6 /* PinLabel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinLabel.swift; sourceTree = "<group>"; };
 		28F459522A498CFF00504BF6 /* PinBasicTableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinBasicTableView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -172,7 +174,8 @@
 		28F459452A49882C00504BF6 /* BottomSheet */ = {
 			isa = PBXGroup;
 			children = (
-				28F459462A49882C00504BF6 /* PinControllerBottomSheet.swift */,
+				28F459462A49882C00504BF6 /* PinViewControllerBottomSheet.swift */,
+				284D78012A5215E9001F20B3 /* BottomSheetExampleViewController.swift */,
 			);
 			path = BottomSheet;
 			sourceTree = "<group>";
@@ -275,12 +278,13 @@
 			files = (
 				28F459532A498CFF00504BF6 /* PinBasicTableView.swift in Sources */,
 				28F459412A49867100504BF6 /* PinVariationsBasicTableViewCell.swift in Sources */,
+				284D78022A5215E9001F20B3 /* BottomSheetExampleViewController.swift in Sources */,
 				286CF2C22A4F86A4008D3B26 /* PinTweakable.swift in Sources */,
 				28F4594A2A498B6B00504BF6 /* PinLabel.swift in Sources */,
 				28F4593A2A49860400504BF6 /* PinSpacing.swift in Sources */,
 				28AAFA612A49F3E900E1CA35 /* Config.swift in Sources */,
 				2847DF4C2A48903E009A6B8E /* AppDelegate.swift in Sources */,
-				28F459472A49882C00504BF6 /* PinControllerBottomSheet.swift in Sources */,
+				28F459472A49882C00504BF6 /* PinViewControllerBottomSheet.swift in Sources */,
 				28F459392A49860400504BF6 /* PinColor.swift in Sources */,
 				28F459402A49867100504BF6 /* PinBasicTableViewCell.swift in Sources */,
 				28F4593B2A49860400504BF6 /* PinFont.swift in Sources */,
