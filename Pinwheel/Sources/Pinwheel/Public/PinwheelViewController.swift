@@ -35,7 +35,7 @@ public class PinwheelViewController<View: UIView>: UIViewController, Containable
     public override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = .primaryBackground
+        view.backgroundColor = .black
 
         let viewController = BasePinwheelViewController<View>(
             dismissType: dismissType,
