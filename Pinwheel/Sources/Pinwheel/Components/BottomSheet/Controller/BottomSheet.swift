@@ -63,7 +63,7 @@ public class BottomSheet: UIViewController {
 
     public let dimView: UIView
 
-    let notch = Notch()
+    let notch = NotchView()
 
     var draggableRect: CGRect? {
         switch draggableArea {
