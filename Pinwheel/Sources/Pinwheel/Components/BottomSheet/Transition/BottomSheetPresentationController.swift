@@ -167,7 +167,6 @@ private extension BottomSheetPresentationController {
 extension BottomSheetPresentationController: BottomSheetGestureControllerDelegate {
     // This method expects to return the current position of the bottom sheet
     func bottomSheetGestureControllerDidBeginGesture(_ controller: BottomSheetGestureController) -> CGPoint {
-        print("PresentationController:GestureControllerDelegate:bottomSheetGestureControllerDidBeginGesture")
         presentationControllerDelegate?.bottomSheetPresentationControllerDidBeginDrag(self)
         guard let constraint = constraint, constraint.constant > stateController.expandedPosition.y else {
             hasReachExpandedPosition = true
@@ -178,7 +177,6 @@ extension BottomSheetPresentationController: BottomSheetGestureControllerDelegat
     }
     // Position is the position of the bottom sheet in the container view
     func bottomSheetGestureControllerDidChangeGesture(_ controller: BottomSheetGestureController) {
-        print("PresentationController:GestureControllerDelegate:bottomSheetGestureControllerDidChangeGesture")
         if controller.position.y <= stateController.expandedPosition.y {
             guard !hasReachExpandedPosition else { return }
             hasReachExpandedPosition = true
@@ -194,7 +192,6 @@ extension BottomSheetPresentationController: BottomSheetGestureControllerDelegat
     }
 
     func bottomSheetGestureControllerDidEndGesture(_ controller: BottomSheetGestureController) {
-        print("PresentationController:GestureControllerDelegate:bottomSheetGestureControllerDidEndGesture")
         stateController.updateState(withTranslation: controller.translation)
         guard !hasReachExpandedPosition else { return }
 
