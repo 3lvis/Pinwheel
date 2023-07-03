@@ -15,10 +15,6 @@ public protocol BottomSheetDelegate: AnyObject {
     func bottomSheet(_ bottomSheet: BottomSheet, didDismissBy action: BottomSheetDismissAction)
 }
 
-public protocol BottomSheetDragDelegate: AnyObject {
-    func bottomSheetDidBeginDrag(_ bottomSheet: BottomSheet)
-}
-
 public enum BottomSheetState {
     case expanded
     case compact
@@ -41,9 +37,8 @@ public enum BottomSheetDraggableArea {
 public class BottomSheet: UIViewController {
     // MARK: - Public properties
 
-    public let rootViewController: UIViewController
+    private let rootViewController: UIViewController
     public weak var delegate: BottomSheetDelegate?
-    public weak var dragDelegate: BottomSheetDragDelegate?
 
     public var state: BottomSheetState {
         get { transitionDelegate.presentationController?.state ?? .dismissed }
@@ -55,20 +50,6 @@ public class BottomSheet: UIViewController {
             }
         }
     }
-
-    public var compactHeight: CGFloat {
-        get { transitionDelegate.compactHeight }
-        set { transitionDelegate.compactHeight = newValue }
-    }
-
-    public var isNotchHidden: Bool {
-        get { notch.isHandleHidden }
-        set { notch.isHandleHidden = newValue }
-    }
-
-    public let dimView: UIView
-
-    let notch = Notch()
 
     var draggableRect: CGRect? {
         switch draggableArea {
@@ -87,24 +68,28 @@ public class BottomSheet: UIViewController {
         }
     }
 
-    let notchHeight: CGFloat = 20
-    var isDefaultPresentationStyle: Bool { modalPresentationStyle == .custom }
-
     // MARK: - Private properties
 
     private let transitionDelegate: BottomSheetTransitioningDelegate
     private let draggableArea: BottomSheetDraggableArea
 
     private let cornerRadius: CGFloat = 42
+    private let compactHeight: CGFloat
+    private let notchHeight: CGFloat = 20
+    private var isDefaultPresentationStyle: Bool { modalPresentationStyle == .custom }
 
-    // MARK: - Setup
+    private let notchView = NotchView()
+
+    private var isNotchHidden: Bool {
+        get { notchView.isHandleHidden }
+        set { notchView.isHandleHidden = newValue }
+    }
 
     public init(rootViewController: UIViewController, compactHeight: CGFloat = -999, draggableArea: BottomSheetDraggableArea = .everything) {
         self.rootViewController = rootViewController
-        let height = (compactHeight == -999) ? rootViewController.view.frame.height * 0.4 : compactHeight
-        self.transitionDelegate = BottomSheetTransitioningDelegate(compactHeight: height)
-        self.dimView = transitionDelegate.dimView
+        self.transitionDelegate = BottomSheetTransitioningDelegate()
         self.draggableArea = draggableArea
+        self.compactHeight = compactHeight
         super.init(nibName: nil, bundle: nil)
         transitionDelegate.presentationControllerDelegate = self
         transitioningDelegate = transitionDelegate
@@ -118,8 +103,7 @@ public class BottomSheet: UIViewController {
         view.translatesAutoresizingMaskIntoConstraints = false
         view.fillInSuperview()
 
-        let height = (compactHeight == -999) ? rootViewController.view.frame.height * 0.4 : compactHeight
-        self.init(rootViewController: rootViewController, compactHeight: height, draggableArea: draggableArea)
+        self.init(rootViewController: rootViewController, compactHeight: compactHeight, draggableArea: draggableArea)
     }
 
     public required init?(coder aDecoder: NSCoder) {
@@ -128,6 +112,7 @@ public class BottomSheet: UIViewController {
 
     public override func viewDidLoad() {
         super.viewDidLoad()
+
         view.backgroundColor = rootViewController.view.backgroundColor ?? .primaryBackground
         view.clipsToBounds = true
         view.layer.cornerRadius = cornerRadius
@@ -135,20 +120,21 @@ public class BottomSheet: UIViewController {
             view.layer.cornerCurve = .continuous
         }
         view.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-        view.addSubview(notch)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(notchView)
 
         addChild(rootViewController)
-        view.insertSubview(rootViewController.view, belowSubview: notch)
+        view.insertSubview(rootViewController.view, belowSubview: notchView)
         rootViewController.didMove(toParent: self)
         rootViewController.view.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            notch.heightAnchor.constraint(equalToConstant: notchHeight),
-            notch.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            notch.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            notch.topAnchor.constraint(equalTo: view.topAnchor),
+            notchView.heightAnchor.constraint(equalToConstant: notchHeight),
+            notchView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            notchView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            notchView.topAnchor.constraint(equalTo: view.topAnchor),
 
-            rootViewController.view.topAnchor.constraint(equalTo: notch.bottomAnchor),
+            rootViewController.view.topAnchor.constraint(equalTo: notchView.bottomAnchor),
             rootViewController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             rootViewController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             rootViewController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
@@ -159,6 +145,14 @@ public class BottomSheet: UIViewController {
 // MARK: - BottomSheetDismissalDelegate
 
 extension BottomSheet: BottomSheetPresentationControllerDelegate {
+    func bottomSheetPresentationControllerCompactHeight(_ presentationController: BottomSheetPresentationController) -> CGFloat {
+        if compactHeight == -999 {
+            return rootViewController.view.frame.height * 0.4
+        } else {
+            return compactHeight
+        }
+    }
+
     func bottomSheetPresentationControllerShouldDismiss(_ presentationController: BottomSheetPresentationController) -> Bool {
         return delegate?.bottomSheetShouldDismiss(self) ?? true
     }
@@ -173,9 +167,5 @@ extension BottomSheet: BottomSheetPresentationControllerDelegate {
 
     func bottomSheetPresentationController(_ presentationController: BottomSheetPresentationController, didDismissPresentedViewController presentedViewController: UIViewController, by action: BottomSheetDismissAction) {
         delegate?.bottomSheet(self, didDismissBy: action)
-    }
-
-    func bottomSheetPresentationControllerDidBeginDrag(_ presentationController: BottomSheetPresentationController) {
-        dragDelegate?.bottomSheetDidBeginDrag(self)
     }
 }

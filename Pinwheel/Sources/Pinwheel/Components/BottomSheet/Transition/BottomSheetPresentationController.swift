@@ -15,11 +15,10 @@ protocol BottomSheetPresentationControllerDelegate: AnyObject {
     func bottomSheetPresentationControllerDidCancelDismiss(_ presentationController: BottomSheetPresentationController)
     func bottomSheetPresentationController(_ presentationController: BottomSheetPresentationController, willDismissPresentedViewController presentedViewController: UIViewController, by action: BottomSheetDismissAction)
     func bottomSheetPresentationController(_ presentationController: BottomSheetPresentationController, didDismissPresentedViewController presentedViewController: UIViewController, by action: BottomSheetDismissAction)
-    func bottomSheetPresentationControllerDidBeginDrag(_ presentationController: BottomSheetPresentationController)
+    func bottomSheetPresentationControllerCompactHeight(_ presentationController: BottomSheetPresentationController) -> CGFloat
 }
 
 class BottomSheetPresentationController: UIPresentationController {
-
     // MARK: - Internal properties
 
     var state: BottomSheetState {
@@ -29,26 +28,12 @@ class BottomSheetPresentationController: UIPresentationController {
 
     weak var presentationControllerDelegate: BottomSheetPresentationControllerDelegate?
 
-    // MARK: - Private properties
-
-    var compactHeight: CGFloat {
-        didSet {
-            stateController.compactHeight = compactHeight
-            stateController.state = state
-            animate(to: stateController.targetPosition)
-        }
-    }
-
-//    stateController.height = height
-//    stateController.state = state
-//    animate(to: stateController.targetPosition)
-
     private let interactionController: BottomSheetInteractionController
     private let dimView: UIView
     private var constraint: NSLayoutConstraint? // Constraint is used to set the y position of the bottom sheet
     private var gestureController: BottomSheetGestureController?
     private let springAnimator = SpringAnimator(dampingRatio: 0.78, frequencyResponse: 0.5)
-    private lazy var stateController = BottomSheetStateController(compactHeight: compactHeight, view: containerView)
+    private lazy var stateController = BottomSheetStateController(view: containerView)
 
     private var hasReachExpandedPosition = false
     private var dismissAction: BottomSheetDismissAction = .none
@@ -62,10 +47,11 @@ class BottomSheetPresentationController: UIPresentationController {
         return .overCurrentContext
     }
 
+    var compactHeight: CGFloat = 0
+
     // MARK: - Init
 
-    init(presentedViewController: UIViewController, presenting: UIViewController?, compactHeight: CGFloat, interactionController: BottomSheetInteractionController, dimView: UIView) {
-        self.compactHeight = compactHeight
+    init(presentedViewController: UIViewController, presenting: UIViewController?, interactionController: BottomSheetInteractionController, dimView: UIView) {
         self.interactionController = interactionController
         self.dimView = dimView
         super.init(presentedViewController: presentedViewController, presenting: presenting)
@@ -81,7 +67,6 @@ class BottomSheetPresentationController: UIPresentationController {
         // Setup controller
         stateController.frame = containerView.bounds
         gestureController = BottomSheetGestureController(bottomSheet: bottomSheet, containerView: containerView)
-        gestureController?.delegate = interactionController
         interactionController.setup(with: constraint)
         interactionController.stateController = stateController
         interactionController.dimView = dimView
@@ -91,7 +76,7 @@ class BottomSheetPresentationController: UIPresentationController {
         }
         // Animate dim view alpha in sync with transition animation
         interactionController.animate { [weak self] position in
-            self?.dimView.alpha = self?.alphaValue(for: position) ?? 0
+            self?.dimView.alpha = self?.alphaValue(for: position, compactHeight: self?.compactHeight ?? 0) ?? 0
         }
     }
 
@@ -128,6 +113,12 @@ private extension BottomSheetPresentationController {
     func setupPresentedView(_ presentedView: UIView, inContainerView containerView: UIView) {
         containerView.addSubview(presentedView)
         presentedView.translatesAutoresizingMaskIntoConstraints = false
+        let defaultCompactHeight = containerView.frame.height * 0.45
+        if let aCompactHeight = presentationControllerDelegate?.bottomSheetPresentationControllerCompactHeight(self) {
+            self.compactHeight =  containerView.bounds.height - aCompactHeight
+        } else {
+            self.compactHeight =  defaultCompactHeight
+        }
         let constraint = presentedView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: containerView.bounds.height)
         NSLayoutConstraint.activate([
             constraint,
@@ -139,7 +130,7 @@ private extension BottomSheetPresentationController {
         self.constraint = constraint
     }
 
-    func alphaValue(for position: CGPoint) -> CGFloat {
+    func alphaValue(for position: CGPoint, compactHeight: CGFloat) -> CGFloat {
         guard let containerView = containerView else { return 0 }
         return (containerView.bounds.height - position.y) / compactHeight
     }
@@ -147,7 +138,7 @@ private extension BottomSheetPresentationController {
     func updateState(_ state: BottomSheetState) {
         guard state != stateController.state else { return }
         stateController.state = state
-        animate(to: stateController.targetPosition)
+        animate(to: stateController.targetPosition(for: stateController.state, compactHeight: self.compactHeight) )
     }
 
     @objc func handleTap() {
@@ -179,7 +170,6 @@ private extension BottomSheetPresentationController {
 extension BottomSheetPresentationController: BottomSheetGestureControllerDelegate {
     // This method expects to return the current position of the bottom sheet
     func bottomSheetGestureControllerDidBeginGesture(_ controller: BottomSheetGestureController) -> CGPoint {
-        presentationControllerDelegate?.bottomSheetPresentationControllerDidBeginDrag(self)
         guard let constraint = constraint, constraint.constant > stateController.expandedPosition.y else {
             hasReachExpandedPosition = true
             return currentPosition
@@ -199,7 +189,7 @@ extension BottomSheetPresentationController: BottomSheetGestureControllerDelegat
         let newPosition = stateAdjustedPosition(forGestureController: controller)
 
         hasReachExpandedPosition = false
-        dimView.alpha = alphaValue(for: newPosition)
+        dimView.alpha = alphaValue(for: newPosition, compactHeight: self.compactHeight)
         constraint?.constant = newPosition.y
     }
 
@@ -216,12 +206,12 @@ extension BottomSheetPresentationController: BottomSheetGestureControllerDelegat
             }
         }
 
-        animate(to: stateController.targetPosition, initialVelocity: -controller.velocity)
+        animate(to: stateController.targetPosition(for: stateController.state, compactHeight: self.compactHeight), initialVelocity: -controller.velocity)
     }
 
     func stateAdjustedPosition(forGestureController controller: BottomSheetGestureController) -> CGPoint {
         let canDismiss = presentationControllerDelegate?.bottomSheetPresentationControllerShouldDismiss(self) ?? true
-        let thresholdPoint = stateController.frame.height - compactHeight
+        let thresholdPoint = stateController.frame.height - self.compactHeight
 
         let ycomponent: CGFloat
         if !canDismiss, controller.position.y >= thresholdPoint {
@@ -235,6 +225,10 @@ extension BottomSheetPresentationController: BottomSheetGestureControllerDelegat
 }
 
 extension BottomSheetPresentationController: BottomSheetInteractionControllerDelegate {
+    func bottomSheetInteractionControllerCompactHeight(_ bottomSheetInteractionController: BottomSheetInteractionController) -> CGFloat {
+        return self.compactHeight
+    }
+
     func bottomSheetInteractionControllerWillCancelPresentationTransition(_ interactionController: BottomSheetInteractionController) {
         presentationControllerDelegate?.bottomSheetPresentationController(self, willDismissPresentedViewController: presentedViewController, by: .drag)
     }

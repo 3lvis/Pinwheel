@@ -32,12 +32,9 @@ class FloatingButton: UIButton {
         return label
     }()
 
-    private var badgeWidthConstraint: NSLayoutConstraint?
-
     // MARK: - Init
     public convenience init(style: FloatingButton.Style) {
         self.init(frame: .zero, style: style)
-        translatesAutoresizingMaskIntoConstraints = false
     }
 
     public override convenience init(frame: CGRect) {
@@ -74,6 +71,8 @@ class FloatingButton: UIButton {
     }
 
     private func setup() {
+        translatesAutoresizingMaskIntoConstraints = false
+
         configureStyle()
         contentMode = .center
 
@@ -85,11 +84,9 @@ class FloatingButton: UIButton {
         badgeView.addSubview(badgeLabel)
         badgeLabel.fillInSuperview()
 
-        let badgeWidthConstraint = badgeView.widthAnchor.constraint(equalToConstant: style.badgeSize)
-        self.badgeWidthConstraint = badgeWidthConstraint
         NSLayoutConstraint.activate([
-            badgeWidthConstraint,
-            badgeView.heightAnchor.constraint(equalTo: badgeView.widthAnchor),
+            badgeView.widthAnchor.constraint(equalToConstant: style.badgeSize),
+            badgeView.heightAnchor.constraint(equalToConstant: style.badgeSize),
             badgeView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: .spacingXS),
             badgeView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: .spacingXS),
         ])
@@ -116,6 +113,5 @@ class FloatingButton: UIButton {
         layer.shadowOffset = style.shadowOffset
         layer.shadowRadius = style.shadowRadius
         setTitleColor(style.titleColor, for: .normal)
-        badgeWidthConstraint?.constant = style.badgeSize
     }
 }

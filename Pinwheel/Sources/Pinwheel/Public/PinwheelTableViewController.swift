@@ -35,11 +35,7 @@ public class PinwheelTableViewController: UITableViewController {
 
         if let indexPath = State.lastSelectedIndexPath {
             if let viewController = viewControllerAtIndexPath(indexPath: indexPath) {
-                if let bottomSheet = viewController as? BottomSheet {
-                    present(bottomSheet, animated: true)
-                } else {
-                    present(viewController, animated: false)
-                }
+                present(viewController, animated: true)
             }
         }
     }

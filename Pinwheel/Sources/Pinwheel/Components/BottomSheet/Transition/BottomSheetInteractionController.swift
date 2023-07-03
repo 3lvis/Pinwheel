@@ -2,6 +2,7 @@ import UIKit
 
 protocol BottomSheetInteractionControllerDelegate: AnyObject {
     func bottomSheetInteractionControllerWillCancelPresentationTransition(_ interactionController: BottomSheetInteractionController)
+    func bottomSheetInteractionControllerCompactHeight(_ bottomSheetInteractionController: BottomSheetInteractionController) -> CGFloat
 }
 
 /**
@@ -42,63 +43,16 @@ class BottomSheetInteractionController: NSObject, UIViewControllerInteractiveTra
         // Keep track of context for any future transition related actions
         self.transitionContext = transitionContext
         // Start transition animation
-        animationController.targetPosition = stateController?.targetPosition ?? .zero
+        if let state = stateController {
+            let defaultCompactHeight = transitionContext.containerView.frame.height * 0.45
+            let compactHeight = delegate?.bottomSheetInteractionControllerCompactHeight(self) ?? defaultCompactHeight
+            animationController.targetPosition = state.targetPosition(for: state.state, compactHeight: compactHeight)
+        }
         animationController.initialVelocity = initialTransitionVelocity
         animationController.animateTransition(using: transitionContext)
     }
 
     func animate(alongsideTransition animation: @escaping (CGPoint) -> Void) {
         animationController.addAnimation(animation)
-    }
-}
-
-private extension BottomSheetInteractionController {
-    func alphaValue(for position: CGPoint) -> CGFloat {
-        guard let stateController = stateController else { return 0 }
-        return (stateController.frame.height - position.y) / stateController.compactHeight
-    }
-}
-
-// The interaction is only used during the presentation transition
-extension BottomSheetInteractionController: BottomSheetGestureControllerDelegate {
-    func bottomSheetGestureControllerDidBeginGesture(_ controller: BottomSheetGestureController) -> CGPoint {
-        guard let constraint = constraint, let stateController = stateController, constraint.constant > stateController.expandedPosition.y else {
-            hasReachExpandedPosition = true
-            return currentPosition
-        }
-        animationController.pauseTransition()
-        animationController.setSpringParameters(dampingRatio: 0.78, frequencyResponse: 0.5)
-        return currentPosition
-    }
-
-    func bottomSheetGestureControllerDidChangeGesture(_ controller: BottomSheetGestureController) {
-        guard let stateController = stateController else { return }
-        if controller.position.y <= stateController.expandedPosition.y {
-            guard !hasReachExpandedPosition else { return }
-            hasReachExpandedPosition = true
-            animationController.targetPosition = stateController.expandedPosition
-            animationController.initialVelocity = -controller.velocity
-            animationController.continueTransition()
-            return
-        }
-
-        hasReachExpandedPosition = false
-        dimView?.alpha = alphaValue(for: controller.position)
-        constraint?.constant = controller.position.y
-    }
-
-    func bottomSheetGestureControllerDidEndGesture(_ controller: BottomSheetGestureController) {
-        guard let transitionContext = transitionContext, let stateController = stateController else { return }
-        stateController.updateState(withTranslation: controller.translation)
-        guard !hasReachExpandedPosition else { return }
-        animationController.initialVelocity = -controller.velocity
-        animationController.targetPosition = stateController.targetPosition
-        switch stateController.state {
-        case .dismissed:
-            delegate?.bottomSheetInteractionControllerWillCancelPresentationTransition(self)
-            animationController.cancelTransition(using: transitionContext)
-        default:
-            animationController.continueTransition()
-        }
     }
 }

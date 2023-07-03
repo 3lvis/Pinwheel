@@ -66,7 +66,7 @@ struct Device {
         case .phone6_5inch:
             size = .init(width: 414, height: 896)
         case .phone6_7inch:
-            size = .init(width: 428, height: 926)
+            size = .init(width: 430, height: 932)
         case .padPortraitOneThird:
             size = .init(width: 320, height: UIScreen.main.bounds.height)
         case .padPortraitTwoThirds:
