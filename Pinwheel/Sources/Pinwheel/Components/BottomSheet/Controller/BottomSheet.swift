@@ -146,11 +146,7 @@ public class BottomSheet: UIViewController {
 
 extension BottomSheet: BottomSheetPresentationControllerDelegate {
     func bottomSheetPresentationControllerCompactHeight(_ presentationController: BottomSheetPresentationController) -> CGFloat {
-        if compactHeight == -999 {
-            return rootViewController.view.frame.height * 0.4
-        } else {
-            return compactHeight
-        }
+        return compactHeight == -999 ? -999 : compactHeight
     }
 
     func bottomSheetPresentationControllerShouldDismiss(_ presentationController: BottomSheetPresentationController) -> Bool {

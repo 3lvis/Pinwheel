@@ -113,11 +113,10 @@ private extension BottomSheetPresentationController {
     func setupPresentedView(_ presentedView: UIView, inContainerView containerView: UIView) {
         containerView.addSubview(presentedView)
         presentedView.translatesAutoresizingMaskIntoConstraints = false
-        let defaultCompactHeight = containerView.frame.height * 0.45
-        if let aCompactHeight = presentationControllerDelegate?.bottomSheetPresentationControllerCompactHeight(self) {
+        if let aCompactHeight = presentationControllerDelegate?.bottomSheetPresentationControllerCompactHeight(self), aCompactHeight != -999 {
             self.compactHeight =  containerView.bounds.height - aCompactHeight
         } else {
-            self.compactHeight =  defaultCompactHeight
+            self.compactHeight =  containerView.bounds.height * 0.50
         }
         let constraint = presentedView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: containerView.bounds.height)
         NSLayoutConstraint.activate([
