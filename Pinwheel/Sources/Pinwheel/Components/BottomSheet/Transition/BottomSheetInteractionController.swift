@@ -17,7 +17,6 @@ class BottomSheetInteractionController: NSObject, UIViewControllerInteractiveTra
     let animationController: BottomSheetAnimationController
     var initialTransitionVelocity: CGPoint = .zero
     var stateController: BottomSheetStateController?
-    var dimView: UIView?
 
     weak var delegate: BottomSheetInteractionControllerDelegate?
 

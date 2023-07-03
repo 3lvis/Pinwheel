@@ -22,7 +22,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 PinwheelItem(title: "Basic Variations", viewController: PinwheelViewController<PinVariationsBasicTableViewCell>()),
             ]),
             PinwheelSection(title: "Reciclable", items: [
-                PinwheelItem(title: "Basic", viewController: PinwheelViewController<PinBasicTableView>()),
+                PinwheelItem(title: "Basic", viewController: PinwheelViewController<PinBasicTableView>(containmentOptions: [.bottomSheet])),
             ]),
         ]
     }()

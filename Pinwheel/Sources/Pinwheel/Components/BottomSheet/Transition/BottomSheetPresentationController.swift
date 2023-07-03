@@ -69,7 +69,6 @@ class BottomSheetPresentationController: UIPresentationController {
         gestureController = BottomSheetGestureController(bottomSheet: bottomSheet, containerView: containerView)
         interactionController.setup(with: constraint)
         interactionController.stateController = stateController
-        interactionController.dimView = dimView
         // Setup animations
         springAnimator.addAnimation { [weak self] position in
             self?.constraint?.constant = position.y
