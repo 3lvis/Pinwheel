@@ -8,14 +8,6 @@ class BottomSheetTransitioningDelegate: NSObject, UIViewControllerTransitioningD
     private let interactionController: BottomSheetInteractionController
     private let animationController: BottomSheetAnimationController
 
-    private(set) lazy var dimView: UIView = {
-        let view = UIView(frame: .zero)
-        view.backgroundColor = UIColor.black.withAlphaComponent(0.4)
-        view.alpha = 0
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-
     override init() {
         animationController = BottomSheetAnimationController()
         interactionController = BottomSheetInteractionController(animationController: animationController)
@@ -24,8 +16,7 @@ class BottomSheetTransitioningDelegate: NSObject, UIViewControllerTransitioningD
     func presentationController(forPresented presented: UIViewController, presenting: UIViewController?, source: UIViewController) -> UIPresentationController? {
         presentationController = BottomSheetPresentationController(presentedViewController: presented,
                                                                    presenting: presenting,
-                                                                   interactionController: interactionController,
-                                                                   dimView: dimView)
+                                                                   interactionController: interactionController)
         presentationController?.presentationControllerDelegate = presentationControllerDelegate
         return presentationController
     }

@@ -29,7 +29,15 @@ class BottomSheetPresentationController: UIPresentationController {
     weak var presentationControllerDelegate: BottomSheetPresentationControllerDelegate?
 
     private let interactionController: BottomSheetInteractionController
-    private let dimView: UIView
+
+    private(set) lazy var dimView: UIView = {
+        let view = UIView(frame: .zero)
+        view.backgroundColor = UIColor.black.withAlphaComponent(0.4)
+        view.alpha = 0
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
     private var constraint: NSLayoutConstraint? // Constraint is used to set the y position of the bottom sheet
     private var gestureController: BottomSheetGestureController?
     private let springAnimator = SpringAnimator(dampingRatio: 0.78, frequencyResponse: 0.5)
@@ -51,9 +59,8 @@ class BottomSheetPresentationController: UIPresentationController {
 
     // MARK: - Init
 
-    init(presentedViewController: UIViewController, presenting: UIViewController?, interactionController: BottomSheetInteractionController, dimView: UIView) {
+    init(presentedViewController: UIViewController, presenting: UIViewController?, interactionController: BottomSheetInteractionController) {
         self.interactionController = interactionController
-        self.dimView = dimView
         super.init(presentedViewController: presentedViewController, presenting: presenting)
         interactionController.delegate = self
     }

@@ -65,13 +65,22 @@ public struct State {
         }
     }
 
-    static var lastSelectedDevice: Int? {
+    static var selectedDeviceForCurrentIndexPath: Int? {
         get {
-            return UserDefaults.standard.value(forKey: lastSelectedDeviceKey) as? Int
+            if let options = UserDefaults.standard.value(forKey: lastSelectedDeviceKey) as? [IndexPath : Int], let indexPath = lastSelectedIndexPath {
+                return options[indexPath]
+            } else {
+                return nil
+            }
         }
         set {
-            UserDefaults.standard.set(newValue, forKey: lastSelectedDeviceKey)
-            UserDefaults.standard.synchronize()
+            if let indexPath = lastSelectedIndexPath, let selectedDevice = newValue {
+                if var options = UserDefaults.standard.value(forKey: lastSelectedDeviceKey) as? [IndexPath : Int] {
+                    options[indexPath] = selectedDevice
+                    UserDefaults.standard.set(options, forKey: lastSelectedDeviceKey)
+                    UserDefaults.standard.synchronize()
+                }
+            }
         }
     }
 }
