@@ -15,10 +15,6 @@ public protocol BottomSheetDelegate: AnyObject {
     func bottomSheet(_ bottomSheet: BottomSheet, didDismissBy action: BottomSheetDismissAction)
 }
 
-public protocol BottomSheetDragDelegate: AnyObject {
-    func bottomSheetDidBeginDrag(_ bottomSheet: BottomSheet)
-}
-
 public enum BottomSheetState {
     case expanded
     case compact
@@ -41,9 +37,8 @@ public enum BottomSheetDraggableArea {
 public class BottomSheet: UIViewController {
     // MARK: - Public properties
 
-    public let rootViewController: UIViewController
+    private let rootViewController: UIViewController
     public weak var delegate: BottomSheetDelegate?
-    public weak var dragDelegate: BottomSheetDragDelegate?
 
     public var state: BottomSheetState {
         get { transitionDelegate.presentationController?.state ?? .dismissed }
@@ -179,9 +174,5 @@ extension BottomSheet: BottomSheetPresentationControllerDelegate {
 
     func bottomSheetPresentationController(_ presentationController: BottomSheetPresentationController, didDismissPresentedViewController presentedViewController: UIViewController, by action: BottomSheetDismissAction) {
         delegate?.bottomSheet(self, didDismissBy: action)
-    }
-
-    func bottomSheetPresentationControllerDidBeginDrag(_ presentationController: BottomSheetPresentationController) {
-        dragDelegate?.bottomSheetDidBeginDrag(self)
     }
 }

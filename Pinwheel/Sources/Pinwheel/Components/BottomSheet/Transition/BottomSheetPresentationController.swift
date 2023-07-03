@@ -15,7 +15,6 @@ protocol BottomSheetPresentationControllerDelegate: AnyObject {
     func bottomSheetPresentationControllerDidCancelDismiss(_ presentationController: BottomSheetPresentationController)
     func bottomSheetPresentationController(_ presentationController: BottomSheetPresentationController, willDismissPresentedViewController presentedViewController: UIViewController, by action: BottomSheetDismissAction)
     func bottomSheetPresentationController(_ presentationController: BottomSheetPresentationController, didDismissPresentedViewController presentedViewController: UIViewController, by action: BottomSheetDismissAction)
-    func bottomSheetPresentationControllerDidBeginDrag(_ presentationController: BottomSheetPresentationController)
     func bottomSheetPresentationControllerCompactHeight(_ presentationController: BottomSheetPresentationController) -> CGFloat
 }
 
@@ -167,7 +166,6 @@ private extension BottomSheetPresentationController {
 extension BottomSheetPresentationController: BottomSheetGestureControllerDelegate {
     // This method expects to return the current position of the bottom sheet
     func bottomSheetGestureControllerDidBeginGesture(_ controller: BottomSheetGestureController) -> CGPoint {
-        presentationControllerDelegate?.bottomSheetPresentationControllerDidBeginDrag(self)
         guard let constraint = constraint, constraint.constant > stateController.expandedPosition.y else {
             hasReachExpandedPosition = true
             return currentPosition
