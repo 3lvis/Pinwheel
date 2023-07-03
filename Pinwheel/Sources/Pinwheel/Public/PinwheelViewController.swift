@@ -50,9 +50,11 @@ public class PinwheelViewController<View: UIView>: UIViewController, Containable
 
         if let deviceIndex = State.lastSelectedDevice, deviceIndex < Device.all.count {
             let device = Device.all[deviceIndex]
-            viewController.view.frame = device.frame
-            viewController.view.autoresizingMask = device.autoresizingMask
             setOverrideTraitCollection(device.traits, forChild: viewController)
+            NSLayoutConstraint.activate([
+                view.widthAnchor.constraint(equalToConstant: device.frame.width),
+                view.heightAnchor.constraint(equalToConstant: device.frame.height)
+            ])
         }
 
         view.fillInSuperview()

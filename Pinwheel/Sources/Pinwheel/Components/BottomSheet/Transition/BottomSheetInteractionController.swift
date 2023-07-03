@@ -46,10 +46,6 @@ class BottomSheetInteractionController: NSObject, UIViewControllerInteractiveTra
         if let state = stateController {
             let defaultCompactHeight = transitionContext.containerView.frame.height * 0.45
             let compactHeight = delegate?.bottomSheetInteractionControllerCompactHeight(self) ?? defaultCompactHeight
-            print("InteractionController:startInteractiveTransition: \(compactHeight)")
-            print(" ")
-            print(" ")
-            print(" ")
             animationController.targetPosition = state.targetPosition(for: state.state, compactHeight: compactHeight)
         }
         animationController.initialVelocity = initialTransitionVelocity
