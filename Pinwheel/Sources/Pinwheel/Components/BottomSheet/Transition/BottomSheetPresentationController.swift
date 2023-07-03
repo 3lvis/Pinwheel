@@ -68,7 +68,6 @@ class BottomSheetPresentationController: UIPresentationController {
         // Setup controller
         stateController.frame = containerView.bounds
         gestureController = BottomSheetGestureController(bottomSheet: bottomSheet, containerView: containerView)
-        gestureController?.delegate = interactionController
         interactionController.setup(with: constraint)
         interactionController.stateController = stateController
         interactionController.dimView = dimView
@@ -115,8 +114,8 @@ private extension BottomSheetPresentationController {
     func setupPresentedView(_ presentedView: UIView, inContainerView containerView: UIView) {
         containerView.addSubview(presentedView)
         presentedView.translatesAutoresizingMaskIntoConstraints = false
-        self.compactHeight = presentationControllerDelegate?.bottomSheetPresentationControllerCompactHeight(self) ?? 372.8
-        print("PresentationController:setupPresentedView: \(compactHeight)")
+        let defaultCompactHeight = containerView.frame.height * 0.45
+        self.compactHeight = presentationControllerDelegate?.bottomSheetPresentationControllerCompactHeight(self) ?? defaultCompactHeight
         let constraint = presentedView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: containerView.bounds.height)
         NSLayoutConstraint.activate([
             constraint,
@@ -168,6 +167,7 @@ private extension BottomSheetPresentationController {
 extension BottomSheetPresentationController: BottomSheetGestureControllerDelegate {
     // This method expects to return the current position of the bottom sheet
     func bottomSheetGestureControllerDidBeginGesture(_ controller: BottomSheetGestureController) -> CGPoint {
+        print("PresentationController:GestureControllerDelegate:bottomSheetGestureControllerDidBeginGesture")
         presentationControllerDelegate?.bottomSheetPresentationControllerDidBeginDrag(self)
         guard let constraint = constraint, constraint.constant > stateController.expandedPosition.y else {
             hasReachExpandedPosition = true
@@ -178,6 +178,7 @@ extension BottomSheetPresentationController: BottomSheetGestureControllerDelegat
     }
     // Position is the position of the bottom sheet in the container view
     func bottomSheetGestureControllerDidChangeGesture(_ controller: BottomSheetGestureController) {
+        print("PresentationController:GestureControllerDelegate:bottomSheetGestureControllerDidChangeGesture")
         if controller.position.y <= stateController.expandedPosition.y {
             guard !hasReachExpandedPosition else { return }
             hasReachExpandedPosition = true
@@ -193,6 +194,7 @@ extension BottomSheetPresentationController: BottomSheetGestureControllerDelegat
     }
 
     func bottomSheetGestureControllerDidEndGesture(_ controller: BottomSheetGestureController) {
+        print("PresentationController:GestureControllerDelegate:bottomSheetGestureControllerDidEndGesture")
         stateController.updateState(withTranslation: controller.translation)
         guard !hasReachExpandedPosition else { return }
 

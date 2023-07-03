@@ -93,12 +93,14 @@ public class BottomSheet: UIViewController {
     private let cornerRadius: CGFloat = 42
 
     // MARK: - Setup
+    let compactHeight: CGFloat
 
-    public init(rootViewController: UIViewController, draggableArea: BottomSheetDraggableArea = .everything) {
+    public init(rootViewController: UIViewController, compactHeight: CGFloat = -999, draggableArea: BottomSheetDraggableArea = .everything) {
         self.rootViewController = rootViewController
         self.transitionDelegate = BottomSheetTransitioningDelegate()
         self.dimView = transitionDelegate.dimView
         self.draggableArea = draggableArea
+        self.compactHeight = compactHeight
         super.init(nibName: nil, bundle: nil)
         transitionDelegate.presentationControllerDelegate = self
         transitionDelegate.presentationControllerDelegate = self
@@ -113,7 +115,7 @@ public class BottomSheet: UIViewController {
         view.translatesAutoresizingMaskIntoConstraints = false
         view.fillInSuperview()
 
-        self.init(rootViewController: rootViewController, draggableArea: draggableArea)
+        self.init(rootViewController: rootViewController, compactHeight: compactHeight, draggableArea: draggableArea)
     }
 
     public required init?(coder aDecoder: NSCoder) {
@@ -154,7 +156,13 @@ public class BottomSheet: UIViewController {
 
 extension BottomSheet: BottomSheetPresentationControllerDelegate {
     func bottomSheetPresentationControllerCompactHeight(_ presentationController: BottomSheetPresentationController) -> CGFloat {
-        return UIScreen.main.bounds.height - 372.8
+        if compactHeight == -999 {
+            let bottomSheetHeight = rootViewController.view.frame.height * 0.45
+            let returnedHeight = UIScreen.main.bounds.height - bottomSheetHeight
+            return returnedHeight
+        } else {
+            return UIScreen.main.bounds.height - compactHeight
+        }
     }
 
     func bottomSheetPresentationControllerShouldDismiss(_ presentationController: BottomSheetPresentationController) -> Bool {
