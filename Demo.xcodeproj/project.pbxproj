@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		28143C492A52B85E009E1788 /* PinActionsTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28143C482A52B85E009E1788 /* PinActionsTableView.swift */; };
 		2847DF4C2A48903E009A6B8E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2847DF4B2A48903E009A6B8E /* AppDelegate.swift */; };
 		2847DF552A48903F009A6B8E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2847DF542A48903F009A6B8E /* Assets.xcassets */; };
 		284D78022A5215E9001F20B3 /* BottomSheetExampleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 284D78012A5215E9001F20B3 /* BottomSheetExampleViewController.swift */; };
@@ -24,6 +25,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		28143C482A52B85E009E1788 /* PinActionsTableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinActionsTableView.swift; sourceTree = "<group>"; };
 		2847DF482A48903E009A6B8E /* Demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Demo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2847DF4B2A48903E009A6B8E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2847DF542A48903F009A6B8E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -199,6 +201,7 @@
 		28F459512A498CFF00504BF6 /* Basic */ = {
 			isa = PBXGroup;
 			children = (
+				28143C482A52B85E009E1788 /* PinActionsTableView.swift */,
 				28F459522A498CFF00504BF6 /* PinBasicTableView.swift */,
 			);
 			path = Basic;
@@ -281,6 +284,7 @@
 				284D78022A5215E9001F20B3 /* BottomSheetExampleViewController.swift in Sources */,
 				286CF2C22A4F86A4008D3B26 /* PinTweakable.swift in Sources */,
 				28F4594A2A498B6B00504BF6 /* PinLabel.swift in Sources */,
+				28143C492A52B85E009E1788 /* PinActionsTableView.swift in Sources */,
 				28F4593A2A49860400504BF6 /* PinSpacing.swift in Sources */,
 				28AAFA612A49F3E900E1CA35 /* Config.swift in Sources */,
 				2847DF4C2A48903E009A6B8E /* AppDelegate.swift in Sources */,

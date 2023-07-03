@@ -16,14 +16,7 @@ class BottomSheetTransitioningDelegate: NSObject, UIViewControllerTransitioningD
         return view
     }()
 
-    var compactHeight: CGFloat {
-        didSet {
-            presentationController?.compactHeight = compactHeight
-        }
-    }
-
-    init(compactHeight: CGFloat) {
-        self.compactHeight = compactHeight
+    override init() {
         animationController = BottomSheetAnimationController()
         interactionController = BottomSheetInteractionController(animationController: animationController)
     }
@@ -31,7 +24,6 @@ class BottomSheetTransitioningDelegate: NSObject, UIViewControllerTransitioningD
     func presentationController(forPresented presented: UIViewController, presenting: UIViewController?, source: UIViewController) -> UIPresentationController? {
         presentationController = BottomSheetPresentationController(presentedViewController: presented,
                                                                    presenting: presenting,
-                                                                   compactHeight: compactHeight,
                                                                    interactionController: interactionController,
                                                                    dimView: dimView)
         presentationController?.presentationControllerDelegate = presentationControllerDelegate

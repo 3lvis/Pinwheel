@@ -2,6 +2,7 @@ import UIKit
 
 protocol BottomSheetInteractionControllerDelegate: AnyObject {
     func bottomSheetInteractionControllerWillCancelPresentationTransition(_ interactionController: BottomSheetInteractionController)
+    func bottomSheetInteractionControllerCompactHeight(_ bottomSheetInteractionController: BottomSheetInteractionController) -> CGFloat
 }
 
 /**
@@ -42,20 +43,20 @@ class BottomSheetInteractionController: NSObject, UIViewControllerInteractiveTra
         // Keep track of context for any future transition related actions
         self.transitionContext = transitionContext
         // Start transition animation
-        animationController.targetPosition = stateController?.targetPosition ?? .zero
+        if let state = stateController {
+            let compactHeight = delegate?.bottomSheetInteractionControllerCompactHeight(self) ?? 372.8
+            print("InteractionController:startInteractiveTransition: \(compactHeight)")
+            print(" ")
+            print(" ")
+            print(" ")
+            animationController.targetPosition = state.targetPosition(for: state.state, compactHeight: compactHeight)
+        }
         animationController.initialVelocity = initialTransitionVelocity
         animationController.animateTransition(using: transitionContext)
     }
 
     func animate(alongsideTransition animation: @escaping (CGPoint) -> Void) {
         animationController.addAnimation(animation)
-    }
-}
-
-private extension BottomSheetInteractionController {
-    func alphaValue(for position: CGPoint) -> CGFloat {
-        guard let stateController = stateController else { return 0 }
-        return (stateController.frame.height - position.y) / stateController.compactHeight
     }
 }
 
@@ -83,7 +84,7 @@ extension BottomSheetInteractionController: BottomSheetGestureControllerDelegate
         }
 
         hasReachExpandedPosition = false
-        dimView?.alpha = alphaValue(for: controller.position)
+        dimView?.alpha = 0
         constraint?.constant = controller.position.y
     }
 
@@ -92,7 +93,9 @@ extension BottomSheetInteractionController: BottomSheetGestureControllerDelegate
         stateController.updateState(withTranslation: controller.translation)
         guard !hasReachExpandedPosition else { return }
         animationController.initialVelocity = -controller.velocity
-        animationController.targetPosition = stateController.targetPosition
+        let compactHeight = delegate?.bottomSheetInteractionControllerCompactHeight(self) ?? 372.8
+        print("BottomSheetInteractionController:bottomSheetGestureControllerDidEndGesture: \(compactHeight)")
+        animationController.targetPosition = stateController.targetPosition(for: stateController.state, compactHeight: compactHeight)
         switch stateController.state {
         case .dismissed:
             delegate?.bottomSheetInteractionControllerWillCancelPresentationTransition(self)

@@ -56,11 +56,6 @@ public class BottomSheet: UIViewController {
         }
     }
 
-    public var compactHeight: CGFloat {
-        get { transitionDelegate.compactHeight }
-        set { transitionDelegate.compactHeight = newValue }
-    }
-
     public var isNotchHidden: Bool {
         get { notch.isHandleHidden }
         set { notch.isHandleHidden = newValue }
@@ -99,13 +94,13 @@ public class BottomSheet: UIViewController {
 
     // MARK: - Setup
 
-    public init(rootViewController: UIViewController, compactHeight: CGFloat = -999, draggableArea: BottomSheetDraggableArea = .everything) {
+    public init(rootViewController: UIViewController, draggableArea: BottomSheetDraggableArea = .everything) {
         self.rootViewController = rootViewController
-        let height = (compactHeight == -999) ? rootViewController.view.frame.height * 0.4 : compactHeight
-        self.transitionDelegate = BottomSheetTransitioningDelegate(compactHeight: height)
+        self.transitionDelegate = BottomSheetTransitioningDelegate()
         self.dimView = transitionDelegate.dimView
         self.draggableArea = draggableArea
         super.init(nibName: nil, bundle: nil)
+        transitionDelegate.presentationControllerDelegate = self
         transitionDelegate.presentationControllerDelegate = self
         transitioningDelegate = transitionDelegate
         modalPresentationStyle = .custom
@@ -118,8 +113,7 @@ public class BottomSheet: UIViewController {
         view.translatesAutoresizingMaskIntoConstraints = false
         view.fillInSuperview()
 
-        let height = (compactHeight == -999) ? rootViewController.view.frame.height * 0.4 : compactHeight
-        self.init(rootViewController: rootViewController, compactHeight: height, draggableArea: draggableArea)
+        self.init(rootViewController: rootViewController, draggableArea: draggableArea)
     }
 
     public required init?(coder aDecoder: NSCoder) {
@@ -159,6 +153,10 @@ public class BottomSheet: UIViewController {
 // MARK: - BottomSheetDismissalDelegate
 
 extension BottomSheet: BottomSheetPresentationControllerDelegate {
+    func bottomSheetPresentationControllerCompactHeight(_ presentationController: BottomSheetPresentationController) -> CGFloat {
+        return UIScreen.main.bounds.height - 372.8
+    }
+
     func bottomSheetPresentationControllerShouldDismiss(_ presentationController: BottomSheetPresentationController) -> Bool {
         return delegate?.bottomSheetShouldDismiss(self) ?? true
     }

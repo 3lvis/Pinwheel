@@ -138,7 +138,7 @@ class PinViewControllerBottomSheet: UIViewController {
 
     @objc private func presentTableView() {
         let rootController = PinwheelViewController<PinBasicTableView>()
-        let bottomSheet = BottomSheet(rootViewController: rootController, compactHeight: 313, draggableArea: .everything)
+        let bottomSheet = BottomSheet(rootViewController: rootController, draggableArea: .everything)
         bottomSheet.delegate = self
         present(bottomSheet, animated: true)
         self.bottomSheet = bottomSheet
@@ -182,10 +182,8 @@ extension PinViewControllerBottomSheet: BottomSheetDelegate {
     }
 
     func bottomSheet(_ bottomSheet: BottomSheet, willDismissBy action: BottomSheetDismissAction) {
-        print("Bottom sheet will dismiss")
     }
 
     func bottomSheet(_ bottomSheet: BottomSheet, didDismissBy action: BottomSheetDismissAction) {
-        print("Bottom sheet did dismiss")
     }
 }
