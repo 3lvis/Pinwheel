@@ -11,15 +11,6 @@ class PinActionsTableView: View {
         return view
     }()
 
-//    var size: CGSize {
-//         let rootController = ActionsController()
-//         let expanded = view.frame.height - view.layoutMargins.top
-//         let totalHeight = rootController.controllerView.totalHeight(inView: view)
-//         let height = BottomSheetHeight(compact: totalHeight, expanded: expanded)
-//         let bottomSheet = BottomSheet(rootViewController: rootController, height: height, draggableArea: .everything)
-//         present(bottomSheet, animated: true)
-//    }
-
     override func setup() {
         addSubview(view)
         view.fillInSuperview()
