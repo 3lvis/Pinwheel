@@ -23,7 +23,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             ]),
             PinwheelSection(title: "Reciclable", items: [
                 PinwheelItem(title: "Basic", viewController: PinwheelViewController<PinBasicTableView>()),
-                PinwheelItem(title: "Actions", viewController: PinwheelViewController<PinActionsTableView>(containmentOptions: [.bottomSheet])),
             ]),
         ]
     }()
