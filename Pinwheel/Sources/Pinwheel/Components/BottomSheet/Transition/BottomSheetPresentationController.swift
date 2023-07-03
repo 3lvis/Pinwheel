@@ -63,6 +63,33 @@ class BottomSheetPresentationController: UIPresentationController {
         self.interactionController = interactionController
         super.init(presentedViewController: presentedViewController, presenting: presenting)
         interactionController.delegate = self
+
+        addObserverForKeyboardNotification(named: UIResponder.keyboardWillShowNotification)
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
+    private func addObserverForKeyboardNotification(named name: NSNotification.Name) {
+        NotificationCenter.default.addObserver(self, selector: #selector(adjustScrollViewForKeyboard(_:)), name: name, object: nil)
+    }
+
+    @objc private func adjustScrollViewForKeyboard(_ notification: Notification) {
+        guard let keyboardInfo = KeyboardNotificationInfo(notification) else { return }
+        guard let containerView = containerView else { return }
+        let keyboardHeight = keyboardInfo.keyboardFrameEndIntersectHeight(inView: containerView)
+
+        if keyboardInfo.action == .willShow {
+            if let aCompactHeight = presentationControllerDelegate?.bottomSheetPresentationControllerCompactHeight(self), aCompactHeight != -999 {
+                self.compactHeight =  containerView.bounds.height - aCompactHeight - keyboardHeight
+            } else {
+                self.compactHeight =  containerView.bounds.height * 0.50 - keyboardHeight
+            }
+
+            let targetPosition = stateController.targetPosition(for: .compact, compactHeight: self.compactHeight)
+            self.animate(to: targetPosition)
+        }
     }
 
     // MARK: - Overrides
@@ -203,6 +230,8 @@ extension BottomSheetPresentationController: BottomSheetGestureControllerDelegat
         guard !hasReachExpandedPosition else { return }
 
         if stateController.state == .dismissed {
+            presentedView?.endEditing(true)
+
             if presentationControllerDelegate?.bottomSheetPresentationControllerShouldDismiss(self) ?? true {
                 dismissAction = .drag
             } else {

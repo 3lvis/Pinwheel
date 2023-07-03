@@ -73,7 +73,7 @@ struct DemoColorProvider: ColorProvider {
 
     var primaryBackground: UIColor {
         let defaultColor: UIColor = .init(hex: "FFFFFF")
-        let darkColor: UIColor = .init(hex: "98A0A8")
+        let darkColor: UIColor = .init(hex: "1C2024")
         if #available(iOS 13.0, *) {
             return .dynamicColor(defaultColor: defaultColor, darkModeColor: darkColor)
         } else {
@@ -106,12 +106,18 @@ struct DemoColorProvider: ColorProvider {
     }
 
     var criticalAction: UIColor {
-        .init(hex: "FE4749")
+        let defaultColor: UIColor = .init(hex: "FE4749")
+        let darkColor: UIColor = .init(hex: "C90002")
+        if #available(iOS 13.0, *) {
+            return .dynamicColor(defaultColor: defaultColor, darkModeColor: darkColor)
+        } else {
+            return defaultColor
+        }
     }
 
     var criticalBackground: UIColor {
         let defaultColor: UIColor = .init(hex: "FBE7E6")
-        let darkColor: UIColor = .init(hex: "2F0C0A")
+        let darkColor: UIColor = .init(hex: "3D2525")
         if #available(iOS 13.0, *) {
             return .dynamicColor(defaultColor: defaultColor, darkModeColor: darkColor)
         } else {
