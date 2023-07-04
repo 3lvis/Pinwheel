@@ -1,9 +1,9 @@
 import UIKit
 
 public struct TweakingOption {
-    var title: String
-    var description: String?
-    var action: ((() -> Void)?)
+    public var title: String
+    public var description: String?
+    public var action: ((() -> Void)?)
 
     public init(title: String, description: String? = nil, action: ((() -> Void))? = nil) {
         self.title = title
