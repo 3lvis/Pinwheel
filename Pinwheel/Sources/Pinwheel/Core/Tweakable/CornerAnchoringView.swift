@@ -12,7 +12,7 @@ class CornerAnchoringView: UIView {
     private lazy var closeButton: FloatingButton = {
         let button = FloatingButton(withAutoLayout: true)
         if #available(iOS 13.0, *) {
-            let config = UIImage.SymbolConfiguration(textStyle: .title2)
+            let config = UIImage.SymbolConfiguration(pointSize: 26, weight: .bold)
             let image = UIImage(systemName: "xmark", withConfiguration: config)!
             button.setImage(image.withRenderingMode(.alwaysTemplate), for: .normal)
         }
@@ -23,7 +23,7 @@ class CornerAnchoringView: UIView {
     private lazy var settingsButton: FloatingButton = {
         let button = FloatingButton(withAutoLayout: true)
         if #available(iOS 13.0, *) {
-            let config = UIImage.SymbolConfiguration(textStyle: .title2)
+            let config = UIImage.SymbolConfiguration(pointSize: 25, weight: .regular)
             let image = UIImage(systemName: "wrench.adjustable.fill", withConfiguration: config)!
             button.setImage(image.withRenderingMode(.alwaysTemplate), for: .normal)
         }

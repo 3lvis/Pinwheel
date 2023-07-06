@@ -15,7 +15,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             PinwheelSection(title: "Components", items: [
                 PinwheelItem(title: "BottomSheet", viewController: PinViewControllerBottomSheet()),
                 PinwheelItem(title: "Label", viewController: PinwheelViewController<PinLabel>()),
-                PinwheelItem(title: "Tweakable", viewController: PinwheelViewController<PinTweakable>()),
+                PinwheelItem(title: "Tweakable", viewController: PinwheelViewController<PinTweakable>(dismissType: .dismissButton)),
             ]),
             PinwheelSection(title: "Cells", items: [
                 PinwheelItem(title: "Basic", viewController: PinwheelViewController<PinBasicTableViewCell>()),
