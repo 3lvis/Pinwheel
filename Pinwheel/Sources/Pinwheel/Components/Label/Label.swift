@@ -8,7 +8,7 @@ public class Label: UILabel {
 
     // MARK: - Setup
 
-    public init(style: Style, textColor: UIColor = .primaryText) {
+    public init(style: Style = .body, textColor: UIColor = .primaryText) {
         super.init(frame: .zero)
         self.translatesAutoresizingMaskIntoConstraints = false
         self.style = style
