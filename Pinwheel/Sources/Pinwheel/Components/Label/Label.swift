@@ -4,13 +4,12 @@ public class Label: UILabel {
 
     // MARK: - Public properties
 
-    public private(set) var style: Style?
+    public private(set) var style: Style = .body
 
     // MARK: - Setup
 
     public init(style: Style = .body, textColor: UIColor = .primaryText) {
         super.init(frame: .zero)
-        self.translatesAutoresizingMaskIntoConstraints = false
         self.style = style
         setup(textColor: textColor)
     }
@@ -26,11 +25,12 @@ public class Label: UILabel {
     }
 
     private func setup(textColor: UIColor = .primaryText) {
+        translatesAutoresizingMaskIntoConstraints = false
         isAccessibilityElement = true
-
         accessibilityLabel = text
-        font = style?.font
-        self.textColor = textColor
         adjustsFontForContentSizeCategory = true
+
+        font = self.style.font
+        self.textColor = textColor
     }
 }
