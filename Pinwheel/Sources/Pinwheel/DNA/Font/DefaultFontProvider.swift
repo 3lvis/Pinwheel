@@ -26,6 +26,11 @@ public struct DefaultFontProvider: FontProvider {
         return font.scaledFont(forTextStyle: .subheadline)
     }
 
+    public var subheadlineSemibold: UIFont {
+        let font = UIFont.systemFont(ofSize: 15, weight: .semibold)
+        return font.scaledFont(forTextStyle: .subheadline)
+    }
+
     public var subheadlineBold: UIFont {
         let font = UIFont.systemFont(ofSize: 15, weight: .bold)
         return font.scaledFont(forTextStyle: .subheadline)

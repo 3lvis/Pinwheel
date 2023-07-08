@@ -21,6 +21,10 @@ public extension UIFont {
         Config.fontProvider.subheadline
     }
 
+    class var subheadlineSemibold: UIFont {
+        Config.fontProvider.subheadlineSemibold
+    }
+
     class var subheadlineBold: UIFont {
         Config.fontProvider.subheadlineBold
     }

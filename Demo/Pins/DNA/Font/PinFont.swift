@@ -22,6 +22,7 @@ class PinFont: View {
             FontItem(font: .headlineBold, title: "Headline Bold"),
             FontItem(font: .body, title: "Body"),
             FontItem(font: .subheadline, title: "Subheadline"),
+            FontItem(font: .subheadlineSemibold, title: "Subheadline Semibold"),
             FontItem(font: .subheadlineBold, title: "Subheadline Bold"),
             FontItem(font: .caption, title: "Caption")
         ]

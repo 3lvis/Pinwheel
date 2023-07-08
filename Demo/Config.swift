@@ -25,6 +25,12 @@ struct DemoFontProvider: FontProvider {
         let font = UIFont.rounded(ofSize: 18, weight: .medium)
         return font.scaledFont(forTextStyle: .subheadline)
     }
+
+    var subheadlineSemibold: UIFont {
+        let font = UIFont.rounded(ofSize: 18, weight: .semibold)
+        return font.scaledFont(forTextStyle: .subheadline)
+    }
+
     var subheadlineBold: UIFont {
         let font = UIFont.rounded(ofSize: 18, weight: .bold)
         return font.scaledFont(forTextStyle: .subheadline)

@@ -8,6 +8,7 @@ public protocol FontProvider {
     var body: UIFont { get }
 
     var subheadline: UIFont { get }
+    var subheadlineSemibold: UIFont { get }
     var subheadlineBold: UIFont { get }
 
     var caption: UIFont { get }

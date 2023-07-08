@@ -9,6 +9,7 @@ public extension Label {
         case body
 
         case subheadline
+        case subheadlineSemibold
         case subheadlineBold
 
         case caption
@@ -20,6 +21,7 @@ public extension Label {
             case .headlineBold: return UIFont.headlineBold
             case .body: return UIFont.body
             case .subheadline: return UIFont.subheadline
+            case .subheadlineSemibold: return UIFont.subheadlineSemibold
             case .subheadlineBold: return UIFont.subheadlineBold
             case .caption: return UIFont.caption
             }

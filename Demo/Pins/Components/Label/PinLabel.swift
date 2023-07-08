@@ -17,6 +17,9 @@ class PinLabel: View {
         let subheadline = Label(style: .subheadline)
         subheadline.text = "Subheadline"
 
+        let subheadlineSemibold = Label(style: .subheadlineSemibold)
+        subheadlineSemibold.text = "Subheadline Semibold"
+
         let subheadlineBold = Label(style: .subheadlineBold)
         subheadlineBold.text = "Subheadline Bold"
 
@@ -30,6 +33,7 @@ class PinLabel: View {
             headlineBold,
             body,
             subheadline,
+            subheadlineSemibold,
             subheadlineBold,
             caption,
         ])
