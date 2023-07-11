@@ -15,4 +15,7 @@ public extension CGFloat {
 
     /// Separation of 32 points.
     static let spacingXL: CGFloat = 32
+
+    /// Separation of 48 points.
+    static let spacingXXL: CGFloat = 48
 }
