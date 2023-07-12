@@ -74,7 +74,7 @@ public class BottomSheet: UIViewController {
     private let draggableArea: BottomSheetDraggableArea
 
     private let cornerRadius: CGFloat = 42
-    private let compactHeight: CGFloat
+    private let compactHeight: Double?
     private let notchHeight: CGFloat = 20
     private var isDefaultPresentationStyle: Bool { modalPresentationStyle == .custom }
 
@@ -85,7 +85,7 @@ public class BottomSheet: UIViewController {
         set { notchView.isHandleHidden = newValue }
     }
 
-    public init(rootViewController: UIViewController, compactHeight: CGFloat = -999, draggableArea: BottomSheetDraggableArea = .everything) {
+    public init(rootViewController: UIViewController, compactHeight: Double? = nil, draggableArea: BottomSheetDraggableArea = .everything) {
         self.rootViewController = rootViewController
         self.transitionDelegate = BottomSheetTransitioningDelegate()
         self.draggableArea = draggableArea
@@ -96,7 +96,7 @@ public class BottomSheet: UIViewController {
         modalPresentationStyle = .custom
     }
 
-    public convenience init(view: UIView, compactHeight: CGFloat = -999, draggableArea: BottomSheetDraggableArea = .everything) {
+    public convenience init(view: UIView, compactHeight: Double? = nil, draggableArea: BottomSheetDraggableArea = .everything) {
         let rootViewController = UIViewController()
         rootViewController.view.backgroundColor = .primaryBackground
         rootViewController.view.addSubview(view)
@@ -145,8 +145,8 @@ public class BottomSheet: UIViewController {
 // MARK: - BottomSheetDismissalDelegate
 
 extension BottomSheet: BottomSheetPresentationControllerDelegate {
-    func bottomSheetPresentationControllerCompactHeight(_ presentationController: BottomSheetPresentationController) -> CGFloat {
-        return compactHeight == -999 ? -999 : compactHeight
+    func bottomSheetPresentationControllerCompactHeight(_ presentationController: BottomSheetPresentationController) -> Double? {
+        return compactHeight
     }
 
     func bottomSheetPresentationControllerShouldDismiss(_ presentationController: BottomSheetPresentationController) -> Bool {

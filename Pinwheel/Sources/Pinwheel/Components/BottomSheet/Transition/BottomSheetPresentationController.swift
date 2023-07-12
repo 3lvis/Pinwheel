@@ -15,7 +15,7 @@ protocol BottomSheetPresentationControllerDelegate: AnyObject {
     func bottomSheetPresentationControllerDidCancelDismiss(_ presentationController: BottomSheetPresentationController)
     func bottomSheetPresentationController(_ presentationController: BottomSheetPresentationController, willDismissPresentedViewController presentedViewController: UIViewController, by action: BottomSheetDismissAction)
     func bottomSheetPresentationController(_ presentationController: BottomSheetPresentationController, didDismissPresentedViewController presentedViewController: UIViewController, by action: BottomSheetDismissAction)
-    func bottomSheetPresentationControllerCompactHeight(_ presentationController: BottomSheetPresentationController) -> CGFloat
+    func bottomSheetPresentationControllerCompactHeight(_ presentationController: BottomSheetPresentationController) -> Double?
 }
 
 class BottomSheetPresentationController: UIPresentationController {
