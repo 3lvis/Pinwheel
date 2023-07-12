@@ -81,7 +81,7 @@ class BottomSheetPresentationController: UIPresentationController {
         let keyboardHeight = keyboardInfo.keyboardFrameEndIntersectHeight(inView: containerView)
 
         if keyboardInfo.action == .willShow {
-            if let aCompactHeight = presentationControllerDelegate?.bottomSheetPresentationControllerCompactHeight(self), aCompactHeight != -999 {
+            if let aCompactHeight = presentationControllerDelegate?.bottomSheetPresentationControllerCompactHeight(self) {
                 self.compactHeight =  containerView.bounds.height - aCompactHeight - keyboardHeight
             } else {
                 self.compactHeight =  containerView.bounds.height * 0.50 - keyboardHeight
@@ -146,7 +146,7 @@ private extension BottomSheetPresentationController {
     func setupPresentedView(_ presentedView: UIView, inContainerView containerView: UIView) {
         containerView.addSubview(presentedView)
         presentedView.translatesAutoresizingMaskIntoConstraints = false
-        if let aCompactHeight = presentationControllerDelegate?.bottomSheetPresentationControllerCompactHeight(self), aCompactHeight != -999 {
+        if let aCompactHeight = presentationControllerDelegate?.bottomSheetPresentationControllerCompactHeight(self) {
             self.compactHeight =  containerView.bounds.height - aCompactHeight
         } else {
             self.compactHeight =  containerView.bounds.height * 0.50
