@@ -91,7 +91,7 @@ class PinViewControllerBottomSheet: UIViewController {
     @objc private func presentAllDraggableButtonPressed() {
         let rootController = BottomSheetExampleViewController()
         rootController.delegate = self
-        let bottomSheet = BottomSheet(rootViewController: rootController, draggableArea: .everything)
+        let bottomSheet = BottomSheet(rootViewController: rootController, height: BottomSheetHeight.expanded, draggableArea: .everything)
         bottomSheet.delegate = self
         present(bottomSheet, animated: true)
         self.bottomSheet = bottomSheet
@@ -137,7 +137,7 @@ class PinViewControllerBottomSheet: UIViewController {
     }
 
     @objc private func presentTableView() {
-        let bottomSheet = BottomSheet(view: PinBasicTableView(), compactHeight: 300, draggableArea: .everything)
+        let bottomSheet = BottomSheet(view: PinBasicTableView(), height: BottomSheetHeight.compact(300), draggableArea: .everything)
         bottomSheet.delegate = self
         present(bottomSheet, animated: true)
         self.bottomSheet = bottomSheet

@@ -15,6 +15,11 @@ public protocol BottomSheetDelegate: AnyObject {
     func bottomSheet(_ bottomSheet: BottomSheet, didDismissBy action: BottomSheetDismissAction)
 }
 
+public enum BottomSheetHeight: Equatable {
+    case compact(Double)
+    case expanded
+}
+
 public enum BottomSheetState {
     case expanded
     case compact
@@ -74,7 +79,7 @@ public class BottomSheet: UIViewController {
     private let draggableArea: BottomSheetDraggableArea
 
     private let cornerRadius: CGFloat = 42
-    private let compactHeight: Double?
+    private let height: BottomSheetHeight?
     private let notchHeight: CGFloat = 20
     private var isDefaultPresentationStyle: Bool { modalPresentationStyle == .custom }
 
@@ -85,25 +90,25 @@ public class BottomSheet: UIViewController {
         set { notchView.isHandleHidden = newValue }
     }
 
-    public init(rootViewController: UIViewController, compactHeight: Double? = nil, draggableArea: BottomSheetDraggableArea = .everything) {
+    public init(rootViewController: UIViewController, height: BottomSheetHeight? = nil, draggableArea: BottomSheetDraggableArea = .everything) {
         self.rootViewController = rootViewController
         self.transitionDelegate = BottomSheetTransitioningDelegate()
         self.draggableArea = draggableArea
-        self.compactHeight = compactHeight
+        self.height = height
         super.init(nibName: nil, bundle: nil)
         transitionDelegate.presentationControllerDelegate = self
         transitioningDelegate = transitionDelegate
         modalPresentationStyle = .custom
     }
 
-    public convenience init(view: UIView, compactHeight: Double? = nil, draggableArea: BottomSheetDraggableArea = .everything) {
+    public convenience init(view: UIView, height: BottomSheetHeight? = nil, draggableArea: BottomSheetDraggableArea = .everything) {
         let rootViewController = UIViewController()
         rootViewController.view.backgroundColor = .primaryBackground
         rootViewController.view.addSubview(view)
         view.translatesAutoresizingMaskIntoConstraints = false
         view.fillInSuperview()
 
-        self.init(rootViewController: rootViewController, compactHeight: compactHeight, draggableArea: draggableArea)
+        self.init(rootViewController: rootViewController, height: height, draggableArea: draggableArea)
     }
 
     public required init?(coder aDecoder: NSCoder) {
@@ -140,13 +145,21 @@ public class BottomSheet: UIViewController {
             rootViewController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
+
+    override public func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        if self.height == .expanded {
+            self.state = .expanded
+        }
+    }
 }
 
 // MARK: - BottomSheetDismissalDelegate
 
 extension BottomSheet: BottomSheetPresentationControllerDelegate {
-    func bottomSheetPresentationControllerCompactHeight(_ presentationController: BottomSheetPresentationController) -> Double? {
-        return compactHeight
+    func bottomSheetPresentationControllerHeight(_ presentationController: BottomSheetPresentationController) -> BottomSheetHeight? {
+        return height
     }
 
     func bottomSheetPresentationControllerShouldDismiss(_ presentationController: BottomSheetPresentationController) -> Bool {
