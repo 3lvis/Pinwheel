@@ -154,29 +154,24 @@ private extension BottomSheetPresentationController {
         containerView.addSubview(presentedView)
         presentedView.translatesAutoresizingMaskIntoConstraints = false
 
-        let compactHeight: Double
         if let height = presentationControllerDelegate?.bottomSheetPresentationControllerHeight(self) {
             switch height {
             case .compact(let aCompactHeight):
                 let value = containerView.bounds.height - aCompactHeight
                 self.height = .compact(value)
-                compactHeight = value
             case .expanded:
                 self.height = .expanded
-                compactHeight = height.value(view: containerView)
             }
         } else {
             let value = containerView.bounds.height * 0.50
             self.height = .compact(value)
-            compactHeight = value
         }
-        let constraint = presentedView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: containerView.bounds.height)
+        let constraint = presentedView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: containerView.bounds.height - BottomSheet.notchHeight)
         NSLayoutConstraint.activate([
             constraint,
             presentedView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             presentedView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-            presentedView.heightAnchor.constraint(greaterThanOrEqualToConstant: compactHeight),
-            presentedView.bottomAnchor.constraint(greaterThanOrEqualTo: containerView.bottomAnchor),
+            presentedView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
         ])
         self.constraint = constraint
     }

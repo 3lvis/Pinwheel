@@ -72,13 +72,13 @@ public class BottomSheet: UIViewController {
         case .navigationBar:
             guard let navigationController = rootViewController as? UINavigationController else { return nil }
             let navBarFrame = navigationController.navigationBar.bounds
-            let draggableBounds = CGRect(origin: navBarFrame.origin, size: CGSize(width: navBarFrame.width, height: navBarFrame.height + notchHeight))
+            let draggableBounds = CGRect(origin: navBarFrame.origin, size: CGSize(width: navBarFrame.width, height: navBarFrame.height + BottomSheet.notchHeight))
             return draggableBounds
         case .topArea(let height):
             let rootControllerWidth = rootViewController.view.bounds.width
-            return CGRect(origin: .zero, size: CGSize(width: rootControllerWidth, height: notchHeight + height))
+            return CGRect(origin: .zero, size: CGSize(width: rootControllerWidth, height: BottomSheet.notchHeight + height))
         case .customRect(let customRect):
-            return CGRect(origin: CGPoint(x: customRect.minX, y: customRect.minY + notchHeight), size: customRect.size)
+            return CGRect(origin: CGPoint(x: customRect.minX, y: customRect.minY + BottomSheet.notchHeight), size: customRect.size)
         }
     }
 
@@ -89,7 +89,7 @@ public class BottomSheet: UIViewController {
 
     private let cornerRadius: CGFloat = 42
     private let height: BottomSheetHeight?
-    private let notchHeight: CGFloat = 20
+    static let notchHeight: CGFloat = 20
     private var isDefaultPresentationStyle: Bool { modalPresentationStyle == .custom }
 
     private let notchView = NotchView()
@@ -138,12 +138,12 @@ public class BottomSheet: UIViewController {
         view.addSubview(notchView)
 
         addChild(rootViewController)
-        view.insertSubview(rootViewController.view, belowSubview: notchView)
+        view.addSubview(rootViewController.view)
         rootViewController.didMove(toParent: self)
         rootViewController.view.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            notchView.heightAnchor.constraint(equalToConstant: notchHeight),
+            notchView.heightAnchor.constraint(lessThanOrEqualToConstant: BottomSheet.notchHeight),
             notchView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             notchView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             notchView.topAnchor.constraint(equalTo: view.topAnchor),
