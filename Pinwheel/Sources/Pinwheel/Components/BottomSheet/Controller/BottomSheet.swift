@@ -143,7 +143,7 @@ public class BottomSheet: UIViewController {
         rootViewController.view.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            notchView.heightAnchor.constraint(lessThanOrEqualToConstant: BottomSheet.notchHeight),
+            notchView.heightAnchor.constraint(equalToConstant: BottomSheet.notchHeight),
             notchView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             notchView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             notchView.topAnchor.constraint(equalTo: view.topAnchor),
