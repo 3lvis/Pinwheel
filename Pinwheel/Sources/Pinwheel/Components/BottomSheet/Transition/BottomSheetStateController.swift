@@ -43,10 +43,15 @@ class BottomSheetStateController {
         return current
     }
 
-    func targetPosition(for state: BottomSheetState, compactHeight: CGFloat) -> CGPoint {
+    func targetPosition(for state: BottomSheetState, height: BottomSheetHeight) -> CGPoint {
         switch state {
         case .compact:
-            return CGPoint(x: 0, y: compactHeight)
+            switch height {
+            case .compact(let value):
+                return CGPoint(x: 0, y: value)
+            case .expanded:
+                return expandedPosition
+            }
         case .expanded:
             return expandedPosition
         case .dismissed:

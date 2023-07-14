@@ -55,7 +55,7 @@ class BottomSheetPresentationController: UIPresentationController {
         return .overCurrentContext
     }
 
-    var compactHeight: Double = 0
+    var height: BottomSheetHeight?
 
     // MARK: - Init
 
@@ -84,16 +84,16 @@ class BottomSheetPresentationController: UIPresentationController {
             if let height = presentationControllerDelegate?.bottomSheetPresentationControllerHeight(self) {
                 switch height {
                 case .compact(let aCompactHeight):
-                    self.compactHeight =  containerView.bounds.height - aCompactHeight - keyboardHeight
-                    let targetPosition = stateController.targetPosition(for: .compact, compactHeight: self.compactHeight)
+                    self.height = .compact(containerView.bounds.height - aCompactHeight - keyboardHeight)
+                    let targetPosition = stateController.targetPosition(for: .compact, height: self.height!)
                     self.animate(to: targetPosition)
                 case .expanded:
-                    let targetPosition = stateController.targetPosition(for: .compact, compactHeight: self.compactHeight)
+                    let targetPosition = stateController.targetPosition(for: .compact, height: self.height!)
                     self.animate(to: targetPosition)
                 }
             } else {
-                self.compactHeight =  containerView.bounds.height * 0.50 - keyboardHeight
-                let targetPosition = stateController.targetPosition(for: .compact, compactHeight: self.compactHeight)
+                self.height = .compact(containerView.bounds.height * 0.50 - keyboardHeight)
+                let targetPosition = stateController.targetPosition(for: .compact, height: self.height!)
                 self.animate(to: targetPosition)
             }
         }
@@ -116,7 +116,7 @@ class BottomSheetPresentationController: UIPresentationController {
         }
         // Animate dim view alpha in sync with transition animation
         interactionController.animate { [weak self] position in
-            self?.dimView.alpha = self?.alphaValue(for: position, compactHeight: self?.compactHeight ?? 0) ?? 0
+            self?.dimView.alpha = self?.alphaValue(for: position, height: self?.height) ?? 0
         }
     }
 
@@ -153,15 +153,22 @@ private extension BottomSheetPresentationController {
     func setupPresentedView(_ presentedView: UIView, inContainerView containerView: UIView) {
         containerView.addSubview(presentedView)
         presentedView.translatesAutoresizingMaskIntoConstraints = false
-        
-        if let aCompactHeight = presentationControllerDelegate?.bottomSheetPresentationControllerHeight(self), aCompactHeight != BottomSheetHeight.expanded {
-            switch aCompactHeight {
+
+        let compactHeight: Double
+        if let height = presentationControllerDelegate?.bottomSheetPresentationControllerHeight(self) {
+            switch height {
             case .compact(let aCompactHeight):
-                self.compactHeight =  containerView.bounds.height - aCompactHeight
-            default: break
+                let value = containerView.bounds.height - aCompactHeight
+                self.height = .compact(value)
+                compactHeight = value
+            case .expanded:
+                self.height = .expanded
+                compactHeight = height.value(view: containerView)
             }
         } else {
-            self.compactHeight =  containerView.bounds.height * 0.50
+            let value = containerView.bounds.height * 0.50
+            self.height = .compact(value)
+            compactHeight = value
         }
         let constraint = presentedView.topAnchor.constraint(equalTo: containerView.topAnchor, constant: containerView.bounds.height)
         NSLayoutConstraint.activate([
@@ -174,15 +181,24 @@ private extension BottomSheetPresentationController {
         self.constraint = constraint
     }
 
-    func alphaValue(for position: CGPoint, compactHeight: CGFloat) -> CGFloat {
+    func alphaValue(for position: CGPoint, height: BottomSheetHeight?) -> CGFloat {
         guard let containerView = containerView else { return 0 }
+        guard let height = height else { return 0 }
+
+        let compactHeight: Double
+        switch height {
+        case .compact(let value):
+            compactHeight = value
+        case .expanded:
+            compactHeight = height.value(view: containerView)
+        }
         return (containerView.bounds.height - position.y) / compactHeight
     }
 
     func updateState(_ state: BottomSheetState) {
         guard state != stateController.state else { return }
         stateController.state = state
-        animate(to: stateController.targetPosition(for: stateController.state, compactHeight: self.compactHeight) )
+        animate(to: stateController.targetPosition(for: stateController.state, height: self.height!))
     }
 
     @objc func handleTap() {
@@ -233,7 +249,7 @@ extension BottomSheetPresentationController: BottomSheetGestureControllerDelegat
         let newPosition = stateAdjustedPosition(forGestureController: controller)
 
         hasReachExpandedPosition = false
-        dimView.alpha = alphaValue(for: newPosition, compactHeight: self.compactHeight)
+        dimView.alpha = alphaValue(for: newPosition, height: self.height)
         constraint?.constant = newPosition.y
     }
 
@@ -252,12 +268,13 @@ extension BottomSheetPresentationController: BottomSheetGestureControllerDelegat
             }
         }
 
-        animate(to: stateController.targetPosition(for: stateController.state, compactHeight: self.compactHeight), initialVelocity: -controller.velocity)
+        animate(to: stateController.targetPosition(for: stateController.state, height: self.height!), initialVelocity: -controller.velocity)
     }
 
     func stateAdjustedPosition(forGestureController controller: BottomSheetGestureController) -> CGPoint {
         let canDismiss = presentationControllerDelegate?.bottomSheetPresentationControllerShouldDismiss(self) ?? true
-        let thresholdPoint = stateController.frame.height - self.compactHeight
+        let value = self.height?.value(view: self.containerView) ?? 0
+        let thresholdPoint = stateController.frame.height - value
 
         let ycomponent: CGFloat
         if !canDismiss, controller.position.y >= thresholdPoint {
@@ -271,8 +288,8 @@ extension BottomSheetPresentationController: BottomSheetGestureControllerDelegat
 }
 
 extension BottomSheetPresentationController: BottomSheetInteractionControllerDelegate {
-    func bottomSheetInteractionControllerCompactHeight(_ bottomSheetInteractionController: BottomSheetInteractionController) -> CGFloat {
-        return self.compactHeight
+    func bottomSheetInteractionControllerHeight(_ bottomSheetInteractionController: BottomSheetInteractionController) -> BottomSheetHeight {
+        return self.height!
     }
 
     func bottomSheetInteractionControllerWillCancelPresentationTransition(_ interactionController: BottomSheetInteractionController) {

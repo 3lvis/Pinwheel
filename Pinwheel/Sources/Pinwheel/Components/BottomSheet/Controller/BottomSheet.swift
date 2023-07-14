@@ -18,6 +18,15 @@ public protocol BottomSheetDelegate: AnyObject {
 public enum BottomSheetHeight: Equatable {
     case compact(Double)
     case expanded
+
+    func value(view: UIView?) -> CGFloat {
+        switch self {
+        case .compact(let value):
+            return value
+        case .expanded:
+            return view?.layoutMargins.top ?? 0
+        }
+    }
 }
 
 public enum BottomSheetState {
@@ -144,14 +153,6 @@ public class BottomSheet: UIViewController {
             rootViewController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             rootViewController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
-    }
-
-    override public func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-
-        if self.height == .expanded {
-            self.state = .expanded
-        }
     }
 }
 
