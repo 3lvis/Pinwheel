@@ -14,6 +14,7 @@ public enum DismissType {
 public enum PresentationStyle {
     case medium
     case large
+    case fullscreen
 }
 
 ///  Container class for components. Wraps the UIView in a container to be displayed.
@@ -65,12 +66,18 @@ open class BasePinwheelViewController<View: UIView>: UIViewController {
         if #available(iOS 15.0, *) {
             switch presentationStyle {
             case .medium:
+                modalPresentationStyle = .pageSheet
                 sheetPresentationController?.detents = [.medium()]
+                sheetPresentationController?.preferredCornerRadius = 40
+                sheetPresentationController?.prefersGrabberVisible = true
             case .large:
+                modalPresentationStyle = .pageSheet
                 sheetPresentationController?.detents = [.large()]
+                sheetPresentationController?.preferredCornerRadius = 40
+                sheetPresentationController?.prefersGrabberVisible = true
+            case .fullscreen:
+                modalPresentationStyle = .fullScreen
             }
-            sheetPresentationController?.preferredCornerRadius = 40
-            sheetPresentationController?.prefersGrabberVisible = true
         }
     }
 

@@ -19,6 +19,23 @@ public class PinwheelViewController<View: UIView>: UIViewController {
         self.constrainToBottomSafeArea = constrainToBottomSafeArea
         self.constrainToTopSafeArea = constrainToTopSafeArea
         super.init(nibName: nil, bundle: nil)
+
+        if #available(iOS 15.0, *) {
+            switch presentationStyle {
+            case .medium:
+                modalPresentationStyle = .pageSheet
+                sheetPresentationController?.detents = [.medium()]
+                sheetPresentationController?.preferredCornerRadius = 40
+                sheetPresentationController?.prefersGrabberVisible = true
+            case .large:
+                modalPresentationStyle = .pageSheet
+                sheetPresentationController?.detents = [.large()]
+                sheetPresentationController?.preferredCornerRadius = 40
+                sheetPresentationController?.prefersGrabberVisible = true
+            case .fullscreen:
+                modalPresentationStyle = .fullScreen
+            }
+        }
     }
 
     required init?(coder: NSCoder) {
@@ -46,17 +63,6 @@ public class PinwheelViewController<View: UIView>: UIViewController {
         view.addSubview(viewController.view)
         viewController.didMove(toParent: self)
         childViewController = viewController
-
-        if #available(iOS 15.0, *) {
-            switch presentationStyle {
-            case .medium:
-                viewController.sheetPresentationController?.detents = [.medium()]
-            case .large:
-                viewController.sheetPresentationController?.detents = [.large()]
-            }
-            viewController.sheetPresentationController?.preferredCornerRadius = 40
-            viewController.sheetPresentationController?.prefersGrabberVisible = true
-        }
 
         if let deviceIndex = State.selectedDeviceForCurrentIndexPath, deviceIndex < Device.all.count {
             let device = Device.all[deviceIndex]
