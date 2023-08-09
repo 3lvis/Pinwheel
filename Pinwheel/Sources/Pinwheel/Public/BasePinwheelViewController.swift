@@ -11,29 +11,10 @@ public enum DismissType {
     case none
 }
 
-public struct ContainmentOptions: OptionSet {
-    public let rawValue: Int8
-
-    public init(rawValue: Int8) {
-        self.rawValue = rawValue
-    }
-
-    public static let navigationController = ContainmentOptions(rawValue: 1)
-    public static let tabBarController = ContainmentOptions(rawValue: 1 << 1)
-    public static let bottomSheet = ContainmentOptions(rawValue: 1 << 2)
-    public static let none = ContainmentOptions(rawValue: 1 << 3)
-    public static let all: ContainmentOptions = [.navigationController, .tabBarController, .bottomSheet]
-}
-
-/// Defines the container or containers to be used when presenting the pinwheel view controller.
-public protocol Containable {
-    var containmentOptions: ContainmentOptions { get }
-}
-
 ///  Container class for components. Wraps the UIView in a container to be displayed.
 ///  If the view conforms to the `Tweakable` protocol it will display a control to show additional options.
 ///  Usage: `BasePinwheelViewController<ColorPinwheelView>()`
-open class BasePinwheelViewController<View: UIView>: UIViewController, Containable {
+open class BasePinwheelViewController<View: UIView>: UIViewController {
 
     private(set) lazy var playgroundView: View = {
         let playgroundView = View(frame: view.frame)
@@ -53,7 +34,6 @@ open class BasePinwheelViewController<View: UIView>: UIViewController, Containab
         return true
     }
 
-    public private(set) var containmentOptions: ContainmentOptions
     private var dismissType: DismissType
     private var preferredInterfaceOrientation: UIInterfaceOrientationMask = .all
     private let constrainToBottomSafeArea: Bool
@@ -64,12 +44,10 @@ open class BasePinwheelViewController<View: UIView>: UIViewController, Containab
     }
 
     public init(dismissType: DismissType = .doubleTap,
-                containmentOptions: ContainmentOptions = .none,
                 supportedInterfaceOrientations: UIInterfaceOrientationMask = .all,
                 constrainToTopSafeArea: Bool = true,
                 constrainToBottomSafeArea: Bool = true) {
         self.dismissType = dismissType
-        self.containmentOptions = containmentOptions
         self.preferredInterfaceOrientation = supportedInterfaceOrientations
         self.constrainToBottomSafeArea = constrainToBottomSafeArea
         self.constrainToTopSafeArea = constrainToTopSafeArea

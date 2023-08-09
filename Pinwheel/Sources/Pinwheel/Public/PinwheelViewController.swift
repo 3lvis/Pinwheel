@@ -1,21 +1,17 @@
 import UIKit
 
-public class PinwheelViewController<View: UIView>: UIViewController, Containable {
+public class PinwheelViewController<View: UIView>: UIViewController {
 
-    private(set) public var containmentOptions: ContainmentOptions
     private var dismissType: DismissType
     private var preferredInterfaceOrientation: UIInterfaceOrientationMask = .all
     private let constrainToBottomSafeArea: Bool
     private let constrainToTopSafeArea: Bool
-    private var bottomSheet: BottomSheet?
 
     public init(dismissType: DismissType = .doubleTap,
-                containmentOptions: ContainmentOptions = .none,
                 supportedInterfaceOrientations: UIInterfaceOrientationMask = .all,
                 constrainToTopSafeArea: Bool = true,
                 constrainToBottomSafeArea: Bool = true) {
         self.dismissType = dismissType
-        self.containmentOptions = containmentOptions
         self.preferredInterfaceOrientation = supportedInterfaceOrientations
         self.constrainToBottomSafeArea = constrainToBottomSafeArea
         self.constrainToTopSafeArea = constrainToTopSafeArea
@@ -39,7 +35,6 @@ public class PinwheelViewController<View: UIView>: UIViewController, Containable
 
         let viewController = BasePinwheelViewController<View>(
             dismissType: dismissType,
-            containmentOptions: containmentOptions,
             supportedInterfaceOrientations: supportedInterfaceOrientations,
             constrainToTopSafeArea: constrainToTopSafeArea,
             constrainToBottomSafeArea: constrainToBottomSafeArea)
@@ -79,10 +74,13 @@ extension PinwheelViewController: CornerAnchoringViewDelegate {
         tweakingController.delegate = self
         let navigationController = NavigationController(rootViewController: tweakingController)
         navigationController.hairlineIsHidden = true
-        bottomSheet = BottomSheet(rootViewController: navigationController, draggableArea: .everything)
-        if let controller = bottomSheet {
-            present(controller, animated: true)
+
+        if #available(iOS 15.0, *) {
+            sheetPresentationController?.detents = [.medium()]
+            sheetPresentationController?.preferredCornerRadius = 40
+            sheetPresentationController?.prefersGrabberVisible = true
         }
+        present(navigationController, animated: true)
     }
 
     func cornerAnchoringViewDidSelectCloseButton(_ cornerAnchoringView: CornerAnchoringView) {
@@ -103,6 +101,6 @@ extension PinwheelViewController: TweakingOptionsTableViewControllerDelegate {
     }
 
     func tweakingOptionsTableViewControllerDidDismiss(_ tweakingOptionsTableViewController: TweakingOptionsTableViewController) {
-        bottomSheet?.state = .dismissed
+        dismiss(animated: true)
     }
 }

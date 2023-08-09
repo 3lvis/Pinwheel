@@ -7,8 +7,6 @@ public class PinwheelTableViewController: UITableViewController {
         return titleView
     }()
 
-    private var bottomSheet: BottomSheet?
-
     lazy var indexer: Indexer = {
         let section = sections[safe: State.lastSelectedSection]
         let names = section?.capitalizedTitles() ?? [String]()
@@ -57,13 +55,6 @@ public class PinwheelTableViewController: UITableViewController {
         return indexer.evaluateRealIndexPath(for: indexPath, originalSection: State.lastSelectedSection)
     }
 
-    public override func present(_ viewControllerToPresent: UIViewController, animated flag: Bool = true, completion: (() -> Void)? = nil) {
-        if viewControllerToPresent.modalPresentationStyle == .pageSheet {
-            viewControllerToPresent.modalPresentationStyle = .fullScreen
-        }
-        super.present(viewControllerToPresent, animated: flag, completion: completion)
-    }
-
     func titleForItemAtSection(section: Int) -> String? {
         return sections[safe: section]?.title
     }
@@ -84,23 +75,6 @@ public class PinwheelTableViewController: UITableViewController {
             }
         default:
             break
-        }
-
-        let containmentOptions = (viewController as? Containable)?.containmentOptions ?? .none
-
-        if containmentOptions.contains(.navigationController) {
-            viewController = NavigationController(rootViewController: viewController)
-        }
-
-        if containmentOptions.contains(.tabBarController) {
-            let tabBarController = UITabBarController()
-            tabBarController.viewControllers = [viewController]
-            viewController = tabBarController
-        }
-
-        if containmentOptions.contains(.bottomSheet) {
-            let bottomSheet = BottomSheet(rootViewController: viewController)
-            viewController = bottomSheet
         }
 
         return viewController
@@ -168,20 +142,19 @@ extension PinwheelTableViewController: SelectorTitleViewDelegate {
         guard State.lastSelectedSection <= sections.count else { return }
 
         let items = sections.map { BasicTableViewItem(title: $0.title.uppercased()) }
-        let sectionsTableView = BasicTableView(items: items)
-        sectionsTableView.selectedIndexPath = IndexPath(row: State.lastSelectedSection, section: 0)
-        sectionsTableView.delegate = self
-        bottomSheet = BottomSheet(view: sectionsTableView, draggableArea: .everything)
-        if let controller = bottomSheet {
-            present(controller, animated: true)
+        let sectionsController = PinWheelSectionsViewController(items: items)
+        if #available(iOS 15.0, *) {
+            sectionsController.sheetPresentationController?.detents = [.medium()]
+            sectionsController.sheetPresentationController?.preferredCornerRadius = 40
+            sectionsController.sheetPresentationController?.prefersGrabberVisible = true
         }
+        sectionsController.delegate = self
+        present(sectionsController, animated: true)
     }
 }
 
-// MARK: - BasicTableViewDelegate
-
-extension PinwheelTableViewController: BasicTableViewDelegate {
-    public func basicTableView(_ basicTableView: BasicTableView, didSelectItemAtIndex index: Int) {
+extension PinwheelTableViewController: PinWheelSectionsViewControllerDelegate {
+    func pinWheelSectionsViewController(_ pinWheelSectionsViewController: PinWheelSectionsViewController, didSelectItemAtIndex index: Int) {
         State.lastSelectedSection = index
         selectorTitleView.title = titleForItemAtSection(section: index)?.uppercased()
 
@@ -190,6 +163,6 @@ extension PinwheelTableViewController: BasicTableViewDelegate {
         self.indexer = Indexer(names: names)
 
         tableView.reloadData()
-        bottomSheet?.state = .dismissed
+        dismiss(animated: true)
     }
 }
