@@ -11,6 +11,11 @@ public enum DismissType {
     case none
 }
 
+public enum PresentationStyle {
+    case medium
+    case large
+}
+
 ///  Container class for components. Wraps the UIView in a container to be displayed.
 ///  If the view conforms to the `Tweakable` protocol it will display a control to show additional options.
 ///  Usage: `BasePinwheelViewController<ColorPinwheelView>()`
@@ -35,6 +40,7 @@ open class BasePinwheelViewController<View: UIView>: UIViewController {
     }
 
     private var dismissType: DismissType
+    private var presentationStyle: PresentationStyle
     private var preferredInterfaceOrientation: UIInterfaceOrientationMask = .all
     private let constrainToBottomSafeArea: Bool
     private let constrainToTopSafeArea: Bool
@@ -44,14 +50,28 @@ open class BasePinwheelViewController<View: UIView>: UIViewController {
     }
 
     public init(dismissType: DismissType = .doubleTap,
+                presentationStyle: PresentationStyle = .large,
                 supportedInterfaceOrientations: UIInterfaceOrientationMask = .all,
                 constrainToTopSafeArea: Bool = true,
                 constrainToBottomSafeArea: Bool = true) {
         self.dismissType = dismissType
+        self.presentationStyle = presentationStyle
         self.preferredInterfaceOrientation = supportedInterfaceOrientations
         self.constrainToBottomSafeArea = constrainToBottomSafeArea
         self.constrainToTopSafeArea = constrainToTopSafeArea
+
         super.init(nibName: nil, bundle: nil)
+
+        if #available(iOS 15.0, *) {
+            switch presentationStyle {
+            case .medium:
+                sheetPresentationController?.detents = [.medium()]
+            case .large:
+                sheetPresentationController?.detents = [.large()]
+            }
+            sheetPresentationController?.preferredCornerRadius = 40
+            sheetPresentationController?.prefersGrabberVisible = true
+        }
     }
 
     public required init?(coder aDecoder: NSCoder) {

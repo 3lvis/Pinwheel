@@ -3,15 +3,18 @@ import UIKit
 public class PinwheelViewController<View: UIView>: UIViewController {
 
     private var dismissType: DismissType
+    private var presentationStyle: PresentationStyle
     private var preferredInterfaceOrientation: UIInterfaceOrientationMask = .all
     private let constrainToBottomSafeArea: Bool
     private let constrainToTopSafeArea: Bool
 
     public init(dismissType: DismissType = .doubleTap,
+                presentationStyle: PresentationStyle = .large,
                 supportedInterfaceOrientations: UIInterfaceOrientationMask = .all,
                 constrainToTopSafeArea: Bool = true,
                 constrainToBottomSafeArea: Bool = true) {
         self.dismissType = dismissType
+        self.presentationStyle = presentationStyle
         self.preferredInterfaceOrientation = supportedInterfaceOrientations
         self.constrainToBottomSafeArea = constrainToBottomSafeArea
         self.constrainToTopSafeArea = constrainToTopSafeArea
@@ -35,6 +38,7 @@ public class PinwheelViewController<View: UIView>: UIViewController {
 
         let viewController = BasePinwheelViewController<View>(
             dismissType: dismissType,
+            presentationStyle: presentationStyle,
             supportedInterfaceOrientations: supportedInterfaceOrientations,
             constrainToTopSafeArea: constrainToTopSafeArea,
             constrainToBottomSafeArea: constrainToBottomSafeArea)
@@ -42,6 +46,17 @@ public class PinwheelViewController<View: UIView>: UIViewController {
         view.addSubview(viewController.view)
         viewController.didMove(toParent: self)
         childViewController = viewController
+
+        if #available(iOS 15.0, *) {
+            switch presentationStyle {
+            case .medium:
+                viewController.sheetPresentationController?.detents = [.medium()]
+            case .large:
+                viewController.sheetPresentationController?.detents = [.large()]
+            }
+            viewController.sheetPresentationController?.preferredCornerRadius = 40
+            viewController.sheetPresentationController?.prefersGrabberVisible = true
+        }
 
         if let deviceIndex = State.selectedDeviceForCurrentIndexPath, deviceIndex < Device.all.count {
             let device = Device.all[deviceIndex]
@@ -76,9 +91,9 @@ extension PinwheelViewController: CornerAnchoringViewDelegate {
         navigationController.hairlineIsHidden = true
 
         if #available(iOS 15.0, *) {
-            sheetPresentationController?.detents = [.medium()]
-            sheetPresentationController?.preferredCornerRadius = 40
-            sheetPresentationController?.prefersGrabberVisible = true
+            navigationController.sheetPresentationController?.detents = [.medium()]
+            navigationController.sheetPresentationController?.preferredCornerRadius = 40
+            navigationController.sheetPresentationController?.prefersGrabberVisible = true
         }
         present(navigationController, animated: true)
     }
