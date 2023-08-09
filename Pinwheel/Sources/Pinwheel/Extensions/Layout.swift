@@ -31,13 +31,13 @@ public extension UIView {
         ])
     }
 
-    func fillInLayoutMargins(insets: UIEdgeInsets = .zero) {
+    func fillInVerticalLayoutMarginsHorizontalSafeArea(insets: UIEdgeInsets = .zero) {
         guard let superview = superview else { return }
 
         NSLayoutConstraint.activate([
             topAnchor.constraint(equalTo: superview.layoutMarginsGuide.topAnchor, constant: insets.top),
-            leadingAnchor.constraint(equalTo: superview.layoutMarginsGuide.leadingAnchor, constant: insets.leading),
-            trailingAnchor.constraint(equalTo: superview.layoutMarginsGuide.trailingAnchor, constant: -insets.trailing),
+            leadingAnchor.constraint(equalTo: superview.safeAreaLayoutGuide.leadingAnchor, constant: insets.leading),
+            trailingAnchor.constraint(equalTo: superview.safeAreaLayoutGuide.trailingAnchor, constant: -insets.trailing),
             bottomAnchor.constraint(equalTo: superview.layoutMarginsGuide.bottomAnchor, constant: -insets.bottom)
         ])
     }
