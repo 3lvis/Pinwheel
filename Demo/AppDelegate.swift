@@ -13,7 +13,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 PinwheelItem(title: "Spacing", viewController: PinwheelViewController<PinSpacing>()),
             ]),
             PinwheelSection(title: "Components", items: [
-                PinwheelItem(title: "BottomSheet", viewController: PinViewControllerBottomSheet()),
                 PinwheelItem(title: "Label", viewController: PinwheelViewController<PinLabel>()),
                 PinwheelItem(title: "Tweakable", viewController: PinwheelViewController<PinTweakable>(dismissType: .dismissButton)),
             ]),
@@ -22,7 +21,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 PinwheelItem(title: "Basic Variations", viewController: PinwheelViewController<PinVariationsBasicTableViewCell>()),
             ]),
             PinwheelSection(title: "Reciclable", items: [
-                PinwheelItem(title: "Basic", viewController: PinwheelViewController<PinBasicTableView>(containmentOptions: [.bottomSheet])),
+                PinwheelItem(title: "Basic", viewController: PinwheelViewController<PinBasicTableView>(presentationStyle: .medium)),
             ]),
         ]
     }()
