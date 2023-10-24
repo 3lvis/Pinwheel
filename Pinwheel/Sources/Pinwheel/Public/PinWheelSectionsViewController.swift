@@ -7,8 +7,8 @@ protocol PinWheelSectionsViewControllerDelegate: AnyObject {
 class PinWheelSectionsViewController: UIViewController {
     weak var delegate: PinWheelSectionsViewControllerDelegate?
 
-    let items: [BasicTableViewItem]
-    init(items: [BasicTableViewItem]) {
+    let items: [TextTableViewItem]
+    init(items: [TextTableViewItem]) {
         self.items = items
         super.init(nibName: nil, bundle: nil)
     }
@@ -19,7 +19,7 @@ class PinWheelSectionsViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        let sectionsTableView = BasicTableView(items: items)
+        let sectionsTableView = TableView(items: items)
         sectionsTableView.selectedIndexPath = IndexPath(row: State.lastSelectedSection, section: 0)
         sectionsTableView.delegate = self
         view.addSubview(sectionsTableView)
@@ -27,8 +27,8 @@ class PinWheelSectionsViewController: UIViewController {
     }
 }
 
-extension PinWheelSectionsViewController: BasicTableViewDelegate {
-    func basicTableView(_ basicTableView: BasicTableView, didSelectItemAtIndex index: Int) {
+extension PinWheelSectionsViewController: TableViewDelegate {
+    func tableView(_ tableView: TableView, didSelectItemAtIndex index: Int) {
         self.delegate?.pinWheelSectionsViewController(self, didSelectItemAtIndex: index)
     }
 }

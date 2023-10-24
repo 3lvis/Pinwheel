@@ -1,3 +1,3 @@
 public protocol Tweakable {
-    var tweakingOptions: [TweakingOption] { get set }
+    var tweaks: [Tweak] { get set }
 }

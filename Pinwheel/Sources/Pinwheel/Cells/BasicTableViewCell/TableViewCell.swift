@@ -1,6 +1,6 @@
 import UIKit
 
-open class BasicTableViewCell: UITableViewCell {
+open class TableViewCell: UITableViewCell {
 
     // MARK: - Public properties
 
@@ -61,7 +61,7 @@ open class BasicTableViewCell: UITableViewCell {
 
     // MARK: - Public methods
 
-    open func configure(with viewModel: BasicTableViewCellViewModel, indexPath: IndexPath? = nil) {
+    open func configure(with viewModel: TableViewItem, indexPath: IndexPath? = nil) {
         titleLabel.text = viewModel.title
 
         let isSelected = selectedIndexPath != nil ? selectedIndexPath == indexPath : false
@@ -76,7 +76,7 @@ open class BasicTableViewCell: UITableViewCell {
             subtitleLabel.isHidden = true
         }
 
-        if let detailText = viewModel.detailText {
+        if let detailText = (viewModel as? TextTableViewItem)?.detailText {
             detailLabel.text = detailText
             detailLabel.isHidden = false
             stackViewToDetailLabelConstraint.isActive = true
@@ -85,16 +85,20 @@ open class BasicTableViewCell: UITableViewCell {
             stackViewToDetailLabelConstraint.isActive = false
         }
 
-        if viewModel.hasChevron == true {
-            accessoryType = .disclosureIndicator
-            selectionStyle = .default
-            detailLabelTrailingConstraint.constant = -.spacingS
-            stackViewTrailingAnchorConstraint.constant = -.spacingS
-        } else {
-            accessoryType = .none
-            selectionStyle = .none
-            detailLabelTrailingConstraint.constant = -.spacingM
-            stackViewTrailingAnchorConstraint.constant = -.spacingM
+        switch viewModel.self {
+        case let basic as TextTableViewItem:
+            if basic.hasChevron == true {
+                accessoryType = .disclosureIndicator
+                selectionStyle = .default
+                detailLabelTrailingConstraint.constant = -.spacingS
+                stackViewTrailingAnchorConstraint.constant = -.spacingS
+            } else {
+                accessoryType = .none
+                selectionStyle = .none
+                detailLabelTrailingConstraint.constant = -.spacingM
+                stackViewTrailingAnchorConstraint.constant = -.spacingM
+            }
+        default: break
         }
 
         separatorInset = .leadingInset(.spacingM)

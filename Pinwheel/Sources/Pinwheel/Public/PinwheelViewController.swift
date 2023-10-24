@@ -78,9 +78,9 @@ public class PinwheelViewController<View: UIView>: UIViewController {
         }
 
         let tweakablePlaygroundView = (childViewController?.playgroundView as? Tweakable) ?? (self as? Tweakable)
-        let options = tweakablePlaygroundView?.tweakingOptions ?? [TweakingOption]()
+        let tweaks = tweakablePlaygroundView?.tweaks ?? [Tweak]()
         let overlayView = CornerAnchoringView(showCloseButton: dismissType == .dismissButton)
-        overlayView.itemsCount = options.count
+        overlayView.itemsCount = tweaks.count
         overlayView.delegate = self
         view.addSubview(overlayView)
         overlayView.fillInSuperview()
@@ -90,8 +90,8 @@ public class PinwheelViewController<View: UIView>: UIViewController {
 extension PinwheelViewController: CornerAnchoringViewDelegate {
     func cornerAnchoringViewDidSelectTweakButton(_ cornerAnchoringView: CornerAnchoringView) {
         let tweakablePlaygroundView = (childViewController?.playgroundView as? Tweakable) ?? (self as? Tweakable)
-        let options = tweakablePlaygroundView?.tweakingOptions ?? [TweakingOption]()
-        let tweakingController = TweakingOptionsTableViewController(options: options)
+        let tweaks = tweakablePlaygroundView?.tweaks ?? [Tweak]()
+        let tweakingController = TweakingOptionsTableViewController(tweaks: tweaks)
         tweakingController.delegate = self
         let navigationController = NavigationController(rootViewController: tweakingController)
         navigationController.hairlineIsHidden = true

@@ -1,27 +1,13 @@
 import UIKit
 
-public protocol BasicTableViewDelegate: AnyObject {
-    func basicTableView(_ basicTableView: BasicTableView, didSelectItemAtIndex index: Int)
+public protocol TableViewDelegate: AnyObject {
+    func tableView(_ tableView: TableView, didSelectItemAtIndex index: Int)
 }
 
-open class BasicTableViewItem: BasicTableViewCellViewModel {
-    open var title: String
-    open var subtitle: String?
-    open var detailText: String?
-    open var hasChevron: Bool
-    open var isEnabled: Bool = true
-
-    public init(title: String, subtitle: String? = nil) {
-        self.title = title
-        self.subtitle = subtitle
-        self.hasChevron = false
-    }
-}
-
-open class BasicTableView: ShadowScrollView {
+open class TableView: ShadowScrollView {
     public static let estimatedRowHeight: CGFloat = 60.0
     open var selectedIndexPath: IndexPath?
-    open var items: [BasicTableViewItem]
+    open var items: [TableViewItem]
 
     // MARK: - Internal properties
 
@@ -30,7 +16,7 @@ open class BasicTableView: ShadowScrollView {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.backgroundColor = .primaryBackground
-        tableView.estimatedRowHeight = BasicTableView.estimatedRowHeight
+        tableView.estimatedRowHeight = TableView.estimatedRowHeight
         tableView.separatorColor = .secondaryBackground
         tableView.separatorInset = .leadingInset(frame.width)
         tableView.contentInset = UIEdgeInsets(top: .spacingS, left: 0, bottom: 0, right: 0)
@@ -39,11 +25,11 @@ open class BasicTableView: ShadowScrollView {
 
     private var usingShadowWhenScrolling: Bool = false
 
-    public weak var delegate: BasicTableViewDelegate?
+    public weak var delegate: TableViewDelegate?
 
     // MARK: - Setup
 
-    public init(items: [BasicTableViewItem], usingShadowWhenScrolling: Bool = false) {
+    public init(items: [TableViewItem], usingShadowWhenScrolling: Bool = false) {
         self.usingShadowWhenScrolling = usingShadowWhenScrolling
         self.items = items
         super.init(frame: .zero)
@@ -51,13 +37,13 @@ open class BasicTableView: ShadowScrollView {
     }
 
     public override init(frame: CGRect) {
-        self.items = [BasicTableViewItem]()
+        self.items = [TableViewItem]()
         super.init(frame: frame)
         setup()
     }
 
     public required init?(coder aDecoder: NSCoder) {
-        self.items = [BasicTableViewItem]()
+        self.items = [TableViewItem]()
         super.init(frame: .zero)
         setup()
     }
@@ -69,7 +55,7 @@ open class BasicTableView: ShadowScrollView {
     private func setup() {
         translatesAutoresizingMaskIntoConstraints = false
         backgroundColor = .primaryBackground
-        tableView.register(BasicTableViewCell.self)
+        tableView.register(TableViewCell.self)
 
         if usingShadowWhenScrolling {
             insertSubview(tableView, belowSubview: topShadowView)
@@ -83,11 +69,11 @@ open class BasicTableView: ShadowScrollView {
 }
 
 // MARK: - UITableViewDelegate
-extension BasicTableView: UITableViewDelegate {
+extension TableView: UITableViewDelegate {
     public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let item = items[indexPath.row]
         if item.isEnabled {
-            delegate?.basicTableView(self, didSelectItemAtIndex: indexPath.row)
+            delegate?.tableView(self, didSelectItemAtIndex: indexPath.row)
         }
     }
 
@@ -97,13 +83,13 @@ extension BasicTableView: UITableViewDelegate {
 }
 
 // MARK: - UITableViewDataSource
-extension BasicTableView: UITableViewDataSource {
+extension TableView: UITableViewDataSource {
     public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return items.count
     }
 
     public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeue(BasicTableViewCell.self, for: indexPath)
+        let cell = tableView.dequeue(TableViewCell.self, for: indexPath)
 
         let item = items[indexPath.row]
         cell.selectedIndexPath = selectedIndexPath

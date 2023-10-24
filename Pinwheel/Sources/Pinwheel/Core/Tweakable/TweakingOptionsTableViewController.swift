@@ -12,24 +12,24 @@ class TweakingOptionsTableViewController: ScrollViewController {
 
     // MARK: - Private properties
 
-    private let options: [TweakingOption]
+    private let tweaks: [Tweak]
 
-    private lazy var tableView: BasicTableView = {
-        let items = options.map { BasicTableViewItem(title: $0.title, subtitle: $0.description) }
-        let view = BasicTableView(items: items)
+    private lazy var tableView: TableView = {
+        let items = tweaks.map { TextTableViewItem(title: $0.title, subtitle: $0.description) }
+        let view = TableView(items: items)
         view.delegate = self
         return view
     }()
 
-    private lazy var devicesTableView: BasicTableView = {
-        var items = [BasicTableViewItem]()
+    private lazy var devicesTableView: TableView = {
+        var items = [TextTableViewItem]()
         Device.all.forEach { device in
-            var item = BasicTableViewItem(title: device.title)
+            var item = TextTableViewItem(title: device.title)
             item.isEnabled = device.isEnabled
             items.append(item)
         }
 
-        let tableView = BasicTableView(items: items)
+        let tableView = TableView(items: items)
         tableView.delegate = self
         return tableView
     }()
@@ -42,8 +42,8 @@ class TweakingOptionsTableViewController: ScrollViewController {
 
     // MARK: - Init
 
-    init(options: [TweakingOption]) {
-        self.options = options
+    init(tweaks: [Tweak]) {
+        self.tweaks = tweaks
         super.init(nibName: nil, bundle: nil)
         setup()
     }
@@ -138,11 +138,11 @@ extension TweakingOptionsTableViewController: SelectorTitleViewDelegate {
     }
 }
 
-// MARK: - BasicTableViewDelegate
+// MARK: - TableViewDelegate
 
-extension TweakingOptionsTableViewController: BasicTableViewDelegate {
-    func basicTableView(_ basicTableView: BasicTableView, didSelectItemAtIndex index: Int) {
-        if basicTableView == devicesTableView {
+extension TweakingOptionsTableViewController: TableViewDelegate {
+    func tableView(_ tableView: TableView, didSelectItemAtIndex index: Int) {
+        if tableView == devicesTableView {
             let device = Device.all[index]
             selectorTitleView.title = device.title
             hideDevicesViewController()
@@ -153,8 +153,8 @@ extension TweakingOptionsTableViewController: BasicTableViewDelegate {
                 self.delegate?.tweakingOptionsTableViewControllerDidDismiss(self)
             }
         } else {
-            let option = options[index]
-            option.action?()
+            let tweak = tweaks[index]
+            _ = tweak.action(())
             delegate?.tweakingOptionsTableViewControllerDidDismiss(self)
         }
     }

@@ -1,35 +1,47 @@
 import Pinwheel
 
-class PinBasicTableView: View {
-    lazy var basicTableView: BasicTableView = {
-        let view = BasicTableView(items: items)
+class PinTableView: View {
+    lazy var tableView: TableView = {
+        let view = TableView(items: items)
         view.delegate = self
         return view
     }()
 
 
-    lazy var items: [BasicTableViewItem] = {
-        var items = [BasicTableViewItem]()
-        items.append(BasicTableViewItem(title: "Uno"))
-        items.append(BasicTableViewItem(title: "Dos"))
-        items.append(BasicTableViewItem(title: "Tres"))
+    lazy var items: [TableViewItem] = {
+        let onlyTitle = TextTableViewItem(title: "Only title")
 
-        let disabledItem = BasicTableViewItem(title: "Disabled")
-        disabledItem.subtitle = "subtitle"
-        disabledItem.isEnabled = false
-        disabledItem.hasChevron = true
-        items.append(disabledItem)
+        let titleAndSubtitle = TextTableViewItem(title: "Title and subtitle", subtitle: "subtitle")
 
-        return items
+        let titleSubtitleAndDetail = TextTableViewItem(title: "Title, subtitle and detail", subtitle: "subtitle")
+        titleSubtitleAndDetail.detailText = "Detail text"
+
+        let titleAndDetail = TextTableViewItem(title: "Title and detail")
+        titleAndDetail.detailText = "Detail text"
+
+        let hasChevron = TextTableViewItem(title: "Has chevron")
+        hasChevron.hasChevron = true
+
+        let disabled = TextTableViewItem(title: "Is disabled")
+        disabled.isEnabled = false
+
+        return [
+            onlyTitle,
+            titleAndSubtitle,
+            titleSubtitleAndDetail,
+            titleAndDetail,
+            disabled,
+            hasChevron
+        ]
     }()
 
     override func setup() {
-        addSubview(basicTableView)
-        basicTableView.fillInSuperview()
+        addSubview(tableView)
+        tableView.fillInSuperview()
     }
 }
 
-extension PinBasicTableView: BasicTableViewDelegate {
-    func basicTableView(_ basicTableView: BasicTableView, didSelectItemAtIndex index: Int) {
+extension PinTableView: TableViewDelegate {
+    func tableView(_ tableView: TableView, didSelectItemAtIndex index: Int) {
     }
 }
