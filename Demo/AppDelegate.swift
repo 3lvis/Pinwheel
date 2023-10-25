@@ -16,12 +16,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 PinwheelItem(title: "Label", viewController: PinwheelViewController<PinLabel>()),
                 PinwheelItem(title: "Tweakable", viewController: PinwheelViewController<PinTweakable>(dismissType: .dismissButton)),
             ]),
-            PinwheelSection(title: "Cells", items: [
-                PinwheelItem(title: "Basic", viewController: PinwheelViewController<PinBasicTableViewCell>()),
-                PinwheelItem(title: "Basic Variations", viewController: PinwheelViewController<PinVariationsBasicTableViewCell>()),
-            ]),
             PinwheelSection(title: "Reciclable", items: [
-                PinwheelItem(title: "Basic", viewController: PinwheelViewController<PinBasicTableView>(presentationStyle: .medium)),
+                PinwheelItem(title: "TableView", viewController: PinwheelViewController<PinTableView>(presentationStyle: .medium)),
             ]),
         ]
     }()

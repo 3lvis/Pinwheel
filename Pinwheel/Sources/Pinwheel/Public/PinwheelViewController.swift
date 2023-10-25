@@ -48,6 +48,8 @@ public class PinwheelViewController<View: UIView>: UIViewController {
         return childViewController?.playgroundView
     }
 
+    var tweakingNavigationController: NavigationController?
+
     public override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -78,9 +80,9 @@ public class PinwheelViewController<View: UIView>: UIViewController {
         }
 
         let tweakablePlaygroundView = (childViewController?.playgroundView as? Tweakable) ?? (self as? Tweakable)
-        let options = tweakablePlaygroundView?.tweakingOptions ?? [TweakingOption]()
+        let tweaks = tweakablePlaygroundView?.tweaks ?? [Tweak]()
         let overlayView = CornerAnchoringView(showCloseButton: dismissType == .dismissButton)
-        overlayView.itemsCount = options.count
+        overlayView.itemsCount = tweaks.count
         overlayView.delegate = self
         view.addSubview(overlayView)
         overlayView.fillInSuperview()
@@ -89,19 +91,29 @@ public class PinwheelViewController<View: UIView>: UIViewController {
 
 extension PinwheelViewController: CornerAnchoringViewDelegate {
     func cornerAnchoringViewDidSelectTweakButton(_ cornerAnchoringView: CornerAnchoringView) {
-        let tweakablePlaygroundView = (childViewController?.playgroundView as? Tweakable) ?? (self as? Tweakable)
-        let options = tweakablePlaygroundView?.tweakingOptions ?? [TweakingOption]()
-        let tweakingController = TweakingOptionsTableViewController(options: options)
-        tweakingController.delegate = self
-        let navigationController = NavigationController(rootViewController: tweakingController)
-        navigationController.hairlineIsHidden = true
+        if let controller = tweakingNavigationController {
+            if #available(iOS 15.0, *) {
+                controller.sheetPresentationController?.detents = [.medium()]
+                controller.sheetPresentationController?.preferredCornerRadius = 40
+                controller.sheetPresentationController?.prefersGrabberVisible = true
+            }
+            present(controller, animated: true)
+        } else {
+            let tweakablePlaygroundView = (childViewController?.playgroundView as? Tweakable) ?? (self as? Tweakable)
+            let tweaks = tweakablePlaygroundView?.tweaks ?? [Tweak]()
+            let tweakingController = TweakingOptionsTableViewController(tweaks: tweaks)
+            tweakingController.delegate = self
+            let tweakingNavigationController = NavigationController(rootViewController: tweakingController)
+            tweakingNavigationController.hairlineIsHidden = true
 
-        if #available(iOS 15.0, *) {
-            navigationController.sheetPresentationController?.detents = [.medium()]
-            navigationController.sheetPresentationController?.preferredCornerRadius = 40
-            navigationController.sheetPresentationController?.prefersGrabberVisible = true
+            if #available(iOS 15.0, *) {
+                tweakingNavigationController.sheetPresentationController?.detents = [.medium()]
+                tweakingNavigationController.sheetPresentationController?.preferredCornerRadius = 40
+                tweakingNavigationController.sheetPresentationController?.prefersGrabberVisible = true
+            }
+            self.tweakingNavigationController = tweakingNavigationController
+            present(tweakingNavigationController, animated: true)
         }
-        present(navigationController, animated: true)
     }
 
     func cornerAnchoringViewDidSelectCloseButton(_ cornerAnchoringView: CornerAnchoringView) {

@@ -16,8 +16,6 @@
 		28F459392A49860400504BF6 /* PinColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459332A49860400504BF6 /* PinColor.swift */; };
 		28F4593A2A49860400504BF6 /* PinSpacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459352A49860400504BF6 /* PinSpacing.swift */; };
 		28F4593B2A49860400504BF6 /* PinFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459372A49860400504BF6 /* PinFont.swift */; };
-		28F459402A49867100504BF6 /* PinBasicTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F4593E2A49867100504BF6 /* PinBasicTableViewCell.swift */; };
-		28F459412A49867100504BF6 /* PinVariationsBasicTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F4593F2A49867100504BF6 /* PinVariationsBasicTableViewCell.swift */; };
 		28F4594A2A498B6B00504BF6 /* PinLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459492A498B6B00504BF6 /* PinLabel.swift */; };
 		28F459532A498CFF00504BF6 /* PinBasicTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459522A498CFF00504BF6 /* PinBasicTableView.swift */; };
 /* End PBXBuildFile section */
@@ -34,8 +32,6 @@
 		28F459332A49860400504BF6 /* PinColor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinColor.swift; sourceTree = "<group>"; };
 		28F459352A49860400504BF6 /* PinSpacing.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinSpacing.swift; sourceTree = "<group>"; };
 		28F459372A49860400504BF6 /* PinFont.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinFont.swift; sourceTree = "<group>"; };
-		28F4593E2A49867100504BF6 /* PinBasicTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinBasicTableViewCell.swift; sourceTree = "<group>"; };
-		28F4593F2A49867100504BF6 /* PinVariationsBasicTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinVariationsBasicTableViewCell.swift; sourceTree = "<group>"; };
 		28F459492A498B6B00504BF6 /* PinLabel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinLabel.swift; sourceTree = "<group>"; };
 		28F459522A498CFF00504BF6 /* PinBasicTableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinBasicTableView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -100,7 +96,6 @@
 		28F4592E2A49860400504BF6 /* Pins */ = {
 			isa = PBXGroup;
 			children = (
-				28F4593C2A49867100504BF6 /* Cells */,
 				28F4592F2A49860400504BF6 /* Components */,
 				28F459312A49860400504BF6 /* DNA */,
 				28F459502A498CFF00504BF6 /* Reciclable */,
@@ -150,23 +145,6 @@
 				28F459372A49860400504BF6 /* PinFont.swift */,
 			);
 			path = Font;
-			sourceTree = "<group>";
-		};
-		28F4593C2A49867100504BF6 /* Cells */ = {
-			isa = PBXGroup;
-			children = (
-				28F4593D2A49867100504BF6 /* BasicTableViewCell */,
-			);
-			path = Cells;
-			sourceTree = "<group>";
-		};
-		28F4593D2A49867100504BF6 /* BasicTableViewCell */ = {
-			isa = PBXGroup;
-			children = (
-				28F4593E2A49867100504BF6 /* PinBasicTableViewCell.swift */,
-				28F4593F2A49867100504BF6 /* PinVariationsBasicTableViewCell.swift */,
-			);
-			path = BasicTableViewCell;
 			sourceTree = "<group>";
 		};
 		28F459452A49882C00504BF6 /* BottomSheet */ = {
@@ -232,7 +210,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1430;
-				LastUpgradeCheck = 1430;
+				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					2847DF472A48903D009A6B8E = {
 						CreatedOnToolsVersion = 14.3.1;
@@ -274,7 +252,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				28F459532A498CFF00504BF6 /* PinBasicTableView.swift in Sources */,
-				28F459412A49867100504BF6 /* PinVariationsBasicTableViewCell.swift in Sources */,
 				284D78022A5215E9001F20B3 /* BottomSheetExampleViewController.swift in Sources */,
 				286CF2C22A4F86A4008D3B26 /* PinTweakable.swift in Sources */,
 				28F4594A2A498B6B00504BF6 /* PinLabel.swift in Sources */,
@@ -282,7 +259,6 @@
 				28AAFA612A49F3E900E1CA35 /* Config.swift in Sources */,
 				2847DF4C2A48903E009A6B8E /* AppDelegate.swift in Sources */,
 				28F459392A49860400504BF6 /* PinColor.swift in Sources */,
-				28F459402A49867100504BF6 /* PinBasicTableViewCell.swift in Sources */,
 				28F4593B2A49860400504BF6 /* PinFont.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -326,6 +302,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -386,6 +363,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
