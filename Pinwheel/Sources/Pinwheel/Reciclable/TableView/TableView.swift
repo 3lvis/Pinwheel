@@ -2,6 +2,7 @@ import UIKit
 
 public protocol TableViewDelegate: AnyObject {
     func tableView(_ tableView: TableView, didSelectItemAtIndex index: Int)
+    func tableView(_ tableView: TableView, didSwitchItem boolTableViewItem: BoolTableViewItem, atIndex index: Int)
 }
 
 open class TableView: ShadowScrollView {
@@ -90,12 +91,21 @@ extension TableView: UITableViewDataSource {
 
     public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeue(TableViewCell.self, for: indexPath)
+        cell.delegate = self
 
         let item = items[indexPath.row]
         cell.selectedIndexPath = selectedIndexPath
         cell.isEnabled = item.isEnabled
-        cell.configure(with: item, indexPath: indexPath)
+        cell.indexPath = indexPath
+        cell.tableViewItem = item
 
         return cell
+    }
+}
+
+extension TableView: TableViewCellDelegate {
+    public func tableViewCell(_ tableViewCell: TableViewCell, didChangeBoolTableViewItem boolTableViewItem: BoolTableViewItem, atIndexPath indexPath: IndexPath) {
+        self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
+        self.delegate?.tableView(self, didSwitchItem: boolTableViewItem, atIndex: indexPath.row)
     }
 }

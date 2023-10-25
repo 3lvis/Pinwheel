@@ -1,6 +1,11 @@
 import UIKit
 
+public protocol TableViewCellDelegate: AnyObject {
+    func tableViewCell(_ tableViewCell: TableViewCell, didChangeBoolTableViewItem boolTableViewItem: BoolTableViewItem, atIndexPath indexPath: IndexPath)
+}
+
 open class TableViewCell: UITableViewCell {
+    weak var delegate: TableViewCellDelegate?
 
     // MARK: - Public properties
 
@@ -30,6 +35,19 @@ open class TableViewCell: UITableViewCell {
         return label
     }()
 
+    open lazy var switchControl: UISwitch = {
+        let aSwitch = UISwitch(withAutoLayout: true)
+        aSwitch.addTarget(self, action: #selector(switchChanged), for: .valueChanged)
+        return aSwitch
+    }()
+
+    @objc func switchChanged(sender: UISwitch) {
+        if let edited = tableViewItem as? BoolTableViewItem, let indexPath = indexPath {
+            edited.isOn = sender.isOn
+            delegate?.tableViewCell(self, didChangeBoolTableViewItem: edited, atIndexPath: indexPath)
+        }
+    }
+
     open lazy var stackView: UIStackView = {
         let stackView = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
         stackView.translatesAutoresizingMaskIntoConstraints = false
@@ -43,10 +61,12 @@ open class TableViewCell: UITableViewCell {
     open lazy var stackViewBottomAnchorConstraint = stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -13)
     open lazy var stackViewTopAnchorConstraint = stackView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 13)
     open lazy var detailLabelTrailingConstraint = detailLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
+    open lazy var switchControlTrailingConstraint = switchControl.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
 
     // MARK: - Private properties
 
     private lazy var stackViewToDetailLabelConstraint = stackView.trailingAnchor.constraint(lessThanOrEqualTo: detailLabel.leadingAnchor, constant: -.spacingXS)
+    private lazy var stackViewToSwitchControlConstraint = stackView.trailingAnchor.constraint(lessThanOrEqualTo: switchControl.leadingAnchor, constant: -.spacingXS)
 
     // MARK: - Setup
 
@@ -61,53 +81,67 @@ open class TableViewCell: UITableViewCell {
 
     // MARK: - Public methods
 
-    open func configure(with viewModel: TableViewItem, indexPath: IndexPath? = nil) {
-        titleLabel.text = viewModel.title
+    public var indexPath: IndexPath?
 
-        let isSelected = selectedIndexPath != nil ? selectedIndexPath == indexPath : false
-        titleLabel.textColor = isSelected ? .primaryAction : .primaryText
+    public var tableViewItem: TableViewItem? {
+        didSet {
+            guard let viewModel = tableViewItem else { return }
+            titleLabel.text = viewModel.title
 
-        titleLabel.isEnabled = isEnabled
+            let isSelected = selectedIndexPath != nil ? selectedIndexPath == indexPath : false
+            titleLabel.textColor = isSelected ? .primaryAction : .primaryText
 
-        if let subtitle = viewModel.subtitle {
-            subtitleLabel.text = subtitle
-            subtitleLabel.isHidden = false
-        } else {
-            subtitleLabel.isHidden = true
-        }
+            titleLabel.isEnabled = isEnabled
+            selectionStyle = isEnabled ? .default : .none
 
-        if let detailText = (viewModel as? TextTableViewItem)?.detailText {
-            detailLabel.text = detailText
-            detailLabel.isHidden = false
-            stackViewToDetailLabelConstraint.isActive = true
-        } else {
-            detailLabel.isHidden = true
-            stackViewToDetailLabelConstraint.isActive = false
-        }
+            if let subtitle = viewModel.subtitle {
+                subtitleLabel.text = subtitle
+                subtitleLabel.isHidden = false
+            } else {
+                subtitleLabel.isHidden = true
+            }
 
-        switch viewModel.self {
-        case let basic as TextTableViewItem:
-            if basic.hasChevron == true {
+            if let detailText = (viewModel as? TextTableViewItem)?.detailText {
+                detailLabel.text = detailText
+                detailLabel.isHidden = false
+                stackViewToDetailLabelConstraint.isActive = true
+                switchControl.isHidden = true
+                stackViewToSwitchControlConstraint.isActive = false
+            } else {
+                detailLabel.isHidden = true
+                stackViewToDetailLabelConstraint.isActive = false
+
+                if viewModel is BoolTableViewItem {
+                    switchControl.isOn = (viewModel as? BoolTableViewItem)?.isOn ?? false
+                    switchControl.isHidden = false
+                    stackViewToSwitchControlConstraint.isActive = true
+                } else {
+                    switchControl.isHidden = true
+                    stackViewToSwitchControlConstraint.isActive = false
+                }
+            }
+
+            if (viewModel as? TextTableViewItem)?.hasChevron == true {
                 accessoryType = .disclosureIndicator
-                selectionStyle = .default
                 detailLabelTrailingConstraint.constant = -.spacingS
+                switchControlTrailingConstraint.constant = -.spacingS
                 stackViewTrailingAnchorConstraint.constant = -.spacingS
             } else {
                 accessoryType = .none
-                selectionStyle = .none
                 detailLabelTrailingConstraint.constant = -.spacingM
+                switchControlTrailingConstraint.constant = -.spacingM
                 stackViewTrailingAnchorConstraint.constant = -.spacingM
             }
-        default: break
-        }
 
-        separatorInset = .leadingInset(.spacingM)
+            separatorInset = .leadingInset(.spacingM)
+        }
     }
 
     open override func prepareForReuse() {
         super.prepareForReuse()
         titleLabel.text = nil
         subtitleLabel.text = nil
+        detailLabel.text = nil
     }
 
     // MARK: - Private methods
@@ -118,6 +152,7 @@ open class TableViewCell: UITableViewCell {
 
         contentView.addSubview(stackView)
         contentView.addSubview(detailLabel)
+        contentView.addSubview(switchControl)
 
         NSLayoutConstraint.activate([
             stackViewTopAnchorConstraint,
@@ -126,7 +161,10 @@ open class TableViewCell: UITableViewCell {
             stackViewBottomAnchorConstraint,
 
             detailLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            detailLabelTrailingConstraint
+            detailLabelTrailingConstraint,
+
+            switchControl.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            switchControlTrailingConstraint
             ])
     }
 }

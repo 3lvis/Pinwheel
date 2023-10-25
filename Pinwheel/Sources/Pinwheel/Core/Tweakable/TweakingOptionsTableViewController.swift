@@ -12,10 +12,20 @@ class TweakingOptionsTableViewController: ScrollViewController {
 
     // MARK: - Private properties
 
-    private let tweaks: [Tweak]
+    private var tweaks: [Tweak]
 
     private lazy var tableView: TableView = {
-        let items = tweaks.map { TextTableViewItem(title: $0.title, subtitle: $0.description) }
+        let items: [TableViewItem] = tweaks.compactMap {
+            if $0 is TextTweak {
+                return TextTableViewItem(title: $0.title, subtitle: $0.description)
+            } else if $0 is BoolTweak {
+                let boolItem = BoolTableViewItem(title: $0.title, subtitle:  $0.description)
+                boolItem.isOn = ($0 as? BoolTweak)?.isOn ?? false
+                return boolItem
+            } else {
+                return nil
+            }
+        }
         let view = TableView(items: items)
         view.delegate = self
         return view
@@ -136,11 +146,34 @@ extension TweakingOptionsTableViewController: SelectorTitleViewDelegate {
             showDevicesViewController()
         }
     }
+
 }
 
 // MARK: - TableViewDelegate
 
 extension TweakingOptionsTableViewController: TableViewDelegate {
+    func tableView(_ tableView: TableView, didSwitchItem boolTableViewItem: BoolTableViewItem, atIndex index: Int) {
+        if var tweak = (tweaks[index] as? BoolTweak) {
+            tweak.action(boolTableViewItem.isOn)
+            tweak.isOn = boolTableViewItem.isOn
+            tweaks[index] = tweak
+
+            let items: [TableViewItem] = tweaks.compactMap {
+                if $0 is TextTweak {
+                    return TextTableViewItem(title: $0.title, subtitle: $0.description)
+                } else if $0 is BoolTweak {
+                    let boolItem = BoolTableViewItem(title: $0.title, subtitle:  $0.description)
+                    boolItem.isOn = ($0 as? BoolTweak)?.isOn ?? false
+                    return boolItem
+                } else {
+                    return nil
+                }
+            }
+
+            self.tableView.items = items
+        }
+    }
+    
     func tableView(_ tableView: TableView, didSelectItemAtIndex index: Int) {
         if tableView == devicesTableView {
             let device = Device.all[index]
@@ -153,8 +186,9 @@ extension TweakingOptionsTableViewController: TableViewDelegate {
                 self.delegate?.tweakingOptionsTableViewControllerDidDismiss(self)
             }
         } else {
-            let tweak = tweaks[index]
-            _ = tweak.action(())
+            if let voidTweak = tweaks[index] as? TextTweak {
+                voidTweak.action()
+            }
             delegate?.tweakingOptionsTableViewControllerDidDismiss(self)
         }
     }

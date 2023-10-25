@@ -25,13 +25,19 @@ class PinTableView: View {
         let disabled = TextTableViewItem(title: "Is disabled")
         disabled.isEnabled = false
 
+        let off = BoolTableViewItem(title: "Off")
+        let on = BoolTableViewItem(title: "On")
+        on.isOn = true
+
         return [
             onlyTitle,
             titleAndSubtitle,
             titleSubtitleAndDetail,
             titleAndDetail,
             disabled,
-            hasChevron
+            hasChevron,
+            off,
+            on
         ]
     }()
 
@@ -42,6 +48,13 @@ class PinTableView: View {
 }
 
 extension PinTableView: TableViewDelegate {
+    func tableView(_ tableView: Pinwheel.TableView, didSwitchItem boolTableViewItem: Pinwheel.BoolTableViewItem, atIndex index: Int) {
+        let title = "Changed \(boolTableViewItem.title) to \(boolTableViewItem.isOn ? "on" : "off")"
+        print(title)
+    }
+    
     func tableView(_ tableView: TableView, didSelectItemAtIndex index: Int) {
+        let title = "Selected \((items[index] as? TextTableViewItem)?.title ?? "")"
+        print(title)
     }
 }

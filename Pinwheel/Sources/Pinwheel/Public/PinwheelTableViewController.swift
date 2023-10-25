@@ -142,7 +142,7 @@ extension PinwheelTableViewController: SelectorTitleViewDelegate {
         guard State.lastSelectedSection <= sections.count else { return }
 
         let items = sections.map { TextTableViewItem(title: $0.title.uppercased()) }
-        let sectionsController = PinWheelSectionsViewController(items: items)
+        let sectionsController = PinwheelSectionsViewController(items: items)
         if #available(iOS 15.0, *) {
             sectionsController.sheetPresentationController?.detents = [.medium()]
             sectionsController.sheetPresentationController?.preferredCornerRadius = 40
@@ -153,8 +153,8 @@ extension PinwheelTableViewController: SelectorTitleViewDelegate {
     }
 }
 
-extension PinwheelTableViewController: PinWheelSectionsViewControllerDelegate {
-    func pinWheelSectionsViewController(_ pinWheelSectionsViewController: PinWheelSectionsViewController, didSelectItemAtIndex index: Int) {
+extension PinwheelTableViewController: PinwheelSectionsViewControllerDelegate {
+    func pinWheelSectionsViewController(_ pinWheelSectionsViewController: PinwheelSectionsViewController, didSelectItemAtIndex index: Int) {
         State.lastSelectedSection = index
         selectorTitleView.title = titleForItemAtSection(section: index)?.uppercased()
 

@@ -4,20 +4,20 @@ class PinTweakable: View, Tweakable {
     lazy var tweaks: [Tweak] = {
         var options = [Tweak]()
 
-        options.append(TextTweak(title: "Option 1", description: nil) { [weak self] _ in
-            self?.titleLabel.text = "Choosen Option 1!\n\nYou can drag the button too :D"
-        })
+        let option1 = TextTweak(title: "Option 1") {
+            self.titleLabel.text = "Choosen Option 1!\n\nYou can drag the button too :D"
+        }
 
-        options.append(TextTweak(title: "Option 2", description: "Description 2") { [weak self] _ in
-            self?.titleLabel.text = "Choosen Option 2!\n\nYou can drag the button too :D"
-        })
+        let option2 = TextTweak(title: "Option 2", description: "Description 2") {
+            self.titleLabel.text = "Choosen Option 2!\n\nYou can drag the button too :D"
+        }
 
-        options.append(BoolTweak(title: "Option 3") { [weak self] isOn in
-            let value = isOn as? Bool ?? false
-            self?.titleLabel.text = "Choosen Option 3!\n\n \(value ? "is on" : "is off")"
-        })
+        let option3 = BoolTweak(title: "Option 3") { isOn in
+            self.titleLabel.text = "Choosen Option 3!\n\n \(isOn ? "is on" : "is off")"
+        }
 
-        return options
+        
+        return [option1, option2, option3]
     }()
 
     lazy var titleLabel: Label = {

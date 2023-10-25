@@ -1,11 +1,11 @@
 import UIKit
 
-protocol PinWheelSectionsViewControllerDelegate: AnyObject {
-    func pinWheelSectionsViewController(_ pinWheelSectionsViewController: PinWheelSectionsViewController, didSelectItemAtIndex index: Int)
+protocol PinwheelSectionsViewControllerDelegate: AnyObject {
+    func pinWheelSectionsViewController(_ pinWheelSectionsViewController: PinwheelSectionsViewController, didSelectItemAtIndex index: Int)
 }
 
-class PinWheelSectionsViewController: UIViewController {
-    weak var delegate: PinWheelSectionsViewControllerDelegate?
+class PinwheelSectionsViewController: UIViewController {
+    weak var delegate: PinwheelSectionsViewControllerDelegate?
 
     let items: [TextTableViewItem]
     init(items: [TextTableViewItem]) {
@@ -27,7 +27,10 @@ class PinWheelSectionsViewController: UIViewController {
     }
 }
 
-extension PinWheelSectionsViewController: TableViewDelegate {
+extension PinwheelSectionsViewController: TableViewDelegate {
+    func tableView(_ tableView: TableView, didSwitchItem boolTableViewItem: BoolTableViewItem, atIndex index: Int) {        
+    }
+
     func tableView(_ tableView: TableView, didSelectItemAtIndex index: Int) {
         self.delegate?.pinWheelSectionsViewController(self, didSelectItemAtIndex: index)
     }

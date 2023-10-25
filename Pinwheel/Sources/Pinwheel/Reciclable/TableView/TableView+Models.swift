@@ -13,3 +13,15 @@ open class TextTableViewItem: TableViewItem {
         self.hasChevron = false
     }
 }
+
+open class BoolTableViewItem: TableViewItem {
+    open var title: String
+    open var subtitle: String?
+    open var isEnabled: Bool = true
+    open var isOn: Bool = false
+
+    public init(title: String, subtitle: String? = nil) {
+        self.title = title
+        self.subtitle = subtitle
+    }
+}
