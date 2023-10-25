@@ -15,7 +15,6 @@ class PinTweakable: View, Tweakable {
         let option3 = BoolTweak(title: "Option 3") { isOn in
             self.titleLabel.text = "Choosen Option 3!\n\n \(isOn ? "is on" : "is off")"
         }
-
         
         return [option1, option2, option3]
     }()
