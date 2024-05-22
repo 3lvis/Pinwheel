@@ -17,21 +17,15 @@ class PinColor: View {
 
     lazy var items: [ColorItem] = {
         return [
-            ColorItem(color: .primaryText, title: "primaryText"),
-            ColorItem(color: .secondaryText, title: "secondaryText"),
-            ColorItem(color: .tertiaryText, title: "tertiaryText"),
-
-            ColorItem(color: .primaryBackground, title: ""),
-
-            ColorItem(color: .primaryBackground, title: "primaryBackground"),
-            ColorItem(color: .secondaryBackground, title: "secondaryBackground"),
-
-            ColorItem(color: .primaryBackground, title: ""),
-
-            ColorItem(color: .primaryAction, title: "primaryAction"),
-            ColorItem(color: .activeBackground, title: "activeBackground"),
-            ColorItem(color: .criticalAction, title: "criticalAction"),
-            ColorItem(color: .criticalBackground, title: "criticalBackground")
+            ColorItem(color: .primaryText, title: "Primary Text"),
+            ColorItem(color: .secondaryText, title: "Secondary Text"),
+            ColorItem(color: .tertiaryText, title: "Tertiary Text"),
+            ColorItem(color: .actionText, title: "Action Text"),
+            ColorItem(color: .criticalText, title: "Critical Text"),
+            ColorItem(color: .primaryBackground, title: "Primary Background"),
+            ColorItem(color: .secondaryBackground, title: "Secondary Background"),
+            ColorItem(color: .actionBackground, title: "Action Background"),
+            ColorItem(color: .criticalBackground, title: "Critical Background")
         ]
     }()
 

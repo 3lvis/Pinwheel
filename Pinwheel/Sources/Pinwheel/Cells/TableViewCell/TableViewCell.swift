@@ -89,7 +89,7 @@ open class TableViewCell: UITableViewCell {
             titleLabel.text = viewModel.title
 
             let isSelected = selectedIndexPath != nil ? selectedIndexPath == indexPath : false
-            titleLabel.textColor = isSelected ? .primaryAction : .primaryText
+            titleLabel.textColor = isSelected ? .actionText : .primaryText
 
             titleLabel.isEnabled = isEnabled
             selectionStyle = isEnabled ? .default : .none

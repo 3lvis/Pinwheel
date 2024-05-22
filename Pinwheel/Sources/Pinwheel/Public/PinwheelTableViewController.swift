@@ -45,7 +45,7 @@ public class PinwheelTableViewController: UITableViewController {
         navigationItem.titleView = selectorTitleView
 
         selectorTitleView.title = titleForItemAtSection(section: State.lastSelectedSection)?.uppercased()
-        tableView.sectionIndexColor = .primaryAction
+        tableView.sectionIndexColor = .actionText
         tableView.backgroundColor = .primaryBackground
         setNeedsStatusBarAppearanceUpdate()
     }
