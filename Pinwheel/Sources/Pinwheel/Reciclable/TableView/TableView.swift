@@ -5,10 +5,14 @@ public protocol TableViewDelegate: AnyObject {
     func tableView(_ tableView: TableView, didSwitchItem boolTableViewItem: BoolTableViewItem, atIndex index: Int)
 }
 
+public protocol TableViewDataSource: AnyObject {
+    func tableViewNumberOfItems(_ tableView: TableView) -> Int
+    func tableView(_ tableView: TableView, itemAtIndex index: Int) -> TableViewItem
+}
+
 open class TableView: ShadowScrollView {
     public static let estimatedRowHeight: CGFloat = 60.0
     open var selectedIndexPath: IndexPath?
-    open var items: [TableViewItem]
 
     // MARK: - Internal properties
 
@@ -27,28 +31,21 @@ open class TableView: ShadowScrollView {
     private var usingShadowWhenScrolling: Bool = false
 
     public weak var delegate: TableViewDelegate?
+    public let dataSource: TableViewDataSource
 
     // MARK: - Setup
 
-    public init(items: [TableViewItem], usingShadowWhenScrolling: Bool = false) {
+    public init(dataSource: TableViewDataSource, usingShadowWhenScrolling: Bool = false) {
         self.usingShadowWhenScrolling = usingShadowWhenScrolling
-        self.items = items
+        self.dataSource = dataSource
         super.init(frame: .zero)
-        setup()
-    }
-
-    public override init(frame: CGRect) {
-        self.items = [TableViewItem]()
-        super.init(frame: frame)
         setup()
     }
 
     public required init?(coder aDecoder: NSCoder) {
-        self.items = [TableViewItem]()
-        super.init(frame: .zero)
-        setup()
+        fatalError("init(coder:) has not been implemented")
     }
-
+    
     public func reloadData() {
         tableView.reloadData()
     }
@@ -72,7 +69,7 @@ open class TableView: ShadowScrollView {
 // MARK: - UITableViewDelegate
 extension TableView: UITableViewDelegate {
     public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let item = items[indexPath.row]
+        let item = self.dataSource.tableView(self, itemAtIndex: indexPath.row)
         if item.isEnabled {
             delegate?.tableView(self, didSelectItemAtIndex: indexPath.row)
         }
@@ -86,14 +83,14 @@ extension TableView: UITableViewDelegate {
 // MARK: - UITableViewDataSource
 extension TableView: UITableViewDataSource {
     public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return items.count
+        return dataSource.tableViewNumberOfItems(self)
     }
 
     public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeue(TableViewCell.self, for: indexPath)
         cell.delegate = self
 
-        let item = items[indexPath.row]
+        let item = self.dataSource.tableView(self, itemAtIndex: indexPath.row)
         cell.selectedIndexPath = selectedIndexPath
         cell.isEnabled = item.isEnabled
         cell.indexPath = indexPath
