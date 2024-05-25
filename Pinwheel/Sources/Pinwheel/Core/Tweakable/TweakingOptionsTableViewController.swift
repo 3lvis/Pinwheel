@@ -14,7 +14,7 @@ class TweakingOptionsTableViewController: ScrollViewController {
 
     private var tweaks: [Tweak]
 
-    lazy var items: [TableViewItem] = {
+    private lazy var tableView: TableView = {
         let items: [TableViewItem] = tweaks.compactMap {
             if $0 is TextTweak {
                 return TextTableViewItem(title: $0.title, subtitle: $0.description)
@@ -26,27 +26,20 @@ class TweakingOptionsTableViewController: ScrollViewController {
                 return nil
             }
         }
-        return items
-    }()
-
-    private lazy var tableView: TableView = {
-        let view = TableView(dataSource: self)
+        let view = TableView(items: items)
         view.delegate = self
         return view
     }()
 
-    lazy var deviceItems: [TextTableViewItem] = {
+    private lazy var devicesTableView: TableView = {
         var items = [TextTableViewItem]()
         Device.all.forEach { device in
             var item = TextTableViewItem(title: device.title)
             item.isEnabled = device.isEnabled
             items.append(item)
         }
-        return items
-    }()
 
-    private lazy var devicesTableView: TableView = {
-        let tableView = TableView(dataSource: self)
+        let tableView = TableView(items: items)
         tableView.delegate = self
         return tableView
     }()
@@ -177,7 +170,7 @@ extension TweakingOptionsTableViewController: TableViewDelegate {
                 }
             }
 
-            self.items = items
+            self.tableView.items = items
         }
     }
     
@@ -197,28 +190,6 @@ extension TweakingOptionsTableViewController: TableViewDelegate {
                 voidTweak.action()
             }
             delegate?.tweakingOptionsTableViewControllerDidDismiss(self)
-        }
-    }
-}
-
-extension TweakingOptionsTableViewController: TableViewDataSource {
-    func tableViewNumberOfItems(_ tableView: TableView) -> Int {
-        if tableView == self.tableView {
-            return items.count
-        } else if tableView == self.devicesTableView {
-            return deviceItems.count
-        } else {
-            return 0
-        }
-    }
-    
-    func tableView(_ tableView: TableView, itemAtIndex index: Int) -> any TableViewItem {
-        if tableView == self.tableView {
-            return items[index]
-        } else if tableView == self.devicesTableView {
-            return deviceItems[index]
-        } else {
-            fatalError()
         }
     }
 }

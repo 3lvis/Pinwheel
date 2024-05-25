@@ -2,7 +2,7 @@ import Pinwheel
 
 class PinTableView: View {
     lazy var tableView: TableView = {
-        let view = TableView(dataSource: self)
+        let view = TableView(items: items)
         view.delegate = self
         return view
     }()
@@ -56,15 +56,5 @@ extension PinTableView: TableViewDelegate {
     func tableView(_ tableView: TableView, didSelectItemAtIndex index: Int) {
         let title = "Selected \((items[index] as? TextTableViewItem)?.title ?? "")"
         print(title)
-    }
-}
-
-extension PinTableView: TableViewDataSource {
-    func tableViewNumberOfItems(_ tableView: TableView) -> Int {
-        return items.count
-    }
-
-    func tableView(_ tableView: TableView, itemAtIndex index: Int) -> TableViewItem {
-        return items[index]
     }
 }

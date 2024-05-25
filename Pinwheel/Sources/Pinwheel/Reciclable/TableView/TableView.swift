@@ -31,7 +31,7 @@ open class TableView: ShadowScrollView {
     private var usingShadowWhenScrolling: Bool = false
 
     public weak var delegate: TableViewDelegate?
-    public let dataSource: TableViewDataSource
+    public weak var dataSource: TableViewDataSource?
 
     // MARK: - Setup
 
@@ -42,10 +42,18 @@ open class TableView: ShadowScrollView {
         setup()
     }
 
+    open var items = [TableViewItem]()
+    public init(items: [TableViewItem], usingShadowWhenScrolling: Bool = false) {
+        self.items = items
+        self.usingShadowWhenScrolling = usingShadowWhenScrolling
+        super.init(frame: .zero)
+        setup()
+    }
+
     public required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     public func reloadData() {
         tableView.reloadData()
     }
@@ -69,7 +77,12 @@ open class TableView: ShadowScrollView {
 // MARK: - UITableViewDelegate
 extension TableView: UITableViewDelegate {
     public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let item = self.dataSource.tableView(self, itemAtIndex: indexPath.row)
+        let item: TableViewItem
+        if let dataSource = self.dataSource {
+            item = dataSource.tableView(self, itemAtIndex: indexPath.row)
+        } else {
+            item = items[indexPath.row]
+        }
         if item.isEnabled {
             delegate?.tableView(self, didSelectItemAtIndex: indexPath.row)
         }
@@ -83,14 +96,23 @@ extension TableView: UITableViewDelegate {
 // MARK: - UITableViewDataSource
 extension TableView: UITableViewDataSource {
     public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return dataSource.tableViewNumberOfItems(self)
+        if let dataSource = self.dataSource {
+            return dataSource.tableViewNumberOfItems(self)
+        } else {
+            return items.count
+        }
     }
 
     public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeue(TableViewCell.self, for: indexPath)
         cell.delegate = self
 
-        let item = self.dataSource.tableView(self, itemAtIndex: indexPath.row)
+        let item: TableViewItem
+        if let dataSource = self.dataSource {
+            item = dataSource.tableView(self, itemAtIndex: indexPath.row)
+        } else {
+            item = items[indexPath.row]
+        }
         cell.selectedIndexPath = selectedIndexPath
         cell.isEnabled = item.isEnabled
         cell.indexPath = indexPath
@@ -104,5 +126,15 @@ extension TableView: TableViewCellDelegate {
     public func tableViewCell(_ tableViewCell: TableViewCell, didChangeBoolTableViewItem boolTableViewItem: BoolTableViewItem, atIndexPath indexPath: IndexPath) {
         self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
         self.delegate?.tableView(self, didSwitchItem: boolTableViewItem, atIndex: indexPath.row)
+    }
+}
+
+extension TableView: TableViewDataSource {
+    public func tableViewNumberOfItems(_ tableView: TableView) -> Int {
+        return items.count
+    }
+
+    public func tableView(_ tableView: TableView, itemAtIndex index: Int) -> any TableViewItem {
+        return items[index]
     }
 }

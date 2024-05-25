@@ -19,7 +19,7 @@ class PinwheelSectionsViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        let sectionsTableView = TableView(dataSource: self)
+        let sectionsTableView = TableView(items: items)
         sectionsTableView.selectedIndexPath = IndexPath(row: State.lastSelectedSection, section: 0)
         sectionsTableView.delegate = self
         view.addSubview(sectionsTableView)
@@ -33,15 +33,5 @@ extension PinwheelSectionsViewController: TableViewDelegate {
 
     func tableView(_ tableView: TableView, didSelectItemAtIndex index: Int) {
         self.delegate?.pinWheelSectionsViewController(self, didSelectItemAtIndex: index)
-    }
-}
-
-extension PinwheelSectionsViewController: TableViewDataSource {
-    func tableViewNumberOfItems(_ tableView: TableView) -> Int {
-        return items.count
-    }
-
-    func tableView(_ tableView: TableView, itemAtIndex index: Int) -> TableViewItem {
-        return items[index]
     }
 }
