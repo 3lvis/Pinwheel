@@ -30,7 +30,7 @@ open class TableViewCell: UITableViewCell {
 
     open lazy var detailLabel: UILabel = {
         let label = UILabel(withAutoLayout: true)
-        label.font = .subheadline
+        label.font = .body
         label.textColor = .secondaryText
         return label
     }()
