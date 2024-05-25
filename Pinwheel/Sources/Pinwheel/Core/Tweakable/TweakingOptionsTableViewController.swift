@@ -14,7 +14,7 @@ class TweakingOptionsTableViewController: ScrollViewController {
 
     private var tweaks: [Tweak]
 
-    private lazy var tableView: TableView = {
+    lazy var items: [TableViewItem] = {
         let items: [TableViewItem] = tweaks.compactMap {
             if $0 is TextTweak {
                 return TextTableViewItem(title: $0.title, subtitle: $0.description)
@@ -26,7 +26,11 @@ class TweakingOptionsTableViewController: ScrollViewController {
                 return nil
             }
         }
-        let view = TableView(items: items)
+        return items
+    }()
+
+    private lazy var tableView: TableView = {
+        let view = TableView(dataSource: self)
         view.delegate = self
         return view
     }()
@@ -158,19 +162,10 @@ extension TweakingOptionsTableViewController: TableViewDelegate {
             tweak.isOn = boolTableViewItem.isOn
             tweaks[index] = tweak
 
-            let items: [TableViewItem] = tweaks.compactMap {
-                if $0 is TextTweak {
-                    return TextTableViewItem(title: $0.title, subtitle: $0.description)
-                } else if $0 is BoolTweak {
-                    let boolItem = BoolTableViewItem(title: $0.title, subtitle:  $0.description)
-                    boolItem.isOn = ($0 as? BoolTweak)?.isOn ?? false
-                    return boolItem
-                } else {
-                    return nil
-                }
+            if let boolItem = items[index] as? BoolTableViewItem {
+                boolItem.isOn = tweak.isOn
+                items[index] = boolItem
             }
-
-            self.tableView.items = items
         }
     }
     
@@ -191,5 +186,15 @@ extension TweakingOptionsTableViewController: TableViewDelegate {
             }
             delegate?.tweakingOptionsTableViewControllerDidDismiss(self)
         }
+    }
+}
+
+extension TweakingOptionsTableViewController: TableViewDataSource {
+    func tableViewNumberOfItems(_ tableView: TableView) -> Int {
+        return items.count
+    }
+    
+    func tableView(_ tableView: TableView, itemAtIndex index: Int) -> any TableViewItem {
+        return items[index]
     }
 }

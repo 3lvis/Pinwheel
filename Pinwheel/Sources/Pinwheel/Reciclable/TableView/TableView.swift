@@ -31,7 +31,7 @@ open class TableView: ShadowScrollView {
     private var usingShadowWhenScrolling: Bool = false
 
     public weak var delegate: TableViewDelegate?
-    public weak var dataSource: TableViewDataSource?
+    private weak var dataSource: TableViewDataSource?
 
     // MARK: - Setup
 
@@ -42,7 +42,7 @@ open class TableView: ShadowScrollView {
         setup()
     }
 
-    open var items = [TableViewItem]()
+    private var items = [TableViewItem]()
     public init(items: [TableViewItem], usingShadowWhenScrolling: Bool = false) {
         self.items = items
         self.usingShadowWhenScrolling = usingShadowWhenScrolling
