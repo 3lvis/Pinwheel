@@ -26,7 +26,7 @@ class PinLabel: View {
         let caption = Label(style: .caption)
         caption.text = "Caption"
 
-        let stackView = UIStackView(axis: .vertical, spacing: .spacingM)
+        let stackView = UIStackView(axis: .vertical, spacing: .spacingL)
         stackView.addArrangedSubviews([
             headline,
             headlineSemibold,
@@ -39,6 +39,6 @@ class PinLabel: View {
         ])
 
         addSubview(stackView)
-        stackView.anchorToTopSafeArea(margin: .spacingM)
+        stackView.anchorToTopSafeArea(margin: .spacingL)
     }
 }

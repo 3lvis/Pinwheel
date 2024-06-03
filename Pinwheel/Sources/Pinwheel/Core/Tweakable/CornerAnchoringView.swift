@@ -7,7 +7,7 @@ protocol CornerAnchoringViewDelegate: AnyObject {
 
 class CornerAnchoringView: UIView {
     weak var delegate: CornerAnchoringViewDelegate?
-    let buttonSize = CGFloat.spacingXL * 2
+    let buttonSize = CGFloat.spacingXXL * 2
 
     private lazy var closeButton: FloatingButton = {
         let button = FloatingButton(withAutoLayout: true)
@@ -118,17 +118,17 @@ class CornerAnchoringView: UIView {
         let buttonWidth = buttonSize
 
         NSLayoutConstraint.activate([
-            topLeftView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingM + buttonWidth / 2),
-            topLeftView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: .spacingM + buttonHeight / 2),
+            topLeftView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingL + buttonWidth / 2),
+            topLeftView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: .spacingL + buttonHeight / 2),
 
-            topRightView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingM - buttonWidth / 2),
-            topRightView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: .spacingM + buttonHeight / 2),
+            topRightView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingL - buttonWidth / 2),
+            topRightView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: .spacingL + buttonHeight / 2),
 
-            bottomLeftView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingM + buttonWidth / 2),
-            bottomLeftView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -.spacingM - buttonHeight / 2),
+            bottomLeftView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingL + buttonWidth / 2),
+            bottomLeftView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -.spacingL - buttonHeight / 2),
 
-            bottomRightView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingM - buttonWidth / 2),
-            bottomRightView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -.spacingM - buttonHeight / 2),
+            bottomRightView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingL - buttonWidth / 2),
+            bottomRightView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -.spacingL - buttonHeight / 2),
         ])
 
         panRecognizer.addTarget(self, action: #selector(anchoredViewPanned(recognizer:)))

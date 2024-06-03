@@ -57,9 +57,9 @@ class SelectorTitleView: UIView {
         if heading != nil {
             button.contentEdgeInsets = UIEdgeInsets(
                 top: titleLabel.font.pointSize,
-                leading: .spacingM + spacing,
+                leading: .spacingL + spacing,
                 bottom: 0,
-                trailing: .spacingM + spacing
+                trailing: .spacingL + spacing
             )
         }
 

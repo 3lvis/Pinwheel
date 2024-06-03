@@ -56,7 +56,7 @@ open class TableViewCell: UITableViewCell {
         return stackView
     }()
 
-    open lazy var stackViewLeadingAnchorConstraint = stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: .spacingM)
+    open lazy var stackViewLeadingAnchorConstraint = stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: .spacingL)
     open lazy var stackViewTrailingAnchorConstraint = stackView.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor)
     open lazy var stackViewBottomAnchorConstraint = stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -13)
     open lazy var stackViewTopAnchorConstraint = stackView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 13)
@@ -128,12 +128,12 @@ open class TableViewCell: UITableViewCell {
                 stackViewTrailingAnchorConstraint.constant = -.spacingS
             } else {
                 accessoryType = .none
-                detailLabelTrailingConstraint.constant = -.spacingM
-                switchControlTrailingConstraint.constant = -.spacingM
-                stackViewTrailingAnchorConstraint.constant = -.spacingM
+                detailLabelTrailingConstraint.constant = -.spacingL
+                switchControlTrailingConstraint.constant = -.spacingL
+                stackViewTrailingAnchorConstraint.constant = -.spacingL
             }
 
-            separatorInset = .leadingInset(.spacingM)
+            separatorInset = .leadingInset(.spacingL)
         }
     }
 
