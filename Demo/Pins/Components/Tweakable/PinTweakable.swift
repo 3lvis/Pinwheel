@@ -29,6 +29,6 @@ class PinTweakable: View, Tweakable {
 
     override func setup() {
         addSubview(titleLabel)
-        titleLabel.fillInSuperview(margin: .spacingXL)
+        titleLabel.fillInSuperview(margin: .spacingXXL)
     }
 }

@@ -78,17 +78,17 @@ class BottomSheetExampleViewController: UIViewController {
         }
 
         NSLayoutConstraint.activate([
-            expandButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: .spacingXL),
-            expandButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -.spacingXL),
+            expandButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: .spacingXXL),
+            expandButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -.spacingXXL),
             expandButton.topAnchor.constraint(equalTo: view.topAnchor, constant: .spacingS),
 
-            compactButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: .spacingXL),
-            compactButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -.spacingXL),
+            compactButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: .spacingXXL),
+            compactButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -.spacingXXL),
             compactButton.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: 0),
 
-            dismissButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: .spacingXL),
-            dismissButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -.spacingXL),
-            dismissButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -.spacingXL),
+            dismissButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: .spacingXXL),
+            dismissButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -.spacingXXL),
+            dismissButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -.spacingXXL),
         ])
     }
 
