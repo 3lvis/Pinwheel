@@ -2,7 +2,7 @@ import UIKit
 
 class MiniToastView: UIView {
     lazy var titleLabel: Label = {
-        let label = Label(style: .body)
+        let label = Label(font: .body)
         label.text = "Example"
         label.textColor = .secondaryText
         label.textAlignment = .center

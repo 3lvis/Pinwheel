@@ -35,7 +35,7 @@ class SelectorTitleView: UIView {
     }
 
     private lazy var titleLabel: Label = {
-        let label = Label(style: .caption)
+        let label = Label(font: .caption)
         label.adjustsFontForContentSizeCategory = true
         label.textAlignment = .center
         label.text = heading

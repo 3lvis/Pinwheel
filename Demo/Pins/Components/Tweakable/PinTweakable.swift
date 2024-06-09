@@ -20,7 +20,7 @@ class PinTweakable: View, Tweakable {
     }()
 
     lazy var titleLabel: Label = {
-        let label = Label(style: .body)
+        let label = Label(font: .body)
         label.text = "Tap the button and choose and option ✨"
         label.textAlignment = .center
         label.numberOfLines = 0

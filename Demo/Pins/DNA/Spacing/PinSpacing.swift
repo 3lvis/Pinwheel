@@ -3,7 +3,7 @@ import Pinwheel
 
 class PinSpacing: View {
     func makeLabel(text: String) -> Label {
-        let label = Label(style: .body)
+        let label = Label(font: .body)
         label.text = text
         label.translatesAutoresizingMaskIntoConstraints = false
         label.backgroundColor = .tertiaryText
