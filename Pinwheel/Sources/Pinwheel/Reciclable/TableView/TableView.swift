@@ -24,7 +24,6 @@ open class TableView: ShadowScrollView {
         tableView.estimatedRowHeight = TableView.estimatedRowHeight
         tableView.separatorColor = .secondaryBackground
         tableView.separatorInset = .leadingInset(frame.width)
-        tableView.contentInset = UIEdgeInsets(top: .spacingS, left: 0, bottom: 0, right: 0)
         return tableView
     }()
 
