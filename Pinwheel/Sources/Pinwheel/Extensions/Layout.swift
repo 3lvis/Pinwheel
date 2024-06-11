@@ -16,6 +16,17 @@ public extension UIView {
         ])
     }
 
+    func fillInSuperviewWithSafeAreaTop(insets: UIEdgeInsets = .zero) {
+        guard let superview = superview else { return }
+
+        NSLayoutConstraint.activate([
+            topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: insets.top),
+            leadingAnchor.constraint(equalTo: superview.leadingAnchor, constant: insets.leading),
+            trailingAnchor.constraint(equalTo: superview.trailingAnchor, constant: -insets.trailing),
+            bottomAnchor.constraint(equalTo: superview.bottomAnchor, constant: -insets.bottom)
+        ])
+    }
+
     func fillInSafeArea(margin: CGFloat) {
         fillInSafeArea(insets: UIEdgeInsets(top: margin, leading: margin, bottom: margin, trailing: margin))
     }
