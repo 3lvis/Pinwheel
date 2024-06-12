@@ -115,10 +115,10 @@ class CornerAnchoringView: UIView {
             topRightView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: .spacingL + buttonHeight / 2),
 
             bottomLeftView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingL + buttonWidth / 2),
-            bottomLeftView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -.spacingL - buttonHeight / 2),
+            bottomLeftView.bottomAnchor.constraint(equalTo: keyboardLayoutGuide.topAnchor, constant: -.spacingL - buttonHeight / 2),
 
             bottomRightView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingL - buttonWidth / 2),
-            bottomRightView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -.spacingL - buttonHeight / 2),
+            bottomRightView.bottomAnchor.constraint(equalTo: keyboardLayoutGuide.topAnchor, constant: -.spacingL - buttonHeight / 2),
         ])
 
         panRecognizer.addTarget(self, action: #selector(anchoredViewPanned(recognizer:)))
