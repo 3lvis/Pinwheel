@@ -47,12 +47,12 @@ open class BasePinwheelViewController<View: UIView>: UIViewController {
             case .medium:
                 modalPresentationStyle = .pageSheet
                 sheetPresentationController?.detents = [.medium()]
-                sheetPresentationController?.preferredCornerRadius = 40
+                sheetPresentationController?.preferredCornerRadius = .spacingXL
                 sheetPresentationController?.prefersGrabberVisible = true
             case .large:
                 modalPresentationStyle = .pageSheet
                 sheetPresentationController?.detents = [.large()]
-                sheetPresentationController?.preferredCornerRadius = 40
+                sheetPresentationController?.preferredCornerRadius = .spacingXL
                 sheetPresentationController?.prefersGrabberVisible = true
             case .fullscreen:
                 modalPresentationStyle = .fullScreen

@@ -22,12 +22,12 @@ public class PinwheelViewController<View: UIView>: UIViewController {
             case .medium:
                 modalPresentationStyle = .pageSheet
                 sheetPresentationController?.detents = [.medium()]
-                sheetPresentationController?.preferredCornerRadius = 40
+                sheetPresentationController?.preferredCornerRadius = .spacingXL
                 sheetPresentationController?.prefersGrabberVisible = true
             case .large:
                 modalPresentationStyle = .pageSheet
                 sheetPresentationController?.detents = [.large()]
-                sheetPresentationController?.preferredCornerRadius = 40
+                sheetPresentationController?.preferredCornerRadius = .spacingXL
                 sheetPresentationController?.prefersGrabberVisible = true
             case .fullscreen:
                 modalPresentationStyle = .fullScreen
@@ -90,7 +90,7 @@ extension PinwheelViewController: CornerAnchoringViewDelegate {
         if let controller = tweakingNavigationController {
             if #available(iOS 15.0, *) {
                 controller.sheetPresentationController?.detents = [.medium()]
-                controller.sheetPresentationController?.preferredCornerRadius = 40
+                controller.sheetPresentationController?.preferredCornerRadius = .spacingXL
                 controller.sheetPresentationController?.prefersGrabberVisible = true
             }
             present(controller, animated: true)
@@ -104,7 +104,7 @@ extension PinwheelViewController: CornerAnchoringViewDelegate {
 
             if #available(iOS 15.0, *) {
                 tweakingNavigationController.sheetPresentationController?.detents = [.medium()]
-                tweakingNavigationController.sheetPresentationController?.preferredCornerRadius = 40
+                tweakingNavigationController.sheetPresentationController?.preferredCornerRadius = .spacingXL
                 tweakingNavigationController.sheetPresentationController?.prefersGrabberVisible = true
             }
             self.tweakingNavigationController = tweakingNavigationController
