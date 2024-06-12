@@ -2,18 +2,15 @@ import UIKit
 
 public class PinwheelViewController<View: UIView>: UIViewController {
 
-    private var dismissType: DismissType
     private var presentationStyle: PresentationStyle
     private var preferredInterfaceOrientation: UIInterfaceOrientationMask = .all
     private let constrainToBottomSafeArea: Bool
     private let constrainToTopSafeArea: Bool
 
-    public init(dismissType: DismissType = .dismissButton,
-                presentationStyle: PresentationStyle = .fullscreen,
+    public init(presentationStyle: PresentationStyle = .fullscreen,
                 supportedInterfaceOrientations: UIInterfaceOrientationMask = .all,
                 constrainToTopSafeArea: Bool = true,
                 constrainToBottomSafeArea: Bool = true) {
-        self.dismissType = dismissType
         self.presentationStyle = presentationStyle
         self.preferredInterfaceOrientation = supportedInterfaceOrientations
         self.constrainToBottomSafeArea = constrainToBottomSafeArea
@@ -56,7 +53,6 @@ public class PinwheelViewController<View: UIView>: UIViewController {
         view.backgroundColor = .black
 
         let viewController = BasePinwheelViewController<View>(
-            dismissType: dismissType,
             presentationStyle: presentationStyle,
             supportedInterfaceOrientations: supportedInterfaceOrientations,
             constrainToTopSafeArea: constrainToTopSafeArea,
@@ -81,7 +77,7 @@ public class PinwheelViewController<View: UIView>: UIViewController {
 
         let tweakablePlaygroundView = (childViewController?.playgroundView as? Tweakable) ?? (self as? Tweakable)
         let tweaks = tweakablePlaygroundView?.tweaks ?? [Tweak]()
-        let overlayView = CornerAnchoringView(showCloseButton: dismissType == .dismissButton)
+        let overlayView = CornerAnchoringView()
         overlayView.itemsCount = tweaks.count
         overlayView.delegate = self
         view.addSubview(overlayView)
