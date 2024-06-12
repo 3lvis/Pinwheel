@@ -125,7 +125,7 @@ open class BasePinwheelViewController<View: UIView>: UIViewController {
     public override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        if State.shouldShowDismissInstructions {
+        if State.shouldShowDismissInstructions && dismissType == .doubleTap {
             miniToastView.show(in: view, text: "Double tap to dismiss")
             State.shouldShowDismissInstructions = false
         }
