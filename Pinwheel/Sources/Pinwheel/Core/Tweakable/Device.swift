@@ -7,6 +7,7 @@ struct Device {
         case phone5_4inch = "iPhone 13 Mini (5.4-inch)"
         case phone5_8inch = "iPhone 11 Pro (5.8-inch)"
         case phone6_1inch = "iPhone 15 Pro (6.1-inch)"
+        case phone6_5inch = "iPhone 11 Pro Max (6.5-inch)"
         case phone6_7inch = "iPhone 15 Pro Max (6.7-inch)"
         case padPortraitOneThird = "iPad Portrait 1/3"
         case padPortraitTwoThirds = "iPad Portrait 2/3"
@@ -27,7 +28,7 @@ struct Device {
 
     var isEnabled: Bool {
         switch kind {
-        case .phone4_7inch, .phone5_1inch, .phone5_4inch, .phone5_8inch, .phone6_1inch, .phone6_7inch:
+        case .phone4_7inch, .phone5_1inch, .phone5_4inch, .phone5_8inch, .phone6_1inch, .phone6_5inch, .phone6_7inch:
             let currentSize = UIScreen.main.bounds.size
             return frame.width <= currentSize.width && frame.height <= currentSize.height
         case .padLandscapeOneThird, .padLandscapeOneHalf, .padPortraitOneThird, .padPortraitTwoThirds, .padPortraitFull, .padLandscapeFull, .padLandscapeTwoThirds:
@@ -51,6 +52,8 @@ struct Device {
             size = .init(width: 375, height: 812)
         case .phone6_1inch:
             size = .init(width: 390, height: 844)
+        case .phone6_5inch:
+            size = .init(width: 414, height: 896)
         case .phone6_7inch:
             size = .init(width: 430, height: 932)
         case .padPortraitOneThird:
@@ -73,7 +76,7 @@ struct Device {
         let y: CGFloat = (UIScreen.main.bounds.height - size.height) / 2
 
         switch kind {
-        case .phone4_7inch, .phone5_1inch, .phone5_4inch, .phone5_8inch, .phone6_1inch, .phone6_7inch:
+        case .phone4_7inch, .phone5_1inch, .phone5_4inch, .phone5_8inch, .phone6_1inch, .phone6_5inch, .phone6_7inch:
             horizontalSizeClass = .compact
             userInterfaceIdiom = .phone
             autoresizingMask = [.flexibleRightMargin, .flexibleLeftMargin, .flexibleTopMargin, .flexibleBottomMargin]
@@ -108,6 +111,7 @@ struct Device {
             Device(kind: .phone5_4inch),
             Device(kind: .phone5_8inch),
             Device(kind: .phone6_1inch),
+            Device(kind: .phone6_5inch),
             Device(kind: .phone6_7inch),
         ]
 
