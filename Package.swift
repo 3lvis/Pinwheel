@@ -5,6 +5,9 @@ import PackageDescription
 
 let package = Package(
     name: "Pinwheel",
+    platforms: [
+        .iOS(.v16)
+    ],
     products: [
         .library(
             name: "Pinwheel",
