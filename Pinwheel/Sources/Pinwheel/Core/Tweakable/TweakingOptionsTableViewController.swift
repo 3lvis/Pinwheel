@@ -37,8 +37,15 @@ class TweakingOptionsTableViewController: ScrollViewController {
 
     private lazy var devicesTableView: TableView = {
         var items = [TextTableViewItem]()
+        let currentBounds = UIScreen.main.bounds
+
         Device.all.forEach { device in
             var item = TextTableViewItem(title: device.title)
+
+            if device.traits.userInterfaceIdiom == .phone && device.frame.size == currentBounds.size {
+                item.title = "(Current) \(device.title)"
+            }
+
             item.isEnabled = device.isEnabled
             items.append(item)
         }
