@@ -60,14 +60,6 @@ class FloatingButton: UIButton {
             layer.cornerRadius = frame.height / 2
         }
         updateLayerColors()
-
-        if let imageView = imageView, let titleLabel = titleLabel {
-            let imageSize = imageView.frame.size
-            titleEdgeInsets = UIEdgeInsets(top: 0, leading: -imageSize.width, bottom: 0, trailing: 0)
-
-            let titleSize = titleLabel.bounds.size
-            imageEdgeInsets = UIEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: -titleSize.width)
-        }
     }
 
     private func setup() {
@@ -77,8 +69,6 @@ class FloatingButton: UIButton {
         contentMode = .center
 
         titleLabel?.font = .subheadline
-
-        adjustsImageWhenHighlighted = false
 
         addSubview(badgeView)
         badgeView.addSubview(badgeLabel)
