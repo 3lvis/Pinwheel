@@ -50,8 +50,8 @@ open class BasePinwheelViewController<View: UIView>: UIViewController {
         return preferredInterfaceOrientation
     }
 
-    public init(dismissType: DismissType = .doubleTap,
-                presentationStyle: PresentationStyle = .large,
+    public init(dismissType: DismissType = .dismissButton,
+                presentationStyle: PresentationStyle = .fullscreen,
                 supportedInterfaceOrientations: UIInterfaceOrientationMask = .all,
                 constrainToTopSafeArea: Bool = true,
                 constrainToBottomSafeArea: Bool = true) {

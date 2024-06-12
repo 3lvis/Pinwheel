@@ -8,8 +8,8 @@ public class PinwheelViewController<View: UIView>: UIViewController {
     private let constrainToBottomSafeArea: Bool
     private let constrainToTopSafeArea: Bool
 
-    public init(dismissType: DismissType = .doubleTap,
-                presentationStyle: PresentationStyle = .large,
+    public init(dismissType: DismissType = .dismissButton,
+                presentationStyle: PresentationStyle = .fullscreen,
                 supportedInterfaceOrientations: UIInterfaceOrientationMask = .all,
                 constrainToTopSafeArea: Bool = true,
                 constrainToBottomSafeArea: Bool = true) {
