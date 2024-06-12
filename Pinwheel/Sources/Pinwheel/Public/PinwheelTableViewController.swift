@@ -145,7 +145,7 @@ extension PinwheelTableViewController: SelectorTitleViewDelegate {
         let sectionsController = PinwheelSectionsViewController(items: items)
         if #available(iOS 15.0, *) {
             sectionsController.sheetPresentationController?.detents = [.medium()]
-            sectionsController.sheetPresentationController?.preferredCornerRadius = 40
+            sectionsController.sheetPresentationController?.preferredCornerRadius = .spacingXL
             sectionsController.sheetPresentationController?.prefersGrabberVisible = true
         }
         sectionsController.delegate = self

@@ -34,9 +34,7 @@ class CornerAnchoringView: UIView {
     private lazy var buttonsView: UIView = {
         let views = UIView()
         views.translatesAutoresizingMaskIntoConstraints = false
-        if showCloseButton {
-            views.addSubview(closeButton)
-        }
+        views.addSubview(closeButton)
         views.addSubview(settingsButton)
 
         let halfButtonSize = buttonSize / 2.0
@@ -49,20 +47,14 @@ class CornerAnchoringView: UIView {
             settingsButton.heightAnchor.constraint(equalToConstant: buttonSize),
         ])
 
-        if showCloseButton {
-            NSLayoutConstraint.activate([
-                settingsButton.bottomAnchor.constraint(equalTo: closeButton.topAnchor, constant: -.spacingS),
-                closeButton.leadingAnchor.constraint(equalTo: views.leadingAnchor),
-                closeButton.trailingAnchor.constraint(equalTo: views.trailingAnchor),
-                closeButton.widthAnchor.constraint(equalToConstant: buttonSize),
-                closeButton.heightAnchor.constraint(equalToConstant: buttonSize),
-                closeButton.bottomAnchor.constraint(equalTo: views.bottomAnchor)
-            ])
-        } else {
-            NSLayoutConstraint.activate([
-                settingsButton.bottomAnchor.constraint(equalTo: views.bottomAnchor)
-            ])
-        }
+        NSLayoutConstraint.activate([
+            settingsButton.bottomAnchor.constraint(equalTo: closeButton.topAnchor, constant: -.spacingS),
+            closeButton.leadingAnchor.constraint(equalTo: views.leadingAnchor),
+            closeButton.trailingAnchor.constraint(equalTo: views.trailingAnchor),
+            closeButton.widthAnchor.constraint(equalToConstant: buttonSize),
+            closeButton.heightAnchor.constraint(equalToConstant: buttonSize),
+            closeButton.bottomAnchor.constraint(equalTo: views.bottomAnchor)
+        ])
 
         return views
     }()
@@ -81,10 +73,8 @@ class CornerAnchoringView: UIView {
         }
     }
 
-    var showCloseButton = false
-    init(showCloseButton: Bool) {
+    init() {
         super.init(frame: .zero)
-        self.showCloseButton = showCloseButton
         translatesAutoresizingMaskIntoConstraints = false
         setup()
     }
@@ -114,7 +104,7 @@ class CornerAnchoringView: UIView {
 
         addSubview(buttonsView)
 
-        let buttonHeight = showCloseButton ? buttonSize * 2 + .spacingS : buttonSize
+        let buttonHeight = buttonSize * 2 + .spacingS
         let buttonWidth = buttonSize
 
         NSLayoutConstraint.activate([

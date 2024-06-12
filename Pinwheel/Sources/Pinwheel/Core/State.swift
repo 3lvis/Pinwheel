@@ -29,22 +29,6 @@ public struct State {
         }
     }
 
-    private static let shouldShowDismissInstructionsKey = "shouldShowDismissInstructions"
-
-    static var shouldShowDismissInstructions: Bool {
-        get {
-            // avoid dismiss instructions for test as it can interfere with snapshot tests
-            if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
-                return false
-            }
-            return UserDefaults.standard.object(forKey: shouldShowDismissInstructionsKey) as? Bool ?? true
-        }
-        set {
-            UserDefaults.standard.set(newValue, forKey: shouldShowDismissInstructionsKey)
-            UserDefaults.standard.synchronize()
-        }
-    }
-
     static var lastCornerForTweakingButton: Int? {
         get {
             return UserDefaults.standard.object(forKey: lastCornerForTweakingButtonKey) as? Int

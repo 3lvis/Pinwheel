@@ -2,18 +2,15 @@ import UIKit
 
 public class PinwheelViewController<View: UIView>: UIViewController {
 
-    private var dismissType: DismissType
     private var presentationStyle: PresentationStyle
     private var preferredInterfaceOrientation: UIInterfaceOrientationMask = .all
     private let constrainToBottomSafeArea: Bool
     private let constrainToTopSafeArea: Bool
 
-    public init(dismissType: DismissType = .doubleTap,
-                presentationStyle: PresentationStyle = .large,
+    public init(presentationStyle: PresentationStyle = .fullscreen,
                 supportedInterfaceOrientations: UIInterfaceOrientationMask = .all,
                 constrainToTopSafeArea: Bool = true,
                 constrainToBottomSafeArea: Bool = true) {
-        self.dismissType = dismissType
         self.presentationStyle = presentationStyle
         self.preferredInterfaceOrientation = supportedInterfaceOrientations
         self.constrainToBottomSafeArea = constrainToBottomSafeArea
@@ -25,12 +22,12 @@ public class PinwheelViewController<View: UIView>: UIViewController {
             case .medium:
                 modalPresentationStyle = .pageSheet
                 sheetPresentationController?.detents = [.medium()]
-                sheetPresentationController?.preferredCornerRadius = 40
+                sheetPresentationController?.preferredCornerRadius = .spacingXL
                 sheetPresentationController?.prefersGrabberVisible = true
             case .large:
                 modalPresentationStyle = .pageSheet
                 sheetPresentationController?.detents = [.large()]
-                sheetPresentationController?.preferredCornerRadius = 40
+                sheetPresentationController?.preferredCornerRadius = .spacingXL
                 sheetPresentationController?.prefersGrabberVisible = true
             case .fullscreen:
                 modalPresentationStyle = .fullScreen
@@ -56,7 +53,6 @@ public class PinwheelViewController<View: UIView>: UIViewController {
         view.backgroundColor = .black
 
         let viewController = BasePinwheelViewController<View>(
-            dismissType: dismissType,
             presentationStyle: presentationStyle,
             supportedInterfaceOrientations: supportedInterfaceOrientations,
             constrainToTopSafeArea: constrainToTopSafeArea,
@@ -81,7 +77,7 @@ public class PinwheelViewController<View: UIView>: UIViewController {
 
         let tweakablePlaygroundView = (childViewController?.playgroundView as? Tweakable) ?? (self as? Tweakable)
         let tweaks = tweakablePlaygroundView?.tweaks ?? [Tweak]()
-        let overlayView = CornerAnchoringView(showCloseButton: dismissType == .dismissButton)
+        let overlayView = CornerAnchoringView()
         overlayView.itemsCount = tweaks.count
         overlayView.delegate = self
         view.addSubview(overlayView)
@@ -94,7 +90,7 @@ extension PinwheelViewController: CornerAnchoringViewDelegate {
         if let controller = tweakingNavigationController {
             if #available(iOS 15.0, *) {
                 controller.sheetPresentationController?.detents = [.medium()]
-                controller.sheetPresentationController?.preferredCornerRadius = 40
+                controller.sheetPresentationController?.preferredCornerRadius = .spacingXL
                 controller.sheetPresentationController?.prefersGrabberVisible = true
             }
             present(controller, animated: true)
@@ -108,7 +104,7 @@ extension PinwheelViewController: CornerAnchoringViewDelegate {
 
             if #available(iOS 15.0, *) {
                 tweakingNavigationController.sheetPresentationController?.detents = [.medium()]
-                tweakingNavigationController.sheetPresentationController?.preferredCornerRadius = 40
+                tweakingNavigationController.sheetPresentationController?.preferredCornerRadius = .spacingXL
                 tweakingNavigationController.sheetPresentationController?.prefersGrabberVisible = true
             }
             self.tweakingNavigationController = tweakingNavigationController

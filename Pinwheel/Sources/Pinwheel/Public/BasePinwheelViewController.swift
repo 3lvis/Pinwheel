@@ -1,16 +1,5 @@
 import UIKit
 
-/// Defines the way the pinwheel controller will be dismissed
-///
-/// - dismissButton: Adds a floating dismiss button
-/// - doubleTap: Double tapping dismisses the pinwheel controller
-/// - none: Lets you to define your own dismissing logic
-public enum DismissType {
-    case dismissButton
-    case doubleTap
-    case none
-}
-
 public enum PresentationStyle {
     case medium
     case large
@@ -29,18 +18,10 @@ open class BasePinwheelViewController<View: UIView>: UIViewController {
         return playgroundView
     }()
 
-    /// Toast used to display information about how to dismiss a component pinwheel
-    private lazy var miniToastView: MiniToastView = {
-        let view = MiniToastView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-
     public override var prefersStatusBarHidden: Bool {
         return true
     }
 
-    private var dismissType: DismissType
     private var presentationStyle: PresentationStyle
     private var preferredInterfaceOrientation: UIInterfaceOrientationMask = .all
     private let constrainToBottomSafeArea: Bool
@@ -50,12 +31,10 @@ open class BasePinwheelViewController<View: UIView>: UIViewController {
         return preferredInterfaceOrientation
     }
 
-    public init(dismissType: DismissType = .doubleTap,
-                presentationStyle: PresentationStyle = .large,
+    public init(presentationStyle: PresentationStyle = .fullscreen,
                 supportedInterfaceOrientations: UIInterfaceOrientationMask = .all,
                 constrainToTopSafeArea: Bool = true,
                 constrainToBottomSafeArea: Bool = true) {
-        self.dismissType = dismissType
         self.presentationStyle = presentationStyle
         self.preferredInterfaceOrientation = supportedInterfaceOrientations
         self.constrainToBottomSafeArea = constrainToBottomSafeArea
@@ -68,12 +47,12 @@ open class BasePinwheelViewController<View: UIView>: UIViewController {
             case .medium:
                 modalPresentationStyle = .pageSheet
                 sheetPresentationController?.detents = [.medium()]
-                sheetPresentationController?.preferredCornerRadius = 40
+                sheetPresentationController?.preferredCornerRadius = .spacingXL
                 sheetPresentationController?.prefersGrabberVisible = true
             case .large:
                 modalPresentationStyle = .pageSheet
                 sheetPresentationController?.detents = [.large()]
-                sheetPresentationController?.preferredCornerRadius = 40
+                sheetPresentationController?.preferredCornerRadius = .spacingXL
                 sheetPresentationController?.prefersGrabberVisible = true
             case .fullscreen:
                 modalPresentationStyle = .fullScreen
@@ -105,29 +84,5 @@ open class BasePinwheelViewController<View: UIView>: UIViewController {
     @objc private func didDoubleTap() {
         State.lastSelectedIndexPath = nil
         dismiss(animated: true, completion: nil)
-    }
-
-    public override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-
-        switch dismissType {
-        case .dismissButton:
-            break
-        case .doubleTap:
-            let doubleTap = UITapGestureRecognizer(target: self, action: #selector(didDoubleTap))
-            doubleTap.numberOfTapsRequired = 2
-            view.addGestureRecognizer(doubleTap)
-        case .none:
-            break
-        }
-    }
-
-    public override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-
-        if State.shouldShowDismissInstructions {
-            miniToastView.show(in: view, text: "Double tap to dismiss")
-            State.shouldShowDismissInstructions = false
-        }
     }
 }
