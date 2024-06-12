@@ -44,24 +44,21 @@ class SelectorTitleView: UIView {
     }()
 
     private lazy var button: UIButton = {
-        let button = UIButton(withAutoLayout: true)
-        button.titleLabel?.font = .body
+        var configuration = UIButton.Configuration.plain()
+        configuration.imagePadding = .spacingXS
+        configuration.contentInsets = NSDirectionalEdgeInsets(
+            top: titleLabel.font.pointSize,
+            leading: .spacingS,
+            bottom: 0,
+            trailing: .spacingS
+        )
+        configuration.imagePlacement = .leading
+
+        let button = UIButton(configuration: configuration, primaryAction: nil)
+        button.translatesAutoresizingMaskIntoConstraints = false
         button.titleLabel?.adjustsFontForContentSizeCategory = true
-
-        let spacing: CGFloat = .spacingXS
         button.semanticContentAttribute = .forceRightToLeft
-        button.imageEdgeInsets = UIEdgeInsets(top: 0, leading: spacing, bottom: 0, trailing: -spacing)
-        button.titleEdgeInsets = UIEdgeInsets(top: 0, leading: -spacing, bottom: 0, trailing: spacing)
         button.addTarget(self, action: #selector(handleButtonTap), for: .touchUpInside)
-
-        if heading != nil {
-            button.contentEdgeInsets = UIEdgeInsets(
-                top: titleLabel.font.pointSize,
-                leading: .spacingL + spacing,
-                bottom: 0,
-                trailing: .spacingL + spacing
-            )
-        }
 
         return button
     }()
@@ -102,8 +99,6 @@ class SelectorTitleView: UIView {
             NSLayoutConstraint.activate([
                 titleLabel.topAnchor.constraint(equalTo: topAnchor),
                 titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
-
-                button.widthAnchor.constraint(lessThanOrEqualToConstant: 350),
             ])
         }
     }
@@ -127,13 +122,12 @@ class SelectorTitleView: UIView {
     // MARK: - Private
 
     private func updateArrowDirection() {
-        if #available(iOS 13.0, *) {
-            let imageName: String = arrowDirection == .up ? "chevron.up" : "chevron.down"
-            let weightConfiguration = UIImage.SymbolConfiguration(weight: .bold)
-            let sizeConfiguration = UIImage.SymbolConfiguration(textStyle: .footnote)
-            let configuration = sizeConfiguration.applying(weightConfiguration)
-            let image = UIImage(systemName: imageName, withConfiguration: configuration)!
-            button.setImage(image.withRenderingMode(.alwaysTemplate), for: .normal)
-        }
+        let imageName: String = arrowDirection == .up ? "chevron.up" : "chevron.down"
+        let weightConfiguration = UIImage.SymbolConfiguration(weight: .medium)
+        let sizeConfiguration = UIImage.SymbolConfiguration(textStyle: .footnote)
+        let configuration = sizeConfiguration.applying(weightConfiguration)
+        let image = UIImage(systemName: imageName, withConfiguration: configuration)!
+        button.setImage(image.withRenderingMode(.alwaysTemplate), for: .normal)
     }
+
 }
