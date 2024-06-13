@@ -22,7 +22,10 @@ class SelectorTitleView: UIView {
 
     var title: String? {
         didSet {
-            button.setTitle(title, for: .normal)
+            let font: UIFont = .body
+            var updatedConfiguration = button.configuration
+            updatedConfiguration?.attributedTitle = AttributedString(title ?? "", attributes: AttributeContainer([NSAttributedString.Key.font : font]))
+            button.configuration = updatedConfiguration
         }
     }
 
