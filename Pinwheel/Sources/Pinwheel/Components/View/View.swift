@@ -13,11 +13,48 @@ open class View: UIView {
         setup()
     }
 
+    var subviewSafeBottomConstraint = [NSLayoutConstraint]()
+    var subviewKeyboardBottomConstraint = [NSLayoutConstraint]()
+
     func baseSetup() {
         backgroundColor = .primaryBackground
         translatesAutoresizingMaskIntoConstraints = false
+
+        setupKeyboardNotifications()
     }
 
     open func setup() {
+    }
+
+    public func addSafeKeyboardBottomConstraint(subview: UIView, constant: CGFloat) {
+        subviewKeyboardBottomConstraint.append(subview.bottomAnchor.constraint(equalTo: keyboardLayoutGuide.topAnchor, constant: constant))
+        subviewSafeBottomConstraint.append(subview.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: constant))
+        NSLayoutConstraint.deactivate(subviewKeyboardBottomConstraint)
+        NSLayoutConstraint.activate(subviewSafeBottomConstraint)
+    }
+
+    func setupKeyboardNotifications() {
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
+
+    @objc func keyboardWillShow(_ notification: NSNotification) {
+        guard !subviewSafeBottomConstraint.isEmpty && !subviewKeyboardBottomConstraint.isEmpty else { return }
+        NSLayoutConstraint.deactivate(subviewSafeBottomConstraint)
+        NSLayoutConstraint.activate(subviewKeyboardBottomConstraint)
+        self.layoutIfNeeded()
+    }
+
+    @objc func keyboardWillHide(_ notification: NSNotification) {
+        guard !subviewSafeBottomConstraint.isEmpty && !subviewKeyboardBottomConstraint.isEmpty else { return }
+        NSLayoutConstraint.deactivate(subviewKeyboardBottomConstraint)
+        NSLayoutConstraint.activate(subviewSafeBottomConstraint)
+        self.layoutIfNeeded()
+    }
+
+    deinit {
+        subviewSafeBottomConstraint.removeAll()
+        subviewKeyboardBottomConstraint.removeAll()
+        NotificationCenter.default.removeObserver(self)
     }
 }
