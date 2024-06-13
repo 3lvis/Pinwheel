@@ -89,6 +89,12 @@ class CornerAnchoringView: UIView {
         setup()
     }
 
+    var bottomLeftViewSafeBottomConstraint: NSLayoutConstraint?
+    var bottomLeftViewKeyboardBottomConstraint: NSLayoutConstraint?
+
+    var bottomRightViewSafeBottomConstraint: NSLayoutConstraint?
+    var bottomRightViewKeyboardBottomConstraint: NSLayoutConstraint?
+
     func setup() {
         let topLeftView = addAnchorAreaView()
         topLeftView.accessibilityIdentifier = "CornerAnchoringView-topLeftView"
@@ -115,15 +121,73 @@ class CornerAnchoringView: UIView {
             topRightView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: .spacingL + buttonHeight / 2),
 
             bottomLeftView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingL + buttonWidth / 2),
-            bottomLeftView.bottomAnchor.constraint(equalTo: keyboardLayoutGuide.topAnchor, constant: -.spacingL - buttonHeight / 2),
 
-            bottomRightView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingL - buttonWidth / 2),
-            bottomRightView.bottomAnchor.constraint(equalTo: keyboardLayoutGuide.topAnchor, constant: -.spacingL - buttonHeight / 2),
+            bottomRightView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingL - buttonWidth / 2)
         ])
+
+        bottomLeftViewKeyboardBottomConstraint = bottomLeftView.bottomAnchor.constraint(equalTo: keyboardLayoutGuide.topAnchor, constant: -.spacingL - buttonHeight / 2)
+        bottomLeftViewKeyboardBottomConstraint?.isActive = false
+        bottomLeftViewSafeBottomConstraint = bottomLeftView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -.spacingL - buttonHeight / 2)
+        bottomLeftViewSafeBottomConstraint?.isActive = true
+
+        bottomRightViewKeyboardBottomConstraint = bottomRightView.bottomAnchor.constraint(equalTo: keyboardLayoutGuide.topAnchor, constant: -.spacingL - buttonHeight / 2)
+        bottomRightViewKeyboardBottomConstraint?.isActive = false
+        bottomRightViewSafeBottomConstraint = bottomRightView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -.spacingL - buttonHeight / 2)
+        bottomRightViewSafeBottomConstraint?.isActive = true
 
         panRecognizer.addTarget(self, action: #selector(anchoredViewPanned(recognizer:)))
         buttonsView.addGestureRecognizer(panRecognizer)
     }
+
+    func setupKeyboardNotifications() {
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
+
+    @objc func keyboardWillShow(_ notification: NSNotification) {
+        guard let userInfo = notification.userInfo,
+              let animationDuration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber,
+              let animationCurveRawNSN = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber else {
+            return
+        }
+
+        let animationCurveRaw = animationCurveRawNSN.uintValue
+        let animationCurve = UIView.AnimationOptions(rawValue: animationCurveRaw << 16)
+
+        UIView.animate(withDuration: animationDuration.doubleValue, delay: 0, options: animationCurve, animations: {
+            self.bottomLeftViewSafeBottomConstraint?.isActive = false
+            self.bottomLeftViewKeyboardBottomConstraint?.isActive = true
+
+            self.bottomRightViewSafeBottomConstraint?.isActive = false
+            self.bottomRightViewKeyboardBottomConstraint?.isActive = true
+            self.layoutIfNeeded()
+        }, completion: nil)
+    }
+
+    @objc func keyboardWillHide(_ notification: NSNotification) {
+        guard let userInfo = notification.userInfo,
+              let animationDuration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber,
+              let animationCurveRawNSN = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber else {
+            return
+        }
+
+        let animationCurveRaw = animationCurveRawNSN.uintValue
+        let animationCurve = UIView.AnimationOptions(rawValue: animationCurveRaw << 16)
+
+        UIView.animate(withDuration: animationDuration.doubleValue, delay: 0, options: animationCurve, animations: {
+            self.bottomLeftViewKeyboardBottomConstraint?.isActive = false
+            self.bottomLeftViewSafeBottomConstraint?.isActive = true
+
+            self.bottomRightViewKeyboardBottomConstraint?.isActive = false
+            self.bottomRightViewSafeBottomConstraint?.isActive = true
+            self.layoutIfNeeded()
+        }, completion: nil)
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
 
     override func layoutSubviews() {
         super.layoutSubviews()
