@@ -26,7 +26,7 @@ open class View: UIView {
     open func setup() {
     }
 
-    public func addSafeKeyboardBottomConstraint(subview: UIView, constant: CGFloat) {
+    public func safeAnchorToKeyboardTopGuide(subview: UIView, constant: CGFloat) {
         subviewKeyboardBottomConstraint.append(subview.bottomAnchor.constraint(equalTo: keyboardLayoutGuide.topAnchor, constant: constant))
         subviewSafeBottomConstraint.append(subview.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: constant))
         NSLayoutConstraint.deactivate(subviewKeyboardBottomConstraint)
