@@ -13,14 +13,14 @@ open class View: UIView {
         setup()
     }
 
-    var subviewSafeBottomConstraint = [NSLayoutConstraint]()
-    var subviewKeyboardBottomConstraint = [NSLayoutConstraint]()
+    private var subviewSafeBottomConstraint = [NSLayoutConstraint]()
+    private var subviewKeyboardBottomConstraint = [NSLayoutConstraint]()
 
-    func baseSetup() {
+    private func baseSetup() {
         backgroundColor = .primaryBackground
         translatesAutoresizingMaskIntoConstraints = false
 
-        setupKeyboardNotifications()
+        setupSafeKeyboardNotifications()
     }
 
     open func setup() {
@@ -33,19 +33,19 @@ open class View: UIView {
         NSLayoutConstraint.activate(subviewSafeBottomConstraint)
     }
 
-    func setupKeyboardNotifications() {
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
+    private func setupSafeKeyboardNotifications() {
+        NotificationCenter.default.addObserver(self, selector: #selector(safeKeyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(safeKeyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
 
-    @objc func keyboardWillShow(_ notification: NSNotification) {
+    @objc private func safeKeyboardWillShow(_ notification: NSNotification) {
         guard !subviewSafeBottomConstraint.isEmpty && !subviewKeyboardBottomConstraint.isEmpty else { return }
         NSLayoutConstraint.deactivate(subviewSafeBottomConstraint)
         NSLayoutConstraint.activate(subviewKeyboardBottomConstraint)
         self.layoutIfNeeded()
     }
 
-    @objc func keyboardWillHide(_ notification: NSNotification) {
+    @objc private func safeKeyboardWillHide(_ notification: NSNotification) {
         guard !subviewSafeBottomConstraint.isEmpty && !subviewKeyboardBottomConstraint.isEmpty else { return }
         NSLayoutConstraint.deactivate(subviewKeyboardBottomConstraint)
         NSLayoutConstraint.activate(subviewSafeBottomConstraint)
