@@ -137,6 +137,8 @@ class CornerAnchoringView: UIView {
 
         panRecognizer.addTarget(self, action: #selector(anchoredViewPanned(recognizer:)))
         buttonsView.addGestureRecognizer(panRecognizer)
+
+        setupKeyboardNotifications()
     }
 
     func setupKeyboardNotifications() {

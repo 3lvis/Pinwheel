@@ -11,6 +11,7 @@
 		2847DF552A48903F009A6B8E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2847DF542A48903F009A6B8E /* Assets.xcassets */; };
 		284D78022A5215E9001F20B3 /* BottomSheetExampleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 284D78012A5215E9001F20B3 /* BottomSheetExampleViewController.swift */; };
 		286CF2C22A4F86A4008D3B26 /* PinTweakable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 286CF2C12A4F86A4008D3B26 /* PinTweakable.swift */; };
+		2879050E2C1A74C700FF8DF4 /* PinTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2879050D2C1A74C700FF8DF4 /* PinTextView.swift */; };
 		2893C64C2A48908700039B8A /* Pinwheel in Frameworks */ = {isa = PBXBuildFile; productRef = 2893C64B2A48908700039B8A /* Pinwheel */; };
 		28AAFA612A49F3E900E1CA35 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28AAFA602A49F3E900E1CA35 /* Config.swift */; };
 		28F459392A49860400504BF6 /* PinColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459332A49860400504BF6 /* PinColor.swift */; };
@@ -27,6 +28,7 @@
 		2847DF592A48903F009A6B8E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		284D78012A5215E9001F20B3 /* BottomSheetExampleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomSheetExampleViewController.swift; sourceTree = "<group>"; };
 		286CF2C12A4F86A4008D3B26 /* PinTweakable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinTweakable.swift; sourceTree = "<group>"; };
+		2879050D2C1A74C700FF8DF4 /* PinTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinTextView.swift; sourceTree = "<group>"; };
 		2893C6492A48908000039B8A /* Pinwheel */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Pinwheel; sourceTree = "<group>"; };
 		28AAFA602A49F3E900E1CA35 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		28F459332A49860400504BF6 /* PinColor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinColor.swift; sourceTree = "<group>"; };
@@ -109,6 +111,7 @@
 				286CF2C02A4F8699008D3B26 /* Tweakable */,
 				28F459482A498B6B00504BF6 /* Label */,
 				28F459452A49882C00504BF6 /* BottomSheet */,
+				2879050D2C1A74C700FF8DF4 /* PinTextView.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -256,6 +259,7 @@
 				286CF2C22A4F86A4008D3B26 /* PinTweakable.swift in Sources */,
 				28F4594A2A498B6B00504BF6 /* PinLabel.swift in Sources */,
 				28F4593A2A49860400504BF6 /* PinSpacing.swift in Sources */,
+				2879050E2C1A74C700FF8DF4 /* PinTextView.swift in Sources */,
 				28AAFA612A49F3E900E1CA35 /* Config.swift in Sources */,
 				2847DF4C2A48903E009A6B8E /* AppDelegate.swift in Sources */,
 				28F459392A49860400504BF6 /* PinColor.swift in Sources */,
