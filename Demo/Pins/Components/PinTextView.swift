@@ -36,8 +36,8 @@ class PinTextView: View {
             rightAnchoredLabel.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -.spacingM),
         ])
 
-        safeAnchorToKeyboardTopGuide(subview: rightAnchoredLabel, constant: -.spacingM)
-        safeAnchorToKeyboardTopGuide(subview: leftAnchoredLabel, constant: -.spacingM)
+        safeAnchorToKeyboardTopAndSafeAreaBottom(subview: rightAnchoredLabel, constant: -.spacingM)
+        safeAnchorToKeyboardTopAndSafeAreaBottom(subview: leftAnchoredLabel, constant: -.spacingM)
     }
 }
 

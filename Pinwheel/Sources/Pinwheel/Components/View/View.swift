@@ -26,9 +26,16 @@ open class View: UIView {
     open func setup() {
     }
 
-    public func safeAnchorToKeyboardTopGuide(subview: UIView, constant: CGFloat) {
+    public func safeAnchorToKeyboardTopAndSafeAreaBottom(subview: UIView, constant: CGFloat = 0) {
         subviewKeyboardBottomConstraint.append(subview.bottomAnchor.constraint(equalTo: keyboardLayoutGuide.topAnchor, constant: constant))
         subviewSafeBottomConstraint.append(subview.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: constant))
+        NSLayoutConstraint.deactivate(subviewKeyboardBottomConstraint)
+        NSLayoutConstraint.activate(subviewSafeBottomConstraint)
+    }
+
+    public func safeAnchorToKeyboardTopAndSuperviewBottom(subview: UIView, constant: CGFloat = 0) {
+        subviewKeyboardBottomConstraint.append(subview.bottomAnchor.constraint(equalTo: keyboardLayoutGuide.topAnchor, constant: constant))
+        subviewSafeBottomConstraint.append(subview.bottomAnchor.constraint(equalTo: bottomAnchor, constant: constant))
         NSLayoutConstraint.deactivate(subviewKeyboardBottomConstraint)
         NSLayoutConstraint.activate(subviewSafeBottomConstraint)
     }
