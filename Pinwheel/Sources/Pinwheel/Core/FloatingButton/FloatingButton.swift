@@ -21,11 +21,12 @@ class FloatingButton: UIButton {
         view.backgroundColor = style.badgeBackgroundColor
         view.layer.cornerRadius = style.badgeSize / 2
         view.isHidden = true
+        view.isUserInteractionEnabled = false
         return view
     }()
 
     private lazy var badgeLabel: UILabel = {
-        let label = Label(font: .subheadlineBold)
+        let label = Label(font: .subheadlineSemibold)
         label.textColor = style.badgeTextColor
         label.text = "12"
         label.textAlignment = .center
