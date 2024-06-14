@@ -26,6 +26,45 @@ open class View: UIView {
     open func setup() {
     }
 
+    private var didInitialize = false
+    var initializeWorkItem: DispatchWorkItem?
+
+    public func viewDidAppear() {
+        print("viewDidAppear")
+
+        initializeWorkItem?.cancel()
+
+        if !didInitialize {
+            didInitialize = true
+            initialize(from: "viewDidAppear")
+        }
+    }
+
+    public override func layoutSubviews() {
+        super.layoutSubviews()
+        print("layoutSubviews")
+
+        initializeWorkItem?.cancel()
+
+        initializeWorkItem = DispatchWorkItem { [weak self] in
+            guard let weakSelf = self else { return }
+            print("delayed")
+
+            if !weakSelf.didInitialize {
+                weakSelf.didInitialize = true
+                weakSelf.initialize(from: "layoutSubviews")
+            }
+        }
+
+        if !didInitialize {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: initializeWorkItem!)
+        }
+    }
+
+    open func initialize(from: String) {
+        print("initialize \(from)")
+    }
+
     public func safeAnchorToKeyboardTopAndSafeAreaBottom(subview: UIView, constant: CGFloat = 0) {
         subviewKeyboardBottomConstraint.append(subview.bottomAnchor.constraint(equalTo: keyboardLayoutGuide.topAnchor, constant: constant))
         subviewSafeBottomConstraint.append(subview.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: constant))
