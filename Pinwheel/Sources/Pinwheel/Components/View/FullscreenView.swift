@@ -26,43 +26,37 @@ open class FullscreenView: UIView {
     open func setup() {
     }
 
-    private var didInitialize = false
-    var initializeWorkItem: DispatchWorkItem?
+    private var didFirstAppear = false
+    var didFirstAppearWorkItem: DispatchWorkItem?
 
     public func viewDidAppear() {
-        print("viewDidAppear")
+        didFirstAppearWorkItem?.cancel()
 
-        initializeWorkItem?.cancel()
-
-        if !didInitialize {
-            didInitialize = true
-            initialize(from: "viewDidAppear")
+        if !didFirstAppear {
+            didFirstAppear = true
+            viewDidFirstAppear()
         }
     }
 
     open override func layoutSubviews() {
         super.layoutSubviews()
-        print("layoutSubviews")
 
-        initializeWorkItem?.cancel()
+        didFirstAppearWorkItem?.cancel()
 
-        initializeWorkItem = DispatchWorkItem { [weak self] in
+        didFirstAppearWorkItem = DispatchWorkItem { [weak self] in
             guard let weakSelf = self else { return }
-            print("delayed")
-
-            if !weakSelf.didInitialize {
-                weakSelf.didInitialize = true
-                weakSelf.initialize(from: "layoutSubviews")
+            if !weakSelf.didFirstAppear {
+                weakSelf.didFirstAppear = true
+                weakSelf.viewDidFirstAppear()
             }
         }
 
-        if !didInitialize {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: initializeWorkItem!)
+        if !didFirstAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: didFirstAppearWorkItem!)
         }
     }
 
-    open func initialize(from: String) {
-        print("initialize \(from)")
+    open func viewDidFirstAppear() {
     }
 
     public func safeAnchorToKeyboardTopAndSafeAreaBottom(subview: UIView, constant: CGFloat = 0) {
