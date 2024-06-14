@@ -40,7 +40,7 @@ open class View: UIView {
         }
     }
 
-    public override func layoutSubviews() {
+    open override func layoutSubviews() {
         super.layoutSubviews()
         print("layoutSubviews")
 
