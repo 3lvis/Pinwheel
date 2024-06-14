@@ -1,6 +1,6 @@
 import Pinwheel
 
-class PinTextView: View {
+class PinTextView: FullscreenView {
     lazy var rightAnchoredLabel: Label = {
         let label = Label()
         label.text = "Right Label"
