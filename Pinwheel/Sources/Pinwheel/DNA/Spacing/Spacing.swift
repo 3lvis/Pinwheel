@@ -1,21 +1,42 @@
 import Foundation
 
+public struct SpacingValues {
+    public static var spacingXS: CGFloat = 4
+    public static var spacingS: CGFloat = 8
+    public static var spacingM: CGFloat = 12
+    public static var spacingL: CGFloat = 16
+    public static var spacingXL: CGFloat = 24
+    public static var spacingXXL: CGFloat = 32
+}
+
 public extension CGFloat {
-    /// Separation of 4 points.
-    static let spacingXS: CGFloat = 4
+    static var spacingXS: CGFloat {
+        get { SpacingValues.spacingXS }
+        set { SpacingValues.spacingXS = newValue }
+    }
 
-    /// Separation of 8 points.
-    static let spacingS: CGFloat = 8
+    static var spacingS: CGFloat {
+        get { SpacingValues.spacingS }
+        set { SpacingValues.spacingS = newValue }
+    }
 
-    /// Separation of 12 points.
-    static let spacingM: CGFloat = 12
+    static var spacingM: CGFloat {
+        get { SpacingValues.spacingM }
+        set { SpacingValues.spacingM = newValue }
+    }
 
-    /// Separation of 16 points.
-    static let spacingL: CGFloat = 16
+    static var spacingL: CGFloat {
+        get { SpacingValues.spacingL }
+        set { SpacingValues.spacingL = newValue }
+    }
 
-    /// Separation of 24 points.
-    static let spacingXL: CGFloat = 24
+    static var spacingXL: CGFloat {
+        get { SpacingValues.spacingXL }
+        set { SpacingValues.spacingXL = newValue }
+    }
 
-    /// Separation of 32 points.
-    static let spacingXXL: CGFloat = 32
+    static var spacingXXL: CGFloat {
+        get { SpacingValues.spacingXXL }
+        set { SpacingValues.spacingXXL = newValue }
+    }
 }
