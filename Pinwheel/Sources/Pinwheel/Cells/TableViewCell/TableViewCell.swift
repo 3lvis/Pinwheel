@@ -22,7 +22,7 @@ open class TableViewCell: UITableViewCell {
 
     open lazy var subtitleLabel: UILabel = {
         let label = UILabel(withAutoLayout: true)
-        label.font = .caption
+        label.font = .footnote
         label.textColor = .primaryText
         label.numberOfLines = 0
         return label

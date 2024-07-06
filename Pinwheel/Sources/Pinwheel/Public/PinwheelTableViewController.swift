@@ -126,7 +126,7 @@ public extension PinwheelTableViewController {
     override func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
         if let headerView = view as? UITableViewHeaderFooterView {
             headerView.textLabel?.textColor = .secondaryText
-            headerView.textLabel?.font = UIFont.caption
+            headerView.textLabel?.font = UIFont.footnote
         }
     }
 

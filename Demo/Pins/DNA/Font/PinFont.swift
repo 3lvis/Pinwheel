@@ -17,14 +17,17 @@ class PinFont: View {
 
     lazy var items: [FontItem] = {
         return [
-            FontItem(font: .headline, title: "Headline"),
-            FontItem(font: .headlineSemibold, title: "Headline Semibold"),
-            FontItem(font: .headlineBold, title: "Headline Bold"),
+            FontItem(font: .title, title: "Title"),
+            FontItem(font: .subtitle, title: "Subtitle"),
             FontItem(font: .body, title: "Body"),
-            FontItem(font: .subheadline, title: "Subheadline"),
-            FontItem(font: .subheadlineSemibold, title: "Subheadline Semibold"),
-            FontItem(font: .subheadlineBold, title: "Subheadline Bold"),
-            FontItem(font: .caption, title: "Caption")
+            FontItem(font: .footnote, title: "Footnote"),
+            FontItem(font: .caption, title: "A caption awesome"),
+
+            FontItem(font: .titleSemibold, title: "Title Semibold"),
+            FontItem(font: .subtitleSemibold, title: "Subtitle Semibold"),
+            FontItem(font: .bodySemibold, title: "Body Semibold"),
+            FontItem(font: .footnoteSemibold, title: "Footnote Semibold"),
+            FontItem(font: .captionSemibold, title: "A caption awesome semibold"),
         ]
     }()
 

@@ -1,48 +1,60 @@
 import Pinwheel
 
 struct DemoFontProvider: FontProvider {
-    var headline: UIFont {
-        let font = UIFont.rounded(ofSize: 22, weight: .medium)
+    var title: UIFont {
+        let font = UIFont.rounded(ofSize: 23, weight: .medium)
         return font.scaledFont(forTextStyle: .headline)
     }
 
-    var headlineSemibold: UIFont {
-        let font = UIFont.rounded(ofSize: 22, weight: .semibold)
-        return font.scaledFont(forTextStyle: .headline)
-    }
-
-    var headlineBold: UIFont {
-        let font = UIFont.rounded(ofSize: 22, weight: .bold)
-        return font.scaledFont(forTextStyle: .headline)
+    var subtitle: UIFont {
+        let font = UIFont.rounded(ofSize: 20, weight: .medium)
+        return font.scaledFont(forTextStyle: .subheadline)
     }
 
     var body: UIFont {
-        let font = UIFont.rounded(ofSize: 20, weight: .medium)
+        let font = UIFont.rounded(ofSize: 17, weight: .medium)
         return font.scaledFont(forTextStyle: .body)
     }
 
-    var subheadline: UIFont {
-        let font = UIFont.rounded(ofSize: 18, weight: .medium)
-        return font.scaledFont(forTextStyle: .subheadline)
-    }
-
-    var subheadlineSemibold: UIFont {
-        let font = UIFont.rounded(ofSize: 18, weight: .semibold)
-        return font.scaledFont(forTextStyle: .subheadline)
-    }
-
-    var subheadlineBold: UIFont {
-        let font = UIFont.rounded(ofSize: 18, weight: .bold)
-        return font.scaledFont(forTextStyle: .subheadline)
+    var footnote: UIFont {
+        let font = UIFont.rounded(ofSize: 13, weight: .medium)
+        return font.scaledFont(forTextStyle: .footnote)
     }
 
     var caption: UIFont {
-        let font = UIFont.rounded(ofSize: 14, weight: .medium)
+        let font = UIFont.rounded(ofSize: 11, weight: .medium)
         return font.scaledFont(forTextStyle: .caption1)
     }
 
     func font(ofSize size: CGFloat, weight: UIFont.Weight) -> UIFont {
         return UIFont.rounded(ofSize: size, weight: weight)
+    }
+}
+
+public extension UIFont {
+    class var titleSemibold: UIFont {
+        let font = UIFont.rounded(ofSize: 23, weight: .semibold)
+        return font.scaledFont(forTextStyle: .headline)
+    }
+
+    class var subtitleSemibold: UIFont {
+        let font = UIFont.rounded(ofSize: 20, weight: .semibold)
+        return font.scaledFont(forTextStyle: .subheadline)
+    }
+
+    class var bodySemibold: UIFont {
+        let font = UIFont.rounded(ofSize: 17, weight: .semibold)
+        return font.scaledFont(forTextStyle: .body)
+    }
+
+    class var footnoteSemibold: UIFont {
+        let font = UIFont.rounded(ofSize: 13, weight: .semibold)
+        return font.scaledFont(forTextStyle: .footnote)
+    }
+
+    class var captionSemibold: UIFont {
+        let font = UIFont.rounded(ofSize: 11, weight: .semibold)
+        return font.scaledFont(forTextStyle: .caption1)
     }
 }
 

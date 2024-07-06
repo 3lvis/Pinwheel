@@ -2,40 +2,28 @@ import Pinwheel
 
 class PinLabel: View {
     override func setup() {
-        let headline = Label(font: .headline)
-        headline.text = "Headline"
+        let title = Label(font: .title)
+        title.text = "Title"
 
-        let headlineSemibold = Label(font: .headlineSemibold)
-        headlineSemibold.text = "Headline Semibold"
-
-        let headlineBold = Label(font: .headlineBold)
-        headlineBold.text = "Headline Bold"
+        let subtitle = Label(font: .subtitle)
+        subtitle.text = "Subtitle"
 
         let body = Label(font: .body)
         body.text = "Body"
 
-        let subheadline = Label(font: .subheadline)
-        subheadline.text = "Subheadline"
-
-        let subheadlineSemibold = Label(font: .subheadlineSemibold)
-        subheadlineSemibold.text = "Subheadline Semibold"
-
-        let subheadlineBold = Label(font: .subheadlineBold)
-        subheadlineBold.text = "Subheadline Bold"
+        let footnote = Label(font: .footnote)
+        footnote.text = "Footnote"
 
         let caption = Label(font: .caption)
         caption.text = "Caption"
 
         let stackView = UIStackView(axis: .vertical, spacing: .spacingL)
         stackView.addArrangedSubviews([
-            headline,
-            headlineSemibold,
-            headlineBold,
+            title,
+            subtitle,
             body,
-            subheadline,
-            subheadlineSemibold,
-            subheadlineBold,
-            caption,
+            footnote,
+            caption
         ])
 
         addSubview(stackView)

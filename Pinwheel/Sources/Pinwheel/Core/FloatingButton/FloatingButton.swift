@@ -26,7 +26,7 @@ class FloatingButton: UIButton {
     }()
 
     private lazy var badgeLabel: UILabel = {
-        let label = Label(font: .subheadlineSemibold)
+        let label = Label(font: .subtitle)
         label.textColor = style.badgeTextColor
         label.text = "12"
         label.textAlignment = .center
@@ -69,7 +69,7 @@ class FloatingButton: UIButton {
         configureStyle()
         contentMode = .center
 
-        titleLabel?.font = .subheadline
+        titleLabel?.font = .subtitle
 
         addSubview(badgeView)
         badgeView.addSubview(badgeLabel)
