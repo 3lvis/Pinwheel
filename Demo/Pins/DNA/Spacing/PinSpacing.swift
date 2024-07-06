@@ -13,8 +13,14 @@ class PinSpacing: View {
     }
 
     override func setup() {
+        let spacingXXSView = makeLabel(text: "👈      spacingXXS \(CGFloat.spacingXXS)    👉")
+        addSubview(spacingXXSView)
+
         let spacingXSView = makeLabel(text: "👈      spacingXS \(CGFloat.spacingXS)    👉")
         addSubview(spacingXSView)
+
+        let spacingXMView = makeLabel(text: "👈      spacingXM \(CGFloat.spacingXM)    👉")
+        addSubview(spacingXMView)
 
         let spacingSView = makeLabel(text: "👈        spacingS \(CGFloat.spacingS)    👉")
         addSubview(spacingSView)
@@ -32,11 +38,19 @@ class PinSpacing: View {
         addSubview(spacingXXLView)
 
         NSLayoutConstraint.activate([
-            spacingXSView.topAnchor.constraint(equalTo: topAnchor, constant: .spacingXXL),
+            spacingXXSView.topAnchor.constraint(equalTo: topAnchor, constant: .spacingXXL),
+            spacingXXSView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingXXS),
+            spacingXXSView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingXXS),
+
+            spacingXSView.topAnchor.constraint(equalTo: spacingXXSView.bottomAnchor, constant: .spacingXXL),
             spacingXSView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingXS),
             spacingXSView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingXS),
 
-            spacingSView.topAnchor.constraint(equalTo: spacingXSView.bottomAnchor, constant: .spacingXXL),
+            spacingXMView.topAnchor.constraint(equalTo: spacingXSView.bottomAnchor, constant: .spacingXXL),
+            spacingXMView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingXM),
+            spacingXMView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingXM),
+
+            spacingSView.topAnchor.constraint(equalTo: spacingXMView.bottomAnchor, constant: .spacingXXL),
             spacingSView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingS),
             spacingSView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingS),
 

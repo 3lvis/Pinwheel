@@ -1,7 +1,9 @@
 import Foundation
 
 public struct SpacingValues {
+    public static var spacingXXS: CGFloat = 2
     public static var spacingXS: CGFloat = 4
+    public static var spacingXM: CGFloat = 6
     public static var spacingS: CGFloat = 8
     public static var spacingM: CGFloat = 12
     public static var spacingL: CGFloat = 16
@@ -10,9 +12,19 @@ public struct SpacingValues {
 }
 
 public extension CGFloat {
+    static var spacingXXS: CGFloat {
+        get { SpacingValues.spacingXXS }
+        set { SpacingValues.spacingXXS = newValue }
+    }
+
     static var spacingXS: CGFloat {
         get { SpacingValues.spacingXS }
         set { SpacingValues.spacingXS = newValue }
+    }
+
+    static var spacingXM: CGFloat {
+        get { SpacingValues.spacingXM }
+        set { SpacingValues.spacingXM = newValue }
     }
 
     static var spacingS: CGFloat {
