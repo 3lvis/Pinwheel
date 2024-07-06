@@ -12,41 +12,50 @@ public struct SpacingValues {
 }
 
 public extension CGFloat {
+
+    /// Spacing 2 points.
     static var spacingXXS: CGFloat {
         get { SpacingValues.spacingXXS }
         set { SpacingValues.spacingXXS = newValue }
     }
 
+    /// Spacing 4 points.
     static var spacingXS: CGFloat {
         get { SpacingValues.spacingXS }
         set { SpacingValues.spacingXS = newValue }
     }
 
+    /// Spacing 6 points.
     static var spacingXM: CGFloat {
         get { SpacingValues.spacingXM }
         set { SpacingValues.spacingXM = newValue }
     }
 
+    /// Spacing 8 points.
     static var spacingS: CGFloat {
         get { SpacingValues.spacingS }
         set { SpacingValues.spacingS = newValue }
     }
 
+    /// Spacing 12 points.
     static var spacingM: CGFloat {
         get { SpacingValues.spacingM }
         set { SpacingValues.spacingM = newValue }
     }
 
+    /// Spacing 16 points.
     static var spacingL: CGFloat {
         get { SpacingValues.spacingL }
         set { SpacingValues.spacingL = newValue }
     }
 
+    /// Spacing 24 points.
     static var spacingXL: CGFloat {
         get { SpacingValues.spacingXL }
         set { SpacingValues.spacingXL = newValue }
     }
 
+    /// Spacing 32 points.
     static var spacingXXL: CGFloat {
         get { SpacingValues.spacingXXL }
         set { SpacingValues.spacingXXL = newValue }
