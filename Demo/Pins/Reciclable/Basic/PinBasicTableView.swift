@@ -4,16 +4,16 @@ class PinTableView: View, Tweakable {
     lazy var tweaks: [Tweak] = {
         return [
             TextTweak(title: "Loading") {
-                self.tableView.state = .loading("Loading...", "Please wait while we fetch your details.")
+                self.tableView.state = .loading(title: "Loading...", subtitle: "Please wait while we fetch your details.")
             },
             TextTweak(title: "Loaded") {
                 self.tableView.state = .loaded([TextTableViewItem(title: "Only value")])
             },
             TextTweak(title: "Empty") {
-                self.tableView.state = .empty("Ready to Move?", "Kick things off with your first booking.")
+                self.tableView.state = .empty(title: "Ready to Move?", subtitle: "Kick things off with your first booking.")
             },
             TextTweak(title: "Failed") {
-                self.tableView.state = .failed("Oops!", "We couldn't load your bookings.", "Retry")
+                self.tableView.state = .failed(title: "Oops!", subtitle: "We couldn't load your bookings.", actionTitle: "Retry")
             }
         ]
     }()

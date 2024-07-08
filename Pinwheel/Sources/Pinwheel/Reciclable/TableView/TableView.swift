@@ -11,10 +11,10 @@ public protocol TableViewDataSource: AnyObject {
 }
 
 public enum TableViewState {
-    case loading(String, String)
+    case loading(title: String, subtitle: String)
     case loaded([TableViewItem])
-    case empty(String, String)
-    case failed(String, String, String)
+    case empty(title: String, subtitle: String)
+    case failed(title: String, subtitle: String, actionTitle: String)
 }
 
 open class TableView: ShadowScrollView {
