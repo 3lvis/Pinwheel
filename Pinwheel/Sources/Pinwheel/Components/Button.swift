@@ -73,7 +73,7 @@ public class Button: UIButton {
     }
 
     private func addSymbolToTitle(symbol: String) {
-        let symbolConfiguration = UIImage.SymbolConfiguration(pointSize: 20, weight: .semibold)
+        let symbolConfiguration = UIImage.SymbolConfiguration(pointSize: UIFont.subtitle.pointSize, weight: .semibold)
         let symbolImage = UIImage(systemName: symbol, withConfiguration: symbolConfiguration)?.withRenderingMode(.alwaysTemplate)
         let symbolAttachment = NSTextAttachment()
         symbolAttachment.image = symbolImage
@@ -168,7 +168,10 @@ public class Button: UIButton {
 
     @objc private func updateStyle() {
         marginInsets = UIEdgeInsets(top: 0, left: .spacingM, bottom: 0, right: .spacingM)
-        titleLabel?.font = .subtitle
+
+        let font = UIFont.systemFont(ofSize: UIFont.subtitle.pointSize, weight: .semibold)
+        let subtitleSemibold = font.scaledFont(forTextStyle: .subheadline)
+        titleLabel?.font = subtitleSemibold
 
         if style != .tertiary {
             layer.cornerRadius = .spacingM

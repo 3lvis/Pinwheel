@@ -16,6 +16,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 PinwheelItem(title: "Label", viewController: PinwheelViewController<PinLabel>()),
                 PinwheelItem(title: "Tweakable", viewController: PinwheelViewController<PinTweakable>()),
                 PinwheelItem(title: "TextView", viewController: PinwheelViewController<PinTextView>()),
+                PinwheelItem(title: "Button", viewController: PinwheelViewController<PinButton>()),
             ]),
             PinwheelSection(title: "Reciclable", items: [
                 PinwheelItem(title: "TableView", viewController: PinwheelViewController<PinTableView>(presentationStyle: .medium)),
