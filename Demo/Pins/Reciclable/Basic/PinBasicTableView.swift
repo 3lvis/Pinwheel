@@ -73,4 +73,8 @@ extension PinTableView: TableViewDelegate {
         let title = "Selected \((items[index] as? TextTableViewItem)?.title ?? "")"
         print(title)
     }
+
+    func tableViewDidSelectFailedStateAction(_ tableView: TableView) {
+        print("tapped!")
+    }
 }

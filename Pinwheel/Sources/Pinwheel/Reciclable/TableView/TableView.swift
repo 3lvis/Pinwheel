@@ -3,6 +3,12 @@ import UIKit
 public protocol TableViewDelegate: AnyObject {
     func tableView(_ tableView: TableView, didSelectItemAtIndex index: Int)
     func tableView(_ tableView: TableView, didSwitchItem boolTableViewItem: BoolTableViewItem, atIndex index: Int)
+    func tableViewDidSelectFailedStateAction(_ tableView: TableView)
+}
+
+public extension TableViewDelegate {
+    func tableView(_ tableView: TableView, didSwitchItem boolTableViewItem: BoolTableViewItem, atIndex index: Int) {}
+    func tableViewDidSelectFailedStateAction(_ tableView: TableView) { }
 }
 
 public protocol TableViewDataSource: AnyObject {
@@ -191,6 +197,6 @@ extension TableView: TableViewDataSource {
 
 extension TableView: TableStateViewDelegate {
     public func tableStateViewDidSelectAction(_ tableStateView: TableStateView) {
-        // self.delegate?.bookingsViewDidSelectRetry(self)
+        self.delegate?.tableViewDidSelectFailedStateAction(self)
     }
 }
