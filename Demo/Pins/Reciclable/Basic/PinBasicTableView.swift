@@ -1,12 +1,28 @@
 import Pinwheel
 
-class PinTableView: View {
+class PinTableView: View, Tweakable {
+    lazy var tweaks: [Tweak] = {
+        return [
+            TextTweak(title: "Loading") {
+                self.tableView.state = .loading("Loading...", "Please wait while we fetch your details.")
+            },
+            TextTweak(title: "Loaded") {
+                self.tableView.state = .loaded([TextTableViewItem(title: "Only value")])
+            },
+            TextTweak(title: "Empty") {
+                self.tableView.state = .empty("Ready to Move?", "Kick things off with your first booking.")
+            },
+            TextTweak(title: "Failed") {
+                self.tableView.state = .failed("Oops!", "We couldn't load your bookings.", "Retry")
+            }
+        ]
+    }()
+
     lazy var tableView: TableView = {
         let view = TableView(items: items)
         view.delegate = self
         return view
     }()
-
 
     lazy var items: [TableViewItem] = {
         let onlyTitle = TextTableViewItem(title: "Only title")

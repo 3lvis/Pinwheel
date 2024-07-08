@@ -10,6 +10,13 @@ public protocol TableViewDataSource: AnyObject {
     func tableView(_ tableView: TableView, itemAtIndex index: Int) -> TableViewItem
 }
 
+public enum TableViewState {
+    case loading(String, String)
+    case loaded([TableViewItem])
+    case empty(String, String)
+    case failed(String, String, String)
+}
+
 open class TableView: ShadowScrollView {
     public static let estimatedRowHeight: CGFloat = 60.0
     open var selectedIndexPath: IndexPath?
@@ -31,6 +38,48 @@ open class TableView: ShadowScrollView {
 
     public weak var delegate: TableViewDelegate?
     private weak var dataSource: TableViewDataSource?
+
+    public var state: TableViewState = .loaded([TableViewItem]()) {
+        didSet {
+            switch state {
+            case .loading(let title, let subtitle):
+                tableView.alpha = 0
+                messageActionView.alpha = 1
+                messageActionView.title = title
+                messageActionView.subtitle = subtitle
+                messageActionView.isActionHidden = true
+                messageActionView.isLoading = true
+            case .loaded(let items):
+                tableView.alpha = 1
+                messageActionView.alpha = 0
+                // Race condition if it's moved above changing the alphas
+                self.items = items
+                self.tableView.reloadData()
+            case .empty(let title, let subtitle):
+                tableView.alpha = 0
+                messageActionView.alpha = 1
+                messageActionView.title = title
+                messageActionView.subtitle = subtitle
+                messageActionView.isActionHidden = true
+                messageActionView.isLoading = false
+            case .failed(let title, let subtitle, let actionTitle):
+                tableView.alpha = 0
+                messageActionView.alpha = 1
+                messageActionView.title = title
+                messageActionView.subtitle = subtitle
+                messageActionView.actionTitle = actionTitle
+                messageActionView.isActionHidden = false
+                messageActionView.isLoading = false
+            }
+        }
+    }
+
+    lazy var messageActionView: TableStateView = {
+        let view = TableStateView()
+        view.delegate = self
+        view.alpha = 0
+        return view
+    }()
 
     // MARK: - Setup
 
@@ -61,6 +110,7 @@ open class TableView: ShadowScrollView {
         translatesAutoresizingMaskIntoConstraints = false
         backgroundColor = .primaryBackground
         tableView.register(TableViewCell.self)
+        addSubview(messageActionView)
 
         if usingShadowWhenScrolling {
             insertSubview(tableView, belowSubview: topShadowView)
@@ -69,6 +119,7 @@ open class TableView: ShadowScrollView {
         } else {
             addSubview(tableView)
         }
+        messageActionView.fillInSuperview()
         tableView.fillInSuperview()
     }
 }
@@ -135,5 +186,11 @@ extension TableView: TableViewDataSource {
 
     public func tableView(_ tableView: TableView, itemAtIndex index: Int) -> any TableViewItem {
         return items[index]
+    }
+}
+
+extension TableView: TableStateViewDelegate {
+    public func tableStateViewDidSelectAction(_ tableStateView: TableStateView) {
+        // self.delegate?.bookingsViewDidSelectRetry(self)
     }
 }
