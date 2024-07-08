@@ -17,6 +17,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 PinwheelItem(title: "Tweakable", viewController: PinwheelViewController<PinTweakable>()),
                 PinwheelItem(title: "FullscreenView", viewController: PinwheelViewController<PinFullscreenView>()),
                 PinwheelItem(title: "Button", viewController: PinwheelViewController<PinButton>()),
+                PinwheelItem(title: "StateView", viewController: PinwheelViewController<PinStateView>()),
             ]),
             PinwheelSection(title: "Reciclable", items: [
                 PinwheelItem(title: "TableView", viewController: PinwheelViewController<PinTableView>(presentationStyle: .medium)),

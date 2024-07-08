@@ -1,29 +1,36 @@
 import UIKit
 
-public protocol TableStateViewDelegate: AnyObject {
-    func tableStateViewDidSelectAction(_ tableStateView: TableStateView)
+public protocol StateViewDelegate: AnyObject {
+    func stateViewDidSelectAction(_ stateView: StateView)
 }
 
-public class TableStateView: View {
-    public weak var delegate: TableStateViewDelegate?
+public enum StateViewState {
+    case loading(title: String, subtitle: String)
+    case loaded
+    case empty(title: String, subtitle: String)
+    case failed(title: String, subtitle: String, actionTitle: String)
+}
+
+public class StateView: View {
+    public weak var delegate: StateViewDelegate?
 
     private lazy var titleLabel: Label = {
         let label = Label(font: .subtitle)
-        label.text = "Ready to Move?"
+        label.text = "Title"
         label.textAlignment = .center
         return label
     }()
 
     private lazy var subtitleLabel: Label = {
         let label = Label(textColor: .secondaryText)
-        label.text = "Kick things off with your first booking."
+        label.text = "Subtitle"
         label.numberOfLines = 0
         label.textAlignment = .center
         return label
     }()
 
     private lazy var actionButton: Button = {
-        let button = Button(title: "New booking", style: .secondary)
+        let button = Button(title: "Action", style: .secondary)
         button.alpha = 1
         button.addTarget(self, action: #selector(buttonAction), for: .touchUpInside)
         return button
@@ -36,39 +43,33 @@ public class TableStateView: View {
     }()
 
     @objc private func buttonAction() {
-        self.delegate?.tableStateViewDidSelectAction(self)
+        self.delegate?.stateViewDidSelectAction(self)
     }
 
-    public var title: String? {
+    public var state: StateViewState = .loaded {
         didSet {
-            self.titleLabel.text = self.title
-        }
-    }
-
-    public var subtitle: String? {
-        didSet {
-            self.subtitleLabel.text = self.subtitle
-        }
-    }
-
-    public var actionTitle: String? {
-        didSet {
-            self.actionButton.title = actionTitle
-        }
-    }
-
-    public var isActionHidden: Bool = false {
-        didSet {
-            actionButton.alpha = isActionHidden ? 0 : 1
-        }
-    }
-
-    public var isLoading: Bool = false {
-        didSet {
-            if isLoading {
-                loadingIndicator.startAnimating()
-            } else {
-                loadingIndicator.stopAnimating()
+            switch state {
+            case .loading(let title, let subtitle):
+                self.alpha = 1
+                self.titleLabel.text = title
+                self.subtitleLabel.text = subtitle
+                self.actionButton.alpha = 0
+                self.loadingIndicator.startAnimating()
+            case .loaded:
+                self.alpha = 0
+            case .empty(let title, let subtitle):
+                self.alpha = 1
+                self.titleLabel.text = title
+                self.subtitleLabel.text = subtitle
+                self.actionButton.alpha = 0
+                self.loadingIndicator.stopAnimating()
+            case .failed(let title, let subtitle, let actionTitle):
+                self.alpha = 1
+                self.titleLabel.text = title
+                self.subtitleLabel.text = subtitle
+                self.actionButton.title = actionTitle
+                self.actionButton.alpha = 1
+                self.loadingIndicator.stopAnimating()
             }
         }
     }

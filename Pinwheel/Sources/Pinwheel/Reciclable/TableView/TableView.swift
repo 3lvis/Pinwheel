@@ -50,38 +50,24 @@ open class TableView: ShadowScrollView {
             switch state {
             case .loading(let title, let subtitle):
                 tableView.alpha = 0
-                messageActionView.alpha = 1
-                messageActionView.title = title
-                messageActionView.subtitle = subtitle
-                messageActionView.isActionHidden = true
-                messageActionView.isLoading = true
+                stateView.state = .loading(title: title, subtitle: subtitle)
             case .loaded(let items):
+                stateView.state = .loaded
                 tableView.alpha = 1
-                messageActionView.alpha = 0
-                // Race condition if it's moved above changing the alphas
                 self.items = items
                 self.tableView.reloadData()
             case .empty(let title, let subtitle):
                 tableView.alpha = 0
-                messageActionView.alpha = 1
-                messageActionView.title = title
-                messageActionView.subtitle = subtitle
-                messageActionView.isActionHidden = true
-                messageActionView.isLoading = false
+                stateView.state = .empty(title: title, subtitle: subtitle)
             case .failed(let title, let subtitle, let actionTitle):
                 tableView.alpha = 0
-                messageActionView.alpha = 1
-                messageActionView.title = title
-                messageActionView.subtitle = subtitle
-                messageActionView.actionTitle = actionTitle
-                messageActionView.isActionHidden = false
-                messageActionView.isLoading = false
+                stateView.state = .failed(title: title, subtitle: subtitle, actionTitle: actionTitle)
             }
         }
     }
 
-    lazy var messageActionView: TableStateView = {
-        let view = TableStateView()
+    lazy var stateView: StateView = {
+        let view = StateView()
         view.delegate = self
         view.alpha = 0
         return view
@@ -116,7 +102,7 @@ open class TableView: ShadowScrollView {
         translatesAutoresizingMaskIntoConstraints = false
         backgroundColor = .primaryBackground
         tableView.register(TableViewCell.self)
-        addSubview(messageActionView)
+        addSubview(stateView)
 
         if usingShadowWhenScrolling {
             insertSubview(tableView, belowSubview: topShadowView)
@@ -125,7 +111,7 @@ open class TableView: ShadowScrollView {
         } else {
             addSubview(tableView)
         }
-        messageActionView.fillInSuperview()
+        stateView.fillInSuperview()
         tableView.fillInSuperview()
     }
 }
@@ -195,8 +181,8 @@ extension TableView: TableViewDataSource {
     }
 }
 
-extension TableView: TableStateViewDelegate {
-    public func tableStateViewDidSelectAction(_ tableStateView: TableStateView) {
+extension TableView: StateViewDelegate {
+    public func stateViewDidSelectAction(_ stateView: StateView) {
         self.delegate?.tableViewDidSelectFailedStateAction(self)
     }
 }
