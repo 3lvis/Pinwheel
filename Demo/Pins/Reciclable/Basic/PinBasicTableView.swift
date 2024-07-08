@@ -1,12 +1,28 @@
 import Pinwheel
 
-class PinTableView: View {
+class PinTableView: View, Tweakable {
+    lazy var tweaks: [Tweak] = {
+        return [
+            TextTweak(title: "Loading") {
+                self.tableView.state = .loading(title: "Loading...", subtitle: "Please wait while we fetch your details.")
+            },
+            TextTweak(title: "Loaded") {
+                self.tableView.state = .loaded([TextTableViewItem(title: "Only value")])
+            },
+            TextTweak(title: "Empty") {
+                self.tableView.state = .empty(title: "Ready to Move?", subtitle: "Kick things off with your first booking.")
+            },
+            TextTweak(title: "Failed") {
+                self.tableView.state = .failed(title: "Oops!", subtitle: "We couldn't load your bookings.", actionTitle: "Retry")
+            }
+        ]
+    }()
+
     lazy var tableView: TableView = {
         let view = TableView(items: items)
         view.delegate = self
         return view
     }()
-
 
     lazy var items: [TableViewItem] = {
         let onlyTitle = TextTableViewItem(title: "Only title")
@@ -56,5 +72,9 @@ extension PinTableView: TableViewDelegate {
     func tableView(_ tableView: TableView, didSelectItemAtIndex index: Int) {
         let title = "Selected \((items[index] as? TextTableViewItem)?.title ?? "")"
         print(title)
+    }
+
+    func tableViewDidSelectFailedStateAction(_ tableView: TableView) {
+        print("tapped!")
     }
 }
