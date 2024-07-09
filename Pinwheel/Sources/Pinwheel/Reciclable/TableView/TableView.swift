@@ -119,6 +119,8 @@ open class TableView: ShadowScrollView {
 // MARK: - UITableViewDelegate
 extension TableView: UITableViewDelegate {
     public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+
         let item: TableViewItem
         if let dataSource = self.dataSource {
             item = dataSource.tableView(self, itemAtIndex: indexPath.row)
