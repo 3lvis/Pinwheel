@@ -83,7 +83,7 @@ open class TableView: ShadowScrollView {
     }
 
     private var items = [TableViewItem]()
-    public init(items: [TableViewItem], usingShadowWhenScrolling: Bool = false) {
+    public init(items: [TableViewItem] = [TableViewItem](), usingShadowWhenScrolling: Bool = false) {
         self.items = items
         self.usingShadowWhenScrolling = usingShadowWhenScrolling
         super.init(frame: .zero)
