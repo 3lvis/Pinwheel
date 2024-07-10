@@ -17,7 +17,7 @@ class PinButton: View {
         primary = Button(title: "Press me")
         primary.addTarget(self, action: #selector(tapped), for: .touchUpInside)
 
-        primaryDisabled = Button(title: "Sign up")
+        primaryDisabled = Button(title: "Save")
         primaryDisabled.isEnabled = false
 
         primaryLoading = Button(title: "Loading")

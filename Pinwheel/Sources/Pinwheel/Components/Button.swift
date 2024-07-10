@@ -17,7 +17,7 @@ public class Button: UIButton {
         }
     }
     public static let buttonHeight = round(48.0 * sizeRatio)
-    private static let buttonWidth = round(160.0 * sizeRatio)
+    private static let buttonWidth = round(140.0 * sizeRatio)
     public var isLoading = false
     private var style: ButtonStyle
     private var titleLabelCenterXConstraint: NSLayoutConstraint?
