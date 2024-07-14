@@ -22,6 +22,7 @@ class PinButton: View {
 
         primaryLoading = Button(title: "Loading")
         primaryLoading.showActivityIndicator(true)
+        primaryLoading.addTarget(self, action: #selector(loadingPressed(_:)), for: .touchUpInside)
 
         primaryTitleAndSymbol = Button(title: "Continue", symbol: "arrow.right")
         primarySymbolOnly = Button(symbol: "arrow.right")
@@ -52,6 +53,12 @@ class PinButton: View {
         ])
         addSubview(stackView)
         stackView.anchorToTopSafeArea(margin: .spacingXXL)
+    }
+
+    @objc func loadingPressed(_ button: Button) {
+        guard !button.isLoading else { return }
+
+        print("Loading pressed")
     }
 
     @objc func updateTitles() {

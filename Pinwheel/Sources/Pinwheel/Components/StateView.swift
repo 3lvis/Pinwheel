@@ -79,6 +79,7 @@ public class StateView: View {
         addSubview(subtitleLabel)
         addSubview(actionButton)
         addSubview(loadingIndicator)
+        alpha = 0
 
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(greaterThanOrEqualTo: topAnchor, constant: .spacingM).withPriority(.defaultLow),
