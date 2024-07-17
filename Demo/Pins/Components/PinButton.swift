@@ -39,6 +39,11 @@ class PinButton: View {
         let tertiaryDisabled = Button(title: "Disabled", style: .tertiary)
         tertiaryDisabled.isEnabled = false
 
+        let custom = Button(title: "Custom", font: .caption, style: .custom(textColor: .green, backgroundColor: .red))
+
+        let customDisabled = Button(title: "Custom", font: .caption, style: .custom(textColor: .green, backgroundColor: .red))
+        customDisabled.isEnabled = false
+
         let stackView = UIStackView(axis: .vertical, spacing: .spacingM, alignment: .center)
         stackView.addArrangedSubviews([
             primary,
@@ -49,7 +54,9 @@ class PinButton: View {
             secondary,
             secondaryDisabled,
             tertiary,
-            tertiaryDisabled
+            tertiaryDisabled,
+            custom,
+            customDisabled
         ])
         addSubview(stackView)
         stackView.anchorToTopSafeArea(margin: .spacingXXL)

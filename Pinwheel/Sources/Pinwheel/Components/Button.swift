@@ -4,6 +4,7 @@ public enum ButtonStyle {
     case primary
     case secondary
     case tertiary
+    case custom(textColor: UIColor, backgroundColor: UIColor)
 }
 
 public class Button: UIButton {
@@ -42,9 +43,11 @@ public class Button: UIButton {
         }
     }
 
-    public init(title: String? = nil, symbol: String? = nil, style: ButtonStyle = .primary) {
-        self.style = style
+    let font: UIFont
+    public init(title: String? = nil, symbol: String? = nil, font: UIFont = .subtitle, style: ButtonStyle = .primary) {
         self.title = title
+        self.font = font
+        self.style = style
         super.init(frame: .zero)
         self.translatesAutoresizingMaskIntoConstraints = false
 
@@ -64,8 +67,6 @@ public class Button: UIButton {
     public override func didMoveToSuperview() {
         super.didMoveToSuperview()
 
-        heightAnchor.constraint(equalToConstant: Button.buttonHeight).isActive = true
-
         if let superview = superview, let _ = title {
             widthAnchor.constraint(greaterThanOrEqualToConstant: Button.buttonWidth).isActive = true
             widthAnchor.constraint(lessThanOrEqualTo: superview.widthAnchor, constant: -.spacingXL).isActive = true
@@ -73,7 +74,7 @@ public class Button: UIButton {
     }
 
     private func addSymbolToTitle(symbol: String) {
-        let symbolConfiguration = UIImage.SymbolConfiguration(pointSize: UIFont.subtitle.pointSize, weight: .semibold)
+        let symbolConfiguration = UIImage.SymbolConfiguration(pointSize: self.font.pointSize, weight: .semibold)
         let symbolImage = UIImage(systemName: symbol, withConfiguration: symbolConfiguration)?.withRenderingMode(.alwaysTemplate)
         let symbolAttachment = NSTextAttachment()
         symbolAttachment.image = symbolImage
@@ -88,7 +89,8 @@ public class Button: UIButton {
     }
 
     private func updateTitle() {
-        if style == .tertiary {
+        switch style {
+        case .tertiary:
             let normalAttributes: [NSAttributedString.Key: Any] = [
                 .foregroundColor: UIColor.secondaryText,
                 .underlineStyle: NSUnderlineStyle.single.rawValue
@@ -102,8 +104,7 @@ public class Button: UIButton {
             ]
             let disabledAttributedTitle = NSAttributedString(string: title ?? "", attributes: disabledAttributes)
             setAttributedTitle(disabledAttributedTitle, for: .disabled)
-        } else {
-            setTitle(title, for: .normal)
+        default: setTitle(title, for: .normal)
         }
     }
 
@@ -160,20 +161,22 @@ public class Button: UIButton {
         case .primary:
             let generator = UIImpactFeedbackGenerator(style: .soft)
             generator.impactOccurred()
-        case .secondary, .tertiary:
+        case .secondary, .tertiary, .custom(_, _):
             let generator = UIImpactFeedbackGenerator(style: .light)
             generator.impactOccurred()
         }
     }
 
     @objc private func updateStyle() {
-        marginInsets = UIEdgeInsets(top: 0, left: .spacingM, bottom: 0, right: .spacingM)
+        marginInsets = UIEdgeInsets(top: .spacingS, left: .spacingM, bottom: .spacingS, right: .spacingM)
 
-        let font = UIFont.systemFont(ofSize: UIFont.subtitle.pointSize, weight: .semibold)
+        let font = UIFont.systemFont(ofSize: self.font.pointSize, weight: .semibold)
         let subtitleSemibold = font.scaledFont(forTextStyle: .subheadline)
         titleLabel?.font = subtitleSemibold
 
-        if style != .tertiary {
+        switch style {
+        case .tertiary: break
+        default:
             layer.cornerRadius = .spacingM
             layer.cornerCurve = .continuous
             setTitleColor(.tertiaryText, for: .disabled)
@@ -203,6 +206,15 @@ public class Button: UIButton {
                 titleColor: .secondaryText,
                 backgroundColor: .clear
             )
+        case .custom(let textColor, let aBackgroundColor):
+            if isEnabled {
+                configureButtonColors(
+                    titleColor: textColor,
+                    backgroundColor: aBackgroundColor
+                )
+            } else {
+                backgroundColor = aBackgroundColor.withAlphaComponent(0.5)
+            }
         }
     }
 
