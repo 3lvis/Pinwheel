@@ -106,6 +106,7 @@ public class Button: UIButton {
             setAttributedTitle(disabledAttributedTitle, for: .disabled)
         default: setTitle(title, for: .normal)
         }
+        invalidateIntrinsicContentSize()
     }
 
     public func showActivityIndicator(_ shouldShow: Bool) {

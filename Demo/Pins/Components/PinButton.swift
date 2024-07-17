@@ -12,6 +12,7 @@ class PinButton: View {
     var primarySymbolOnly: Button!
     var secondary: Button!
     var tertiary: Button!
+    var custom: Button!
 
     override func setup() {
         primary = Button(title: "Press me")
@@ -39,7 +40,8 @@ class PinButton: View {
         let tertiaryDisabled = Button(title: "Disabled", style: .tertiary)
         tertiaryDisabled.isEnabled = false
 
-        let custom = Button(title: "Custom", font: .caption, style: .custom(textColor: .green, backgroundColor: .red))
+        custom = Button(title: "Custom", font: .caption, style: .custom(textColor: .green, backgroundColor: .red))
+        custom.addTarget(self, action: #selector(shrinkTitles), for: .touchUpInside)
 
         let customDisabled = Button(title: "Custom", font: .caption, style: .custom(textColor: .green, backgroundColor: .red))
         customDisabled.isEnabled = false
@@ -69,9 +71,15 @@ class PinButton: View {
     }
 
     @objc func updateTitles() {
-        primary.title = "Updated action"
-        secondary.title = "Updated bordered"
-        tertiary.title = "Updated link"
+        primary.title = "Long Updated action"
+        secondary.title = "Long Updated bordered"
+        tertiary.title = "Long Updated link"
+    }
+
+    @objc func shrinkTitles() {
+        primary.title = "Press me"
+        secondary.title = "Long Toggle loading"
+        tertiary.title = "Update title"
     }
 
     @objc func tapped() {
