@@ -44,7 +44,7 @@ public class PinwheelTableViewController: UITableViewController {
         tableView.separatorStyle = .none
         navigationItem.titleView = selectorTitleView
 
-        selectorTitleView.title = titleForItemAtSection(section: State.lastSelectedSection)?.uppercased()
+        selectorTitleView.title = titleForItemAtSection(section: State.lastSelectedSection)
         tableView.sectionIndexColor = .actionText
         tableView.backgroundColor = .primaryBackground
         setNeedsStatusBarAppearanceUpdate()
@@ -141,7 +141,7 @@ extension PinwheelTableViewController: SelectorTitleViewDelegate {
     func selectorTitleViewDidSelectButton(_ selectorTitleView: SelectorTitleView) {
         guard State.lastSelectedSection <= sections.count else { return }
 
-        let items = sections.map { TextTableViewItem(title: $0.title.uppercased()) }
+        let items = sections.map { TextTableViewItem(title: $0.title) }
         let sectionsController = PinwheelSectionsViewController(items: items)
         if #available(iOS 15.0, *) {
             sectionsController.sheetPresentationController?.detents = [.medium()]
@@ -156,7 +156,7 @@ extension PinwheelTableViewController: SelectorTitleViewDelegate {
 extension PinwheelTableViewController: PinwheelSectionsViewControllerDelegate {
     func pinWheelSectionsViewController(_ pinWheelSectionsViewController: PinwheelSectionsViewController, didSelectItemAtIndex index: Int) {
         State.lastSelectedSection = index
-        selectorTitleView.title = titleForItemAtSection(section: index)?.uppercased()
+        selectorTitleView.title = titleForItemAtSection(section: index)
 
         let section = sections[safe: State.lastSelectedSection]
         let names = section?.capitalizedTitles() ?? [String]()
