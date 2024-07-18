@@ -21,14 +21,14 @@ class PinButton: View {
         primaryDisabled = Button(title: "Save")
         primaryDisabled.isEnabled = false
 
-        primaryLoading = Button(title: "Loading")
+        primaryLoading = Button(title: "Saving")
         primaryLoading.showActivityIndicator(true)
         primaryLoading.addTarget(self, action: #selector(loadingPressed(_:)), for: .touchUpInside)
 
         primaryTitleAndSymbol = Button(title: "Continue", symbol: "arrow.right")
         primarySymbolOnly = Button(symbol: "arrow.right")
 
-        secondary = Button(title: "Long Toggle loading", style: .secondary)
+        secondary = Button(title: "Long toggle loading", style: .secondary)
         secondary.addTarget(self, action: #selector(loading), for: .touchUpInside)
 
         let secondaryDisabled = Button(title: "Disabled", style: .secondary)
@@ -87,6 +87,7 @@ class PinButton: View {
     }
 
     @objc func loading() {
+        primaryLoading.title = primaryLoading.isLoading ? "Save" : "Saving"
         primaryLoading.showActivityIndicator(!primaryLoading.isLoading)
     }
 }

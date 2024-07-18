@@ -186,6 +186,7 @@ public class Button: UIButton {
                     backgroundColor: .actionText
                 )
             } else {
+                setTitleColor(.primaryBackground, for: .disabled)
                 backgroundColor = .actionBackground
             }
         case .secondary:
