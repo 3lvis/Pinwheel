@@ -17,8 +17,6 @@ public class Button: UIButton {
             return 0.8
         }
     }
-    public static let buttonHeight = round(48.0 * sizeRatio)
-    private static let buttonWidth = round(140.0 * sizeRatio)
     public var isLoading = false
     private var style: ButtonStyle
     private var titleLabelCenterXConstraint: NSLayoutConstraint?
@@ -68,7 +66,6 @@ public class Button: UIButton {
         super.didMoveToSuperview()
 
         if let superview = superview, let _ = title {
-            widthAnchor.constraint(greaterThanOrEqualToConstant: Button.buttonWidth).isActive = true
             widthAnchor.constraint(lessThanOrEqualTo: superview.widthAnchor, constant: -.spacingXL).isActive = true
         }
     }
@@ -169,7 +166,7 @@ public class Button: UIButton {
     }
 
     @objc private func updateStyle() {
-        marginInsets = UIEdgeInsets(top: .spacingS, left: .spacingM, bottom: .spacingS, right: .spacingM)
+        marginInsets = UIEdgeInsets(top: .spacingXS, left: .spacingM, bottom: .spacingXS, right: .spacingM)
 
         titleLabel?.font = self.font
 
