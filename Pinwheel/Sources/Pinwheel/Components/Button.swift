@@ -5,6 +5,13 @@ public enum ButtonStyle {
     case secondary
     case tertiary
     case custom(textColor: UIColor, backgroundColor: UIColor)
+
+    var isPrimary: Bool {
+        if case .primary = self {
+            return true
+        }
+        return false
+    }
 }
 
 public class Button: UIButton {
@@ -169,12 +176,11 @@ public class Button: UIButton {
         marginInsets = UIEdgeInsets(top: .spacingXS, left: .spacingM, bottom: .spacingXS, right: .spacingM)
 
         titleLabel?.font = self.font
-
-        switch style {
-        case .tertiary: break
-        default:
-            layer.cornerRadius = .spacingM
-            layer.cornerCurve = .continuous
+        layer.cornerRadius = .spacingM
+        layer.cornerCurve = .continuous
+        if style.isPrimary {
+            setTitleColor(.primaryBackground, for: .disabled)
+        } else {
             setTitleColor(.tertiaryText, for: .disabled)
         }
 
@@ -186,7 +192,6 @@ public class Button: UIButton {
                     backgroundColor: .actionText
                 )
             } else {
-                setTitleColor(.primaryBackground, for: .disabled)
                 backgroundColor = .actionBackground
             }
         case .secondary:
@@ -210,6 +215,7 @@ public class Button: UIButton {
                     backgroundColor: aBackgroundColor
                 )
             } else {
+                setTitleColor(textColor.withAlphaComponent(0.5), for: .disabled)
                 backgroundColor = aBackgroundColor.withAlphaComponent(0.5)
             }
         }
