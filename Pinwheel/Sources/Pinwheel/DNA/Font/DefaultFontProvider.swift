@@ -16,6 +16,11 @@ public struct DefaultFontProvider: FontProvider {
         return font.scaledFont(forTextStyle: .body)
     }
 
+    public var bodySemibold: UIFont {
+        let font = UIFont.systemFont(ofSize: 17, weight: .semibold)
+        return font.scaledFont(forTextStyle: .body)
+    }
+
     public var footnote: UIFont {
         let font = UIFont.systemFont(ofSize: 13, weight: .medium)
         return font.scaledFont(forTextStyle: .footnote)

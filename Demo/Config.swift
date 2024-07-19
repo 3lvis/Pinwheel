@@ -16,6 +16,11 @@ struct DemoFontProvider: FontProvider {
         return font.scaledFont(forTextStyle: .body)
     }
 
+    var bodySemibold: UIFont {
+        let font = UIFont.rounded(ofSize: 17, weight: .semibold)
+        return font.scaledFont(forTextStyle: .body)
+    }
+
     var footnote: UIFont {
         let font = UIFont.rounded(ofSize: 13, weight: .medium)
         return font.scaledFont(forTextStyle: .footnote)

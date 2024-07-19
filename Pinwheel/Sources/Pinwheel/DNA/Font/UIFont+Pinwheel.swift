@@ -13,6 +13,10 @@ public extension UIFont {
         Config.fontProvider.body
     }
 
+    class var bodySemibold: UIFont {
+        Config.fontProvider.bodySemibold
+    }
+
     class var footnote: UIFont {
         Config.fontProvider.footnote
     }

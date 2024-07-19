@@ -15,6 +15,7 @@ public enum ButtonStyle {
 }
 
 public class Button: UIButton {
+    private static let buttonWidth = round(100.0 * sizeRatio)
     public static var sizeRatio: CGFloat {
         let screenHeight = UIScreen.main.bounds.height
 
@@ -49,7 +50,7 @@ public class Button: UIButton {
     }
 
     let font: UIFont
-    public init(title: String? = nil, symbol: String? = nil, font: UIFont = .subtitle, style: ButtonStyle = .primary) {
+    public init(title: String? = nil, symbol: String? = nil, font: UIFont = .bodySemibold, style: ButtonStyle = .primary) {
         self.title = title
         self.font = font
         self.style = style
@@ -73,6 +74,7 @@ public class Button: UIButton {
         super.didMoveToSuperview()
 
         if let superview = superview, let _ = title {
+            widthAnchor.constraint(greaterThanOrEqualToConstant: Button.buttonWidth).isActive = true
             widthAnchor.constraint(lessThanOrEqualTo: superview.widthAnchor, constant: -.spacingXL).isActive = true
         }
     }
