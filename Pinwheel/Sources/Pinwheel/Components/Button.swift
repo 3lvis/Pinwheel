@@ -142,6 +142,8 @@ public class Button: UIButton {
 
             let value = -activityIndicator.bounds.width / 2 - .spacingXS
             titleLabelCenterXConstraint?.constant = value
+
+            invalidateIntrinsicContentSize()
         } else {
             subviews.forEach {
                 if let activityIndicator = $0 as? UIActivityIndicatorView {
@@ -151,6 +153,8 @@ public class Button: UIButton {
             titleLabelCenterXConstraint?.constant = 0
 
             self.layoutIfNeeded()
+
+            invalidateIntrinsicContentSize()
         }
     }
 

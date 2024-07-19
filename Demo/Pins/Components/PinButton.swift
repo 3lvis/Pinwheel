@@ -9,6 +9,7 @@ class PinButton: View {
     var secondary: Button!
     var tertiary: Button!
     var custom: Button!
+    var primaryFloating: Button!
 
     override func setup() {
         primary = Button(title: "Press me")
@@ -42,6 +43,8 @@ class PinButton: View {
         let customDisabled = Button(title: "Custom", font: .caption, style: .custom(textColor: .green, backgroundColor: .red))
         customDisabled.isEnabled = false
 
+        primaryFloating = Button(title: "Continue")
+
         let stackView = UIStackView(axis: .vertical, spacing: .spacingM, alignment: .center)
         stackView.addArrangedSubviews([
             primary,
@@ -58,6 +61,13 @@ class PinButton: View {
         ])
         addSubview(stackView)
         stackView.anchorToTopSafeArea(margin: .spacingXXL)
+
+        addSubview(primaryFloating)
+        NSLayoutConstraint.activate([
+            primaryFloating.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: .spacingM),
+            primaryFloating.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingM),
+            primaryFloating.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -.spacingM)
+        ])
     }
 
     @objc func loadingPressed(_ button: Button) {
@@ -83,7 +93,8 @@ class PinButton: View {
     }
 
     @objc func loading() {
-        primaryLoading.title = primaryLoading.isLoading ? "Save" : "Saving"
-        primaryLoading.showActivityIndicator(!primaryLoading.isLoading)
+//        primaryLoading.title = primaryLoading.isLoading ? "Save" : "Saving"
+//        primaryLoading.showActivityIndicator(!primaryLoading.isLoading)
+        primaryFloating.showActivityIndicator(!primaryFloating.isLoading)
     }
 }
