@@ -76,6 +76,9 @@ public class Button: UIButton {
         if let superview = superview, let _ = title {
             widthAnchor.constraint(greaterThanOrEqualToConstant: Button.buttonWidth).isActive = true
             widthAnchor.constraint(lessThanOrEqualTo: superview.widthAnchor, constant: -.spacingXL).isActive = true
+
+            setContentHuggingPriority(.defaultHigh, for: .horizontal)
+            setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         }
     }
 

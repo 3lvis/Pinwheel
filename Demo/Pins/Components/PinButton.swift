@@ -1,9 +1,5 @@
 import Pinwheel
 
-public extension CGFloat {
-    static let buttonHeight: CGFloat = 50
-}
-
 class PinButton: View {
     var primary: Button!
     var primaryDisabled: Button!
