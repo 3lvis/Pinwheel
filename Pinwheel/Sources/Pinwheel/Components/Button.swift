@@ -123,7 +123,9 @@ public class Button: UIButton {
 
         if shouldShow {
             let activityIndicator = UIActivityIndicatorView(style: .medium)
-            activityIndicator.color = .primaryBackground
+            let lightModeTraitCollection = UITraitCollection(userInterfaceStyle: .light)
+            let lightModeColor = UIColor.primaryBackground.resolvedColor(with: lightModeTraitCollection)
+            activityIndicator.color = lightModeColor
             activityIndicator.translatesAutoresizingMaskIntoConstraints = false
             addSubview(activityIndicator)
             NSLayoutConstraint.activate([
