@@ -11,13 +11,13 @@ struct DemoFontProvider: FontProvider {
         return font.scaledFont(forTextStyle: .subheadline)
     }
 
-    var body: UIFont {
-        let font = UIFont.rounded(ofSize: 17, weight: .medium)
-        return font.scaledFont(forTextStyle: .body)
+    var subtitleSemibold: UIFont {
+        let font = UIFont.rounded(ofSize: 20, weight: .semibold)
+        return font.scaledFont(forTextStyle: .subheadline)
     }
 
-    var bodySemibold: UIFont {
-        let font = UIFont.rounded(ofSize: 17, weight: .semibold)
+    var body: UIFont {
+        let font = UIFont.rounded(ofSize: 17, weight: .medium)
         return font.scaledFont(forTextStyle: .body)
     }
 

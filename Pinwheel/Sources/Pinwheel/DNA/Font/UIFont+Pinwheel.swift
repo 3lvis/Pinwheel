@@ -9,12 +9,12 @@ public extension UIFont {
         Config.fontProvider.subtitle
     }
 
-    class var body: UIFont {
-        Config.fontProvider.body
+    class var subtitleSemibold: UIFont {
+        Config.fontProvider.subtitleSemibold
     }
 
-    class var bodySemibold: UIFont {
-        Config.fontProvider.bodySemibold
+    class var body: UIFont {
+        Config.fontProvider.body
     }
 
     class var footnote: UIFont {

@@ -11,13 +11,13 @@ public struct DefaultFontProvider: FontProvider {
         return font.scaledFont(forTextStyle: .subheadline)
     }
 
-    public var body: UIFont {
-        let font = UIFont.systemFont(ofSize: 17, weight: .medium)
-        return font.scaledFont(forTextStyle: .body)
+    public var subtitleSemibold: UIFont {
+        let font = UIFont.systemFont(ofSize: 20, weight: .semibold)
+        return font.scaledFont(forTextStyle: .subheadline)
     }
 
-    public var bodySemibold: UIFont {
-        let font = UIFont.systemFont(ofSize: 17, weight: .semibold)
+    public var body: UIFont {
+        let font = UIFont.systemFont(ofSize: 17, weight: .medium)
         return font.scaledFont(forTextStyle: .body)
     }
 

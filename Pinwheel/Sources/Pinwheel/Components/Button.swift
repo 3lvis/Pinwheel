@@ -50,7 +50,7 @@ public class Button: UIButton {
     }
 
     let font: UIFont
-    public init(title: String? = nil, symbol: String? = nil, font: UIFont = .bodySemibold, style: ButtonStyle = .primary) {
+    public init(title: String? = nil, symbol: String? = nil, font: UIFont = .subtitleSemibold, style: ButtonStyle = .primary) {
         self.title = title
         self.font = font
         self.style = style
