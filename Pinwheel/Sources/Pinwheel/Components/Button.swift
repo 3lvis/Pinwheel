@@ -197,7 +197,7 @@ public class Button: UIButton {
         case .primary:
             if isEnabled {
                 configureButtonColors(
-                    titleColor: .primaryBackground,
+                    titleColor: UIColor.dynamicColor(defaultColor: .white, darkModeColor: .white),
                     backgroundColor: .actionText
                 )
             } else {
