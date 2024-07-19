@@ -196,8 +196,10 @@ public class Button: UIButton {
         switch style {
         case .primary:
             if isEnabled {
+                let lightModeTraitCollection = UITraitCollection(userInterfaceStyle: .light)
+                let lightModeColor = UIColor.primaryBackground.resolvedColor(with: lightModeTraitCollection)
                 configureButtonColors(
-                    titleColor: UIColor.dynamicColor(defaultColor: .white, darkModeColor: .white),
+                    titleColor: lightModeColor,
                     backgroundColor: .actionText
                 )
             } else {
