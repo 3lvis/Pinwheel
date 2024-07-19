@@ -123,10 +123,14 @@ public class Button: UIButton {
 
         if shouldShow {
             let activityIndicator = UIActivityIndicatorView(style: .medium)
-            let lightModeTraitCollection = UITraitCollection(userInterfaceStyle: .light)
-            let lightModeColor = UIColor.primaryBackground.resolvedColor(with: lightModeTraitCollection)
-            activityIndicator.color = lightModeColor
             activityIndicator.translatesAutoresizingMaskIntoConstraints = false
+            if isEnabled {
+                let lightModeTraitCollection = UITraitCollection(userInterfaceStyle: .light)
+                let lightModeColor = UIColor.primaryBackground.resolvedColor(with: lightModeTraitCollection)
+                activityIndicator.color = lightModeColor
+            } else {
+                activityIndicator.color = .tertiaryText
+            }
             addSubview(activityIndicator)
             NSLayoutConstraint.activate([
                 activityIndicator.centerYAnchor.constraint(equalTo: centerYAnchor),
@@ -193,6 +197,18 @@ public class Button: UIButton {
             setTitleColor(.primaryBackground, for: .disabled)
         } else {
             setTitleColor(.tertiaryText, for: .disabled)
+        }
+
+        subviews.forEach {
+            if let activityIndicator = $0 as? UIActivityIndicatorView {
+                if isEnabled {
+                    let lightModeTraitCollection = UITraitCollection(userInterfaceStyle: .light)
+                    let lightModeColor = UIColor.primaryBackground.resolvedColor(with: lightModeTraitCollection)
+                    activityIndicator.color = lightModeColor
+                } else {
+                    activityIndicator.color = .tertiaryText
+                }
+            }
         }
 
         switch style {
