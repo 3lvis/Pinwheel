@@ -1,10 +1,10 @@
 import Foundation
 
-public protocol Identifiable {
+public protocol ReuseIdentifiable {
     static var reuseIdentifier: String { get }
 }
 
-public extension Identifiable {
+public extension ReuseIdentifiable {
     static var reuseIdentifier: String {
         return String(describing: self)
     }
