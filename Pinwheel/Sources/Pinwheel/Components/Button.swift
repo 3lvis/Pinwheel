@@ -41,6 +41,11 @@ public class Button: UIButton {
         }
     }
 
+    public func setTitle(title: String, symbol: String) {
+        self.title = title
+        addSymbolToTitle(symbol: symbol)
+    }
+
     public override var isEnabled: Bool {
         didSet {
             UIView.transition(with: self, duration: 0.2, options: .transitionCrossDissolve, animations: {
