@@ -45,6 +45,12 @@ open class TableView: ShadowScrollView {
     public weak var delegate: TableViewDelegate?
     private weak var dataSource: TableViewDataSource?
 
+    public var isScrollEnabled: Bool = true {
+        didSet {
+            tableView.isScrollEnabled = isScrollEnabled
+        }
+    }
+
     public var state: TableViewState = .loaded([TableViewItem]()) {
         didSet {
             switch state {
