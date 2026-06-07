@@ -21,7 +21,7 @@ struct PinwheelPlayground: SwiftUI.View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(backdrop.ignoresSafeArea())
+            .background(SwiftUI.Color(uiColor: .primaryBackground).ignoresSafeArea())
             .onAppear {
                 selectedDeviceIndex = PinwheelStateStore.selectedDeviceIndex(for: selection)
             }
@@ -38,12 +38,6 @@ struct PinwheelPlayground: SwiftUI.View {
                 .presentationDetents([.medium])
             }
         }
-    }
-
-    // Black letterbox behind a smaller selected device canvas; matches the canvas
-    // background when full screen so the safe-area gaps blend instead of showing bars.
-    private var backdrop: SwiftUI.Color {
-        return selectedDevice == nil ? SwiftUI.Color(uiColor: .primaryBackground) : .black
     }
 
     private var selectedDevice: Device? {
