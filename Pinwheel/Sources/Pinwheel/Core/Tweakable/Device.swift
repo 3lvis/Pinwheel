@@ -2,14 +2,17 @@ import UIKit
 
 struct Device {
     public enum Kind: String {
-        case iphoneXR_11 = "iPhone XR/11"
-        case iphoneXS_11Pro = "iPhone XS/11 Pro"
         case iphoneSE = "iPhone SE (2nd & 3rd generation)"
         case iphone12_13Mini = "iPhone 12/13 mini"
-        case iphone12_13_14 = "iPhone 12/13/14"
+        case iphoneXS_11Pro = "iPhone XS/11 Pro"
+        case iphone12_13_14 = "iPhone 12/13/14/16e"
+        case iphone15_15Pro_16 = "iPhone 15/15 Pro/16"
+        case iphone16Pro_17 = "iPhone 16 Pro/17/17 Pro"
+        case iphoneXR_11 = "iPhone XR/11"
+        case iphoneAir = "iPhone Air"
         case iphone12_13ProMax_14Plus = "iPhone 12/13 Pro Max/14 Plus"
-        case iphone15_15Pro = "iPhone 15/15 Pro"
-        case iphone15Plus_15ProMax = "iPhone 15 Plus/15 Pro Max"
+        case iphone15Plus_15ProMax_16Plus = "iPhone 15 Plus/15 Pro Max/16 Plus"
+        case iphone16ProMax_17ProMax = "iPhone 16 Pro Max/17 Pro Max"
 
         case padPortraitOneThird = "iPad Portrait 1/3"
         case padPortraitTwoThirds = "iPad Portrait 2/3"
@@ -30,7 +33,7 @@ struct Device {
 
     var isEnabled: Bool {
         switch kind {
-        case .iphoneXR_11, .iphoneXS_11Pro, .iphoneSE, .iphone12_13Mini, .iphone12_13_14, .iphone12_13ProMax_14Plus, .iphone15_15Pro, .iphone15Plus_15ProMax:
+        case .iphoneSE, .iphone12_13Mini, .iphoneXS_11Pro, .iphone12_13_14, .iphone15_15Pro_16, .iphone16Pro_17, .iphoneXR_11, .iphoneAir, .iphone12_13ProMax_14Plus, .iphone15Plus_15ProMax_16Plus, .iphone16ProMax_17ProMax:
             let currentSize = UIScreen.main.bounds.size
             return frame.width <= currentSize.width && frame.height <= currentSize.height
         case .padLandscapeOneThird, .padLandscapeOneHalf, .padPortraitOneThird, .padPortraitTwoThirds, .padPortraitFull, .padLandscapeFull, .padLandscapeTwoThirds:
@@ -46,22 +49,28 @@ struct Device {
         let autoresizingMask: UIView.AutoresizingMask
 
         switch kind {
-        case .iphoneXR_11:
-            size = .init(width: 414, height: 896)
-        case .iphoneXS_11Pro:
-            size = .init(width: 375, height: 812)
         case .iphoneSE:
             size = .init(width: 375, height: 667)
         case .iphone12_13Mini:
             size = .init(width: 360, height: 780)
+        case .iphoneXS_11Pro:
+            size = .init(width: 375, height: 812)
         case .iphone12_13_14:
             size = .init(width: 390, height: 844)
+        case .iphone15_15Pro_16:
+            size = .init(width: 393, height: 852)
+        case .iphone16Pro_17:
+            size = .init(width: 402, height: 874)
+        case .iphoneXR_11:
+            size = .init(width: 414, height: 896)
+        case .iphoneAir:
+            size = .init(width: 420, height: 912)
         case .iphone12_13ProMax_14Plus:
             size = .init(width: 428, height: 926)
-        case .iphone15_15Pro:
-            size = .init(width: 393, height: 852)
-        case .iphone15Plus_15ProMax:
+        case .iphone15Plus_15ProMax_16Plus:
             size = .init(width: 430, height: 932)
+        case .iphone16ProMax_17ProMax:
+            size = .init(width: 440, height: 956)
         case .padPortraitOneThird:
             size = .init(width: 320, height: UIScreen.main.bounds.height)
         case .padPortraitTwoThirds:
@@ -82,7 +91,7 @@ struct Device {
         let y: CGFloat = (UIScreen.main.bounds.height - size.height) / 2
 
         switch kind {
-        case .iphoneXR_11, .iphoneXS_11Pro, .iphoneSE, .iphone12_13Mini, .iphone12_13_14, .iphone12_13ProMax_14Plus, .iphone15_15Pro, .iphone15Plus_15ProMax:
+        case .iphoneSE, .iphone12_13Mini, .iphoneXS_11Pro, .iphone12_13_14, .iphone15_15Pro_16, .iphone16Pro_17, .iphoneXR_11, .iphoneAir, .iphone12_13ProMax_14Plus, .iphone15Plus_15ProMax_16Plus, .iphone16ProMax_17ProMax:
             horizontalSizeClass = .compact
             userInterfaceIdiom = .phone
             autoresizingMask = [.flexibleRightMargin, .flexibleLeftMargin, .flexibleTopMargin, .flexibleBottomMargin]
@@ -112,14 +121,17 @@ struct Device {
 
     public static var all: [Device] {
         var devices: [Device] = [
-            Device(kind: .iphoneXR_11),
-            Device(kind: .iphoneXS_11Pro),
             Device(kind: .iphoneSE),
             Device(kind: .iphone12_13Mini),
+            Device(kind: .iphoneXS_11Pro),
             Device(kind: .iphone12_13_14),
+            Device(kind: .iphone15_15Pro_16),
+            Device(kind: .iphone16Pro_17),
+            Device(kind: .iphoneXR_11),
+            Device(kind: .iphoneAir),
             Device(kind: .iphone12_13ProMax_14Plus),
-            Device(kind: .iphone15_15Pro),
-            Device(kind: .iphone15Plus_15ProMax)
+            Device(kind: .iphone15Plus_15ProMax_16Plus),
+            Device(kind: .iphone16ProMax_17ProMax)
         ]
 
         let isPortrait = UIDevice.current.userInterfaceIdiom == .pad && UIScreen.main.bounds.size.height > UIScreen.main.bounds.size.width
