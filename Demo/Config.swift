@@ -1,3 +1,4 @@
+import UIKit
 import Pinwheel
 
 struct DemoFontProvider: FontProvider {

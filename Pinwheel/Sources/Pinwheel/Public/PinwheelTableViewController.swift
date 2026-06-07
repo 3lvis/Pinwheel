@@ -21,7 +21,25 @@ public class PinwheelTableViewController: UITableViewController {
         super.init(style: .grouped)
     }
 
+    public convenience init(@PinwheelSectionBuilder sections: () -> [PinwheelSection]) {
+        self.init(sections: sections())
+    }
+
     required init?(coder aDecoder: NSCoder) { fatalError("") }
+
+    public func update(sections: [PinwheelSection]) {
+        self.sections = sections
+
+        if State.lastSelectedSection >= sections.count {
+            State.lastSelectedSection = 0
+        }
+
+        selectorTitleView.title = titleForItemAtSection(section: State.lastSelectedSection)
+        let section = sections[safe: State.lastSelectedSection]
+        let names = section?.capitalizedTitles() ?? [String]()
+        self.indexer = Indexer(names: names)
+        tableView.reloadData()
+    }
 
     public override func viewDidLoad() {
         super.viewDidLoad()

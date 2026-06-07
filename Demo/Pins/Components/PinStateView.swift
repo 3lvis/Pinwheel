@@ -1,3 +1,4 @@
+import UIKit
 import Pinwheel
 
 class PinStateView: View, Tweakable {

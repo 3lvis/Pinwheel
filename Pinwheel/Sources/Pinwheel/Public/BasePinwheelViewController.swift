@@ -1,10 +1,12 @@
 import UIKit
 
-public enum PresentationStyle {
+public enum PinwheelPresentation {
     case medium
     case large
     case fullscreen
 }
+
+public typealias PresentationStyle = PinwheelPresentation
 
 ///  Container class for components. Wraps the UIView in a container to be displayed.
 ///  If the view conforms to the `Tweakable` protocol it will display a control to show additional options.

@@ -1,3 +1,4 @@
+import UIKit
 import Pinwheel
 
 class PinLabel: View {

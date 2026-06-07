@@ -1,0 +1,269 @@
+import SwiftUI
+
+struct PinwheelPlayground: SwiftUI.View {
+    let item: PinwheelItem
+    let selection: PinwheelSelection
+    let onClose: () -> Void
+
+    @SwiftUI.State private var selectedDeviceIndex: Int?
+    @SwiftUI.State private var tweaks: [PinwheelTweak] = []
+    @SwiftUI.State private var showsSettings = false
+
+    var body: some SwiftUI.View {
+        GeometryReader { geometry in
+            ZStack {
+                SwiftUI.Color.black
+                    .ignoresSafeArea()
+
+                content(in: geometry)
+
+                PinwheelFloatingControls(tweakCount: tweaks.count) {
+                    showsSettings = true
+                } close: {
+                    onClose()
+                }
+            }
+            .onAppear {
+                selectedDeviceIndex = PinwheelStateStore.selectedDeviceIndex(for: selection)
+            }
+            .sheet(isPresented: $showsSettings) {
+                PinwheelSettingsView(
+                    tweaks: tweaks,
+                    selectedDeviceIndex: selectedDeviceIndex,
+                    selection: selection
+                ) { deviceIndex in
+                    selectedDeviceIndex = deviceIndex
+                    PinwheelStateStore.setSelectedDeviceIndex(deviceIndex, for: selection)
+                    showsSettings = false
+                }
+                .presentationDetents([.medium])
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func content(in geometry: GeometryProxy) -> some SwiftUI.View {
+        let device = selectedDeviceIndex.flatMap { Device.all[safe: $0] }
+        let size = device?.frame.size ?? geometry.size
+        let origin = originForDevice(device, in: geometry.size)
+
+        item.swiftUIView()
+            .background(SwiftUI.Color(uiColor: .primaryBackground))
+            .frame(
+                width: size.width,
+                height: size.height,
+                alignment: .center
+            )
+            .position(x: origin.x + size.width / 2, y: origin.y + size.height / 2)
+            .clipped()
+            .onPreferenceChange(PinwheelTweaksPreferenceKey.self) { tweaks in
+                self.tweaks = tweaks
+            }
+    }
+
+    private func originForDevice(_ device: Device?, in containerSize: CGSize) -> CGPoint {
+        guard let device else { return .zero }
+
+        switch device.autoresizingMask {
+        case let mask where mask.contains(.flexibleHeight) && !mask.contains(.flexibleLeftMargin):
+            return CGPoint(x: 0, y: max((containerSize.height - device.frame.height) / 2, 0))
+        default:
+            return CGPoint(
+                x: max((containerSize.width - device.frame.width) / 2, 0),
+                y: max((containerSize.height - device.frame.height) / 2, 0)
+            )
+        }
+    }
+}
+
+private struct PinwheelFloatingControls: SwiftUI.View {
+    let tweakCount: Int
+    let settings: () -> Void
+    let close: () -> Void
+
+    @SwiftUI.State private var cornerIndex = State.lastCornerForTweakingButton ?? 3
+    @GestureState private var dragOffset: CGSize = .zero
+
+    var body: some SwiftUI.View {
+        GeometryReader { geometry in
+            VStack(spacing: .spacingS) {
+                PinwheelFloatingButton(symbol: "wrench.adjustable.fill", badge: tweakCount, action: settings)
+                PinwheelFloatingButton(symbol: "xmark", badge: 0, action: close)
+            }
+            .position(position(in: geometry.size))
+            .offset(dragOffset)
+            .gesture(
+                DragGesture()
+                    .updating($dragOffset) { value, state, _ in
+                        state = value.translation
+                    }
+                    .onEnded { value in
+                        let current = CGPoint(
+                            x: position(in: geometry.size).x + value.translation.width,
+                            y: position(in: geometry.size).y + value.translation.height
+                        )
+                        cornerIndex = nearestCorner(to: current, in: geometry.size)
+                        State.lastCornerForTweakingButton = cornerIndex
+                    }
+            )
+            .animation(.spring(response: 0.35, dampingFraction: 0.85), value: cornerIndex)
+        }
+        .ignoresSafeArea(.keyboard)
+    }
+
+    private func position(in size: CGSize) -> CGPoint {
+        return position(for: cornerIndex, in: size)
+    }
+
+    private func position(for index: Int, in size: CGSize) -> CGPoint {
+        let margin = CGFloat.spacingL + CGFloat.spacingXXL
+        let stackHeight = CGFloat.spacingXXL * 4 + CGFloat.spacingS
+        let top = margin + stackHeight / 2
+        let bottom = size.height - margin - stackHeight / 2
+        let left = margin
+        let right = size.width - margin
+
+        switch index {
+        case 0:
+            return CGPoint(x: left, y: top)
+        case 1:
+            return CGPoint(x: right, y: top)
+        case 2:
+            return CGPoint(x: left, y: bottom)
+        default:
+            return CGPoint(x: right, y: bottom)
+        }
+    }
+
+    private func nearestCorner(to point: CGPoint, in size: CGSize) -> Int {
+        let positions = (0...3).map { position(for: $0, in: size) }
+
+        return positions.enumerated().min { first, second in
+            point.distance(to: first.element) < point.distance(to: second.element)
+        }?.offset ?? 3
+    }
+}
+
+private struct PinwheelFloatingButton: SwiftUI.View {
+    let symbol: String
+    let badge: Int
+    let action: () -> Void
+
+    var body: some SwiftUI.View {
+        SwiftUI.Button(action: action) {
+            ZStack(alignment: .bottomTrailing) {
+                Circle()
+                    .fill(SwiftUI.Color(uiColor: .primaryBackground))
+                    .frame(width: .spacingXXL * 2, height: .spacingXXL * 2)
+                    .shadow(color: .black.opacity(0.18), radius: 14, y: 6)
+                    .overlay {
+                        Image(systemName: symbol)
+                            .font(.system(size: 25, weight: .bold))
+                            .foregroundStyle(SwiftUI.Color(uiColor: .actionText))
+                    }
+
+                if badge > 0 {
+                    Text("\(badge)")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(SwiftUI.Color(uiColor: .primaryBackground))
+                        .frame(width: 24, height: 24)
+                        .background(Circle().fill(SwiftUI.Color(uiColor: .actionText)))
+                        .offset(x: 4, y: 4)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct PinwheelSettingsView: SwiftUI.View {
+    let tweaks: [PinwheelTweak]
+    let selectedDeviceIndex: Int?
+    let selection: PinwheelSelection
+    let selectDevice: (Int) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some SwiftUI.View {
+        NavigationStack {
+            List {
+                if !tweaks.isEmpty {
+                    Section("Tweaks") {
+                        ForEach(tweaks) { tweak in
+                            tweakRow(tweak)
+                        }
+                    }
+                }
+
+                Section("Device") {
+                    ForEach(Array(Device.all.enumerated()), id: \.offset) { index, device in
+                        SwiftUI.Button {
+                            selectDevice(index)
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(device.title)
+                                    if device.traits.userInterfaceIdiom == .phone && device.frame.size == UIScreen.main.bounds.size {
+                                        Text("Current")
+                                            .font(.caption)
+                                            .foregroundStyle(SwiftUI.Color(uiColor: .secondaryText))
+                                    }
+                                }
+
+                                Spacer()
+
+                                if selectedDeviceIndex == index {
+                                    Image(systemName: "checkmark")
+                                        .foregroundStyle(SwiftUI.Color(uiColor: .actionText))
+                                }
+                            }
+                        }
+                        .disabled(!device.isEnabled)
+                    }
+                }
+            }
+            .scrollContentBackground(.hidden)
+            .background(SwiftUI.Color(uiColor: .primaryBackground))
+            .navigationTitle("Options")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    SwiftUI.Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func tweakRow(_ tweak: PinwheelTweak) -> some SwiftUI.View {
+        switch tweak.control {
+        case .action(let action):
+            SwiftUI.Button {
+                action()
+                dismiss()
+            } label: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(tweak.title)
+                    if let description = tweak.description {
+                        Text(description)
+                            .font(.caption)
+                            .foregroundStyle(SwiftUI.Color(uiColor: .secondaryText))
+                    }
+                }
+            }
+        case .toggle(let get, let set):
+            Toggle(isOn: Binding(get: get, set: set)) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(tweak.title)
+                    if let description = tweak.description {
+                        Text(description)
+                            .font(.caption)
+                            .foregroundStyle(SwiftUI.Color(uiColor: .secondaryText))
+                    }
+                }
+            }
+        }
+    }
+}

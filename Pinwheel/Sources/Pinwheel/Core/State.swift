@@ -1,6 +1,6 @@
 import UIKit
 
-public struct State {
+struct State {
     private static let lastSelectedIndexPathRowKey = "lastSelectedIndexPathRowKey"
     private static let lastSelectedIndexPathSectionKey = "lastSelectedIndexPathSectionKey"
     private static let lastCornerForTweakingButtonKey = "lastCornerForTweakingButtonKey"

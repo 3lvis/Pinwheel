@@ -1,4 +1,5 @@
-@_exported import UIKit
+import UIKit
+import SwiftUI
 
 public enum TabletDisplayMode {
     case master
@@ -6,13 +7,67 @@ public enum TabletDisplayMode {
     case fullscreen
 }
 
+@resultBuilder
+public enum PinwheelSectionBuilder {
+    public static func buildBlock(_ components: PinwheelSection...) -> [PinwheelSection] {
+        return components
+    }
+
+    public static func buildArray(_ components: [[PinwheelSection]]) -> [PinwheelSection] {
+        return components.flatMap { $0 }
+    }
+
+    public static func buildOptional(_ component: [PinwheelSection]?) -> [PinwheelSection] {
+        return component ?? []
+    }
+
+    public static func buildEither(first component: [PinwheelSection]) -> [PinwheelSection] {
+        return component
+    }
+
+    public static func buildEither(second component: [PinwheelSection]) -> [PinwheelSection] {
+        return component
+    }
+}
+
+@resultBuilder
+public enum PinwheelItemBuilder {
+    public static func buildBlock(_ components: PinwheelItem...) -> [PinwheelItem] {
+        return components
+    }
+
+    public static func buildArray(_ components: [[PinwheelItem]]) -> [PinwheelItem] {
+        return components.flatMap { $0 }
+    }
+
+    public static func buildOptional(_ component: [PinwheelItem]?) -> [PinwheelItem] {
+        return component ?? []
+    }
+
+    public static func buildEither(first component: [PinwheelItem]) -> [PinwheelItem] {
+        return component
+    }
+
+    public static func buildEither(second component: [PinwheelItem]) -> [PinwheelItem] {
+        return component
+    }
+}
+
 public struct PinwheelSection {
+    public let id: String
     public let title: String
     public let items: [PinwheelItem]
 
-    public init(title: String, items: [PinwheelItem]) {
+    public init(title: String, id: String? = nil, items: [PinwheelItem]) {
+        self.id = id ?? title.pinwheelGeneratedID
         self.title = title
         self.items = items
+    }
+
+    public init(_ title: String, id: String? = nil, @PinwheelItemBuilder items: () -> [PinwheelItem]) {
+        self.id = id ?? title.pinwheelGeneratedID
+        self.title = title
+        self.items = items()
     }
 
     func capitalizedTitles() -> [String] {
@@ -20,14 +75,237 @@ public struct PinwheelSection {
     }
 }
 
-public struct PinwheelItem {
-    public let title: String
-    public let viewController: UIViewController
-    public let tabletDisplayMode: TabletDisplayMode
+extension PinwheelSection: Identifiable {}
 
-    public init(title: String, viewController: UIViewController, tabletDisplayMode: TabletDisplayMode = .fullscreen) {
+public struct PinwheelItem {
+    public let id: String
+    public let title: String
+    public let presentation: PinwheelPresentation
+    public let supportedInterfaceOrientations: UIInterfaceOrientationMask
+    public let constrainToTopSafeArea: Bool
+    public let constrainToBottomSafeArea: Bool
+    public let tabletDisplayMode: TabletDisplayMode
+    private let makeViewController: () -> UIViewController
+    private let makeSwiftUIView: () -> AnyView
+
+    public var viewController: UIViewController {
+        return makeViewController()
+    }
+
+    func swiftUIView() -> AnyView {
+        return makeSwiftUIView()
+    }
+
+    public init(title: String, id: String? = nil, viewController: UIViewController, tabletDisplayMode: TabletDisplayMode = .fullscreen) {
+        self.id = id ?? title.pinwheelGeneratedID
         self.title = title
-        self.viewController = viewController
+        self.presentation = .fullscreen
+        self.supportedInterfaceOrientations = .all
+        self.constrainToTopSafeArea = true
+        self.constrainToBottomSafeArea = true
         self.tabletDisplayMode = tabletDisplayMode
+        self.makeViewController = { viewController }
+        self.makeSwiftUIView = {
+            AnyView(PinwheelUIKitViewController { viewController })
+        }
+    }
+
+    public init<ViewType: UIView>(
+        _ title: String,
+        id: String? = nil,
+        presentation: PinwheelPresentation = .fullscreen,
+        supportedInterfaceOrientations: UIInterfaceOrientationMask = .all,
+        constrainToTopSafeArea: Bool = true,
+        constrainToBottomSafeArea: Bool = true,
+        tabletDisplayMode: TabletDisplayMode = .fullscreen,
+        view: ViewType.Type
+    ) {
+        self.id = id ?? title.pinwheelGeneratedID
+        self.title = title
+        self.presentation = presentation
+        self.supportedInterfaceOrientations = supportedInterfaceOrientations
+        self.constrainToTopSafeArea = constrainToTopSafeArea
+        self.constrainToBottomSafeArea = constrainToBottomSafeArea
+        self.tabletDisplayMode = tabletDisplayMode
+        self.makeViewController = {
+            PinwheelViewController<ViewType>(
+                presentationStyle: presentation,
+                supportedInterfaceOrientations: supportedInterfaceOrientations,
+                constrainToTopSafeArea: constrainToTopSafeArea,
+                constrainToBottomSafeArea: constrainToBottomSafeArea
+            )
+        }
+        self.makeSwiftUIView = {
+            AnyView(PinwheelUIKitView(view: ViewType.self))
+        }
+    }
+
+    public init<Content: SwiftUI.View>(
+        _ title: String,
+        id: String? = nil,
+        presentation: PinwheelPresentation = .fullscreen,
+        supportedInterfaceOrientations: UIInterfaceOrientationMask = .all,
+        constrainToTopSafeArea: Bool = true,
+        constrainToBottomSafeArea: Bool = true,
+        tabletDisplayMode: TabletDisplayMode = .fullscreen,
+        @ViewBuilder content: @escaping () -> Content
+    ) {
+        self.id = id ?? title.pinwheelGeneratedID
+        self.title = title
+        self.presentation = presentation
+        self.supportedInterfaceOrientations = supportedInterfaceOrientations
+        self.constrainToTopSafeArea = constrainToTopSafeArea
+        self.constrainToBottomSafeArea = constrainToBottomSafeArea
+        self.tabletDisplayMode = tabletDisplayMode
+        self.makeViewController = {
+            PinwheelHostingViewController(
+                rootView: content(),
+                presentationStyle: presentation,
+                supportedInterfaceOrientations: supportedInterfaceOrientations,
+                constrainToTopSafeArea: constrainToTopSafeArea,
+                constrainToBottomSafeArea: constrainToBottomSafeArea
+            )
+        }
+        self.makeSwiftUIView = {
+            AnyView(content())
+        }
+    }
+
+    public init(
+        _ title: String,
+        id: String? = nil,
+        presentation: PinwheelPresentation = .fullscreen,
+        supportedInterfaceOrientations: UIInterfaceOrientationMask = .all,
+        constrainToTopSafeArea: Bool = true,
+        constrainToBottomSafeArea: Bool = true,
+        tabletDisplayMode: TabletDisplayMode = .fullscreen,
+        viewController: @escaping () -> UIViewController
+    ) {
+        self.id = id ?? title.pinwheelGeneratedID
+        self.title = title
+        self.presentation = presentation
+        self.supportedInterfaceOrientations = supportedInterfaceOrientations
+        self.constrainToTopSafeArea = constrainToTopSafeArea
+        self.constrainToBottomSafeArea = constrainToBottomSafeArea
+        self.tabletDisplayMode = tabletDisplayMode
+        self.makeViewController = {
+            let controller = viewController()
+            controller.configurePinwheelPresentationStyle(presentation)
+            return controller
+        }
+        self.makeSwiftUIView = {
+            AnyView(PinwheelUIKitViewController(makeViewController: viewController))
+        }
+    }
+}
+
+extension PinwheelItem: Identifiable {}
+
+public extension PinwheelItem {
+    @available(*, deprecated, renamed: "presentation")
+    var presentationStyle: PinwheelPresentation {
+        return presentation
+    }
+}
+
+public struct PinwheelSelection: Hashable, Identifiable {
+    public let sectionID: String
+    public let itemID: String
+
+    public var id: String {
+        return "\(sectionID)/\(itemID)"
+    }
+
+    public init(sectionID: String, itemID: String) {
+        self.sectionID = sectionID
+        self.itemID = itemID
+    }
+}
+
+public struct PinwheelCatalog: SwiftUI.View {
+    private let sections: [PinwheelSection]
+    private let usesEmbeddedNavigation: Bool
+
+    public init(usesEmbeddedNavigation: Bool = true, @PinwheelSectionBuilder sections: () -> [PinwheelSection]) {
+        self.sections = sections()
+        self.usesEmbeddedNavigation = usesEmbeddedNavigation
+    }
+
+    public var body: some SwiftUI.View {
+        PinwheelCatalogView(sections: sections, usesEmbeddedNavigation: usesEmbeddedNavigation)
+    }
+}
+
+extension UIViewController {
+    func configurePinwheelPresentationStyle(_ presentationStyle: PresentationStyle) {
+        if #available(iOS 15.0, *) {
+            switch presentationStyle {
+            case .medium:
+                modalPresentationStyle = .pageSheet
+                sheetPresentationController?.detents = [.medium()]
+                sheetPresentationController?.preferredCornerRadius = .spacingXL
+                sheetPresentationController?.prefersGrabberVisible = true
+            case .large:
+                modalPresentationStyle = .pageSheet
+                sheetPresentationController?.detents = [.large()]
+                sheetPresentationController?.preferredCornerRadius = .spacingXL
+                sheetPresentationController?.prefersGrabberVisible = true
+            case .fullscreen:
+                modalPresentationStyle = .fullScreen
+            }
+        } else if presentationStyle == .fullscreen {
+            modalPresentationStyle = .fullScreen
+        }
+    }
+}
+
+private extension String {
+    var pinwheelGeneratedID: String {
+        let allowed = CharacterSet.alphanumerics
+        let scalars = unicodeScalars.map { scalar -> Character in
+            if allowed.contains(scalar) {
+                return Character(String(scalar).lowercased())
+            } else {
+                return "-"
+            }
+        }
+
+        let dashed = String(scalars)
+            .split(separator: "-")
+            .joined(separator: "-")
+
+        return dashed.isEmpty ? UUID().uuidString : dashed
+    }
+}
+
+enum PinwheelStateStore {
+    private static let selectedSectionIDKey = "Pinwheel.SelectedSectionID"
+    private static let selectedItemIDKey = "Pinwheel.SelectedItemID"
+    private static let selectedDeviceBySelectionKey = "Pinwheel.SelectedDeviceBySelection"
+
+    static var selectedSectionID: String? {
+        get { UserDefaults.standard.string(forKey: selectedSectionIDKey) }
+        set { UserDefaults.standard.set(newValue, forKey: selectedSectionIDKey) }
+    }
+
+    static var selectedItemID: String? {
+        get { UserDefaults.standard.string(forKey: selectedItemIDKey) }
+        set { UserDefaults.standard.set(newValue, forKey: selectedItemIDKey) }
+    }
+
+    static func clearSelectedItem() {
+        UserDefaults.standard.removeObject(forKey: selectedItemIDKey)
+        State.lastSelectedIndexPath = nil
+    }
+
+    static func selectedDeviceIndex(for selection: PinwheelSelection) -> Int? {
+        let values = UserDefaults.standard.dictionary(forKey: selectedDeviceBySelectionKey) as? [String: Int]
+        return values?[selection.id]
+    }
+
+    static func setSelectedDeviceIndex(_ deviceIndex: Int?, for selection: PinwheelSelection) {
+        var values = UserDefaults.standard.dictionary(forKey: selectedDeviceBySelectionKey) as? [String: Int] ?? [:]
+        values[selection.id] = deviceIndex
+        UserDefaults.standard.set(values, forKey: selectedDeviceBySelectionKey)
     }
 }

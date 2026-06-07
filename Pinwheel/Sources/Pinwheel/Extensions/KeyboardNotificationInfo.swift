@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 public struct KeyboardNotificationInfo {
     public enum KeyboardAction {
