@@ -85,117 +85,140 @@ public struct PinwheelItem {
     public let constrainToTopSafeArea: Bool
     public let constrainToBottomSafeArea: Bool
     public let tabletDisplayMode: TabletDisplayMode
-    private let makeViewController: () -> UIViewController
+    private let makeViewController: (PinwheelPresentation, UIInterfaceOrientationMask, Bool, Bool) -> UIViewController
     private let makeSwiftUIView: () -> AnyView
 
     public var viewController: UIViewController {
-        return makeViewController()
+        return makeViewController(
+            presentation,
+            supportedInterfaceOrientations,
+            constrainToTopSafeArea,
+            constrainToBottomSafeArea
+        )
     }
 
     func swiftUIView() -> AnyView {
         return makeSwiftUIView()
     }
 
-    public init(title: String, id: String? = nil, viewController: UIViewController, tabletDisplayMode: TabletDisplayMode = .fullscreen) {
-        self.id = id ?? title.pinwheelGeneratedID
+    private init(
+        id: String,
+        title: String,
+        presentation: PinwheelPresentation,
+        supportedInterfaceOrientations: UIInterfaceOrientationMask,
+        constrainToTopSafeArea: Bool,
+        constrainToBottomSafeArea: Bool,
+        tabletDisplayMode: TabletDisplayMode,
+        makeViewController: @escaping (PinwheelPresentation, UIInterfaceOrientationMask, Bool, Bool) -> UIViewController,
+        makeSwiftUIView: @escaping () -> AnyView
+    ) {
+        self.id = id
         self.title = title
-        self.presentation = .fullscreen
-        self.supportedInterfaceOrientations = .all
-        self.constrainToTopSafeArea = true
-        self.constrainToBottomSafeArea = true
+        self.presentation = presentation
+        self.supportedInterfaceOrientations = supportedInterfaceOrientations
+        self.constrainToTopSafeArea = constrainToTopSafeArea
+        self.constrainToBottomSafeArea = constrainToBottomSafeArea
         self.tabletDisplayMode = tabletDisplayMode
-        self.makeViewController = { viewController }
-        self.makeSwiftUIView = {
-            AnyView(PinwheelUIKitViewController { viewController })
-        }
+        self.makeViewController = makeViewController
+        self.makeSwiftUIView = makeSwiftUIView
+    }
+
+    public init(title: String, id: String? = nil, viewController: UIViewController, tabletDisplayMode: TabletDisplayMode = .fullscreen) {
+        self.init(
+            id: id ?? title.pinwheelGeneratedID,
+            title: title,
+            presentation: .fullscreen,
+            supportedInterfaceOrientations: .all,
+            constrainToTopSafeArea: true,
+            constrainToBottomSafeArea: true,
+            tabletDisplayMode: tabletDisplayMode,
+            makeViewController: { presentation, _, _, _ in
+                viewController.configurePinwheelPresentationStyle(presentation)
+                return viewController
+            },
+            makeSwiftUIView: {
+                AnyView(PinwheelUIKitViewController { viewController })
+            }
+        )
     }
 
     public init<ViewType: UIView>(
         _ title: String,
         id: String? = nil,
-        presentation: PinwheelPresentation = .fullscreen,
-        supportedInterfaceOrientations: UIInterfaceOrientationMask = .all,
-        constrainToTopSafeArea: Bool = true,
-        constrainToBottomSafeArea: Bool = true,
-        tabletDisplayMode: TabletDisplayMode = .fullscreen,
         view: ViewType.Type
     ) {
-        self.id = id ?? title.pinwheelGeneratedID
-        self.title = title
-        self.presentation = presentation
-        self.supportedInterfaceOrientations = supportedInterfaceOrientations
-        self.constrainToTopSafeArea = constrainToTopSafeArea
-        self.constrainToBottomSafeArea = constrainToBottomSafeArea
-        self.tabletDisplayMode = tabletDisplayMode
-        self.makeViewController = {
-            PinwheelViewController<ViewType>(
-                presentationStyle: presentation,
-                supportedInterfaceOrientations: supportedInterfaceOrientations,
-                constrainToTopSafeArea: constrainToTopSafeArea,
-                constrainToBottomSafeArea: constrainToBottomSafeArea
-            )
-        }
-        self.makeSwiftUIView = {
-            AnyView(PinwheelUIKitView(view: ViewType.self))
-        }
+        self.init(
+            id: id ?? title.pinwheelGeneratedID,
+            title: title,
+            presentation: .fullscreen,
+            supportedInterfaceOrientations: .all,
+            constrainToTopSafeArea: true,
+            constrainToBottomSafeArea: true,
+            tabletDisplayMode: .fullscreen,
+            makeViewController: { presentation, orientations, constrainToTopSafeArea, constrainToBottomSafeArea in
+                PinwheelViewController<ViewType>(
+                    presentationStyle: presentation,
+                    supportedInterfaceOrientations: orientations,
+                    constrainToTopSafeArea: constrainToTopSafeArea,
+                    constrainToBottomSafeArea: constrainToBottomSafeArea
+                )
+            },
+            makeSwiftUIView: {
+                AnyView(PinwheelUIKitView(view: ViewType.self))
+            }
+        )
     }
 
     public init<Content: SwiftUI.View>(
         _ title: String,
         id: String? = nil,
-        presentation: PinwheelPresentation = .fullscreen,
-        supportedInterfaceOrientations: UIInterfaceOrientationMask = .all,
-        constrainToTopSafeArea: Bool = true,
-        constrainToBottomSafeArea: Bool = true,
-        tabletDisplayMode: TabletDisplayMode = .fullscreen,
         @ViewBuilder content: @escaping () -> Content
     ) {
-        self.id = id ?? title.pinwheelGeneratedID
-        self.title = title
-        self.presentation = presentation
-        self.supportedInterfaceOrientations = supportedInterfaceOrientations
-        self.constrainToTopSafeArea = constrainToTopSafeArea
-        self.constrainToBottomSafeArea = constrainToBottomSafeArea
-        self.tabletDisplayMode = tabletDisplayMode
-        self.makeViewController = {
-            PinwheelHostingViewController(
-                rootView: content(),
-                presentationStyle: presentation,
-                supportedInterfaceOrientations: supportedInterfaceOrientations,
-                constrainToTopSafeArea: constrainToTopSafeArea,
-                constrainToBottomSafeArea: constrainToBottomSafeArea
-            )
-        }
-        self.makeSwiftUIView = {
-            AnyView(content())
-        }
+        self.init(
+            id: id ?? title.pinwheelGeneratedID,
+            title: title,
+            presentation: .fullscreen,
+            supportedInterfaceOrientations: .all,
+            constrainToTopSafeArea: true,
+            constrainToBottomSafeArea: true,
+            tabletDisplayMode: .fullscreen,
+            makeViewController: { presentation, orientations, constrainToTopSafeArea, constrainToBottomSafeArea in
+                PinwheelHostingViewController(
+                    rootView: content(),
+                    presentationStyle: presentation,
+                    supportedInterfaceOrientations: orientations,
+                    constrainToTopSafeArea: constrainToTopSafeArea,
+                    constrainToBottomSafeArea: constrainToBottomSafeArea
+                )
+            },
+            makeSwiftUIView: {
+                AnyView(content())
+            }
+        )
     }
 
     public init(
         _ title: String,
         id: String? = nil,
-        presentation: PinwheelPresentation = .fullscreen,
-        supportedInterfaceOrientations: UIInterfaceOrientationMask = .all,
-        constrainToTopSafeArea: Bool = true,
-        constrainToBottomSafeArea: Bool = true,
-        tabletDisplayMode: TabletDisplayMode = .fullscreen,
         viewController: @escaping () -> UIViewController
     ) {
-        self.id = id ?? title.pinwheelGeneratedID
-        self.title = title
-        self.presentation = presentation
-        self.supportedInterfaceOrientations = supportedInterfaceOrientations
-        self.constrainToTopSafeArea = constrainToTopSafeArea
-        self.constrainToBottomSafeArea = constrainToBottomSafeArea
-        self.tabletDisplayMode = tabletDisplayMode
-        self.makeViewController = {
-            let controller = viewController()
-            controller.configurePinwheelPresentationStyle(presentation)
-            return controller
-        }
-        self.makeSwiftUIView = {
-            AnyView(PinwheelUIKitViewController(makeViewController: viewController))
-        }
+        self.init(
+            id: id ?? title.pinwheelGeneratedID,
+            title: title,
+            presentation: .fullscreen,
+            supportedInterfaceOrientations: .all,
+            constrainToTopSafeArea: true,
+            constrainToBottomSafeArea: true,
+            tabletDisplayMode: .fullscreen,
+            makeViewController: { presentation, _, _, _ in
+                let controller = viewController()
+                controller.configurePinwheelPresentationStyle(presentation)
+                return controller
+            },
+            makeSwiftUIView: {
+                AnyView(PinwheelUIKitViewController(makeViewController: viewController))
+            }
+        )
     }
 }
 
@@ -205,6 +228,66 @@ public extension PinwheelItem {
     @available(*, deprecated, renamed: "presentation")
     var presentationStyle: PinwheelPresentation {
         return presentation
+    }
+
+    func pinwheelPresentation(_ presentation: PinwheelPresentation) -> PinwheelItem {
+        return with(
+            presentation: presentation,
+            supportedInterfaceOrientations: supportedInterfaceOrientations,
+            constrainToTopSafeArea: constrainToTopSafeArea,
+            constrainToBottomSafeArea: constrainToBottomSafeArea,
+            tabletDisplayMode: tabletDisplayMode
+        )
+    }
+
+    func pinwheelSupportedInterfaceOrientations(_ orientations: UIInterfaceOrientationMask) -> PinwheelItem {
+        return with(
+            presentation: presentation,
+            supportedInterfaceOrientations: orientations,
+            constrainToTopSafeArea: constrainToTopSafeArea,
+            constrainToBottomSafeArea: constrainToBottomSafeArea,
+            tabletDisplayMode: tabletDisplayMode
+        )
+    }
+
+    func pinwheelSafeArea(top: Bool = true, bottom: Bool = true) -> PinwheelItem {
+        return with(
+            presentation: presentation,
+            supportedInterfaceOrientations: supportedInterfaceOrientations,
+            constrainToTopSafeArea: top,
+            constrainToBottomSafeArea: bottom,
+            tabletDisplayMode: tabletDisplayMode
+        )
+    }
+
+    func pinwheelTabletDisplayMode(_ mode: TabletDisplayMode) -> PinwheelItem {
+        return with(
+            presentation: presentation,
+            supportedInterfaceOrientations: supportedInterfaceOrientations,
+            constrainToTopSafeArea: constrainToTopSafeArea,
+            constrainToBottomSafeArea: constrainToBottomSafeArea,
+            tabletDisplayMode: mode
+        )
+    }
+
+    private func with(
+        presentation: PinwheelPresentation,
+        supportedInterfaceOrientations: UIInterfaceOrientationMask,
+        constrainToTopSafeArea: Bool,
+        constrainToBottomSafeArea: Bool,
+        tabletDisplayMode: TabletDisplayMode
+    ) -> PinwheelItem {
+        return PinwheelItem(
+            id: id,
+            title: title,
+            presentation: presentation,
+            supportedInterfaceOrientations: supportedInterfaceOrientations,
+            constrainToTopSafeArea: constrainToTopSafeArea,
+            constrainToBottomSafeArea: constrainToBottomSafeArea,
+            tabletDisplayMode: tabletDisplayMode,
+            makeViewController: makeViewController,
+            makeSwiftUIView: makeSwiftUIView
+        )
     }
 }
 

@@ -48,6 +48,8 @@ struct PinwheelPlayground: SwiftUI.View {
         let origin = originForDevice(device, in: geometry.size)
 
         item.swiftUIView()
+            .environment(\.horizontalSizeClass, horizontalSizeClass(for: device))
+            .environment(\.verticalSizeClass, verticalSizeClass(for: device))
             .background(SwiftUI.Color(uiColor: .primaryBackground))
             .frame(
                 width: size.width,
@@ -72,6 +74,27 @@ struct PinwheelPlayground: SwiftUI.View {
                 x: max((containerSize.width - device.frame.width) / 2, 0),
                 y: max((containerSize.height - device.frame.height) / 2, 0)
             )
+        }
+    }
+
+    private func horizontalSizeClass(for device: Device?) -> SwiftUI.UserInterfaceSizeClass? {
+        return sizeClass(for: device?.traits.horizontalSizeClass)
+    }
+
+    private func verticalSizeClass(for device: Device?) -> SwiftUI.UserInterfaceSizeClass? {
+        return sizeClass(for: device?.traits.verticalSizeClass)
+    }
+
+    private func sizeClass(for sizeClass: UIUserInterfaceSizeClass?) -> SwiftUI.UserInterfaceSizeClass? {
+        switch sizeClass {
+        case .compact:
+            return .compact
+        case .regular:
+            return .regular
+        case .unspecified, .none:
+            return nil
+        @unknown default:
+            return nil
         }
     }
 }
