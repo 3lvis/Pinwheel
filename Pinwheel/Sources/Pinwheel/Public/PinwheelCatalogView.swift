@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 struct PinwheelCatalogView: SwiftUI.View {
     let sections: [PinwheelSection]
@@ -62,16 +61,16 @@ struct PinwheelCatalogView: SwiftUI.View {
                     } label: {
                         HStack(spacing: 4) {
                             Text(selectedSection?.title ?? "Pinwheel")
-                                .font(.pinwheelBody)
+                                .font(PinwheelTheme.Typography.body)
                             Image(systemName: "chevron.down")
-                                .font(.pinwheelFootnote.weight(.medium))
+                                .font(PinwheelTheme.Typography.footnote.weight(.medium))
                         }
                     }
                     .buttonStyle(.plain)
-                    .foregroundStyle(SwiftUI.Color(uiColor: .actionText))
+                    .foregroundStyle(PinwheelTheme.Colors.actionText)
                 }
             }
-            .background(SwiftUI.Color(uiColor: .primaryBackground))
+            .background(PinwheelTheme.Colors.primaryBackground)
     }
 
     private var sectionPicker: some SwiftUI.View {
@@ -87,21 +86,21 @@ struct PinwheelCatalogView: SwiftUI.View {
                 } label: {
                     HStack {
                         Text(section.title)
-                            .font(.pinwheelBody)
+                            .font(PinwheelTheme.Typography.body)
                         Spacer()
                         if section.id == selectedSection?.id {
                             Image(systemName: "checkmark")
-                                .foregroundStyle(SwiftUI.Color(uiColor: .actionText))
+                                .foregroundStyle(PinwheelTheme.Colors.actionText)
                         }
                     }
                 }
-                .foregroundStyle(SwiftUI.Color(uiColor: .primaryText))
+                .foregroundStyle(PinwheelTheme.Colors.primaryText)
                 .listRowSeparator(.hidden)
-                .listRowBackground(SwiftUI.Color(uiColor: .primaryBackground))
+                .listRowBackground(PinwheelTheme.Colors.primaryBackground)
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
-            .background(SwiftUI.Color(uiColor: .primaryBackground))
+            .background(PinwheelTheme.Colors.primaryBackground)
             .navigationTitle("Sections")
             .navigationBarTitleDisplayMode(.inline)
         }
@@ -200,18 +199,18 @@ private struct PinwheelIndexView: SwiftUI.View {
                                     selectedItem(item)
                                 } label: {
                                     Text(item.title.capitalizingFirstLetter)
-                                        .font(.pinwheelBody)
-                                        .foregroundStyle(SwiftUI.Color(uiColor: .primaryText))
+                                        .font(PinwheelTheme.Typography.body)
+                                        .foregroundStyle(PinwheelTheme.Colors.primaryText)
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                 }
                                 .buttonStyle(.plain)
                                 .listRowSeparator(.hidden)
-                                .listRowBackground(SwiftUI.Color(uiColor: .primaryBackground))
+                                .listRowBackground(PinwheelTheme.Colors.primaryBackground)
                             }
                         } header: {
                             Text(group.letter)
-                                .font(.pinwheelFootnote)
-                                .foregroundStyle(SwiftUI.Color(uiColor: .secondaryText))
+                                .font(PinwheelTheme.Typography.footnote)
+                                .foregroundStyle(PinwheelTheme.Colors.secondaryText)
                                 .textCase(nil)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
@@ -221,7 +220,7 @@ private struct PinwheelIndexView: SwiftUI.View {
                 }
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
-                .background(SwiftUI.Color(uiColor: .primaryBackground))
+                .background(PinwheelTheme.Colors.primaryBackground)
 
                 VStack(spacing: 2) {
                     ForEach(groupedItems, id: \.letter) { group in
@@ -230,8 +229,8 @@ private struct PinwheelIndexView: SwiftUI.View {
                                 proxy.scrollTo(group.letter, anchor: .top)
                             }
                         }
-                        .font(.pinwheelCaption)
-                        .foregroundStyle(SwiftUI.Color(uiColor: .actionText))
+                        .font(PinwheelTheme.Typography.caption)
+                        .foregroundStyle(PinwheelTheme.Colors.actionText)
                     }
                 }
                 .padding(.trailing, 4)
@@ -249,20 +248,6 @@ private struct PinwheelIndexView: SwiftUI.View {
         return groups.keys.sorted().map { key in
             (letter: key, items: groups[key] ?? [])
         }
-    }
-}
-
-private extension Font {
-    static var pinwheelBody: Font {
-        Font(UIFont.body)
-    }
-
-    static var pinwheelFootnote: Font {
-        Font(UIFont.footnote)
-    }
-
-    static var pinwheelCaption: Font {
-        Font(UIFont.caption)
     }
 }
 
