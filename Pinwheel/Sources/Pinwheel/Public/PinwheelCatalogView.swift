@@ -36,6 +36,7 @@ struct PinwheelCatalogView: SwiftUI.View {
         .sheet(isPresented: $showsSectionPicker) {
             sectionPicker
                 .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
         }
         .sheet(item: $sheetItem) { item in
             PinwheelPlayground(item: item.item, selection: item.selection) {
@@ -76,6 +77,7 @@ struct PinwheelCatalogView: SwiftUI.View {
     private var sectionPicker: some SwiftUI.View {
         NavigationStack {
             List(sections) { section in
+                let isSelected = section.id == selectedSection?.id
                 SwiftUI.Button {
                     selectedSectionID = section.id
                     PinwheelStateStore.selectedSectionID = section.id
@@ -84,18 +86,13 @@ struct PinwheelCatalogView: SwiftUI.View {
                     }
                     showsSectionPicker = false
                 } label: {
-                    HStack {
-                        Text(section.title)
-                            .font(PinwheelTheme.Typography.body)
-                        Spacer()
-                        if section.id == selectedSection?.id {
-                            Image(systemName: "checkmark")
-                                .foregroundStyle(PinwheelTheme.Colors.actionText)
-                        }
-                    }
+                    Text(section.title)
+                        .font(PinwheelTheme.Typography.body)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .foregroundStyle(PinwheelTheme.Colors.primaryText)
-                .listRowSeparator(.hidden)
+                .buttonStyle(.plain)
+                .foregroundStyle(isSelected ? PinwheelTheme.Colors.actionText : PinwheelTheme.Colors.primaryText)
+                .listRowSeparatorTint(PinwheelTheme.Colors.secondaryBackground)
                 .listRowBackground(PinwheelTheme.Colors.primaryBackground)
             }
             .listStyle(.plain)
