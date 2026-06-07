@@ -12,8 +12,6 @@ struct PinwheelPlayground: SwiftUI.View {
     var body: some SwiftUI.View {
         GeometryReader { geometry in
             ZStack {
-                SwiftUI.Color.black
-
                 content(in: geometry)
 
                 PinwheelFloatingControls(tweakCount: tweaks.count) {
@@ -22,6 +20,8 @@ struct PinwheelPlayground: SwiftUI.View {
                     onClose()
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(backdrop.ignoresSafeArea())
             .onAppear {
                 selectedDeviceIndex = PinwheelStateStore.selectedDeviceIndex(for: selection)
             }
@@ -38,24 +38,28 @@ struct PinwheelPlayground: SwiftUI.View {
                 .presentationDetents([.medium])
             }
         }
-        .ignoresSafeArea()
     }
 
-    @ViewBuilder
+    // Black letterbox behind a smaller selected device canvas; matches the canvas
+    // background when full screen so the safe-area gaps blend instead of showing bars.
+    private var backdrop: SwiftUI.Color {
+        return selectedDevice == nil ? SwiftUI.Color(uiColor: .primaryBackground) : .black
+    }
+
+    private var selectedDevice: Device? {
+        return selectedDeviceIndex.flatMap { Device.all[safe: $0] }
+    }
+
     private func content(in geometry: GeometryProxy) -> some SwiftUI.View {
-        let device = selectedDeviceIndex.flatMap { Device.all[safe: $0] }
+        let device = selectedDevice
         let size = device?.frame.size ?? geometry.size
         let origin = originForDevice(device, in: geometry.size)
 
-        item.swiftUIView()
+        return item.swiftUIView()
             .environment(\.horizontalSizeClass, horizontalSizeClass(for: device))
             .environment(\.verticalSizeClass, verticalSizeClass(for: device))
             .background(SwiftUI.Color(uiColor: .primaryBackground))
-            .frame(
-                width: size.width,
-                height: size.height,
-                alignment: .center
-            )
+            .frame(width: size.width, height: size.height, alignment: .center)
             .position(x: origin.x + size.width / 2, y: origin.y + size.height / 2)
             .clipped()
             .onPreferenceChange(PinwheelTweaksPreferenceKey.self) { tweaks in
