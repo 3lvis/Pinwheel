@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct PinwheelCatalogView: SwiftUI.View {
     let sections: [PinwheelSection]
@@ -61,13 +62,13 @@ struct PinwheelCatalogView: SwiftUI.View {
                     } label: {
                         HStack(spacing: 4) {
                             Text(selectedSection?.title ?? "Pinwheel")
-                                .font(.headline)
+                                .font(.pinwheelBody)
                             Image(systemName: "chevron.down")
-                                .font(.caption.weight(.semibold))
+                                .font(.pinwheelFootnote.weight(.medium))
                         }
                     }
                     .buttonStyle(.plain)
-                    .foregroundStyle(SwiftUI.Color(uiColor: .primaryText))
+                    .foregroundStyle(SwiftUI.Color(uiColor: .actionText))
                 }
             }
             .background(SwiftUI.Color(uiColor: .primaryBackground))
@@ -86,6 +87,7 @@ struct PinwheelCatalogView: SwiftUI.View {
                 } label: {
                     HStack {
                         Text(section.title)
+                            .font(.pinwheelBody)
                         Spacer()
                         if section.id == selectedSection?.id {
                             Image(systemName: "checkmark")
@@ -94,7 +96,10 @@ struct PinwheelCatalogView: SwiftUI.View {
                     }
                 }
                 .foregroundStyle(SwiftUI.Color(uiColor: .primaryText))
+                .listRowSeparator(.hidden)
+                .listRowBackground(SwiftUI.Color(uiColor: .primaryBackground))
             }
+            .listStyle(.plain)
             .scrollContentBackground(.hidden)
             .background(SwiftUI.Color(uiColor: .primaryBackground))
             .navigationTitle("Sections")
@@ -189,19 +194,28 @@ private struct PinwheelIndexView: SwiftUI.View {
             ZStack(alignment: .trailing) {
                 List {
                     ForEach(groupedItems, id: \.letter) { group in
-                        Section(group.letter) {
+                        Section {
                             ForEach(group.items) { item in
                                 SwiftUI.Button {
                                     selectedItem(item)
                                 } label: {
                                     Text(item.title.capitalizingFirstLetter)
-                                        .font(.body)
+                                        .font(.pinwheelBody)
                                         .foregroundStyle(SwiftUI.Color(uiColor: .primaryText))
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                 }
                                 .buttonStyle(.plain)
+                                .listRowSeparator(.hidden)
+                                .listRowBackground(SwiftUI.Color(uiColor: .primaryBackground))
                             }
+                        } header: {
+                            Text(group.letter)
+                                .font(.pinwheelFootnote)
+                                .foregroundStyle(SwiftUI.Color(uiColor: .secondaryText))
+                                .textCase(nil)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                         }
+                        .listSectionSeparator(.hidden)
                         .id(group.letter)
                     }
                 }
@@ -216,7 +230,7 @@ private struct PinwheelIndexView: SwiftUI.View {
                                 proxy.scrollTo(group.letter, anchor: .top)
                             }
                         }
-                        .font(.caption2.weight(.semibold))
+                        .font(.pinwheelCaption)
                         .foregroundStyle(SwiftUI.Color(uiColor: .actionText))
                     }
                 }
@@ -235,6 +249,20 @@ private struct PinwheelIndexView: SwiftUI.View {
         return groups.keys.sorted().map { key in
             (letter: key, items: groups[key] ?? [])
         }
+    }
+}
+
+private extension Font {
+    static var pinwheelBody: Font {
+        Font(UIFont.body)
+    }
+
+    static var pinwheelFootnote: Font {
+        Font(UIFont.footnote)
+    }
+
+    static var pinwheelCaption: Font {
+        Font(UIFont.caption)
     }
 }
 
