@@ -13,7 +13,6 @@ struct PinwheelPlayground: SwiftUI.View {
         GeometryReader { geometry in
             ZStack {
                 SwiftUI.Color.black
-                    .ignoresSafeArea()
 
                 content(in: geometry)
 
@@ -39,6 +38,7 @@ struct PinwheelPlayground: SwiftUI.View {
                 .presentationDetents([.medium])
             }
         }
+        .ignoresSafeArea()
     }
 
     @ViewBuilder

@@ -13,14 +13,6 @@ struct Device {
         case iphone12_13ProMax_14Plus = "iPhone 12/13 Pro Max/14 Plus"
         case iphone15Plus_15ProMax_16Plus = "iPhone 15 Plus/15 Pro Max/16 Plus"
         case iphone16ProMax_17ProMax = "iPhone 16 Pro Max/17 Pro Max"
-
-        case padPortraitOneThird = "iPad Portrait 1/3"
-        case padPortraitTwoThirds = "iPad Portrait 2/3"
-        case padPortraitFull = "iPad Portrait Full"
-        case padLandscapeOneThird = "iPad Landscape 1/3"
-        case padLandscapeOneHalf = "iPad Landscape 1/2"
-        case padLandscapeTwoThirds = "iPad Landscape 2/3"
-        case padLandscapeFull = "iPad Landscape Full"
     }
 
     var kind: Kind
@@ -32,21 +24,12 @@ struct Device {
     }
 
     var isEnabled: Bool {
-        switch kind {
-        case .iphoneSE, .iphone12_13Mini, .iphoneXS_11Pro, .iphone12_13_14, .iphone15_15Pro_16, .iphone16Pro_17, .iphoneXR_11, .iphoneAir, .iphone12_13ProMax_14Plus, .iphone15Plus_15ProMax_16Plus, .iphone16ProMax_17ProMax:
-            let currentSize = UIScreen.main.bounds.size
-            return frame.width <= currentSize.width && frame.height <= currentSize.height
-        case .padLandscapeOneThird, .padLandscapeOneHalf, .padPortraitOneThird, .padPortraitTwoThirds, .padPortraitFull, .padLandscapeFull, .padLandscapeTwoThirds:
-            return UIDevice.current.userInterfaceIdiom == .pad
-        }
+        let currentSize = UIScreen.main.bounds.size
+        return frame.width <= currentSize.width && frame.height <= currentSize.height
     }
 
     init(kind: Kind) {
         let size: CGSize
-        let horizontalSizeClass: UIUserInterfaceSizeClass
-        let verticalSizeClass = UIUserInterfaceSizeClass.regular
-        let userInterfaceIdiom: UIUserInterfaceIdiom
-        let autoresizingMask: UIView.AutoresizingMask
 
         switch kind {
         case .iphoneSE:
@@ -71,56 +54,25 @@ struct Device {
             size = .init(width: 430, height: 932)
         case .iphone16ProMax_17ProMax:
             size = .init(width: 440, height: 956)
-        case .padPortraitOneThird:
-            size = .init(width: 320, height: UIScreen.main.bounds.height)
-        case .padPortraitTwoThirds:
-            size = .init(width: UIScreen.main.bounds.width - 320, height: UIScreen.main.bounds.height)
-        case .padPortraitFull:
-            size = UIScreen.main.bounds.size
-        case .padLandscapeOneThird:
-            size = .init(width: 320, height: UIScreen.main.bounds.height)
-        case .padLandscapeOneHalf:
-            size = .init(width: UIScreen.main.bounds.width / 2, height: UIScreen.main.bounds.height)
-        case .padLandscapeTwoThirds:
-            size = .init(width: UIScreen.main.bounds.width - 320, height: UIScreen.main.bounds.height)
-        case .padLandscapeFull:
-            size = UIScreen.main.bounds.size
         }
 
-        var x: CGFloat = (UIScreen.main.bounds.width - size.width) / 2
+        let x: CGFloat = (UIScreen.main.bounds.width - size.width) / 2
         let y: CGFloat = (UIScreen.main.bounds.height - size.height) / 2
 
-        switch kind {
-        case .iphoneSE, .iphone12_13Mini, .iphoneXS_11Pro, .iphone12_13_14, .iphone15_15Pro_16, .iphone16Pro_17, .iphoneXR_11, .iphoneAir, .iphone12_13ProMax_14Plus, .iphone15Plus_15ProMax_16Plus, .iphone16ProMax_17ProMax:
-            horizontalSizeClass = .compact
-            userInterfaceIdiom = .phone
-            autoresizingMask = [.flexibleRightMargin, .flexibleLeftMargin, .flexibleTopMargin, .flexibleBottomMargin]
-        case .padLandscapeOneThird, .padLandscapeOneHalf, .padPortraitOneThird, .padPortraitTwoThirds:
-            horizontalSizeClass = .compact
-            userInterfaceIdiom = .pad
-            autoresizingMask = [.flexibleHeight]
-            x = 0
-        case .padPortraitFull, .padLandscapeFull, .padLandscapeTwoThirds:
-            horizontalSizeClass = .regular
-            userInterfaceIdiom = .pad
-            autoresizingMask = [.flexibleHeight, .flexibleWidth]
-            x = 0
-        }
-
         let traits: UITraitCollection = .init(traitsFrom: [
-            .init(horizontalSizeClass: horizontalSizeClass),
-            .init(verticalSizeClass: verticalSizeClass),
-            .init(userInterfaceIdiom: userInterfaceIdiom)
+            .init(horizontalSizeClass: .compact),
+            .init(verticalSizeClass: .regular),
+            .init(userInterfaceIdiom: .phone)
         ])
 
         self.kind = kind
         self.traits = traits
         self.frame = CGRect(x: x, y: y, width: size.width, height: size.height)
-        self.autoresizingMask = autoresizingMask
+        self.autoresizingMask = [.flexibleRightMargin, .flexibleLeftMargin, .flexibleTopMargin, .flexibleBottomMargin]
     }
 
     public static var all: [Device] {
-        var devices: [Device] = [
+        return [
             Device(kind: .iphoneSE),
             Device(kind: .iphone12_13Mini),
             Device(kind: .iphoneXS_11Pro),
@@ -133,18 +85,5 @@ struct Device {
             Device(kind: .iphone15Plus_15ProMax_16Plus),
             Device(kind: .iphone16ProMax_17ProMax)
         ]
-
-        let isPortrait = UIDevice.current.userInterfaceIdiom == .pad && UIScreen.main.bounds.size.height > UIScreen.main.bounds.size.width
-        if isPortrait {
-            devices.append(contentsOf: [Device(kind: .padPortraitOneThird),
-                                        Device(kind: .padPortraitTwoThirds),
-                                        Device(kind: .padPortraitFull)])
-        } else {
-            devices.append(contentsOf: [Device(kind: .padLandscapeOneThird),
-                                        Device(kind: .padLandscapeOneHalf),
-                                        Device(kind: .padLandscapeTwoThirds),
-                                        Device(kind: .padLandscapeFull)])
-        }
-        return devices
     }
 }
