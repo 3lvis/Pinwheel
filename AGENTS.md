@@ -13,6 +13,7 @@ Add a SwiftUI `Pin*` component (with its thin `UIKitPin*` shell) only when **eit
 
 If SwiftUI's native primitive plus `PinwheelTheme` already covers it and nothing needs to host it in UIKit, **do not wrap it** — unless using the raw primitive silently bypasses the theme (see Label):
 - **Label → `PinLabel`** — there IS a SwiftUI `PinLabel` (a themed `Text` convenience), because `Text(...).font(.body)` resolves to *Apple's* system style, not the provider font — a silent footgun the demos hit. `PinLabel("x", style: .body)` makes the system-font path unrepresentable. It's a pure SwiftUI value (no hosting); UIKit keeps the independent trivial `UIKitPinLabel`. Both are fed by the same provider tokens.
+  - **Rule of thumb:** use `PinLabel` for content text; keep raw `Text` only inside a component that owns its own styling (e.g. `PinButton`'s label) or as a parameter to a system component that styles its own content (e.g. `ContentUnavailableView`, `Toggle` labels).
 - **Switch → `Toggle`** — no standalone `PinSwitch`; the only switch lives inside the UIKit `UIKitPinTableView` family.
 - **DNA (Font / Color / Spacing)** — these are *tokens*, never components, in either world: `Config` providers → `UIColor`/`UIFont`/`CGFloat` extensions (UIKit) and `PinwheelTheme.Typography`/`Colors` + `.spacing*` (SwiftUI). Single source = the providers, which is why theming/light-dark resolves across the bridge for free.
 
