@@ -45,6 +45,18 @@ If you can't restart (or no MCP), use the **Fallback** section below — it prod
 
 `sourceFilePath` is project-relative within the Xcode organization, e.g. `Demo/SwiftUIExamples/DemoPinwheelSections.swift`.
 
+## How RenderPreview targets a `#Preview`
+
+`RenderPreview` is NOT a "render any view" call — it drives Xcode's real preview pipeline (the canvas engine) against a **preview definition that must already exist in `sourceFilePath`**: a `#Preview { … }` macro or a `PreviewProvider` struct.
+
+- `previewDefinitionIndexInFile` is the **0-based index of the `#Preview`/`PreviewProvider` in that file**, top to bottom (default `0`). That's how you pick among multiple previews in one file.
+- It **builds** the preview, runs it in the preview agent, and returns `previewSnapshotPath` (a PNG — open with Read). **No simulator boot.** The preview must compile, so run `BuildProject`/`GetBuildLog` first if unsure.
+- A file with no `#Preview`/`PreviewProvider` → nothing to render → error. There is no raw-expression mode.
+- It's a **static snapshot in isolation** — no interaction. For taps/behavior use `RunSomeTests` (XCUITests) or `BuildProject` + `simctl launch -PinwheelPreview <id>`.
+- Snapshot variants: pass `previewVariantOverrides` using keys/values from a prior call's `supportedPreviewVariantOverrides`, e.g. `{"Color Scheme": "Dark Appearance"}` or `{"Dynamic Type": "AX 3"}`.
+
+This is exactly why the repo keeps ONE permanent `#Preview` (see below) instead of hand-writing a throwaway per component.
+
 ## This repo's iteration shortcuts
 
 - **Render any component without a simulator:** the permanent `#Preview` at the bottom of `Demo/SwiftUIExamples/DemoPinwheelSections.swift` renders whatever `previewComponentID` points at. Edit that one constant, then `RenderPreview(... sourceFilePath: "Demo/SwiftUIExamples/DemoPinwheelSections.swift")`.
