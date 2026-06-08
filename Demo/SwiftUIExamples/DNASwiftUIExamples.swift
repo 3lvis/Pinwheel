@@ -39,8 +39,8 @@ struct PinColorExample: SwiftUI.View {
     var body: some SwiftUI.View {
         List(colors, id: \.0) { title, color in
             HStack {
-                PinLabel(title).color(.black)
-                PinLabel(title).color(.white)
+                PinLabel(title).color(.raw(.black))
+                PinLabel(title).color(.raw(.white))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .listRowBackground(SwiftUI.Color(uiColor: color))

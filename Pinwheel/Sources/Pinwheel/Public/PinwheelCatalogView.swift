@@ -61,7 +61,7 @@ struct PinwheelCatalogView: SwiftUI.View {
                         showsSectionPicker = true
                     } label: {
                         HStack(spacing: 4) {
-                            PinLabel(selectedSection?.title ?? "Pinwheel").color(PinwheelTheme.Colors.actionText)
+                            PinLabel(selectedSection?.title ?? "Pinwheel").color(.action)
                             Image(systemName: "chevron.down")
                                 .font(PinwheelTheme.Typography.footnote.weight(.medium))
                         }
@@ -85,7 +85,7 @@ struct PinwheelCatalogView: SwiftUI.View {
                     }
                     showsSectionPicker = false
                 } label: {
-                    PinLabel(section.title).color(isSelected ? PinwheelTheme.Colors.actionText : PinwheelTheme.Colors.primaryText)
+                    PinLabel(section.title).color(isSelected ? .action : .primary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .buttonStyle(.plain)
@@ -201,7 +201,7 @@ private struct PinwheelIndexView: SwiftUI.View {
                                 .listRowBackground(PinwheelTheme.Colors.primaryBackground)
                             }
                         } header: {
-                            PinLabel(group.letter).style(.footnote).color(PinwheelTheme.Colors.secondaryText)
+                            PinLabel(group.letter).style(.footnote).color(.secondary)
                                 .textCase(nil)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }

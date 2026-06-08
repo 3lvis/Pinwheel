@@ -27,15 +27,15 @@ struct PinTableViewExample: SwiftUI.View {
                 PinLabel("Only title")
                 VStack(alignment: .leading) {
                     PinLabel("Title and subtitle")
-                    PinLabel("subtitle").style(.caption).color(PinwheelTheme.Colors.secondaryText)
+                    PinLabel("subtitle").style(.caption).color(.secondary)
                 }
                 HStack {
                     VStack(alignment: .leading) {
                         PinLabel("Title, subtitle and detail")
-                        PinLabel("subtitle").style(.caption).color(PinwheelTheme.Colors.secondaryText)
+                        PinLabel("subtitle").style(.caption).color(.secondary)
                     }
                     Spacer()
-                    PinLabel("Detail text").color(PinwheelTheme.Colors.secondaryText)
+                    PinLabel("Detail text").color(.secondary)
                 }
                 HStack {
                     PinLabel("Has chevron")
@@ -43,7 +43,7 @@ struct PinTableViewExample: SwiftUI.View {
                     Image(systemName: "chevron.right")
                         .foregroundStyle(SwiftUI.Color(uiColor: .secondaryText))
                 }
-                PinLabel("Is disabled").color(PinwheelTheme.Colors.secondaryText)
+                PinLabel("Is disabled").color(.secondary)
                 Toggle("Off", isOn: $off)
                 Toggle("On", isOn: $on)
             }

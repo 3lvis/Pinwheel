@@ -47,7 +47,7 @@ public struct PinStateView: SwiftUI.View {
                 PinLabel(title).style(.subtitle)
             }
 
-            PinLabel(subtitle).color(PinwheelTheme.Colors.secondaryText)
+            PinLabel(subtitle).color(.secondary)
 
             if let actionTitle {
                 PinButton(actionTitle, style: .secondary, action: onAction)

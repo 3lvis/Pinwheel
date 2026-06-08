@@ -14,7 +14,7 @@ import SwiftUI
 /// ```swift
 /// PinLabel("Has chevron")                                // body, primaryText
 /// PinLabel("Title").style(.title)                        // themed title
-/// PinLabel("subtitle").style(.caption).color(PinwheelTheme.Colors.secondaryText)
+/// PinLabel("subtitle").style(.caption).color(.secondary)   // .raw(_) for arbitrary colors
 /// ```
 ///
 /// `PinLabel` is a pure SwiftUI value (no `UIHostingController`): Label is the one
@@ -41,9 +41,31 @@ public struct PinLabel: SwiftUI.View {
         }
     }
 
+    /// A themed text color role. Use the semantic cases to stay on the design
+    /// system; `.raw(_)` is the escape hatch for an arbitrary color.
+    public enum TextColor {
+        case primary
+        case secondary
+        case tertiary
+        case action
+        case critical
+        case raw(SwiftUI.Color)
+
+        var color: SwiftUI.Color {
+            switch self {
+            case .primary: return PinwheelTheme.Colors.primaryText
+            case .secondary: return PinwheelTheme.Colors.secondaryText
+            case .tertiary: return PinwheelTheme.Colors.tertiaryText
+            case .action: return PinwheelTheme.Colors.actionText
+            case .critical: return PinwheelTheme.Colors.criticalText
+            case .raw(let color): return color
+            }
+        }
+    }
+
     private let text: String
     private var style: Style = .body
-    private var color: SwiftUI.Color = PinwheelTheme.Colors.primaryText
+    private var color: TextColor = .primary
 
     public init(_ text: String) {
         self.text = text
@@ -56,8 +78,9 @@ public struct PinLabel: SwiftUI.View {
         return copy
     }
 
-    /// Sets the text color (default `PinwheelTheme.Colors.primaryText`).
-    public func color(_ color: SwiftUI.Color) -> PinLabel {
+    /// Sets the text color role (default `.primary`). Use `.raw(_)` for an
+    /// arbitrary color.
+    public func color(_ color: TextColor) -> PinLabel {
         var copy = self
         copy.color = color
         return copy
@@ -66,6 +89,6 @@ public struct PinLabel: SwiftUI.View {
     public var body: some SwiftUI.View {
         Text(text)
             .font(style.font)
-            .foregroundStyle(color)
+            .foregroundStyle(color.color)
     }
 }
