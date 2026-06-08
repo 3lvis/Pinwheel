@@ -1,102 +1,92 @@
+import SwiftUI
 import UIKit
 
 public protocol UIKitPinStateViewDelegate: AnyObject {
     func stateViewDidSelectAction(_ stateView: UIKitPinStateView)
 }
 
+/// UIKit-facing state, mapped onto the SwiftUI `PinStateView.State`.
 public enum UIKitPinStateViewState {
     case loading(title: String, subtitle: String)
     case loaded
     case empty(title: String, subtitle: String)
     case failed(title: String, subtitle: String, actionTitle: String)
-}
 
-public class UIKitPinStateView: UIKitPinView {
-    public weak var delegate: UIKitPinStateViewDelegate?
-
-    private lazy var titleLabel: UIKitPinLabel = {
-        let label = UIKitPinLabel(font: .subtitle)
-        label.text = "Title"
-        label.textAlignment = .center
-        return label
-    }()
-
-    private lazy var subtitleLabel: UIKitPinLabel = {
-        let label = UIKitPinLabel(textColor: .secondaryText)
-        label.text = "Subtitle"
-        label.numberOfLines = 0
-        label.textAlignment = .center
-        return label
-    }()
-
-    private lazy var actionButton: UIKitPinButton = {
-        let button = UIKitPinButton(title: "Action", style: .secondary)
-        button.alpha = 1
-        button.addTarget(self, action: #selector(buttonAction), for: .touchUpInside)
-        return button
-    }()
-
-    private lazy var loadingIndicator: UIActivityIndicatorView = {
-        let view = UIActivityIndicatorView(withAutoLayout: true)
-        view.hidesWhenStopped = true
-        return view
-    }()
-
-    @objc private func buttonAction() {
-        self.delegate?.stateViewDidSelectAction(self)
-    }
-
-    public var state: UIKitPinStateViewState = .loaded {
-        didSet {
-            switch state {
-            case .loading(let title, let subtitle):
-                self.alpha = 1
-                self.titleLabel.text = title
-                self.subtitleLabel.text = subtitle
-                self.actionButton.alpha = 0
-                self.loadingIndicator.startAnimating()
-            case .loaded:
-                self.alpha = 0
-            case .empty(let title, let subtitle):
-                self.alpha = 1
-                self.titleLabel.text = title
-                self.subtitleLabel.text = subtitle
-                self.actionButton.alpha = 0
-                self.loadingIndicator.stopAnimating()
-            case .failed(let title, let subtitle, let actionTitle):
-                self.alpha = 1
-                self.titleLabel.text = title
-                self.subtitleLabel.text = subtitle
-                self.actionButton.title = actionTitle
-                self.actionButton.alpha = 1
-                self.loadingIndicator.stopAnimating()
-            }
+    var pinState: PinStateView.State {
+        switch self {
+        case .loading(let title, let subtitle):
+            return .loading(title: title, subtitle: subtitle)
+        case .loaded:
+            return .loaded
+        case .empty(let title, let subtitle):
+            return .empty(title: title, subtitle: subtitle)
+        case .failed(let title, let subtitle, let actionTitle):
+            return .failed(title: title, subtitle: subtitle, actionTitle: actionTitle)
         }
     }
 
-    public override func setup() {
-        addSubview(titleLabel)
-        addSubview(subtitleLabel)
-        addSubview(actionButton)
-        addSubview(loadingIndicator)
-        alpha = 0
+    var isLoaded: Bool {
+        if case .loaded = self { return true }
+        return false
+    }
+}
 
+/// UIKit-friendly host over the SwiftUI `PinStateView`. There is a single state
+/// view implementation — the SwiftUI `PinStateView` — and this is a thin shell
+/// that gives a hybrid UIKit app the imperative ergonomics it expects (`state`
+/// mutation and a delegate/closure action callback), so no SwiftUI knowledge is
+/// needed at the call site.
+public final class UIKitPinStateView: UIView {
+    public weak var delegate: UIKitPinStateViewDelegate?
+
+    /// Modern action handler for the failed-state button. The `delegate` also fires.
+    public var onAction: (() -> Void)?
+
+    // The view hides itself in `.loaded` (mirroring the old overlay behavior),
+    // so consumers that pin it over content — e.g. UIKitPinTableView — reveal
+    // the content underneath without managing the overlay's alpha themselves.
+    public var state: UIKitPinStateViewState = .loaded {
+        didSet {
+            alpha = state.isLoaded ? 0 : 1
+            reload()
+        }
+    }
+
+    private var host: PinHostView<PinStateView>!
+
+    public init() {
+        super.init(frame: .zero)
+
+        translatesAutoresizingMaskIntoConstraints = false
+        backgroundColor = .clear
+        alpha = state.isLoaded ? 0 : 1
+
+        host = PinHostView(rootView: makeRootView())
+        addSubview(host)
+        // Hugs its content and centers vertically, matching the placeholder's
+        // centered layout when pinned over content (e.g. a table's overlay).
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(greaterThanOrEqualTo: topAnchor, constant: .spacingM).withPriority(.defaultLow),
-            titleLabel.bottomAnchor.constraint(equalTo: subtitleLabel.topAnchor, constant: -.spacingS),
-            titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
-            titleLabel.widthAnchor.constraint(lessThanOrEqualTo: widthAnchor, constant: -.spacingXL),
-
-            loadingIndicator.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
-            loadingIndicator.trailingAnchor.constraint(equalTo: titleLabel.leadingAnchor, constant: -.spacingS),
-
-            subtitleLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
-            subtitleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingM),
-            subtitleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingM),
-
-            actionButton.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: .spacingL),
-            actionButton.centerXAnchor.constraint(equalTo: centerXAnchor),
-            actionButton.bottomAnchor.constraint(greaterThanOrEqualTo: bottomAnchor, constant: -.spacingM).withPriority(.defaultLow),
+            host.leadingAnchor.constraint(equalTo: leadingAnchor),
+            host.trailingAnchor.constraint(equalTo: trailingAnchor),
+            host.centerYAnchor.constraint(equalTo: centerYAnchor),
+            host.topAnchor.constraint(greaterThanOrEqualTo: topAnchor),
+            host.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor)
         ])
+    }
+
+    public required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    private func reload() {
+        host?.rootView = makeRootView()
+    }
+
+    private func makeRootView() -> PinStateView {
+        PinStateView(state.pinState) { [weak self] in
+            guard let self else { return }
+            self.delegate?.stateViewDidSelectAction(self)
+            self.onAction?()
+        }
     }
 }

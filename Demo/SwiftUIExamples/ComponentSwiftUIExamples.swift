@@ -123,52 +123,28 @@ struct PinButtonExample: SwiftUI.View {
 }
 
 struct PinStateViewExample: SwiftUI.View {
-    private enum StateKind: String {
-        case loading
-        case loaded
-        case empty
-        case failed
-    }
-
-    @SwiftUI.State private var state: StateKind = .loaded
+    @SwiftUI.State private var state: PinStateView.State = .empty(
+        title: "Ready to Move?",
+        subtitle: "Kick things off with your first booking."
+    )
 
     var body: some SwiftUI.View {
-        VStack(spacing: .spacingM) {
-            switch state {
-            case .loading:
-                ProgressView("Loading...")
-                    .font(.body)
-            case .loaded:
-                Text("Loaded")
-                    .font(.title.bold())
-            case .empty:
-                Text("Ready to Move?")
-                    .font(.title.bold())
-                Text("Kick things off with your first booking.")
-                    .font(.body)
-                    .foregroundStyle(SwiftUI.Color(uiColor: .secondaryText))
-            case .failed:
-                Text("Oops!")
-                    .font(.title.bold())
-                Text("We couldn't load your bookings.")
-                    .font(.body)
-                    .foregroundStyle(SwiftUI.Color(uiColor: .secondaryText))
-                SwiftUI.Button("Retry") {
-                    state = .loading
-                }
-                .buttonStyle(.borderedProminent)
-            }
+        PinStateView(state) {
+            state = .loading(title: "Loading...", subtitle: "Please wait while we fetch your details.")
         }
-        .multilineTextAlignment(.center)
-        .padding(.spacingXXL)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .foregroundStyle(SwiftUI.Color(uiColor: .primaryText))
         .background(SwiftUI.Color(uiColor: .primaryBackground))
         .pinwheelTweaks {
-            PinwheelTweak("Loading") { state = .loading }
+            PinwheelTweak("Loading") {
+                state = .loading(title: "Loading...", subtitle: "Please wait while we fetch your details.")
+            }
             PinwheelTweak("Loaded") { state = .loaded }
-            PinwheelTweak("Empty") { state = .empty }
-            PinwheelTweak("Failed") { state = .failed }
+            PinwheelTweak("Empty") {
+                state = .empty(title: "Ready to Move?", subtitle: "Kick things off with your first booking.")
+            }
+            PinwheelTweak("Failed") {
+                state = .failed(title: "Oops!", subtitle: "We couldn't load your bookings.", actionTitle: "Retry")
+            }
         }
     }
 }
