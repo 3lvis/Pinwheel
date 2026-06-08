@@ -21,10 +21,8 @@ struct PinTweakableExample: SwiftUI.View {
     @SwiftUI.State private var isOn = false
 
     var body: some SwiftUI.View {
-        Text(selection)
-            .font(.body)
+        PinLabel(selection, style: .body)
             .multilineTextAlignment(.center)
-            .foregroundStyle(SwiftUI.Color(uiColor: .primaryText))
             .padding(.spacingXXL)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(SwiftUI.Color(uiColor: .primaryBackground))
@@ -59,12 +57,10 @@ struct PinFullscreenViewExample: SwiftUI.View {
             Spacer()
 
             HStack {
-                Text("Left Label")
+                PinLabel("Left Label", style: .body)
                 Spacer()
-                Text("Right Label")
+                PinLabel("Right Label", style: .body)
             }
-            .font(.body)
-            .foregroundStyle(SwiftUI.Color(uiColor: .primaryText))
         }
         .padding(.spacingM)
         .background(SwiftUI.Color(uiColor: .primaryBackground))

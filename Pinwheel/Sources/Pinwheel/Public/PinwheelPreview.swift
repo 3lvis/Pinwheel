@@ -53,9 +53,7 @@ private struct PinwheelPreviewCaption: SwiftUI.View {
     let variant: String?
 
     var body: some SwiftUI.View {
-        Text(variant.map { "\(id) · \($0)" } ?? id)
-            .font(PinwheelTheme.Typography.caption)
-            .foregroundStyle(PinwheelTheme.Colors.secondaryText)
+        PinLabel(variant.map { "\(id) · \($0)" } ?? id, style: .caption, color: PinwheelTheme.Colors.secondaryText)
             .padding(.horizontal, .spacingS)
             .padding(.vertical, .spacingXXS)
             .background(
@@ -162,24 +160,17 @@ private struct PinwheelPreviewNotFound: SwiftUI.View {
     var body: some SwiftUI.View {
         ScrollView {
             VStack(alignment: .leading, spacing: .spacingL) {
-                Text("No component with id “\(requestedID)”")
-                    .font(PinwheelTheme.Typography.title)
-                    .foregroundStyle(PinwheelTheme.Colors.primaryText)
+                PinLabel("No component with id “\(requestedID)”", style: .title)
 
-                Text("Available ids — pass a bare item id, or a qualified sectionID/itemID:")
-                    .font(PinwheelTheme.Typography.footnote)
-                    .foregroundStyle(PinwheelTheme.Colors.secondaryText)
+                PinLabel("Available ids — pass a bare item id, or a qualified sectionID/itemID:",
+                         style: .footnote, color: PinwheelTheme.Colors.secondaryText)
 
                 ForEach(sections) { section in
                     VStack(alignment: .leading, spacing: .spacingXS) {
-                        Text(section.title)
-                            .font(PinwheelTheme.Typography.subtitleSemibold)
-                            .foregroundStyle(PinwheelTheme.Colors.primaryText)
+                        PinLabel(section.title, style: .subtitleSemibold)
 
                         ForEach(section.items) { item in
-                            Text("\(section.id)/\(item.id)")
-                                .font(PinwheelTheme.Typography.caption)
-                                .foregroundStyle(PinwheelTheme.Colors.secondaryText)
+                            PinLabel("\(section.id)/\(item.id)", style: .caption, color: PinwheelTheme.Colors.secondaryText)
                         }
                     }
                 }

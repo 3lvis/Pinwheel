@@ -39,10 +39,8 @@ struct PinColorExample: SwiftUI.View {
     var body: some SwiftUI.View {
         List(colors, id: \.0) { title, color in
             HStack {
-                Text(title)
-                    .foregroundStyle(.black)
-                Text(title)
-                    .foregroundStyle(.white)
+                PinLabel(title, color: .black)
+                PinLabel(title, color: .white)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .listRowBackground(SwiftUI.Color(uiColor: color))
@@ -69,9 +67,7 @@ struct PinSpacingExample: SwiftUI.View {
         ScrollView {
             VStack(spacing: .spacingXXL) {
                 ForEach(spacings, id: \.0) { title, spacing in
-                    Text("\(title) \(Int(spacing))")
-                        .font(.body)
-                        .foregroundStyle(SwiftUI.Color(uiColor: .primaryText))
+                    PinLabel("\(title) \(Int(spacing))", style: .body)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, .spacingS)
                         .background(SwiftUI.Color(uiColor: .tertiaryText))

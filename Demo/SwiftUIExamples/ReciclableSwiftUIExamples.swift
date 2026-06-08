@@ -24,32 +24,26 @@ struct PinTableViewExample: SwiftUI.View {
                     }
                 }
             default:
-                Text("Only title")
+                PinLabel("Only title", style: .body)
                 VStack(alignment: .leading) {
-                    Text("Title and subtitle")
-                    Text("subtitle")
-                        .font(.caption)
-                        .foregroundStyle(SwiftUI.Color(uiColor: .secondaryText))
+                    PinLabel("Title and subtitle", style: .body)
+                    PinLabel("subtitle", style: .caption, color: PinwheelTheme.Colors.secondaryText)
                 }
                 HStack {
                     VStack(alignment: .leading) {
-                        Text("Title, subtitle and detail")
-                        Text("subtitle")
-                            .font(.caption)
-                            .foregroundStyle(SwiftUI.Color(uiColor: .secondaryText))
+                        PinLabel("Title, subtitle and detail", style: .body)
+                        PinLabel("subtitle", style: .caption, color: PinwheelTheme.Colors.secondaryText)
                     }
                     Spacer()
-                    Text("Detail text")
-                        .foregroundStyle(SwiftUI.Color(uiColor: .secondaryText))
+                    PinLabel("Detail text", style: .body, color: PinwheelTheme.Colors.secondaryText)
                 }
                 HStack {
-                    Text("Has chevron")
+                    PinLabel("Has chevron", style: .body)
                     Spacer()
                     Image(systemName: "chevron.right")
                         .foregroundStyle(SwiftUI.Color(uiColor: .secondaryText))
                 }
-                Text("Is disabled")
-                    .foregroundStyle(SwiftUI.Color(uiColor: .secondaryText))
+                PinLabel("Is disabled", style: .body, color: PinwheelTheme.Colors.secondaryText)
                 Toggle("Off", isOn: $off)
                 Toggle("On", isOn: $on)
             }
