@@ -32,6 +32,7 @@ public enum UIKitPinButtonStyle {
 /// call site.
 public final class UIKitPinButton: UIControl {
     private let symbol: String?
+    private let font: PinLabel.Style
     private let style: UIKitPinButtonStyle
     private var host: PinHostView<AnyView>!
 
@@ -45,10 +46,12 @@ public final class UIKitPinButton: UIControl {
     public init(
         title: String? = nil,
         symbol: String? = nil,
+        font: PinLabel.Style = .subtitleSemibold,
         style: UIKitPinButtonStyle = .primary
     ) {
         self.title = title
         self.symbol = symbol
+        self.font = font
         self.style = style
         super.init(frame: .zero)
 
@@ -84,6 +87,7 @@ public final class UIKitPinButton: UIControl {
                 self.sendActions(for: .touchUpInside)
                 self.onTap?()
             }
+            .font(font)
             .style(style.pinStyle)
             .loading(isLoading)
             .disabled(!isEnabled)

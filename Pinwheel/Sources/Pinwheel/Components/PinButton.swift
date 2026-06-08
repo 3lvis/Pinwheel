@@ -35,6 +35,7 @@ public struct PinButton: SwiftUI.View {
     private let systemImage: String?
     private let action: () -> Void
     private var style: Style = .primary
+    private var typography: PinLabel.Style = .subtitleSemibold
     private var isLoading: Bool = false
 
     @SwiftUI.State private var tapCount = 0
@@ -53,6 +54,14 @@ public struct PinButton: SwiftUI.View {
     public func style(_ style: Style) -> PinButton {
         var copy = self
         copy.style = style
+        return copy
+    }
+
+    /// Sets the title/symbol typography (default `.subtitleSemibold`). Takes a
+    /// themed `PinLabel.Style`, not a raw `Font`, so it stays on the design system.
+    public func font(_ style: PinLabel.Style) -> PinButton {
+        var copy = self
+        copy.typography = style
         return copy
     }
 
@@ -79,14 +88,14 @@ public struct PinButton: SwiftUI.View {
         HStack(spacing: .spacingS) {
             if let title {
                 Text(title)
-                    .font(PinwheelTheme.Typography.subtitleSemibold)
+                    .font(typography.font)
                     .underline(style.isTertiary)
                     .lineLimit(1)
             }
 
             if let systemImage {
                 Image(systemName: systemImage)
-                    .font(PinwheelTheme.Typography.subtitleSemibold)
+                    .font(typography.font)
             }
 
             if isLoading {

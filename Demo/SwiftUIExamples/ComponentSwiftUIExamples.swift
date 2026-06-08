@@ -109,9 +109,11 @@ struct PinButtonExample: SwiftUI.View {
                     .disabled(true)
 
                 PinButton("Custom") {}
+                    .font(.caption)
                     .style(.custom(text: .green, background: .red))
 
                 PinButton("Custom") {}
+                    .font(.caption)
                     .style(.custom(text: .green, background: .red))
                     .disabled(true)
             }
