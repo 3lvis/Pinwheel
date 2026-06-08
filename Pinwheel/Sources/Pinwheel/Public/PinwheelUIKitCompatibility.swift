@@ -35,6 +35,43 @@ public struct PinwheelUIKitViewController: UIViewControllerRepresentable {
     }
 }
 
+extension PinwheelTweak {
+    /// Bridges a UIKit `Tweak` to a SwiftUI `PinwheelTweak`, so a hosted
+    /// `Tweakable` UIKit view's options appear in the SwiftUI playground's
+    /// settings sheet. Returns nil for unknown `Tweak` kinds.
+    init?(_ tweak: Tweak) {
+        if let text = tweak as? TextTweak {
+            self.init(text.title, description: text.description, action: text.action)
+        } else if let toggle = tweak as? BoolTweak {
+            self.init(toggle.title, description: toggle.description, isOn: PinwheelTweakBoolStore(toggle).binding)
+        } else {
+            return nil
+        }
+    }
+}
+
+/// Backs a bridged `BoolTweak` with mutable state and forwards changes to the
+/// UIKit tweak's action.
+private final class PinwheelTweakBoolStore {
+    private var isOn: Bool
+    private let action: (Bool) -> Void
+
+    init(_ tweak: BoolTweak) {
+        self.isOn = tweak.isOn
+        self.action = tweak.action
+    }
+
+    var binding: Binding<Bool> {
+        Binding(
+            get: { self.isOn },
+            set: { newValue in
+                self.isOn = newValue
+                self.action(newValue)
+            }
+        )
+    }
+}
+
 /// Hosts a UIKit view as a view controller's full-bounds content.
 ///
 /// Used to embed `view:` catalog items in SwiftUI: a `UIViewControllerRepresentable`

@@ -164,9 +164,14 @@ public struct PinwheelItem {
                 )
             },
             makeSwiftUIView: {
-                AnyView(PinwheelUIKitViewController {
-                    PinwheelUIKitContainerViewController { ViewType(frame: .zero) }
-                })
+                let view = ViewType(frame: .zero)
+                let tweaks = (view as? Tweakable)?.tweaks.compactMap { PinwheelTweak($0) } ?? []
+                return AnyView(
+                    PinwheelUIKitViewController {
+                        PinwheelUIKitContainerViewController { view }
+                    }
+                    .pinwheelTweaks(tweaks)
+                )
             }
         )
     }

@@ -66,6 +66,10 @@ public extension SwiftUI.View {
         preference(key: PinwheelTweaksPreferenceKey.self, value: tweaks())
     }
 
+    func pinwheelTweaks(_ tweaks: [PinwheelTweak]) -> some SwiftUI.View {
+        preference(key: PinwheelTweaksPreferenceKey.self, value: tweaks)
+    }
+
     func pinwheelTweak(_ tweak: PinwheelTweak) -> some SwiftUI.View {
         preference(key: PinwheelTweaksPreferenceKey.self, value: [tweak])
     }
