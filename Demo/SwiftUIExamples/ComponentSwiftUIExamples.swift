@@ -4,11 +4,11 @@ import Pinwheel
 struct PinLabelExample: SwiftUI.View {
     var body: some SwiftUI.View {
         VStack(alignment: .leading, spacing: .spacingL) {
-            PinLabel("Title").style(.title)
-            PinLabel("Subtitle").style(.subtitle)
+            PinLabel("Title").font(.title)
+            PinLabel("Subtitle").font(.subtitle)
             PinLabel("Body")
-            PinLabel("Footnote").style(.footnote)
-            PinLabel("Caption").style(.caption)
+            PinLabel("Footnote").font(.footnote)
+            PinLabel("Caption").font(.caption)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(.spacingL)

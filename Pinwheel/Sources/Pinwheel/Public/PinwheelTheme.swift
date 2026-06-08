@@ -1,6 +1,29 @@
 import SwiftUI
 import UIKit
 
+/// The themed typography scale — the font token used by `PinLabel.font(_:)` and
+/// `PinButton.font(_:)`. Parallels Apple's `Font.TextStyle`, but resolves the
+/// provider-backed `PinwheelTheme.Typography` fonts instead of system styles.
+public enum PinTextStyle {
+    case title
+    case subtitle
+    case subtitleSemibold
+    case body
+    case footnote
+    case caption
+
+    var font: SwiftUI.Font {
+        switch self {
+        case .title: return PinwheelTheme.Typography.title
+        case .subtitle: return PinwheelTheme.Typography.subtitle
+        case .subtitleSemibold: return PinwheelTheme.Typography.subtitleSemibold
+        case .body: return PinwheelTheme.Typography.body
+        case .footnote: return PinwheelTheme.Typography.footnote
+        case .caption: return PinwheelTheme.Typography.caption
+        }
+    }
+}
+
 public enum PinwheelTheme {
     public enum Typography {
         public static var title: Font { Font(UIFont.title) }

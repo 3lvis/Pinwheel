@@ -201,7 +201,7 @@ private struct PinwheelIndexView: SwiftUI.View {
                                 .listRowBackground(PinwheelTheme.Colors.primaryBackground)
                             }
                         } header: {
-                            PinLabel(group.letter).style(.footnote).color(.secondary)
+                            PinLabel(group.letter).font(.footnote).color(.secondary)
                                 .textCase(nil)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }

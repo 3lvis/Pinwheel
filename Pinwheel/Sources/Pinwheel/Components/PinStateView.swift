@@ -44,7 +44,7 @@ public struct PinStateView: SwiftUI.View {
                     ProgressView()
                 }
 
-                PinLabel(title).style(.subtitle)
+                PinLabel(title).font(.subtitle)
             }
 
             PinLabel(subtitle).color(.secondary)

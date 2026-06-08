@@ -27,12 +27,12 @@ struct PinTableViewExample: SwiftUI.View {
                 PinLabel("Only title")
                 VStack(alignment: .leading) {
                     PinLabel("Title and subtitle")
-                    PinLabel("subtitle").style(.caption).color(.secondary)
+                    PinLabel("subtitle").font(.caption).color(.secondary)
                 }
                 HStack {
                     VStack(alignment: .leading) {
                         PinLabel("Title, subtitle and detail")
-                        PinLabel("subtitle").style(.caption).color(.secondary)
+                        PinLabel("subtitle").font(.caption).color(.secondary)
                     }
                     Spacer()
                     PinLabel("Detail text").color(.secondary)
