@@ -44,8 +44,8 @@ struct PinTableViewExample: SwiftUI.View {
                         .foregroundStyle(SwiftUI.Color(uiColor: .secondaryText))
                 }
                 PinLabel("Is disabled").color(.secondary)
-                Toggle("Off", isOn: $off)
-                Toggle("On", isOn: $on)
+                Toggle(isOn: $off) { PinLabel("Off") }
+                Toggle(isOn: $on) { PinLabel("On") }
             }
         }
         .listStyle(.plain)
