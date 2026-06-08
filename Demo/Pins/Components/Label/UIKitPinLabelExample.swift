@@ -1,7 +1,7 @@
 import UIKit
 import Pinwheel
 
-class PinLabel: UIKitPinView {
+class UIKitPinLabelExample: UIKitPinView {
     override func setup() {
         let title = UIKitPinLabel(font: .title)
         title.text = "Title"

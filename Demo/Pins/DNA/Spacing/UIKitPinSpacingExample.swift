@@ -1,7 +1,7 @@
 import UIKit
 import Pinwheel
 
-class PinSpacing: UIKitPinView {
+class UIKitPinSpacingExample: UIKitPinView {
     func makeLabel(text: String) -> UIKitPinLabel {
         let label = UIKitPinLabel(font: .body)
         label.text = text

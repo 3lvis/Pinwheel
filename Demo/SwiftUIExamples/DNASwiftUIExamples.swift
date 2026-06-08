@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct PinSwiftUIFont: SwiftUI.View {
+struct PinFontExample: SwiftUI.View {
     private let fonts: [(String, Font)] = [
         ("Title", .title),
         ("Subtitle", .title3),
@@ -27,7 +27,7 @@ struct PinSwiftUIFont: SwiftUI.View {
     }
 }
 
-struct PinSwiftUIColor: SwiftUI.View {
+struct PinColorExample: SwiftUI.View {
     private let colors: [(String, UIColor)] = [
         ("Primary Text", .primaryText),
         ("Secondary Text", .secondaryText),
@@ -57,7 +57,7 @@ struct PinSwiftUIColor: SwiftUI.View {
     }
 }
 
-struct PinSwiftUISpacing: SwiftUI.View {
+struct PinSpacingExample: SwiftUI.View {
     private let spacings: [(String, CGFloat)] = [
         ("spacingXXS", .spacingXXS),
         ("spacingXS", .spacingXS),

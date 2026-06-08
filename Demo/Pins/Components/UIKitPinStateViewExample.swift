@@ -1,7 +1,7 @@
 import UIKit
 import Pinwheel
 
-class PinStateView: UIKitPinView, Tweakable {
+class UIKitPinStateViewExample: UIKitPinView, Tweakable {
     lazy var tweaks: [Tweak] = {
         return [
             TextTweak(title: "Loading") {
@@ -31,7 +31,7 @@ class PinStateView: UIKitPinView, Tweakable {
     }
 }
 
-extension PinStateView: UIKitPinStateViewDelegate {
+extension UIKitPinStateViewExample: UIKitPinStateViewDelegate {
     func stateViewDidSelectAction(_ stateView: Pinwheel.UIKitPinStateView) {
         print("action!")
     }

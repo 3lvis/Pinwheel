@@ -1,7 +1,7 @@
 import SwiftUI
 import Pinwheel
 
-struct PinSwiftUITableView: SwiftUI.View {
+struct PinTableViewExample: SwiftUI.View {
     @SwiftUI.State private var state = "loaded"
     @SwiftUI.State private var off = false
     @SwiftUI.State private var on = true

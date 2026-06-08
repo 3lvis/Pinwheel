@@ -11,20 +11,20 @@
 		2847DF552A48903F009A6B8E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2847DF542A48903F009A6B8E /* Assets.xcassets */; };
 		284D78022A5215E9001F20B3 /* BottomSheetExampleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 284D78012A5215E9001F20B3 /* BottomSheetExampleViewController.swift */; };
 		2868C2C12C3CA2A20008A2CA /* UIKitPinButtonExample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2868C2C02C3CA2A20008A2CA /* UIKitPinButtonExample.swift */; };
-		286CF2C22A4F86A4008D3B26 /* PinTweakable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 286CF2C12A4F86A4008D3B26 /* PinTweakable.swift */; };
-		2879050E2C1A74C700FF8DF4 /* PinFullscreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2879050D2C1A74C700FF8DF4 /* PinFullscreenView.swift */; };
-		2886CAB72C3CAFE300D677B6 /* PinStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2886CAB62C3CAFE300D677B6 /* PinStateView.swift */; };
+		286CF2C22A4F86A4008D3B26 /* UIKitPinTweakableExample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 286CF2C12A4F86A4008D3B26 /* UIKitPinTweakableExample.swift */; };
+		2879050E2C1A74C700FF8DF4 /* UIKitPinFullscreenViewExample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2879050D2C1A74C700FF8DF4 /* UIKitPinFullscreenViewExample.swift */; };
+		2886CAB72C3CAFE300D677B6 /* UIKitPinStateViewExample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2886CAB62C3CAFE300D677B6 /* UIKitPinStateViewExample.swift */; };
 		2893C64C2A48908700039B8A /* Pinwheel in Frameworks */ = {isa = PBXBuildFile; productRef = 2893C64B2A48908700039B8A /* Pinwheel */; };
 		28AAFA612A49F3E900E1CA35 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28AAFA602A49F3E900E1CA35 /* Config.swift */; };
 		28B000012D00000100000001 /* DemoPinwheelSections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28B000052D00000100000001 /* DemoPinwheelSections.swift */; };
 		28B000022D00000100000001 /* DNASwiftUIExamples.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28B000062D00000100000001 /* DNASwiftUIExamples.swift */; };
 		28B000032D00000100000001 /* ComponentSwiftUIExamples.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28B000072D00000100000001 /* ComponentSwiftUIExamples.swift */; };
 		28B000042D00000100000001 /* ReciclableSwiftUIExamples.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28B000082D00000100000001 /* ReciclableSwiftUIExamples.swift */; };
-		28F459392A49860400504BF6 /* PinColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459332A49860400504BF6 /* PinColor.swift */; };
-		28F4593A2A49860400504BF6 /* PinSpacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459352A49860400504BF6 /* PinSpacing.swift */; };
-		28F4593B2A49860400504BF6 /* PinFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459372A49860400504BF6 /* PinFont.swift */; };
-		28F4594A2A498B6B00504BF6 /* PinLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459492A498B6B00504BF6 /* PinLabel.swift */; };
-		28F459532A498CFF00504BF6 /* PinBasicTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459522A498CFF00504BF6 /* PinBasicTableView.swift */; };
+		28F459392A49860400504BF6 /* UIKitPinColorExample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459332A49860400504BF6 /* UIKitPinColorExample.swift */; };
+		28F4593A2A49860400504BF6 /* UIKitPinSpacingExample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459352A49860400504BF6 /* UIKitPinSpacingExample.swift */; };
+		28F4593B2A49860400504BF6 /* UIKitPinFontExample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459372A49860400504BF6 /* UIKitPinFontExample.swift */; };
+		28F4594A2A498B6B00504BF6 /* UIKitPinLabelExample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459492A498B6B00504BF6 /* UIKitPinLabelExample.swift */; };
+		28F459532A498CFF00504BF6 /* UIKitPinTableViewExample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459522A498CFF00504BF6 /* UIKitPinTableViewExample.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,20 +34,20 @@
 		2847DF592A48903F009A6B8E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		284D78012A5215E9001F20B3 /* BottomSheetExampleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomSheetExampleViewController.swift; sourceTree = "<group>"; };
 		2868C2C02C3CA2A20008A2CA /* UIKitPinButtonExample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIKitPinButtonExample.swift; sourceTree = "<group>"; };
-		286CF2C12A4F86A4008D3B26 /* PinTweakable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinTweakable.swift; sourceTree = "<group>"; };
-		2879050D2C1A74C700FF8DF4 /* PinFullscreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinFullscreenView.swift; sourceTree = "<group>"; };
-		2886CAB62C3CAFE300D677B6 /* PinStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinStateView.swift; sourceTree = "<group>"; };
+		286CF2C12A4F86A4008D3B26 /* UIKitPinTweakableExample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIKitPinTweakableExample.swift; sourceTree = "<group>"; };
+		2879050D2C1A74C700FF8DF4 /* UIKitPinFullscreenViewExample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIKitPinFullscreenViewExample.swift; sourceTree = "<group>"; };
+		2886CAB62C3CAFE300D677B6 /* UIKitPinStateViewExample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIKitPinStateViewExample.swift; sourceTree = "<group>"; };
 		2893C6492A48908000039B8A /* Pinwheel */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Pinwheel; sourceTree = "<group>"; };
 		28AAFA602A49F3E900E1CA35 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		28B000052D00000100000001 /* DemoPinwheelSections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoPinwheelSections.swift; sourceTree = "<group>"; };
 		28B000062D00000100000001 /* DNASwiftUIExamples.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DNASwiftUIExamples.swift; sourceTree = "<group>"; };
 		28B000072D00000100000001 /* ComponentSwiftUIExamples.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentSwiftUIExamples.swift; sourceTree = "<group>"; };
 		28B000082D00000100000001 /* ReciclableSwiftUIExamples.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReciclableSwiftUIExamples.swift; sourceTree = "<group>"; };
-		28F459332A49860400504BF6 /* PinColor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinColor.swift; sourceTree = "<group>"; };
-		28F459352A49860400504BF6 /* PinSpacing.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinSpacing.swift; sourceTree = "<group>"; };
-		28F459372A49860400504BF6 /* PinFont.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinFont.swift; sourceTree = "<group>"; };
-		28F459492A498B6B00504BF6 /* PinLabel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinLabel.swift; sourceTree = "<group>"; };
-		28F459522A498CFF00504BF6 /* PinBasicTableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinBasicTableView.swift; sourceTree = "<group>"; };
+		28F459332A49860400504BF6 /* UIKitPinColorExample.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIKitPinColorExample.swift; sourceTree = "<group>"; };
+		28F459352A49860400504BF6 /* UIKitPinSpacingExample.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIKitPinSpacingExample.swift; sourceTree = "<group>"; };
+		28F459372A49860400504BF6 /* UIKitPinFontExample.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIKitPinFontExample.swift; sourceTree = "<group>"; };
+		28F459492A498B6B00504BF6 /* UIKitPinLabelExample.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIKitPinLabelExample.swift; sourceTree = "<group>"; };
+		28F459522A498CFF00504BF6 /* UIKitPinTableViewExample.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UIKitPinTableViewExample.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -96,7 +96,7 @@
 		286CF2C02A4F8699008D3B26 /* Tweakable */ = {
 			isa = PBXGroup;
 			children = (
-				286CF2C12A4F86A4008D3B26 /* PinTweakable.swift */,
+				286CF2C12A4F86A4008D3B26 /* UIKitPinTweakableExample.swift */,
 			);
 			path = Tweakable;
 			sourceTree = "<group>";
@@ -135,9 +135,9 @@
 				286CF2C02A4F8699008D3B26 /* Tweakable */,
 				28F459482A498B6B00504BF6 /* Label */,
 				28F459452A49882C00504BF6 /* BottomSheet */,
-				2879050D2C1A74C700FF8DF4 /* PinFullscreenView.swift */,
+				2879050D2C1A74C700FF8DF4 /* UIKitPinFullscreenViewExample.swift */,
 				2868C2C02C3CA2A20008A2CA /* UIKitPinButtonExample.swift */,
-				2886CAB62C3CAFE300D677B6 /* PinStateView.swift */,
+				2886CAB62C3CAFE300D677B6 /* UIKitPinStateViewExample.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -155,7 +155,7 @@
 		28F459322A49860400504BF6 /* Color */ = {
 			isa = PBXGroup;
 			children = (
-				28F459332A49860400504BF6 /* PinColor.swift */,
+				28F459332A49860400504BF6 /* UIKitPinColorExample.swift */,
 			);
 			path = Color;
 			sourceTree = "<group>";
@@ -163,7 +163,7 @@
 		28F459342A49860400504BF6 /* Spacing */ = {
 			isa = PBXGroup;
 			children = (
-				28F459352A49860400504BF6 /* PinSpacing.swift */,
+				28F459352A49860400504BF6 /* UIKitPinSpacingExample.swift */,
 			);
 			path = Spacing;
 			sourceTree = "<group>";
@@ -171,7 +171,7 @@
 		28F459362A49860400504BF6 /* Font */ = {
 			isa = PBXGroup;
 			children = (
-				28F459372A49860400504BF6 /* PinFont.swift */,
+				28F459372A49860400504BF6 /* UIKitPinFontExample.swift */,
 			);
 			path = Font;
 			sourceTree = "<group>";
@@ -187,7 +187,7 @@
 		28F459482A498B6B00504BF6 /* Label */ = {
 			isa = PBXGroup;
 			children = (
-				28F459492A498B6B00504BF6 /* PinLabel.swift */,
+				28F459492A498B6B00504BF6 /* UIKitPinLabelExample.swift */,
 			);
 			path = Label;
 			sourceTree = "<group>";
@@ -203,7 +203,7 @@
 		28F459512A498CFF00504BF6 /* Basic */ = {
 			isa = PBXGroup;
 			children = (
-				28F459522A498CFF00504BF6 /* PinBasicTableView.swift */,
+				28F459522A498CFF00504BF6 /* UIKitPinTableViewExample.swift */,
 			);
 			path = Basic;
 			sourceTree = "<group>";
@@ -283,22 +283,22 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				28F459532A498CFF00504BF6 /* PinBasicTableView.swift in Sources */,
+				28F459532A498CFF00504BF6 /* UIKitPinTableViewExample.swift in Sources */,
 				28B000042D00000100000001 /* ReciclableSwiftUIExamples.swift in Sources */,
 				284D78022A5215E9001F20B3 /* BottomSheetExampleViewController.swift in Sources */,
-				286CF2C22A4F86A4008D3B26 /* PinTweakable.swift in Sources */,
+				286CF2C22A4F86A4008D3B26 /* UIKitPinTweakableExample.swift in Sources */,
 				28B000032D00000100000001 /* ComponentSwiftUIExamples.swift in Sources */,
-				28F4594A2A498B6B00504BF6 /* PinLabel.swift in Sources */,
-				28F4593A2A49860400504BF6 /* PinSpacing.swift in Sources */,
-				2879050E2C1A74C700FF8DF4 /* PinFullscreenView.swift in Sources */,
+				28F4594A2A498B6B00504BF6 /* UIKitPinLabelExample.swift in Sources */,
+				28F4593A2A49860400504BF6 /* UIKitPinSpacingExample.swift in Sources */,
+				2879050E2C1A74C700FF8DF4 /* UIKitPinFullscreenViewExample.swift in Sources */,
 				28AAFA612A49F3E900E1CA35 /* Config.swift in Sources */,
 				28B000022D00000100000001 /* DNASwiftUIExamples.swift in Sources */,
 				2868C2C12C3CA2A20008A2CA /* UIKitPinButtonExample.swift in Sources */,
-				2886CAB72C3CAFE300D677B6 /* PinStateView.swift in Sources */,
+				2886CAB72C3CAFE300D677B6 /* UIKitPinStateViewExample.swift in Sources */,
 				2847DF4C2A48903E009A6B8E /* AppDelegate.swift in Sources */,
 				28B000012D00000100000001 /* DemoPinwheelSections.swift in Sources */,
-				28F459392A49860400504BF6 /* PinColor.swift in Sources */,
-				28F4593B2A49860400504BF6 /* PinFont.swift in Sources */,
+				28F459392A49860400504BF6 /* UIKitPinColorExample.swift in Sources */,
+				28F4593B2A49860400504BF6 /* UIKitPinFontExample.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

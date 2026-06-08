@@ -6,7 +6,7 @@ struct ColorItem {
     let title: String
 }
 
-class PinColor: UIKitPinView {
+class UIKitPinColorExample: UIKitPinView {
     lazy var tableView: UITableView = {
         let view = UITableView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -43,7 +43,7 @@ class PinColor: UIKitPinView {
     }
 }
 
-extension PinColor: UITableViewDataSource {
+extension UIKitPinColorExample: UITableViewDataSource {
     public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return items.count
     }

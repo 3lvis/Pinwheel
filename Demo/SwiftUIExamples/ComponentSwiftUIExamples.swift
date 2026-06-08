@@ -1,7 +1,7 @@
 import SwiftUI
 import Pinwheel
 
-struct PinSwiftUILabel: SwiftUI.View {
+struct PinLabelExample: SwiftUI.View {
     var body: some SwiftUI.View {
         VStack(alignment: .leading, spacing: .spacingL) {
             Text("Title").font(.title)
@@ -17,7 +17,7 @@ struct PinSwiftUILabel: SwiftUI.View {
     }
 }
 
-struct PinSwiftUITweakable: SwiftUI.View {
+struct PinTweakableExample: SwiftUI.View {
     @SwiftUI.State private var selection = "Tap the settings button and choose an option."
     @SwiftUI.State private var isOn = false
 
@@ -46,7 +46,7 @@ struct PinSwiftUITweakable: SwiftUI.View {
     }
 }
 
-struct PinSwiftUIFullscreenView: SwiftUI.View {
+struct PinFullscreenViewExample: SwiftUI.View {
     @SwiftUI.State private var text = ""
 
     var body: some SwiftUI.View {
@@ -122,7 +122,7 @@ struct PinButtonExample: SwiftUI.View {
     }
 }
 
-struct PinSwiftUIStateView: SwiftUI.View {
+struct PinStateViewExample: SwiftUI.View {
     private enum StateKind: String {
         case loading
         case loaded
