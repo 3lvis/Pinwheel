@@ -83,6 +83,15 @@ Pinwheel is SwiftUI-first with UIKit compatibility. A prior pass created **two p
     `xcrun simctl launch <booted> com.nordser.pinwheel -PinwheelPreview button` → screenshot.
   - **RenderPreview fast path:** one permanent `#Preview` lives at the bottom of `DemoPinwheelSections.swift`; edit the `previewComponentID` constant (one token) to point it at any component — no throwaway `#Preview` files.
 
+- [ ] **XCUITest coverage for interactive playground paths.** Screenshots + `simctl` verify rendering, but `simctl` has no tap primitive, so interactions can't be exercised headlessly — e.g. tapping the playground wrench → a tweak and asserting the component reacts (UIKit StateView Loading/Loaded/Empty/Failed; Button enabled/loading; the bridged `Tweakable` → SwiftUI tweak path). Add a UI-test target to `Demo.xcodeproj` and drive it via the existing deep-link launch arg:
+  ```swift
+  let app = XCUIApplication()
+  app.launchArguments = ["-PinwheelPreview", "uikit-state-view"]
+  app.launch()
+  // tap wrench → "Failed" → assert app.staticTexts["Oops!"].exists
+  ```
+  The `-PinwheelPreview <id>` entry point makes each test a one-line deep-link to a single component — no navigation. (Today the only test target is the SPM unit-test target `PinwheelTests`; this needs a new UI-test target, which is pbxproj work.)
+
 ## Critical files
 
 - `Pinwheel/Sources/Pinwheel/Public/PinwheelPreview.swift` — **new** preview/deep-link entry point (id → isolated render)
