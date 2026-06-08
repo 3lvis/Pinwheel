@@ -32,11 +32,36 @@ public struct PinwheelPreview: SwiftUI.View {
         if let match = PinwheelPreviewResolver.resolve(id: id, in: sections) {
             PinwheelPlayground(
                 item: match.item,
-                selection: PinwheelSelection(sectionID: match.section.id, itemID: match.item.id)
-            ) {}
+                selection: PinwheelSelection(sectionID: match.section.id, itemID: match.item.id),
+                onClose: {},
+                previewMode: true,
+                autoApplyTweak: Self.requestedTweak
+            )
+            .overlay(alignment: .top) {
+                PinwheelPreviewCaption(id: match.item.id, variant: Self.requestedTweak)
+            }
         } else {
             PinwheelPreviewNotFound(requestedID: id, sections: sections)
         }
+    }
+}
+
+/// A compact label baked into the preview render so a snapshot identifies the
+/// component (and active variant) without relying on the file name.
+private struct PinwheelPreviewCaption: SwiftUI.View {
+    let id: String
+    let variant: String?
+
+    var body: some SwiftUI.View {
+        Text(variant.map { "\(id) · \($0)" } ?? id)
+            .font(PinwheelTheme.Typography.caption)
+            .foregroundStyle(PinwheelTheme.Colors.secondaryText)
+            .padding(.horizontal, .spacingS)
+            .padding(.vertical, .spacingXXS)
+            .background(
+                Capsule().fill(PinwheelTheme.Colors.secondaryBackground)
+            )
+            .padding(.top, .spacingXS)
     }
 }
 
@@ -66,6 +91,39 @@ public extension PinwheelPreview {
         }
 
         return nil
+    }
+
+    /// The tweak/variant to auto-apply on a preview launch, if any — read from
+    /// the `-PinwheelPreviewTweak <title>` launch argument or the
+    /// `PINWHEEL_PREVIEW_TWEAK` environment variable. Lets tooling deep-link
+    /// straight to a variant (e.g. the StateView "Failed" state).
+    static var requestedTweak: String? {
+        if let argument = UserDefaults.standard.string(forKey: "PinwheelPreviewTweak"),
+           !argument.isEmpty {
+            return argument
+        }
+
+        if let environment = ProcessInfo.processInfo.environment["PINWHEEL_PREVIEW_TWEAK"],
+           !environment.isEmpty {
+            return environment
+        }
+
+        return nil
+    }
+}
+
+/// Writes the current preview component's tweak titles to the app's Documents
+/// directory (one per line) so external tooling — e.g. `Scripts/preview-all.sh`
+/// — can enumerate variants without parsing source. Preview-mode only.
+enum PinwheelPreviewTweakDump {
+    static let fileName = "pinwheel-preview-tweaks.txt"
+
+    static func write(_ titles: [String]) {
+        guard let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            return
+        }
+        let url = directory.appendingPathComponent(fileName)
+        try? titles.joined(separator: "\n").write(to: url, atomically: true, encoding: .utf8)
     }
 }
 

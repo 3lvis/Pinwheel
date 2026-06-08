@@ -1,21 +1,23 @@
 #!/usr/bin/env bash
 #
-# Snapshot every catalog component to a PNG for quick visual review.
+# Snapshot every catalog component - and each of its tweakable variants - to a
+# PNG for quick visual review. Each image has the component id (and variant)
+# captioned into the render, so the picture is self-describing.
 #
-# Builds + installs the Demo once, then deep-links the app to each component id
-# (via the `-PinwheelPreview <id>` launch arg) and screenshots it. Ids are read
-# straight from the catalog registry, so this stays in sync as components change.
+# Builds + installs the Demo once, then deep-links the app to each component via
+# the `-PinwheelPreview <id>` launch arg. For every component it reads the tweak
+# titles the app dumps to its container, and re-launches with
+# `-PinwheelPreviewTweak <title>` to capture each variant (e.g. the StateView's
+# Loading/Loaded/Empty/Failed). Ids come from the catalog registry, so this
+# stays in sync as components change.
 #
 # Usage:
-#   Scripts/preview-all.sh              # build, then snapshot every component
+#   Scripts/preview-all.sh              # build, then snapshot everything
 #   Scripts/preview-all.sh --no-build   # reuse the last build (faster)
 #
 # Env overrides:
 #   PINWHEEL_SIM="iPhone 17 Pro"        # simulator device name
 #   PINWHEEL_PREVIEW_OUT=/tmp/...       # output directory
-#
-# Note: components render in their DEFAULT state - some (e.g. the UIKit StateView,
-# which defaults to .loaded) are intentionally blank until you drive a tweak.
 
 set -euo pipefail
 
@@ -46,17 +48,44 @@ APP="$(find "${DERIVED}/Build/Products" -name "${SCHEME}.app" -maxdepth 3 2>/dev
 [ -n "${APP}" ] || { echo "ERROR: no built ${SCHEME}.app - run without --no-build first"; exit 1; }
 xcrun simctl install "${UDID}" "${APP}"
 
+# Path where the app dumps the current component's tweak titles.
+CONTAINER="$(xcrun simctl get_app_container "${UDID}" "${BUNDLE_ID}" data)"
+TWEAKS_FILE="${CONTAINER}/Documents/pinwheel-preview-tweaks.txt"
+
 # Component ids come from PinwheelItem(... id: "...") entries in the registry.
 IDS="$(grep 'PinwheelItem' "${REGISTRY}" | grep -oE 'id: "[^"]+"' | sed -E 's/id: "([^"]+)"/\1/')"
 [ -n "${IDS}" ] || { echo "ERROR: found no component ids in ${REGISTRY}"; exit 1; }
 
+snapshot() { # <preview-id> <output-name> [tweak-title]
+  local id="$1" name="$2" tweak="${3:-}"
+  xcrun simctl terminate "${UDID}" "${BUNDLE_ID}" >/dev/null 2>&1 || true
+  if [ -n "${tweak}" ]; then
+    xcrun simctl launch "${UDID}" "${BUNDLE_ID}" -PinwheelPreview "${id}" -PinwheelPreviewTweak "${tweak}" >/dev/null 2>&1
+  else
+    xcrun simctl launch "${UDID}" "${BUNDLE_ID}" -PinwheelPreview "${id}" >/dev/null 2>&1
+  fi
+  sleep 2
+  xcrun simctl io "${UDID}" screenshot "${OUT}/${name}.png" >/dev/null 2>&1
+}
+
+slug() { echo "$1" | tr '[:upper:]' '[:lower:]' | tr ' ' '-'; }
+
 echo "Snapshotting components ..."
 for ID in ${IDS}; do
-  xcrun simctl terminate "${UDID}" "${BUNDLE_ID}" >/dev/null 2>&1 || true
-  xcrun simctl launch "${UDID}" "${BUNDLE_ID}" -PinwheelPreview "${ID}" >/dev/null 2>&1
-  sleep 2
-  xcrun simctl io "${UDID}" screenshot "${OUT}/${ID}.png" >/dev/null 2>&1
+  rm -f "${TWEAKS_FILE}"
+  snapshot "${ID}" "${ID}"           # default state; app dumps this component's tweaks
   echo "  ok: ${ID}"
+
+  if [ -f "${TWEAKS_FILE}" ]; then
+    # Read into memory first: each variant launch re-dumps this file, so reading
+    # straight from it would truncate mid-loop.
+    TWEAK_LIST="$(cat "${TWEAKS_FILE}")"
+    while IFS= read -r TWEAK; do
+      [ -n "${TWEAK}" ] || continue
+      snapshot "${ID}" "${ID}__$(slug "${TWEAK}")" "${TWEAK}"
+      echo "    ok: ${ID} / ${TWEAK}"
+    done <<< "${TWEAK_LIST}"
+  fi
 done
 
 # Optional contact sheet if ImageMagick is installed.

@@ -5,9 +5,18 @@ struct PinwheelPlayground: SwiftUI.View {
     let selection: PinwheelSelection
     let onClose: () -> Void
 
+    /// Preview mode (deep-link). When set, the component's tweak titles are
+    /// dumped for tooling and `autoApplyTweak` is applied once it's available.
+    var previewMode: Bool = false
+    /// Title of a tweak to auto-apply on launch, so the preview lands directly
+    /// on a variant (e.g. the StateView "Failed" state) without tapping.
+    var autoApplyTweak: String?
+
     @SwiftUI.State private var selectedDeviceIndex: Int?
     @SwiftUI.State private var tweaks: [PinwheelTweak] = []
     @SwiftUI.State private var showsSettings = false
+    @SwiftUI.State private var didApplyPreviewTweak = false
+    @SwiftUI.State private var didDumpPreviewTweaks = false
 
     var body: some SwiftUI.View {
         GeometryReader { geometry in
@@ -58,7 +67,27 @@ struct PinwheelPlayground: SwiftUI.View {
             .clipped()
             .onPreferenceChange(PinwheelTweaksPreferenceKey.self) { tweaks in
                 self.tweaks = tweaks
+                handlePreviewTweaks(tweaks)
             }
+    }
+
+    private func handlePreviewTweaks(_ tweaks: [PinwheelTweak]) {
+        guard previewMode else { return }
+
+        if !didDumpPreviewTweaks {
+            didDumpPreviewTweaks = true
+            PinwheelPreviewTweakDump.write(tweaks.map(\.title))
+        }
+
+        guard let target = autoApplyTweak, !didApplyPreviewTweak,
+              let tweak = tweaks.first(where: { $0.title == target }) else {
+            return
+        }
+        didApplyPreviewTweak = true
+        // Defer past the current view update before mutating the example's state.
+        DispatchQueue.main.async {
+            tweak.applyAsPreviewVariant()
+        }
     }
 
     private func originForDevice(_ device: Device?, in containerSize: CGSize) -> CGPoint {

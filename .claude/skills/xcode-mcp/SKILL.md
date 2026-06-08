@@ -60,7 +60,8 @@ This is exactly why the repo keeps ONE permanent `#Preview` (see below) instead 
 ## This repo's iteration shortcuts
 
 - **Render any component without a simulator:** the permanent `#Preview` at the bottom of `Demo/SwiftUIExamples/DemoPinwheelSections.swift` renders whatever `previewComponentID` points at. Edit that one constant, then `RenderPreview(... sourceFilePath: "Demo/SwiftUIExamples/DemoPinwheelSections.swift")`.
-- **Deep-link the running app to one component:** launch arg `-PinwheelPreview <id>` (bare `button` or qualified `components/button`); reads `PinwheelPreview.requestedID`. Bundle id `com.nordser.pinwheel`.
+- **Deep-link the running app to one component:** launch arg `-PinwheelPreview <id>` (bare `button` or qualified `components/button`); reads `PinwheelPreview.requestedID`. Bundle id `com.nordser.pinwheel`. Add `-PinwheelPreviewTweak <title>` to land directly on a variant (e.g. the StateView "Failed" state) without tapping. In preview mode the render is captioned with `id · variant`, and the component's tweak titles are dumped to `<dataContainer>/Documents/pinwheel-preview-tweaks.txt`.
+- **Snapshot every component + variant:** `Scripts/preview-all.sh` builds+installs once, then deep-links each component and each of its tweak variants, writing captioned PNGs to `/tmp/pinwheel-previews`. `--no-build` reuses the last build.
 - **Interaction tests (taps):** `DemoUITests/StateViewUITests.swift` is the template — set `app.launchArguments = ["-PinwheelPreview", "<id>"]`, then drive real UI. Accessibility ids on the playground floating controls: `pinwheel.settings` (wrench), `pinwheel.close`. Tweak rows and `PinButton`s are addressable by their visible label (`app.buttons["Failed"]`, `app.buttons["Retry"]`). Run with `RunSomeTests` targeting `DemoUITests`.
 
 ## Fallback (no MCP)
