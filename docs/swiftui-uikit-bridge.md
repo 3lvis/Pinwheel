@@ -54,7 +54,15 @@ Pinwheel is SwiftUI-first with UIKit compatibility. A prior pass created **two p
 
 **Success:** ✅ both SwiftUI and UIKit demos drive the same `PinStateView`; states switch correctly; builds clean. Verified via deep-link previews (`state-view`, `uikit-state-view`).
 
-**Note — shell centers via `centerY` (not host fill):** `PinStateView` hugs its content; the shell centers it with a `centerYAnchor` constraint, mirroring the old UIKit layout. `PinHostView`'s `.intrinsicContentSize` sizing makes a *fill* approach collapse to the top, so centering lives in the shell. Separately, the Demo playground renders **all** UIKit examples content-height/top-anchored (the `PinwheelUIKitView` `UIViewRepresentable` doesn't propagate full height) — a pre-existing playground artifact, not the component; `PinStateView` centers correctly in the pure-SwiftUI path and in real full-bounds UIKit hierarchies. Possible follow-up: make `PinwheelUIKitView` fill the proposed size so UIKit-component previews render at full height.
+**Note — shell centers via `centerY`:** `PinStateView` hugs its content; the shell centers it with a `centerYAnchor` constraint, mirroring the old UIKit layout. This needs a full-bounds host — see the VC-container fix below.
+
+## Post-phase fixes
+
+These landed after Phases 1–5 while exercising the catalog/preview:
+
+- [x] **UIKit catalog items now host at full bounds.** `view:` items were embedded via `PinwheelUIKitView` (a bare `UIViewRepresentable`), which sized the hosted view to its *fitting* size — so edge-pinned examples (DNA Spacing) collapsed top-left, `UITableView`-backed examples (Color, TableView) rendered blank, and the StateView overlay couldn't center. Fix: host each `view:` item in `PinwheelUIKitContainerViewController` (pins the view to fill) wrapped in `PinwheelUIKitViewController`; a `UIViewControllerRepresentable` is handed the full proposed size. This fixed Spacing, the blank tables, the StateView centering, **and** the StateView Retry button (the inner `PinHostView` `UIHostingController` now has a real VC ancestor to parent to, so SwiftUI button taps fire). Verified by deep-link + an automated tap.
+- [x] **UIKit `Tweakable` options bridged into the SwiftUI playground.** A hosted `view:` item that conforms to `Tweakable` maps its UIKit `Tweak`s (`TextTweak` → action, `BoolTweak` → toggle) to `PinwheelTweak`s and publishes them via `pinwheelTweaks`, so its options appear in the playground settings sheet (previously absent for UIKit examples). See `PinwheelUIKitCompatibility.swift`.
+- [x] **iOS 17 deprecations + Sendable warnings cleared** (trait overrides, `onChange`, `UITraitCollection(traitsFrom:)`, tweak toggle binding). Build is warning-free.
 
 ## Phase 4 — Label decision ✅ DONE
 
@@ -95,8 +103,9 @@ Pinwheel is SwiftUI-first with UIKit compatibility. A prior pass created **two p
 ## Critical files
 
 - `Pinwheel/Sources/Pinwheel/Public/PinwheelPreview.swift` — **new** preview/deep-link entry point (id → isolated render)
-- `Pinwheel/Sources/Pinwheel/Public/PinwheelHostView.swift` — **new** bridge
-- `Pinwheel/Sources/Pinwheel/Extensions/UIViewExtensions.swift` — `parentViewController`
+- `Pinwheel/Sources/Pinwheel/Public/PinwheelHostView.swift` — **new** SwiftUI→UIKit bridge (host a `Pin*` view in UIKit)
+- `Pinwheel/Sources/Pinwheel/Public/PinwheelUIKitCompatibility.swift` — `PinwheelUIKitView`/`PinwheelUIKitViewController`, the full-bounds `PinwheelUIKitContainerViewController`, and the `Tweak` → `PinwheelTweak` bridge
+- `Pinwheel/Sources/Pinwheel/Extensions/UIViewExtensions.swift` — `parentViewController`; `applyDeviceTraitOverrides`
 - `Pinwheel/Sources/Pinwheel/Components/PinButton.swift` — SwiftUI source of truth (+ haptics)
 - `Pinwheel/Sources/Pinwheel/Components/UIKitPinButton.swift` — thin shell (replaces reimpl)
 - `Pinwheel/Sources/Pinwheel/Components/UIKitPinStateView.swift` + new `PinStateView.swift`
