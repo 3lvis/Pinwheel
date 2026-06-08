@@ -1,7 +1,18 @@
 import SwiftUI
 
-/// SwiftUI-native counterpart of the UIKit `Button`. Renders a pill that hugs its
-/// content, with the same styles, loading spinner, symbol support and press feedback.
+/// SwiftUI-native pill button: themed styles, an optional SF Symbol, a loading
+/// state, and press feedback. Mirrors SwiftUI's `Button(_:systemImage:action:)`;
+/// visual style and loading are chained modifiers, like SwiftUI's `.buttonStyle`.
+///
+/// ```swift
+/// PinButton("Save") { save() }
+/// PinButton("Continue", systemImage: "arrow.right") { go() }.style(.secondary)
+/// PinButton("Saving") { }.loading(isSaving)
+/// PinButton(systemImage: "arrow.right") { }            // symbol-only
+/// ```
+///
+/// The button owns its type style (`subtitleSemibold`); `.custom` is the escape
+/// hatch for one-off colors.
 public struct PinButton: SwiftUI.View {
     public enum Style: Equatable {
         case primary
@@ -21,28 +32,35 @@ public struct PinButton: SwiftUI.View {
     }
 
     private let title: String?
-    private let symbol: String?
-    private let style: Style
-    private let font: SwiftUI.Font
-    private let isLoading: Bool
+    private let systemImage: String?
     private let action: () -> Void
+    private var style: Style = .primary
+    private var isLoading: Bool = false
 
     @SwiftUI.State private var tapCount = 0
 
     public init(
         _ title: String? = nil,
-        symbol: String? = nil,
-        style: Style = .primary,
-        font: SwiftUI.Font = PinwheelTheme.Typography.subtitleSemibold,
-        isLoading: Bool = false,
+        systemImage: String? = nil,
         action: @escaping () -> Void = {}
     ) {
         self.title = title
-        self.symbol = symbol
-        self.style = style
-        self.font = font
-        self.isLoading = isLoading
+        self.systemImage = systemImage
         self.action = action
+    }
+
+    /// Sets the visual style (default `.primary`).
+    public func style(_ style: Style) -> PinButton {
+        var copy = self
+        copy.style = style
+        return copy
+    }
+
+    /// Shows a loading spinner alongside the content (default `true`).
+    public func loading(_ isLoading: Bool = true) -> PinButton {
+        var copy = self
+        copy.isLoading = isLoading
+        return copy
     }
 
     public var body: some SwiftUI.View {
@@ -61,14 +79,14 @@ public struct PinButton: SwiftUI.View {
         HStack(spacing: .spacingS) {
             if let title {
                 Text(title)
-                    .font(font)
+                    .font(PinwheelTheme.Typography.subtitleSemibold)
                     .underline(style.isTertiary)
                     .lineLimit(1)
             }
 
-            if let symbol {
-                Image(systemName: symbol)
-                    .font(font)
+            if let systemImage {
+                Image(systemName: systemImage)
+                    .font(PinwheelTheme.Typography.subtitleSemibold)
             }
 
             if isLoading {

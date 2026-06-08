@@ -50,7 +50,8 @@ public struct PinStateView: SwiftUI.View {
             PinLabel(subtitle).color(.secondary)
 
             if let actionTitle {
-                PinButton(actionTitle, style: .secondary, action: onAction)
+                PinButton(actionTitle, action: onAction)
+                    .style(.secondary)
                     .padding(.top, .spacingM)
             }
         }

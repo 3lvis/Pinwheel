@@ -43,10 +43,10 @@ class UIKitPinButtonExample: UIKitPinView {
         let tertiaryDisabled = UIKitPinButton(title: "Disabled", style: .tertiary)
         tertiaryDisabled.isEnabled = false
 
-        custom = UIKitPinButton(title: "Custom", font: .caption, style: .custom(textColor: .green, backgroundColor: .red))
+        custom = UIKitPinButton(title: "Custom", style: .custom(textColor: .green, backgroundColor: .red))
         custom.addTarget(self, action: #selector(shrinkTitles), for: .touchUpInside)
 
-        let customDisabled = UIKitPinButton(title: "Custom", font: .caption, style: .custom(textColor: .green, backgroundColor: .red))
+        let customDisabled = UIKitPinButton(title: "Custom", style: .custom(textColor: .green, backgroundColor: .red))
         customDisabled.isEnabled = false
 
         primaryFloating = UIKitPinButton(title: "Continue")

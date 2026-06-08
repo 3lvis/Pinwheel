@@ -80,30 +80,39 @@ struct PinButtonExample: SwiftUI.View {
                 PinButton("Save") {}
                     .disabled(true)
 
-                PinButton("Saving", isLoading: true) {}
+                PinButton("Saving") {}
+                    .loading()
 
-                PinButton("Saving", isLoading: true) {}
+                PinButton("Saving") {}
+                    .loading()
                     .disabled(true)
 
-                PinButton("Continue", symbol: "arrow.right") {}
+                PinButton("Continue", systemImage: "arrow.right") {}
 
-                PinButton(symbol: "arrow.right") {}
+                PinButton(systemImage: "arrow.right") {}
 
-                PinButton("Long toggle loading", style: .secondary, isLoading: isLoading) {
+                PinButton("Long toggle loading") {
                     isLoading.toggle()
                 }
+                .style(.secondary)
+                .loading(isLoading)
 
-                PinButton("Disabled", style: .secondary) {}
+                PinButton("Disabled") {}
+                    .style(.secondary)
                     .disabled(true)
 
-                PinButton("Update titles", style: .tertiary) {}
+                PinButton("Update titles") {}
+                    .style(.tertiary)
 
-                PinButton("Disabled", style: .tertiary) {}
+                PinButton("Disabled") {}
+                    .style(.tertiary)
                     .disabled(true)
 
-                PinButton("Custom", style: .custom(text: .green, background: .red), font: PinwheelTheme.Typography.caption) {}
+                PinButton("Custom") {}
+                    .style(.custom(text: .green, background: .red))
 
-                PinButton("Custom", style: .custom(text: .green, background: .red), font: PinwheelTheme.Typography.caption) {}
+                PinButton("Custom") {}
+                    .style(.custom(text: .green, background: .red))
                     .disabled(true)
             }
             .padding(.vertical, .spacingXXL)
