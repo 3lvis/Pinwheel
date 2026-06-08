@@ -1,7 +1,7 @@
 import UIKit
 import Pinwheel
 
-class PinTweakable: View, Tweakable {
+class PinTweakable: UIKitPinView, Tweakable {
     lazy var tweaks: [Tweak] = {
         var options = [Tweak]()
 

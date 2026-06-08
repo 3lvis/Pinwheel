@@ -1,11 +1,11 @@
 import UIKit
 
-public protocol TableViewCellDelegate: AnyObject {
-    func tableViewCell(_ tableViewCell: TableViewCell, didChangeBoolTableViewItem boolTableViewItem: BoolTableViewItem, atIndexPath indexPath: IndexPath)
+public protocol UIKitPinTableViewCellDelegate: AnyObject {
+    func tableViewCell(_ tableViewCell: UIKitPinTableViewCell, didChangeBoolTableViewItem boolTableViewItem: UIKitPinBoolTableViewItem, atIndexPath indexPath: IndexPath)
 }
 
-open class TableViewCell: UITableViewCell {
-    weak var delegate: TableViewCellDelegate?
+open class UIKitPinTableViewCell: UITableViewCell {
+    weak var delegate: UIKitPinTableViewCellDelegate?
 
     // MARK: - Public properties
 
@@ -42,7 +42,7 @@ open class TableViewCell: UITableViewCell {
     }()
 
     @objc func switchChanged(sender: UISwitch) {
-        if let edited = tableViewItem as? BoolTableViewItem, let indexPath = indexPath {
+        if let edited = tableViewItem as? UIKitPinBoolTableViewItem, let indexPath = indexPath {
             edited.isOn = sender.isOn
             delegate?.tableViewCell(self, didChangeBoolTableViewItem: edited, atIndexPath: indexPath)
         }
@@ -83,7 +83,7 @@ open class TableViewCell: UITableViewCell {
 
     public var indexPath: IndexPath?
 
-    public var tableViewItem: TableViewItem? {
+    public var tableViewItem: UIKitPinTableViewItem? {
         didSet {
             guard let viewModel = tableViewItem else { return }
             titleLabel.text = viewModel.title
@@ -101,7 +101,7 @@ open class TableViewCell: UITableViewCell {
                 subtitleLabel.isHidden = true
             }
 
-            if let detailText = (viewModel as? TextTableViewItem)?.detailText {
+            if let detailText = (viewModel as? UIKitPinTextTableViewItem)?.detailText {
                 detailLabel.text = detailText
                 detailLabel.isHidden = false
                 stackViewToDetailLabelConstraint.isActive = true
@@ -111,8 +111,8 @@ open class TableViewCell: UITableViewCell {
                 detailLabel.isHidden = true
                 stackViewToDetailLabelConstraint.isActive = false
 
-                if viewModel is BoolTableViewItem {
-                    switchControl.isOn = (viewModel as? BoolTableViewItem)?.isOn ?? false
+                if viewModel is UIKitPinBoolTableViewItem {
+                    switchControl.isOn = (viewModel as? UIKitPinBoolTableViewItem)?.isOn ?? false
                     switchControl.isHidden = false
                     stackViewToSwitchControlConstraint.isActive = true
                 } else {
@@ -121,7 +121,7 @@ open class TableViewCell: UITableViewCell {
                 }
             }
 
-            if (viewModel as? TextTableViewItem)?.hasChevron == true {
+            if (viewModel as? UIKitPinTextTableViewItem)?.hasChevron == true {
                 accessoryType = .disclosureIndicator
                 detailLabelTrailingConstraint.constant = -.spacingS
                 switchControlTrailingConstraint.constant = -.spacingS

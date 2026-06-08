@@ -1,14 +1,14 @@
 import UIKit
 import Pinwheel
 
-class PinTableView: View, Tweakable {
+class PinTableView: UIKitPinView, Tweakable {
     lazy var tweaks: [Tweak] = {
         return [
             TextTweak(title: "Loading") {
                 self.tableView.state = .loading(title: "Loading...", subtitle: "Please wait while we fetch your details.")
             },
             TextTweak(title: "Loaded") {
-                self.tableView.state = .loaded([TextTableViewItem(title: "Only value")])
+                self.tableView.state = .loaded([UIKitPinTextTableViewItem(title: "Only value")])
             },
             TextTweak(title: "Empty") {
                 self.tableView.state = .empty(title: "Ready to Move?", subtitle: "Kick things off with your first booking.")
@@ -19,31 +19,31 @@ class PinTableView: View, Tweakable {
         ]
     }()
 
-    lazy var tableView: TableView = {
-        let view = TableView(items: items)
+    lazy var tableView: UIKitPinTableView = {
+        let view = UIKitPinTableView(items: items)
         view.delegate = self
         return view
     }()
 
-    lazy var items: [TableViewItem] = {
-        let onlyTitle = TextTableViewItem(title: "Only title")
+    lazy var items: [UIKitPinTableViewItem] = {
+        let onlyTitle = UIKitPinTextTableViewItem(title: "Only title")
 
-        let titleAndSubtitle = TextTableViewItem(title: "Title and subtitle", subtitle: "subtitle")
+        let titleAndSubtitle = UIKitPinTextTableViewItem(title: "Title and subtitle", subtitle: "subtitle")
 
-        let titleSubtitleAndDetail = TextTableViewItem(title: "Title, subtitle and detail", subtitle: "subtitle")
+        let titleSubtitleAndDetail = UIKitPinTextTableViewItem(title: "Title, subtitle and detail", subtitle: "subtitle")
         titleSubtitleAndDetail.detailText = "Detail text"
 
-        let titleAndDetail = TextTableViewItem(title: "Title and detail")
+        let titleAndDetail = UIKitPinTextTableViewItem(title: "Title and detail")
         titleAndDetail.detailText = "Detail text"
 
-        let hasChevron = TextTableViewItem(title: "Has chevron")
+        let hasChevron = UIKitPinTextTableViewItem(title: "Has chevron")
         hasChevron.hasChevron = true
 
-        let disabled = TextTableViewItem(title: "Is disabled")
+        let disabled = UIKitPinTextTableViewItem(title: "Is disabled")
         disabled.isEnabled = false
 
-        let off = BoolTableViewItem(title: "Off")
-        let on = BoolTableViewItem(title: "On")
+        let off = UIKitPinBoolTableViewItem(title: "Off")
+        let on = UIKitPinBoolTableViewItem(title: "On")
         on.isOn = true
 
         return [
@@ -64,18 +64,18 @@ class PinTableView: View, Tweakable {
     }
 }
 
-extension PinTableView: TableViewDelegate {
-    func tableView(_ tableView: Pinwheel.TableView, didSwitchItem boolTableViewItem: Pinwheel.BoolTableViewItem, atIndex index: Int) {
+extension PinTableView: UIKitPinTableViewDelegate {
+    func tableView(_ tableView: Pinwheel.UIKitPinTableView, didSwitchItem boolTableViewItem: Pinwheel.UIKitPinBoolTableViewItem, atIndex index: Int) {
         let title = "Changed \(boolTableViewItem.title) to \(boolTableViewItem.isOn ? "on" : "off")"
         print(title)
     }
     
-    func tableView(_ tableView: TableView, didSelectItemAtIndex index: Int) {
-        let title = "Selected \((items[index] as? TextTableViewItem)?.title ?? "")"
+    func tableView(_ tableView: UIKitPinTableView, didSelectItemAtIndex index: Int) {
+        let title = "Selected \((items[index] as? UIKitPinTextTableViewItem)?.title ?? "")"
         print(title)
     }
 
-    func tableViewDidSelectFailedStateAction(_ tableView: TableView) {
+    func tableViewDidSelectFailedStateAction(_ tableView: UIKitPinTableView) {
         print("tapped!")
     }
 }

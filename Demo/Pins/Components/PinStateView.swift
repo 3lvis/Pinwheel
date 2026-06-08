@@ -1,7 +1,7 @@
 import UIKit
 import Pinwheel
 
-class PinStateView: View, Tweakable {
+class PinStateView: UIKitPinView, Tweakable {
     lazy var tweaks: [Tweak] = {
         return [
             TextTweak(title: "Loading") {

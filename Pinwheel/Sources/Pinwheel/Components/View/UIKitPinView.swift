@@ -1,6 +1,6 @@
 import UIKit
 
-open class View: UIView {
+open class UIKitPinView: UIView {
     public override init(frame: CGRect) {
         super.init(frame: frame)
         baseSetup()

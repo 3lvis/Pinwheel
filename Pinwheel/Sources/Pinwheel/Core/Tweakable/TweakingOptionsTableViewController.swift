@@ -14,12 +14,12 @@ class TweakingOptionsTableViewController: ScrollViewController {
 
     private var tweaks: [Tweak]
 
-    lazy var items: [TableViewItem] = {
-        let items: [TableViewItem] = tweaks.compactMap {
+    lazy var items: [UIKitPinTableViewItem] = {
+        let items: [UIKitPinTableViewItem] = tweaks.compactMap {
             if $0 is TextTweak {
-                return TextTableViewItem(title: $0.title, subtitle: $0.description)
+                return UIKitPinTextTableViewItem(title: $0.title, subtitle: $0.description)
             } else if $0 is BoolTweak {
-                let boolItem = BoolTableViewItem(title: $0.title, subtitle:  $0.description)
+                let boolItem = UIKitPinBoolTableViewItem(title: $0.title, subtitle:  $0.description)
                 boolItem.isOn = ($0 as? BoolTweak)?.isOn ?? false
                 return boolItem
             } else {
@@ -29,18 +29,18 @@ class TweakingOptionsTableViewController: ScrollViewController {
         return items
     }()
 
-    private lazy var tableView: TableView = {
-        let view = TableView(dataSource: self)
+    private lazy var tableView: UIKitPinTableView = {
+        let view = UIKitPinTableView(dataSource: self)
         view.delegate = self
         return view
     }()
 
-    private lazy var devicesTableView: TableView = {
-        var items = [TextTableViewItem]()
+    private lazy var devicesTableView: UIKitPinTableView = {
+        var items = [UIKitPinTextTableViewItem]()
         let currentBounds = UIScreen.main.bounds
 
         Device.all.forEach { device in
-            var item = TextTableViewItem(title: device.title)
+            var item = UIKitPinTextTableViewItem(title: device.title)
 
             if device.traits.userInterfaceIdiom == .phone && device.frame.size == currentBounds.size {
                 item.title = "(Current) \(device.title)"
@@ -50,7 +50,7 @@ class TweakingOptionsTableViewController: ScrollViewController {
             items.append(item)
         }
 
-        let tableView = TableView(items: items)
+        let tableView = UIKitPinTableView(items: items)
         tableView.delegate = self
         return tableView
     }()
@@ -160,23 +160,23 @@ extension TweakingOptionsTableViewController: SelectorTitleViewDelegate {
 
 }
 
-// MARK: - TableViewDelegate
+// MARK: - UIKitPinTableViewDelegate
 
-extension TweakingOptionsTableViewController: TableViewDelegate {
-    func tableView(_ tableView: TableView, didSwitchItem boolTableViewItem: BoolTableViewItem, atIndex index: Int) {
+extension TweakingOptionsTableViewController: UIKitPinTableViewDelegate {
+    func tableView(_ tableView: UIKitPinTableView, didSwitchItem boolTableViewItem: UIKitPinBoolTableViewItem, atIndex index: Int) {
         if var tweak = (tweaks[index] as? BoolTweak) {
             tweak.action(boolTableViewItem.isOn)
             tweak.isOn = boolTableViewItem.isOn
             tweaks[index] = tweak
 
-            if let boolItem = items[index] as? BoolTableViewItem {
+            if let boolItem = items[index] as? UIKitPinBoolTableViewItem {
                 boolItem.isOn = tweak.isOn
                 items[index] = boolItem
             }
         }
     }
     
-    func tableView(_ tableView: TableView, didSelectItemAtIndex index: Int) {
+    func tableView(_ tableView: UIKitPinTableView, didSelectItemAtIndex index: Int) {
         if tableView == devicesTableView {
             let device = Device.all[index]
             selectorTitleView.title = device.title
@@ -196,12 +196,12 @@ extension TweakingOptionsTableViewController: TableViewDelegate {
     }
 }
 
-extension TweakingOptionsTableViewController: TableViewDataSource {
-    func tableViewNumberOfItems(_ tableView: TableView) -> Int {
+extension TweakingOptionsTableViewController: UIKitPinTableViewDataSource {
+    func tableViewNumberOfItems(_ tableView: UIKitPinTableView) -> Int {
         return items.count
     }
     
-    func tableView(_ tableView: TableView, itemAtIndex index: Int) -> any TableViewItem {
+    func tableView(_ tableView: UIKitPinTableView, itemAtIndex index: Int) -> any UIKitPinTableViewItem {
         return items[index]
     }
 }

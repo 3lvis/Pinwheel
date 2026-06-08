@@ -6,7 +6,7 @@ struct ColorItem {
     let title: String
 }
 
-class PinColor: View {
+class PinColor: UIKitPinView {
     lazy var tableView: UITableView = {
         let view = UITableView()
         view.translatesAutoresizingMaskIntoConstraints = false

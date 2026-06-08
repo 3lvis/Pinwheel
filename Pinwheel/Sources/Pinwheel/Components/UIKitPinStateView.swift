@@ -11,7 +11,7 @@ public enum UIKitPinStateViewState {
     case failed(title: String, subtitle: String, actionTitle: String)
 }
 
-public class UIKitPinStateView: View {
+public class UIKitPinStateView: UIKitPinView {
     public weak var delegate: UIKitPinStateViewDelegate?
 
     private lazy var titleLabel: UIKitPinLabel = {

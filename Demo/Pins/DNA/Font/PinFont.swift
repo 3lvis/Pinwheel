@@ -6,7 +6,7 @@ struct FontItem {
     let title: String
 }
 
-class PinFont: View {
+class PinFont: UIKitPinView {
     lazy var tableView: UITableView = {
         let view = UITableView()
         view.translatesAutoresizingMaskIntoConstraints = false
