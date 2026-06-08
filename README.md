@@ -113,6 +113,38 @@ Available presentations:
 - `.medium`
 - `.large`
 
+## Previewing a Single Component
+
+Every catalog item is addressable by id, so you can render one component in isolation — no hand-written `#Preview` scaffolding. The `PinwheelSection`/`PinwheelItem` registry doubles as the preview index.
+
+In SwiftUI (including an Xcode `#Preview`):
+
+```swift
+PinwheelPreview("primary-button") {
+    PinwheelSection("Components", id: "components") {
+        PinwheelItem("Primary Button", id: "primary-button") { PrimaryButtonDemo() }
+    }
+}
+```
+
+`PinwheelPreview` accepts a bare item id (`"primary-button"`) or a qualified `"sectionID/itemID"` to disambiguate ids shared across sections; an unknown id renders the list of available ids.
+
+To deep-link the demo app straight to one component, branch the scene on `PinwheelPreview.requestedID`. It reads the `-PinwheelPreview <id>` launch argument or the `PINWHEEL_PREVIEW` environment variable:
+
+```swift
+WindowGroup {
+    if let id = PinwheelPreview.requestedID {
+        PinwheelPreview(id, sections: allSections)
+    } else {
+        PinwheelCatalog { /* ... */ }
+    }
+}
+```
+
+```sh
+xcrun simctl launch <booted-device> com.example.app -PinwheelPreview primary-button
+```
+
 ## UIKit Compatibility
 
 UIKit views can still be shown directly:
@@ -138,6 +170,15 @@ PinwheelUIKitViewController {
     CheckoutViewController()
 }
 ```
+
+And the reverse direction: drop a SwiftUI-first `Pin*` component into a UIKit `UIStackView` / Auto Layout hierarchy with `PinHostView`, a self-sizing `UIView` that needs no SwiftUI knowledge at the call site. Theming and light/dark/Dynamic Type propagate across the boundary:
+
+```swift
+let host = PinHostView(rootView: PinButton("Save") { save() })
+stackView.addArrangedSubview(host)
+```
+
+Components that already ship a UIKit-friendly shell — `UIKitPinButton`, `UIKitPinStateView` — are thin hosts over their single SwiftUI implementation (`PinButton`, `PinStateView`), so a hybrid app keeps the imperative ergonomics (`title` / `isEnabled` / `state` mutation, target-action / delegate) it expects.
 
 ## Device Simulation
 
