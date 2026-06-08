@@ -12,11 +12,11 @@ Pinwheel is SwiftUI-first with UIKit compatibility. A prior pass created **two p
 
 ## Overall success criteria
 
-- [ ] A UIKit consumer can place a SwiftUI `Pin*` component into a `UIStackView`/Auto Layout hierarchy as a self-sizing view, with no SwiftUI knowledge required at the call site.
-- [ ] Theming (`Config` providers), light/dark, and Dynamic Type all work through the bridge with zero extra wiring.
-- [ ] For bridgeable components (Button, StateView): exactly **one** implementation (SwiftUI), plus a thin `UIKitPin*` shell; the old full UIKit reimplementation is deleted.
+- [x] A UIKit consumer can place a SwiftUI `Pin*` component into a `UIStackView`/Auto Layout hierarchy as a self-sizing view, with no SwiftUI knowledge required at the call site.
+- [x] Theming (`Config` providers), light/dark, and Dynamic Type all work through the bridge with zero extra wiring.
+- [x] For bridgeable components (Button, StateView): exactly **one** implementation (SwiftUI), plus a thin `UIKitPin*` shell; the old full UIKit reimplementation is deleted.
 - [ ] For non-bridgeable components (FullscreenView, `View` base, TableView family): kept as UIKit, explicitly documented as the intentional UIKit surface.
-- [ ] Package + Demo build clean (`mcp__xcode__BuildProject`); the UIKit Button demo renders pixel-identical to before.
+- [x] Package + Demo build clean (`mcp__xcode__BuildProject`); the UIKit Button demo renders pixel-identical to before.
 
 ## Architecture decisions
 
@@ -30,19 +30,19 @@ Pinwheel is SwiftUI-first with UIKit compatibility. A prior pass created **two p
 
 ---
 
-## Phase 1 — Bridge foundation
+## Phase 1 — Bridge foundation ✅ DONE
 
-- [ ] Add `PinHostView<Content: SwiftUI.View>: UIView` → new `Pinwheel/Sources/Pinwheel/Public/PinwheelHostView.swift`. Owns a `UIHostingController(rootView:)`, `sizingOptions = .intrinsicContentSize`, pins hosting view to all 4 edges (no safe-area inset), `var rootView` for re-render, re-parents hosting controller to nearest VC in `didMoveToWindow()`.
-- [ ] Add `parentViewController` responder-chain helper → `Extensions/UIViewExtensions.swift`.
+- [x] Add `PinHostView<Content: SwiftUI.View>: UIView` → new `Pinwheel/Sources/Pinwheel/Public/PinwheelHostView.swift`. Owns a `UIHostingController(rootView:)`, `sizingOptions = .intrinsicContentSize`, pins hosting view to all 4 edges (no safe-area inset), `var rootView` for re-render, re-parents hosting controller to nearest VC in `didMoveToWindow()`.
+- [x] Add `parentViewController` responder-chain helper → `Extensions/UIViewExtensions.swift`.
 
 **Success:** `PinHostView { PinButton("Hi"){} }` self-sizes in a vertical `UIStackView` (`.center`), propagates light/dark + Dynamic Type, no detached-controller bugs. Builds via MCP.
 
-## Phase 2 — Button (proof of concept)
+## Phase 2 — Button (proof of concept) ✅ DONE
 
-- [ ] Add haptics to `PinButton` via `.sensoryFeedback` (parity with old press feedback) → `Components/PinButton.swift`.
-- [ ] Replace full reimpl in `Components/UIKitPinButton.swift` with a thin shell: `UIView` owning `PinHostView<PinButton>`; imperative `title`/`isEnabled`/`isLoading`/`onTap` (`didSet` re-render via small state object); `showActivityIndicator(_:)` shim (→ `isLoading`).
-- [ ] Port `Demo/Pins/Components/UIKitPinButtonExample.swift` to the shell (should compile ~unchanged) — conformance test.
-- [ ] Delete the old reimplementation once parity confirmed.
+- [x] Add haptics to `PinButton` via `.sensoryFeedback` (parity with old press feedback) → `Components/PinButton.swift`.
+- [x] Replace full reimpl in `Components/UIKitPinButton.swift` with a thin shell: `UIView` owning `PinHostView<PinButton>`; imperative `title`/`isEnabled`/`isLoading`/`onTap` (`didSet` re-render via small state object); `showActivityIndicator(_:)` shim (→ `isLoading`).
+- [x] Port `Demo/Pins/Components/UIKitPinButtonExample.swift` to the shell (should compile ~unchanged) — conformance test.
+- [x] Delete the old reimplementation once parity confirmed.
 
 **Success:** UIKit Button demo renders identical to before; enabled/loading toggle through the shell; one `PinButton` implementation only. Verify via `RenderPreview` + the demo screen.
 
