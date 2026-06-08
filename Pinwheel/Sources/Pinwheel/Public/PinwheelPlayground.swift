@@ -274,8 +274,8 @@ private struct PinwheelSettingsView: SwiftUI.View {
                     }
                 }
             }
-        case .toggle(let get, let set):
-            Toggle(isOn: Binding(get: get, set: set)) {
+        case .toggle(let isOn):
+            Toggle(isOn: isOn) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(tweak.title)
                     if let description = tweak.description {

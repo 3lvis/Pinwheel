@@ -66,7 +66,7 @@ public class PinwheelViewController<View: UIView>: UIViewController {
             let device = Device.all[deviceIndex]
             viewController.view.frame = device.frame
             viewController.view.autoresizingMask = device.autoresizingMask
-            setOverrideTraitCollection(device.traits, forChild: viewController)
+            viewController.applyDeviceTraitOverrides(device.traits)
         }
 
         view.fillInSuperview()
@@ -124,7 +124,7 @@ extension PinwheelViewController: TweakingOptionsTableViewControllerDelegate {
             UIView.animate(withDuration: 0.3) {
                 child.view.frame = device.frame
                 child.view.autoresizingMask = device.autoresizingMask
-                self.setOverrideTraitCollection(device.traits, forChild: child)
+                child.applyDeviceTraitOverrides(device.traits)
             }
         }
     }

@@ -59,11 +59,11 @@ struct Device {
         let x: CGFloat = (UIScreen.main.bounds.width - size.width) / 2
         let y: CGFloat = (UIScreen.main.bounds.height - size.height) / 2
 
-        let traits: UITraitCollection = .init(traitsFrom: [
-            .init(horizontalSizeClass: .compact),
-            .init(verticalSizeClass: .regular),
-            .init(userInterfaceIdiom: .phone)
-        ])
+        let traits = UITraitCollection { mutableTraits in
+            mutableTraits.horizontalSizeClass = .compact
+            mutableTraits.verticalSizeClass = .regular
+            mutableTraits.userInterfaceIdiom = .phone
+        }
 
         self.kind = kind
         self.traits = traits

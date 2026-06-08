@@ -35,6 +35,17 @@ public extension UIView {
     }
 }
 
+extension UIViewController {
+    /// Applies a simulated device's traits via `traitOverrides` — the
+    /// replacement for the deprecated `setOverrideTraitCollection(_:forChild:)`,
+    /// called on the child whose traits should be overridden.
+    func applyDeviceTraitOverrides(_ traits: UITraitCollection) {
+        traitOverrides.horizontalSizeClass = traits.horizontalSizeClass
+        traitOverrides.verticalSizeClass = traits.verticalSizeClass
+        traitOverrides.userInterfaceIdiom = traits.userInterfaceIdiom
+    }
+}
+
 @available(iOS 15.0, *)
 public extension UIView {
     var windowSafeAreaInsets: UIEdgeInsets {

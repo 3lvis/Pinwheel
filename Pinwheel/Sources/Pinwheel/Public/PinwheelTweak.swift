@@ -26,7 +26,7 @@ public enum PinwheelTweakBuilder {
 public struct PinwheelTweak: Identifiable, Equatable {
     enum Control {
         case action(() -> Void)
-        case toggle(get: () -> Bool, set: (Bool) -> Void)
+        case toggle(Binding<Bool>)
     }
 
     public let id: String
@@ -45,7 +45,7 @@ public struct PinwheelTweak: Identifiable, Equatable {
         self.id = id ?? title
         self.title = title
         self.description = description
-        self.control = .toggle(get: { isOn.wrappedValue }, set: { isOn.wrappedValue = $0 })
+        self.control = .toggle(isOn)
     }
 
     public static func == (lhs: PinwheelTweak, rhs: PinwheelTweak) -> Bool {

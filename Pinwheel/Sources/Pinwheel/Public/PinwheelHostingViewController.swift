@@ -56,7 +56,7 @@ public class PinwheelHostingViewController<Content: SwiftUI.View>: UIViewControl
             let device = Device.all[deviceIndex]
             contentViewController.view.frame = device.frame
             contentViewController.view.autoresizingMask = device.autoresizingMask
-            setOverrideTraitCollection(device.traits, forChild: contentViewController)
+            contentViewController.applyDeviceTraitOverrides(device.traits)
         } else {
             contentViewController.view.frame = view.bounds
             contentViewController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -132,7 +132,7 @@ extension PinwheelHostingViewController: TweakingOptionsTableViewControllerDeleg
         UIView.animate(withDuration: 0.3) {
             contentViewController.view.frame = device.frame
             contentViewController.view.autoresizingMask = device.autoresizingMask
-            self.setOverrideTraitCollection(device.traits, forChild: contentViewController)
+            contentViewController.applyDeviceTraitOverrides(device.traits)
         }
     }
 

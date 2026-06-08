@@ -30,7 +30,7 @@ struct PinwheelCatalogView: SwiftUI.View {
             normalizeSelection()
             restorePresentedItemIfNeeded()
         }
-        .onChange(of: sections.map(\.id)) { _ in
+        .onChange(of: sections.map(\.id)) { _, _ in
             normalizeSelection()
         }
         .sheet(isPresented: $showsSectionPicker) {
