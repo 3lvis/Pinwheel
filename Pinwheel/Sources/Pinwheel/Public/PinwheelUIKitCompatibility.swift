@@ -18,6 +18,15 @@ public struct PinwheelUIKitView<ViewType: UIView>: UIViewRepresentable {
 
     public func updateUIView(_ uiView: ViewType, context: Context) {
     }
+
+    // Fill the proposed size instead of collapsing to the view's fitting size.
+    // Pinwheel's UIKit views (e.g. the DNA examples) pin their content to their
+    // own edges and only look right at full size — as they would in a real
+    // full-bounds UIKit hierarchy — so hugging here left them content-sized and
+    // top-left in the catalog/preview.
+    public func sizeThatFits(_ proposal: ProposedViewSize, uiView: ViewType, context: Context) -> CGSize? {
+        return proposal.replacingUnspecifiedDimensions()
+    }
 }
 
 public struct PinwheelUIKitViewController: UIViewControllerRepresentable {
