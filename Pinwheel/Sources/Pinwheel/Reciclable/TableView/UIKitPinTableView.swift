@@ -23,6 +23,10 @@ public enum UIKitPinTableViewState {
     case failed(title: String, subtitle: String, actionTitle: String)
 }
 
+/// Intentional UIKit surface (not a thin host over SwiftUI). Cell recycling, the
+/// dataSource/delegate contract, `UISwitch` items and the A–Z section indexer
+/// have no `List` equivalent with comparable ergonomics/perf, so it stays UIKit.
+/// Its state overlay is the SwiftUI-backed `UIKitPinStateView` shell.
 open class UIKitPinTableView: ShadowScrollView {
     public static let estimatedRowHeight: CGFloat = 60.0
     open var selectedIndexPath: IndexPath?

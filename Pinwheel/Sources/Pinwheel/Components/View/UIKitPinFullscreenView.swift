@@ -1,5 +1,8 @@
 import UIKit
 
+/// Intentional UIKit surface (not a thin host over SwiftUI). Keyboard avoidance,
+/// view-lifecycle hooks and open subclassing are inherently UIKit here; bridging
+/// to SwiftUI would not match the ergonomics or behavior, so it stays UIKit.
 open class UIKitPinFullscreenView: UIView {
     public override init(frame: CGRect) {
         super.init(frame: frame)
