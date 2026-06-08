@@ -10,11 +10,15 @@ struct DemoApp: App {
 
     var body: some Scene {
         WindowGroup {
-            PinwheelCatalog {
-                DemoPinwheelSections.dna
-                DemoPinwheelSections.components
-                DemoPinwheelSections.reciclable
-                DemoPinwheelSections.uikit
+            if let previewID = PinwheelPreview.requestedID {
+                PinwheelPreview(previewID, sections: DemoPinwheelSections.all)
+            } else {
+                PinwheelCatalog {
+                    DemoPinwheelSections.dna
+                    DemoPinwheelSections.components
+                    DemoPinwheelSections.reciclable
+                    DemoPinwheelSections.uikit
+                }
             }
         }
     }

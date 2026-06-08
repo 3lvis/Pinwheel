@@ -1,7 +1,12 @@
 import Pinwheel
+import SwiftUI
 
 @MainActor
 enum DemoPinwheelSections {
+    static var all: [PinwheelSection] {
+        [dna, components, reciclable, uikit]
+    }
+
     static var dna: PinwheelSection {
         PinwheelSection("DNA", id: "dna") {
             PinwheelItem("Font", id: "font") {
@@ -66,3 +71,16 @@ enum DemoPinwheelSections {
         }
     }
 }
+
+#if DEBUG
+/// Fast visual iteration on any catalog component, no throwaway `#Preview`
+/// needed: change `previewComponentID` to any id below and render this preview.
+/// Ids are bare (`"button"`) or qualified (`"components/button"`); an unknown id
+/// renders a list of every available id. For a running simulator instead,
+/// deep-link the Demo: `simctl launch <bundle> -PinwheelPreview button`.
+private let previewComponentID = "button"
+
+#Preview("Pinwheel Component") {
+    PinwheelPreview(previewComponentID, sections: DemoPinwheelSections.all)
+}
+#endif
