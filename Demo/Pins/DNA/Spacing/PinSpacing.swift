@@ -2,8 +2,8 @@ import UIKit
 import Pinwheel
 
 class PinSpacing: View {
-    func makeLabel(text: String) -> Label {
-        let label = Label(font: .body)
+    func makeLabel(text: String) -> UIKitPinLabel {
+        let label = UIKitPinLabel(font: .body)
         label.text = text
         label.translatesAutoresizingMaskIntoConstraints = false
         label.backgroundColor = .tertiaryText

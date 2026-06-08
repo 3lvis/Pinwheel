@@ -33,7 +33,7 @@ enum DemoPinwheelSections {
             }
 
             PinwheelItem("Button", id: "button") {
-                PinSwiftUIButton()
+                PinButtonExample()
             }
 
             PinwheelItem("StateView", id: "state-view") {
@@ -59,7 +59,7 @@ enum DemoPinwheelSections {
             PinwheelItem("UIKit Label", id: "uikit-label", view: PinLabel.self)
             PinwheelItem("UIKit Tweakable", id: "uikit-tweakable", view: PinTweakable.self)
             PinwheelItem("UIKit FullscreenView", id: "uikit-fullscreen-view", view: PinFullscreenView.self)
-            PinwheelItem("UIKit Button", id: "uikit-button", view: PinButton.self)
+            PinwheelItem("UIKit Button", id: "uikit-button", view: UIKitPinButtonExample.self)
             PinwheelItem("UIKit StateView", id: "uikit-state-view", view: PinStateView.self)
             PinwheelItem("UIKit TableView", id: "uikit-table-view", view: PinTableView.self)
                 .pinwheelPresentation(.medium)

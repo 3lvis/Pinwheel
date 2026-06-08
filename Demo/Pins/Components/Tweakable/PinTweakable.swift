@@ -20,8 +20,8 @@ class PinTweakable: View, Tweakable {
         return [option1, option2, option3]
     }()
 
-    lazy var titleLabel: Label = {
-        let label = Label(font: .body)
+    lazy var titleLabel: UIKitPinLabel = {
+        let label = UIKitPinLabel(font: .body)
         label.text = "Tap the button and choose and option ✨"
         label.textAlignment = .center
         label.numberOfLines = 0

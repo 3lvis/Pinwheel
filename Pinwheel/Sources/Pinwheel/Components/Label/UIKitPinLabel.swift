@@ -1,6 +1,6 @@
 import UIKit
 
-public class Label: UILabel {
+public class UIKitPinLabel: UILabel {
     // MARK: - Setup
 
     public init(font: UIFont = .body, textColor: UIColor = .primaryText) {

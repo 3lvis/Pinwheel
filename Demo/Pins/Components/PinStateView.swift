@@ -19,8 +19,8 @@ class PinStateView: View, Tweakable {
         ]
     }()
 
-    lazy var stateView: StateView = {
-        let view = StateView()
+    lazy var stateView: UIKitPinStateView = {
+        let view = UIKitPinStateView()
         view.delegate = self
         return view
     }()
@@ -31,8 +31,8 @@ class PinStateView: View, Tweakable {
     }
 }
 
-extension PinStateView: StateViewDelegate {
-    func stateViewDidSelectAction(_ stateView: Pinwheel.StateView) {
+extension PinStateView: UIKitPinStateViewDelegate {
+    func stateViewDidSelectAction(_ stateView: Pinwheel.UIKitPinStateView) {
         print("action!")
     }
 }

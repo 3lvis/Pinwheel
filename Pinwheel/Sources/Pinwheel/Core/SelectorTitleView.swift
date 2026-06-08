@@ -37,8 +37,8 @@ class SelectorTitleView: UIView {
         }
     }
 
-    private lazy var titleLabel: Label = {
-        let label = Label(font: .footnote)
+    private lazy var titleLabel: UIKitPinLabel = {
+        let label = UIKitPinLabel(font: .footnote)
         label.adjustsFontForContentSizeCategory = true
         label.textAlignment = .center
         label.text = heading

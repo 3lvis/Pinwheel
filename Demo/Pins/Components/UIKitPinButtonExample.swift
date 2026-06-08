@@ -1,55 +1,55 @@
 import UIKit
 import Pinwheel
 
-class PinButton: View {
-    var primary: Button!
-    var primaryDisabled: Button!
-    var primaryLoading: Button!
-    var primaryLoadingDisabled: Button!
-    var primaryTitleAndSymbol: Button!
-    var primarySymbolOnly: Button!
-    var secondary: Button!
-    var tertiary: Button!
-    var custom: Button!
-    var primaryFloating: Button!
+class UIKitPinButtonExample: View {
+    var primary: UIKitPinButton!
+    var primaryDisabled: UIKitPinButton!
+    var primaryLoading: UIKitPinButton!
+    var primaryLoadingDisabled: UIKitPinButton!
+    var primaryTitleAndSymbol: UIKitPinButton!
+    var primarySymbolOnly: UIKitPinButton!
+    var secondary: UIKitPinButton!
+    var tertiary: UIKitPinButton!
+    var custom: UIKitPinButton!
+    var primaryFloating: UIKitPinButton!
 
     override func setup() {
-        primary = Button(title: "Press me")
+        primary = UIKitPinButton(title: "Press me")
         primary.addTarget(self, action: #selector(tapped), for: .touchUpInside)
 
-        primaryDisabled = Button(title: "Save")
+        primaryDisabled = UIKitPinButton(title: "Save")
         primaryDisabled.isEnabled = false
 
-        primaryLoading = Button(title: "Saving")
+        primaryLoading = UIKitPinButton(title: "Saving")
         primaryLoading.showActivityIndicator(true)
         primaryLoading.addTarget(self, action: #selector(loadingPressed(_:)), for: .touchUpInside)
 
-        primaryLoadingDisabled = Button(title: "Saving")
+        primaryLoadingDisabled = UIKitPinButton(title: "Saving")
         primaryLoadingDisabled.isEnabled = false
         primaryLoadingDisabled.showActivityIndicator(true)
 
-        primaryTitleAndSymbol = Button(title: "Continue", symbol: "arrow.right")
-        primarySymbolOnly = Button(symbol: "arrow.right")
+        primaryTitleAndSymbol = UIKitPinButton(title: "Continue", symbol: "arrow.right")
+        primarySymbolOnly = UIKitPinButton(symbol: "arrow.right")
 
-        secondary = Button(title: "Long toggle loading", style: .secondary)
+        secondary = UIKitPinButton(title: "Long toggle loading", style: .secondary)
         secondary.addTarget(self, action: #selector(loading), for: .touchUpInside)
 
-        let secondaryDisabled = Button(title: "Disabled", style: .secondary)
+        let secondaryDisabled = UIKitPinButton(title: "Disabled", style: .secondary)
         secondaryDisabled.isEnabled = false
 
-        tertiary = Button(title: "Update titles", style: .tertiary)
+        tertiary = UIKitPinButton(title: "Update titles", style: .tertiary)
         tertiary.addTarget(self, action: #selector(updateTitles), for: .touchUpInside)
 
-        let tertiaryDisabled = Button(title: "Disabled", style: .tertiary)
+        let tertiaryDisabled = UIKitPinButton(title: "Disabled", style: .tertiary)
         tertiaryDisabled.isEnabled = false
 
-        custom = Button(title: "Custom", font: .caption, style: .custom(textColor: .green, backgroundColor: .red))
+        custom = UIKitPinButton(title: "Custom", font: .caption, style: .custom(textColor: .green, backgroundColor: .red))
         custom.addTarget(self, action: #selector(shrinkTitles), for: .touchUpInside)
 
-        let customDisabled = Button(title: "Custom", font: .caption, style: .custom(textColor: .green, backgroundColor: .red))
+        let customDisabled = UIKitPinButton(title: "Custom", font: .caption, style: .custom(textColor: .green, backgroundColor: .red))
         customDisabled.isEnabled = false
 
-        primaryFloating = Button(title: "Continue")
+        primaryFloating = UIKitPinButton(title: "Continue")
 
         let stackView = UIStackView(axis: .vertical, spacing: .spacingM, alignment: .center)
         stackView.addArrangedSubviews([
@@ -77,7 +77,7 @@ class PinButton: View {
         ])
     }
 
-    @objc func loadingPressed(_ button: Button) {
+    @objc func loadingPressed(_ button: UIKitPinButton) {
         guard !button.isLoading else { return }
 
         print("Loading pressed")

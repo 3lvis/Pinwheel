@@ -3,19 +3,19 @@ import Pinwheel
 
 class PinLabel: View {
     override func setup() {
-        let title = Label(font: .title)
+        let title = UIKitPinLabel(font: .title)
         title.text = "Title"
 
-        let subtitle = Label(font: .subtitle)
+        let subtitle = UIKitPinLabel(font: .subtitle)
         subtitle.text = "Subtitle"
 
-        let body = Label(font: .body)
+        let body = UIKitPinLabel(font: .body)
         body.text = "Body"
 
-        let footnote = Label(font: .footnote)
+        let footnote = UIKitPinLabel(font: .footnote)
         footnote.text = "Footnote"
 
-        let caption = Label(font: .caption)
+        let caption = UIKitPinLabel(font: .caption)
         caption.text = "Caption"
 
         let stackView = UIStackView(axis: .vertical, spacing: .spacingL)

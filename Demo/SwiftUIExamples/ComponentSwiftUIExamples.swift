@@ -72,43 +72,43 @@ struct PinSwiftUIFullscreenView: SwiftUI.View {
     }
 }
 
-struct PinSwiftUIButton: SwiftUI.View {
+struct PinButtonExample: SwiftUI.View {
     @SwiftUI.State private var isLoading = false
     @SwiftUI.State private var isDisabled = false
 
     var body: some SwiftUI.View {
         ScrollView {
             VStack(spacing: .spacingM) {
-                PinwheelButton("Press me") {}
+                PinButton("Press me") {}
                     .disabled(isDisabled)
 
-                PinwheelButton("Save") {}
+                PinButton("Save") {}
                     .disabled(true)
 
-                PinwheelButton("Saving", isLoading: true) {}
+                PinButton("Saving", isLoading: true) {}
 
-                PinwheelButton("Saving", isLoading: true) {}
+                PinButton("Saving", isLoading: true) {}
                     .disabled(true)
 
-                PinwheelButton("Continue", symbol: "arrow.right") {}
+                PinButton("Continue", symbol: "arrow.right") {}
 
-                PinwheelButton(symbol: "arrow.right") {}
+                PinButton(symbol: "arrow.right") {}
 
-                PinwheelButton("Long toggle loading", style: .secondary, isLoading: isLoading) {
+                PinButton("Long toggle loading", style: .secondary, isLoading: isLoading) {
                     isLoading.toggle()
                 }
 
-                PinwheelButton("Disabled", style: .secondary) {}
+                PinButton("Disabled", style: .secondary) {}
                     .disabled(true)
 
-                PinwheelButton("Update titles", style: .tertiary) {}
+                PinButton("Update titles", style: .tertiary) {}
 
-                PinwheelButton("Disabled", style: .tertiary) {}
+                PinButton("Disabled", style: .tertiary) {}
                     .disabled(true)
 
-                PinwheelButton("Custom", style: .custom(text: .green, background: .red), font: PinwheelTheme.Typography.caption) {}
+                PinButton("Custom", style: .custom(text: .green, background: .red), font: PinwheelTheme.Typography.caption) {}
 
-                PinwheelButton("Custom", style: .custom(text: .green, background: .red), font: PinwheelTheme.Typography.caption) {}
+                PinButton("Custom", style: .custom(text: .green, background: .red), font: PinwheelTheme.Typography.caption) {}
                     .disabled(true)
             }
             .padding(.vertical, .spacingXXL)

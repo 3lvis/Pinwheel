@@ -1,36 +1,36 @@
 import UIKit
 
-public protocol StateViewDelegate: AnyObject {
-    func stateViewDidSelectAction(_ stateView: StateView)
+public protocol UIKitPinStateViewDelegate: AnyObject {
+    func stateViewDidSelectAction(_ stateView: UIKitPinStateView)
 }
 
-public enum StateViewState {
+public enum UIKitPinStateViewState {
     case loading(title: String, subtitle: String)
     case loaded
     case empty(title: String, subtitle: String)
     case failed(title: String, subtitle: String, actionTitle: String)
 }
 
-public class StateView: View {
-    public weak var delegate: StateViewDelegate?
+public class UIKitPinStateView: View {
+    public weak var delegate: UIKitPinStateViewDelegate?
 
-    private lazy var titleLabel: Label = {
-        let label = Label(font: .subtitle)
+    private lazy var titleLabel: UIKitPinLabel = {
+        let label = UIKitPinLabel(font: .subtitle)
         label.text = "Title"
         label.textAlignment = .center
         return label
     }()
 
-    private lazy var subtitleLabel: Label = {
-        let label = Label(textColor: .secondaryText)
+    private lazy var subtitleLabel: UIKitPinLabel = {
+        let label = UIKitPinLabel(textColor: .secondaryText)
         label.text = "Subtitle"
         label.numberOfLines = 0
         label.textAlignment = .center
         return label
     }()
 
-    private lazy var actionButton: Button = {
-        let button = Button(title: "Action", style: .secondary)
+    private lazy var actionButton: UIKitPinButton = {
+        let button = UIKitPinButton(title: "Action", style: .secondary)
         button.alpha = 1
         button.addTarget(self, action: #selector(buttonAction), for: .touchUpInside)
         return button
@@ -46,7 +46,7 @@ public class StateView: View {
         self.delegate?.stateViewDidSelectAction(self)
     }
 
-    public var state: StateViewState = .loaded {
+    public var state: UIKitPinStateViewState = .loaded {
         didSet {
             switch state {
             case .loading(let title, let subtitle):

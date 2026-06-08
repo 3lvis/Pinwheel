@@ -2,7 +2,7 @@ import SwiftUI
 
 /// SwiftUI-native counterpart of the UIKit `Button`. Renders a pill that hugs its
 /// content, with the same styles, loading spinner, symbol support and press feedback.
-public struct PinwheelButton: SwiftUI.View {
+public struct PinButton: SwiftUI.View {
     public enum Style: Equatable {
         case primary
         case secondary
@@ -47,7 +47,7 @@ public struct PinwheelButton: SwiftUI.View {
         SwiftUI.Button(action: action) {
             label
         }
-        .buttonStyle(PinwheelButtonStyle(style: style, hasTitle: title != nil))
+        .buttonStyle(PinButtonStyle(style: style, hasTitle: title != nil))
     }
 
     @ViewBuilder
@@ -73,8 +73,8 @@ public struct PinwheelButton: SwiftUI.View {
     }
 }
 
-private struct PinwheelButtonStyle: SwiftUI.ButtonStyle {
-    let style: PinwheelButton.Style
+private struct PinButtonStyle: SwiftUI.ButtonStyle {
+    let style: PinButton.Style
     let hasTitle: Bool
 
     func makeBody(configuration: Configuration) -> some SwiftUI.View {
@@ -83,7 +83,7 @@ private struct PinwheelButtonStyle: SwiftUI.ButtonStyle {
 
     private struct Container: SwiftUI.View {
         let configuration: Configuration
-        let style: PinwheelButton.Style
+        let style: PinButton.Style
         let hasTitle: Bool
 
         @Environment(\.isEnabled) private var isEnabled

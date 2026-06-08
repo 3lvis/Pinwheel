@@ -1,16 +1,16 @@
 import UIKit
 import Pinwheel
 
-class PinFullscreenView: FullscreenView {
-    lazy var rightAnchoredLabel: Label = {
-        let label = Label()
+class PinFullscreenView: UIKitPinFullscreenView {
+    lazy var rightAnchoredLabel: UIKitPinLabel = {
+        let label = UIKitPinLabel()
         label.text = "Right Label"
         label.textAlignment = .right
         return label
     }()
 
-    lazy var leftAnchoredLabel: Label = {
-        let label = Label()
+    lazy var leftAnchoredLabel: UIKitPinLabel = {
+        let label = UIKitPinLabel()
         label.text = "Left Label"
         label.textAlignment = .right
         return label

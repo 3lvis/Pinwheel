@@ -1,6 +1,6 @@
 import UIKit
 
-public enum ButtonStyle {
+public enum UIKitPinButtonStyle {
     case primary
     case secondary
     case tertiary
@@ -14,7 +14,7 @@ public enum ButtonStyle {
     }
 }
 
-public class Button: UIButton {
+public class UIKitPinButton: UIButton {
     private static let buttonWidth = round(100.0 * sizeRatio)
     public static var sizeRatio: CGFloat {
         let screenHeight = UIScreen.main.bounds.height
@@ -26,7 +26,7 @@ public class Button: UIButton {
         }
     }
     public var isLoading = false
-    private var style: ButtonStyle
+    private var style: UIKitPinButtonStyle
     private var titleLabelCenterXConstraint: NSLayoutConstraint?
 
     private var marginInsets: UIEdgeInsets = .zero {
@@ -55,7 +55,7 @@ public class Button: UIButton {
     }
 
     let font: UIFont
-    public init(title: String? = nil, symbol: String? = nil, font: UIFont = .subtitleSemibold, style: ButtonStyle = .primary) {
+    public init(title: String? = nil, symbol: String? = nil, font: UIFont = .subtitleSemibold, style: UIKitPinButtonStyle = .primary) {
         self.title = title
         self.font = font
         self.style = style
@@ -79,7 +79,7 @@ public class Button: UIButton {
         super.didMoveToSuperview()
 
         if let superview = superview, let _ = title {
-            widthAnchor.constraint(greaterThanOrEqualToConstant: Button.buttonWidth).isActive = true
+            widthAnchor.constraint(greaterThanOrEqualToConstant: UIKitPinButton.buttonWidth).isActive = true
             widthAnchor.constraint(lessThanOrEqualTo: superview.widthAnchor, constant: -.spacingXL).isActive = true
 
             setContentHuggingPriority(.defaultHigh, for: .horizontal)

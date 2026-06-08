@@ -72,8 +72,8 @@ open class TableView: ShadowScrollView {
         }
     }
 
-    lazy var stateView: StateView = {
-        let view = StateView()
+    lazy var stateView: UIKitPinStateView = {
+        let view = UIKitPinStateView()
         view.delegate = self
         view.alpha = 0
         return view
@@ -189,8 +189,8 @@ extension TableView: TableViewDataSource {
     }
 }
 
-extension TableView: StateViewDelegate {
-    public func stateViewDidSelectAction(_ stateView: StateView) {
+extension TableView: UIKitPinStateViewDelegate {
+    public func stateViewDidSelectAction(_ stateView: UIKitPinStateView) {
         self.delegate?.tableViewDidSelectFailedStateAction(self)
     }
 }
