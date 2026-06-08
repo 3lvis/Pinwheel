@@ -27,6 +27,8 @@ public struct PinButton: SwiftUI.View {
     private let isLoading: Bool
     private let action: () -> Void
 
+    @SwiftUI.State private var tapCount = 0
+
     public init(
         _ title: String? = nil,
         symbol: String? = nil,
@@ -44,10 +46,14 @@ public struct PinButton: SwiftUI.View {
     }
 
     public var body: some SwiftUI.View {
-        SwiftUI.Button(action: action) {
+        SwiftUI.Button {
+            tapCount += 1
+            action()
+        } label: {
             label
         }
         .buttonStyle(PinButtonStyle(style: style, hasTitle: title != nil))
+        .sensoryFeedback(.impact(weight: style.isPrimary ? .medium : .light), trigger: tapCount)
     }
 
     @ViewBuilder

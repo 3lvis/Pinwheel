@@ -6,6 +6,18 @@ public extension UIView {
         translatesAutoresizingMaskIntoConstraints = !autoLayout
     }
 
+    /// The nearest view controller in the responder chain, if any.
+    var parentViewController: UIViewController? {
+        var responder: UIResponder? = next
+        while let current = responder {
+            if let viewController = current as? UIViewController {
+                return viewController
+            }
+            responder = current.next
+        }
+        return nil
+    }
+
     func resetDropShadow() {
         layer.shadowColor = nil
         layer.shadowOpacity = 0

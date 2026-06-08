@@ -1,276 +1,99 @@
+import SwiftUI
 import UIKit
 
+/// UIKit-facing style for `UIKitPinButton`, mapped onto the SwiftUI `PinButton.Style`.
 public enum UIKitPinButtonStyle {
     case primary
     case secondary
     case tertiary
     case custom(textColor: UIColor, backgroundColor: UIColor)
 
-    var isPrimary: Bool {
-        if case .primary = self {
-            return true
+    var pinStyle: PinButton.Style {
+        switch self {
+        case .primary:
+            return .primary
+        case .secondary:
+            return .secondary
+        case .tertiary:
+            return .tertiary
+        case .custom(let textColor, let backgroundColor):
+            return .custom(
+                text: SwiftUI.Color(uiColor: textColor),
+                background: SwiftUI.Color(uiColor: backgroundColor)
+            )
         }
-        return false
     }
 }
 
-public class UIKitPinButton: UIButton {
-    private static let buttonWidth = round(100.0 * sizeRatio)
-    public static var sizeRatio: CGFloat {
-        let screenHeight = UIScreen.main.bounds.height
+/// UIKit-friendly host over the SwiftUI `PinButton`. There is a single button
+/// implementation — the SwiftUI `PinButton` — and this is a thin shell that gives
+/// a hybrid UIKit app the imperative ergonomics it expects (title / isEnabled /
+/// isLoading mutation and target-action), so no SwiftUI knowledge is needed at the
+/// call site.
+public final class UIKitPinButton: UIControl {
+    private let symbol: String?
+    private let font: UIFont
+    private let style: UIKitPinButtonStyle
+    private var host: PinHostView<AnyView>!
 
-        if screenHeight > 693 {
-            return 1.0
-        } else {
-            return 0.8
-        }
-    }
-    public var isLoading = false
-    private var style: UIKitPinButtonStyle
-    private var titleLabelCenterXConstraint: NSLayoutConstraint?
+    public var title: String? { didSet { reload() } }
+    public var isLoading: Bool = false { didSet { reload() } }
+    public override var isEnabled: Bool { didSet { reload() } }
 
-    private var marginInsets: UIEdgeInsets = .zero {
-        didSet {
-            setNeedsLayout()
-        }
-    }
+    /// Modern tap handler. `addTarget(_:action:for: .touchUpInside)` also works.
+    public var onTap: (() -> Void)?
 
-    public var title: String? {
-        didSet {
-            updateTitle()
-        }
-    }
-
-    public func setTitle(title: String, symbol: String) {
+    public init(
+        title: String? = nil,
+        symbol: String? = nil,
+        font: UIFont = .subtitleSemibold,
+        style: UIKitPinButtonStyle = .primary
+    ) {
         self.title = title
-        addSymbolToTitle(symbol: symbol)
-    }
-
-    public override var isEnabled: Bool {
-        didSet {
-            UIView.transition(with: self, duration: 0.2, options: .transitionCrossDissolve, animations: {
-                self.updateStyle()
-            })
-        }
-    }
-
-    let font: UIFont
-    public init(title: String? = nil, symbol: String? = nil, font: UIFont = .subtitleSemibold, style: UIKitPinButtonStyle = .primary) {
-        self.title = title
+        self.symbol = symbol
         self.font = font
         self.style = style
         super.init(frame: .zero)
-        self.translatesAutoresizingMaskIntoConstraints = false
 
-        updateStyle()
+        translatesAutoresizingMaskIntoConstraints = false
 
-        if let aSymbol = symbol {
-            addSymbolToTitle(symbol: aSymbol)
-        } else {
-            updateTitle()
-        }
+        host = PinHostView(rootView: makeRootView())
+        addSubview(host)
+        NSLayoutConstraint.activate([
+            host.leadingAnchor.constraint(equalTo: leadingAnchor),
+            host.trailingAnchor.constraint(equalTo: trailingAnchor),
+            host.topAnchor.constraint(equalTo: topAnchor),
+            host.bottomAnchor.constraint(equalTo: bottomAnchor)
+        ])
     }
 
-    required init?(coder: NSCoder) {
+    public required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    public override func didMoveToSuperview() {
-        super.didMoveToSuperview()
-
-        if let superview = superview, let _ = title {
-            widthAnchor.constraint(greaterThanOrEqualToConstant: UIKitPinButton.buttonWidth).isActive = true
-            widthAnchor.constraint(lessThanOrEqualTo: superview.widthAnchor, constant: -.spacingXL).isActive = true
-
-            setContentHuggingPriority(.defaultHigh, for: .horizontal)
-            setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
-        }
-    }
-
-    private func addSymbolToTitle(symbol: String) {
-        let symbolConfiguration = UIImage.SymbolConfiguration(pointSize: self.font.pointSize, weight: self.font.weight.symbolWeight)
-        let symbolImage = UIImage(systemName: symbol, withConfiguration: symbolConfiguration)?.withRenderingMode(.alwaysTemplate)
-        let symbolAttachment = NSTextAttachment()
-        symbolAttachment.image = symbolImage
-        let symbolString = NSAttributedString(attachment: symbolAttachment)
-        if let aTitle = title {
-            let textWithSymbol = NSMutableAttributedString(string: "\(aTitle) ")
-            textWithSymbol.append(symbolString)
-            setAttributedTitle(textWithSymbol, for: .normal)
-        } else {
-            setAttributedTitle(symbolString, for: .normal)
-        }
-    }
-
-    private func updateTitle() {
-        switch style {
-        case .tertiary:
-            let normalAttributes: [NSAttributedString.Key: Any] = [
-                .foregroundColor: UIColor.secondaryText,
-                .underlineStyle: NSUnderlineStyle.single.rawValue
-            ]
-            let normalAttributedTitle = NSAttributedString(string: title ?? "", attributes: normalAttributes)
-            setAttributedTitle(normalAttributedTitle, for: .normal)
-
-            let disabledAttributes: [NSAttributedString.Key: Any] = [
-                .foregroundColor: UIColor.tertiaryText,
-                .underlineStyle: NSUnderlineStyle.single.rawValue
-            ]
-            let disabledAttributedTitle = NSAttributedString(string: title ?? "", attributes: disabledAttributes)
-            setAttributedTitle(disabledAttributedTitle, for: .disabled)
-        default: setTitle(title, for: .normal)
-        }
-        invalidateIntrinsicContentSize()
-    }
-
+    /// Compatibility with the old UIKit API.
     public func showActivityIndicator(_ shouldShow: Bool) {
         isLoading = shouldShow
-
-        if shouldShow {
-            let activityIndicator = UIActivityIndicatorView(style: .medium)
-            activityIndicator.translatesAutoresizingMaskIntoConstraints = false
-            if isEnabled {
-                let lightModeTraitCollection = UITraitCollection(userInterfaceStyle: .light)
-                let lightModeColor = UIColor.primaryBackground.resolvedColor(with: lightModeTraitCollection)
-                activityIndicator.color = lightModeColor
-            } else {
-                activityIndicator.color = .tertiaryText
-            }
-            addSubview(activityIndicator)
-            NSLayoutConstraint.activate([
-                activityIndicator.centerYAnchor.constraint(equalTo: centerYAnchor),
-                activityIndicator.leadingAnchor.constraint(equalTo: titleLabel!.trailingAnchor, constant: .spacingS)
-            ])
-            activityIndicator.startAnimating()
-
-            self.layoutIfNeeded()
-
-            if titleLabelCenterXConstraint == nil {
-                titleLabelCenterXConstraint = self.constraints.first(where: {
-                    $0.firstItem === titleLabel && $0.firstAttribute == .centerX
-                })
-            }
-
-            let value = -activityIndicator.bounds.width / 2 - .spacingXS
-            titleLabelCenterXConstraint?.constant = value
-
-            invalidateIntrinsicContentSize()
-        } else {
-            subviews.forEach {
-                if let activityIndicator = $0 as? UIActivityIndicatorView {
-                    activityIndicator.removeFromSuperview()
-                }
-            }
-            titleLabelCenterXConstraint?.constant = 0
-
-            self.layoutIfNeeded()
-
-            invalidateIntrinsicContentSize()
-        }
     }
 
-    public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesBegan(touches, with: event)
-        UIView.animate(withDuration: 0.3) {
-            self.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
-        }
+    private func reload() {
+        host?.rootView = makeRootView()
     }
 
-    public override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesEnded(touches, with: event)
-        UIView.animate(withDuration: 0.2) {
-            self.transform = .identity
-        }
-
-        switch style {
-        case .primary:
-            let generator = UIImpactFeedbackGenerator(style: .soft)
-            generator.impactOccurred()
-        case .secondary, .tertiary, .custom(_, _):
-            let generator = UIImpactFeedbackGenerator(style: .light)
-            generator.impactOccurred()
-        }
-    }
-
-    @objc private func updateStyle() {
-        marginInsets = UIEdgeInsets(top: .spacingXS, left: .spacingM, bottom: .spacingXS, right: .spacingM)
-
-        titleLabel?.font = self.font
-        layer.cornerRadius = .spacingM
-        layer.cornerCurve = .continuous
-        if style.isPrimary {
-            setTitleColor(.primaryBackground, for: .disabled)
-        } else {
-            setTitleColor(.tertiaryText, for: .disabled)
-        }
-
-        subviews.forEach {
-            if let activityIndicator = $0 as? UIActivityIndicatorView {
-                if isEnabled {
-                    let lightModeTraitCollection = UITraitCollection(userInterfaceStyle: .light)
-                    let lightModeColor = UIColor.primaryBackground.resolvedColor(with: lightModeTraitCollection)
-                    activityIndicator.color = lightModeColor
-                } else {
-                    activityIndicator.color = .tertiaryText
-                }
+    private func makeRootView() -> AnyView {
+        AnyView(
+            PinButton(
+                title,
+                symbol: symbol,
+                style: style.pinStyle,
+                font: SwiftUI.Font(font),
+                isLoading: isLoading
+            ) { [weak self] in
+                guard let self else { return }
+                self.sendActions(for: .touchUpInside)
+                self.onTap?()
             }
-        }
-
-        switch style {
-        case .primary:
-            if isEnabled {
-                let lightModeTraitCollection = UITraitCollection(userInterfaceStyle: .light)
-                let lightModeColor = UIColor.primaryBackground.resolvedColor(with: lightModeTraitCollection)
-                configureButtonColors(
-                    titleColor: lightModeColor,
-                    backgroundColor: .actionText
-                )
-            } else {
-                backgroundColor = .actionBackground
-            }
-        case .secondary:
-            if isEnabled {
-                configureButtonColors(
-                    titleColor: .primaryText,
-                    backgroundColor: .secondaryBackground
-                )
-            } else {
-                backgroundColor = .secondaryBackground
-            }
-        case .tertiary:
-            configureButtonColors(
-                titleColor: .secondaryText,
-                backgroundColor: .clear
-            )
-        case .custom(let textColor, let aBackgroundColor):
-            if isEnabled {
-                configureButtonColors(
-                    titleColor: textColor,
-                    backgroundColor: aBackgroundColor
-                )
-            } else {
-                setTitleColor(textColor.withAlphaComponent(0.5), for: .disabled)
-                backgroundColor = aBackgroundColor.withAlphaComponent(0.5)
-            }
-        }
-    }
-
-    private func configureButtonColors(
-        titleColor: UIColor,
-        backgroundColor: UIColor
-    ) {
-        setTitleColor(titleColor, for: .normal)
-        self.backgroundColor = backgroundColor
-    }
-
-    public override var intrinsicContentSize: CGSize {
-        var size = super.intrinsicContentSize
-        size.width += marginInsets.left + marginInsets.right
-        if isLoading {
-            let activityIndicatorWidth = 20.0
-            size.width += activityIndicatorWidth + .spacingS
-        }
-        size.height += marginInsets.top + marginInsets.bottom
-        return size
+            .disabled(!isEnabled)
+        )
     }
 }
