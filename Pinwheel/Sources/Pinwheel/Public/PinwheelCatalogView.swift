@@ -61,7 +61,7 @@ struct PinwheelCatalogView: SwiftUI.View {
                         showsSectionPicker = true
                     } label: {
                         HStack(spacing: 4) {
-                            PinLabel(selectedSection?.title ?? "Pinwheel", style: .body, color: PinwheelTheme.Colors.actionText)
+                            PinLabel(selectedSection?.title ?? "Pinwheel").color(PinwheelTheme.Colors.actionText)
                             Image(systemName: "chevron.down")
                                 .font(PinwheelTheme.Typography.footnote.weight(.medium))
                         }
@@ -85,7 +85,7 @@ struct PinwheelCatalogView: SwiftUI.View {
                     }
                     showsSectionPicker = false
                 } label: {
-                    PinLabel(section.title, style: .body, color: isSelected ? PinwheelTheme.Colors.actionText : PinwheelTheme.Colors.primaryText)
+                    PinLabel(section.title).color(isSelected ? PinwheelTheme.Colors.actionText : PinwheelTheme.Colors.primaryText)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .buttonStyle(.plain)
@@ -193,7 +193,7 @@ private struct PinwheelIndexView: SwiftUI.View {
                                 SwiftUI.Button {
                                     selectedItem(item)
                                 } label: {
-                                    PinLabel(item.title.capitalizingFirstLetter, style: .body)
+                                    PinLabel(item.title.capitalizingFirstLetter)
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                 }
                                 .buttonStyle(.plain)
@@ -201,7 +201,7 @@ private struct PinwheelIndexView: SwiftUI.View {
                                 .listRowBackground(PinwheelTheme.Colors.primaryBackground)
                             }
                         } header: {
-                            PinLabel(group.letter, style: .footnote, color: PinwheelTheme.Colors.secondaryText)
+                            PinLabel(group.letter).style(.footnote).color(PinwheelTheme.Colors.secondaryText)
                                 .textCase(nil)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }

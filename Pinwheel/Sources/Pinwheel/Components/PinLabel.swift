@@ -4,10 +4,18 @@ import SwiftUI
 ///
 /// Prefer this over `Text(...).font(.body)`: SwiftUI's built-in `.body` / `.title`
 /// are *Apple's* system text styles that share names with the design system but
-/// silently bypass it. `PinLabel("Title", style: .title)` always resolves the
-/// provider-backed `PinwheelTheme.Typography` font, with `primaryText` color by
-/// default. The `Style` enum (not `Font`) is deliberate — it makes the wrong,
-/// system-font path unrepresentable at the call site.
+/// silently bypass it. `PinLabel` always resolves the provider-backed
+/// `PinwheelTheme.Typography` font. The `Style` enum (not `Font`) is deliberate —
+/// it makes the wrong, system-font path unrepresentable at the call site.
+///
+/// Styling reads like SwiftUI; `style` defaults to `.body` and `color` to
+/// `primaryText`, so the common case is just the text:
+///
+/// ```swift
+/// PinLabel("Has chevron")                                // body, primaryText
+/// PinLabel("Title").style(.title)                        // themed title
+/// PinLabel("subtitle").style(.caption).color(PinwheelTheme.Colors.secondaryText)
+/// ```
 ///
 /// `PinLabel` is a pure SwiftUI value (no `UIHostingController`): Label is the one
 /// component where SwiftUI and UIKit each have an independent trivial implementation
@@ -34,17 +42,25 @@ public struct PinLabel: SwiftUI.View {
     }
 
     private let text: String
-    private let style: Style
-    private let color: SwiftUI.Color
+    private var style: Style = .body
+    private var color: SwiftUI.Color = PinwheelTheme.Colors.primaryText
 
-    public init(
-        _ text: String,
-        style: Style = .body,
-        color: SwiftUI.Color = PinwheelTheme.Colors.primaryText
-    ) {
+    public init(_ text: String) {
         self.text = text
-        self.style = style
-        self.color = color
+    }
+
+    /// Sets the typography style (default `.body`).
+    public func style(_ style: Style) -> PinLabel {
+        var copy = self
+        copy.style = style
+        return copy
+    }
+
+    /// Sets the text color (default `PinwheelTheme.Colors.primaryText`).
+    public func color(_ color: SwiftUI.Color) -> PinLabel {
+        var copy = self
+        copy.color = color
+        return copy
     }
 
     public var body: some SwiftUI.View {

@@ -4,11 +4,11 @@ import Pinwheel
 struct PinLabelExample: SwiftUI.View {
     var body: some SwiftUI.View {
         VStack(alignment: .leading, spacing: .spacingL) {
-            PinLabel("Title", style: .title)
-            PinLabel("Subtitle", style: .subtitle)
-            PinLabel("Body", style: .body)
-            PinLabel("Footnote", style: .footnote)
-            PinLabel("Caption", style: .caption)
+            PinLabel("Title").style(.title)
+            PinLabel("Subtitle").style(.subtitle)
+            PinLabel("Body")
+            PinLabel("Footnote").style(.footnote)
+            PinLabel("Caption").style(.caption)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(.spacingL)
@@ -21,7 +21,7 @@ struct PinTweakableExample: SwiftUI.View {
     @SwiftUI.State private var isOn = false
 
     var body: some SwiftUI.View {
-        PinLabel(selection, style: .body)
+        PinLabel(selection)
             .multilineTextAlignment(.center)
             .padding(.spacingXXL)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -57,9 +57,9 @@ struct PinFullscreenViewExample: SwiftUI.View {
             Spacer()
 
             HStack {
-                PinLabel("Left Label", style: .body)
+                PinLabel("Left Label")
                 Spacer()
-                PinLabel("Right Label", style: .body)
+                PinLabel("Right Label")
             }
         }
         .padding(.spacingM)

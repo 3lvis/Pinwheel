@@ -44,10 +44,10 @@ public struct PinStateView: SwiftUI.View {
                     ProgressView()
                 }
 
-                PinLabel(title, style: .subtitle)
+                PinLabel(title).style(.subtitle)
             }
 
-            PinLabel(subtitle, style: .body, color: PinwheelTheme.Colors.secondaryText)
+            PinLabel(subtitle).color(PinwheelTheme.Colors.secondaryText)
 
             if let actionTitle {
                 PinButton(actionTitle, style: .secondary, action: onAction)
