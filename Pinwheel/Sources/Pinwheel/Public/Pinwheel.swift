@@ -164,7 +164,9 @@ public struct PinwheelItem {
                 )
             },
             makeSwiftUIView: {
-                AnyView(PinwheelUIKitView(view: ViewType.self))
+                AnyView(PinwheelUIKitViewController {
+                    PinwheelUIKitContainerViewController { ViewType(frame: .zero) }
+                })
             }
         )
     }

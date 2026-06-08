@@ -18,15 +18,6 @@ public struct PinwheelUIKitView<ViewType: UIView>: UIViewRepresentable {
 
     public func updateUIView(_ uiView: ViewType, context: Context) {
     }
-
-    // Fill the proposed size instead of collapsing to the view's fitting size.
-    // Pinwheel's UIKit views (e.g. the DNA examples) pin their content to their
-    // own edges and only look right at full size — as they would in a real
-    // full-bounds UIKit hierarchy — so hugging here left them content-sized and
-    // top-left in the catalog/preview.
-    public func sizeThatFits(_ proposal: ProposedViewSize, uiView: ViewType, context: Context) -> CGSize? {
-        return proposal.replacingUnspecifiedDimensions()
-    }
 }
 
 public struct PinwheelUIKitViewController: UIViewControllerRepresentable {
@@ -41,5 +32,40 @@ public struct PinwheelUIKitViewController: UIViewControllerRepresentable {
     }
 
     public func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
+    }
+}
+
+/// Hosts a UIKit view as a view controller's full-bounds content.
+///
+/// Used to embed `view:` catalog items in SwiftUI: a `UIViewControllerRepresentable`
+/// is handed the full proposed size by SwiftUI, so the hosted view lays out at
+/// full bounds — as it would in a real UIKit hierarchy. A bare
+/// `UIViewRepresentable` instead sizes to the view's fitting size, which left
+/// edge-pinned UIKit examples (e.g. the DNA examples, table-backed examples)
+/// collapsed to content and pinned top-left in the catalog/preview.
+final class PinwheelUIKitContainerViewController: UIViewController {
+    private let makeContent: () -> UIView
+
+    init(makeContent: @escaping () -> UIView) {
+        self.makeContent = makeContent
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        let content = makeContent()
+        content.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(content)
+        NSLayoutConstraint.activate([
+            content.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            content.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            content.topAnchor.constraint(equalTo: view.topAnchor),
+            content.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
     }
 }
