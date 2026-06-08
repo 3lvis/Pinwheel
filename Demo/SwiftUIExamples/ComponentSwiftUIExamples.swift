@@ -77,29 +77,43 @@ struct PinSwiftUIButton: SwiftUI.View {
     @SwiftUI.State private var isDisabled = false
 
     var body: some SwiftUI.View {
-        VStack(spacing: 16) {
-            SwiftUI.Button {
-                isLoading.toggle()
-            } label: {
-                SwiftUI.Label(isLoading ? "Saving" : "Save", systemImage: isLoading ? "clock" : "checkmark")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
-            .disabled(isDisabled)
+        ScrollView {
+            VStack(spacing: .spacingM) {
+                PinwheelButton("Press me") {}
+                    .disabled(isDisabled)
 
-            SwiftUI.Button("Secondary") {
-            }
-            .buttonStyle(.bordered)
-            .disabled(isDisabled)
+                PinwheelButton("Save") {}
+                    .disabled(true)
 
-            SwiftUI.Button("Destructive", role: .destructive) {
+                PinwheelButton("Saving", isLoading: true) {}
+
+                PinwheelButton("Saving", isLoading: true) {}
+                    .disabled(true)
+
+                PinwheelButton("Continue", symbol: "arrow.right") {}
+
+                PinwheelButton(symbol: "arrow.right") {}
+
+                PinwheelButton("Long toggle loading", style: .secondary, isLoading: isLoading) {
+                    isLoading.toggle()
+                }
+
+                PinwheelButton("Disabled", style: .secondary) {}
+                    .disabled(true)
+
+                PinwheelButton("Update titles", style: .tertiary) {}
+
+                PinwheelButton("Disabled", style: .tertiary) {}
+                    .disabled(true)
+
+                PinwheelButton("Custom", style: .custom(text: .green, background: .red), font: PinwheelTheme.Typography.caption) {}
+
+                PinwheelButton("Custom", style: .custom(text: .green, background: .red), font: PinwheelTheme.Typography.caption) {}
+                    .disabled(true)
             }
-            .buttonStyle(.bordered)
-            .disabled(isDisabled)
+            .padding(.vertical, .spacingXXL)
+            .frame(maxWidth: .infinity)
         }
-        .padding(24)
-        .frame(maxWidth: 420)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(SwiftUI.Color(uiColor: .primaryBackground))
         .pinwheelTweaks {
             PinwheelTweak("Loading", isOn: $isLoading)
