@@ -1,9 +1,9 @@
 import UIKit
 
-/// Intentional UIKit surface. Kept as a trivial `UILabel` subclass — bridging a
-/// label through a hosting controller costs more than it's worth. SwiftUI-first
-/// code uses `Text` with `PinwheelTheme.Typography`/`Colors` directly, so there
-/// is deliberately no SwiftUI `PinLabel`.
+/// Trivial themed `UILabel` subclass. Label is the one component where SwiftUI
+/// and UIKit each get an independent trivial implementation fed by the same
+/// `Config` provider tokens — no hosting bridge in either direction. The SwiftUI
+/// counterpart is `PinLabel` (a themed `Text`).
 public class UIKitPinLabel: UILabel {
     // MARK: - Setup
 

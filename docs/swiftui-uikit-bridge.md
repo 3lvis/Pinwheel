@@ -64,9 +64,9 @@ These landed after Phases 1–5 while exercising the catalog/preview:
 - [x] **UIKit `Tweakable` options bridged into the SwiftUI playground.** A hosted `view:` item that conforms to `Tweakable` maps its UIKit `Tweak`s (`TextTweak` → action, `BoolTweak` → toggle) to `PinwheelTweak`s and publishes them via `pinwheelTweaks`, so its options appear in the playground settings sheet (previously absent for UIKit examples). See `PinwheelUIKitCompatibility.swift`.
 - [x] **iOS 17 deprecations + Sendable warnings cleared** (trait overrides, `onChange`, `UITraitCollection(traitsFrom:)`, tweak toggle binding). Build is warning-free.
 
-## Phase 4 — Label decision ✅ DONE
+## Phase 4 — Label decision ✅ DONE (revised)
 
-- [x] **Decision: keep `UIKitPinLabel` as-is; no SwiftUI `PinLabel`.** A label routed through a hosting controller costs more than the bridge is worth. SwiftUI-first code uses `Text` with `PinwheelTheme.Typography`/`Colors` directly (see `PinLabelExample`). Recorded as a doc-comment on `UIKitPinLabel`.
+- [x] **Decision: add a SwiftUI `PinLabel`; keep `UIKitPinLabel` independent.** Initially we shipped no `PinLabel` ("use `Text` + `PinwheelTheme`"), but that left a footgun: `Text(...).font(.body)` resolves to *Apple's* system style, not the provider font — and the SwiftUI demos silently regressed to system fonts (caught via `Scripts/preview-all.sh`). `PinLabel("x", style: .title)` (new `Components/PinLabel.swift`) makes the themed path the default and the system-font path unrepresentable. It's a pure SwiftUI value — Label is the one component where SwiftUI and UIKit each have an independent trivial impl fed by the same provider tokens, so neither hosts the other (the original "hosting overhead" objection didn't apply here). Demos (`PinLabelExample`, `PinFontExample`) now dogfood `PinLabel`.
 
 ## Phase 5 — Document the intentional UIKit surface ✅ DONE
 
