@@ -109,7 +109,9 @@ private struct PinwheelFloatingControls: SwiftUI.View {
         GeometryReader { geometry in
             VStack(spacing: .spacingS) {
                 PinwheelFloatingButton(symbol: "wrench.adjustable.fill", badge: tweakCount, action: settings)
+                    .accessibilityIdentifier("pinwheel.settings")
                 PinwheelFloatingButton(symbol: "xmark", badge: 0, action: close)
+                    .accessibilityIdentifier("pinwheel.close")
             }
             .position(position(in: geometry.size))
             .offset(dragOffset)

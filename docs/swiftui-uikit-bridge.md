@@ -91,14 +91,19 @@ These landed after Phases 1–5 while exercising the catalog/preview:
     `xcrun simctl launch <booted> com.nordser.pinwheel -PinwheelPreview button` → screenshot.
   - **RenderPreview fast path:** one permanent `#Preview` lives at the bottom of `DemoPinwheelSections.swift`; edit the `previewComponentID` constant (one token) to point it at any component — no throwaway `#Preview` files.
 
-- [ ] **XCUITest coverage for interactive playground paths.** Screenshots + `simctl` verify rendering, but `simctl` has no tap primitive, so interactions can't be exercised headlessly — e.g. tapping the playground wrench → a tweak and asserting the component reacts (UIKit StateView Loading/Loaded/Empty/Failed; Button enabled/loading; the bridged `Tweakable` → SwiftUI tweak path). Add a UI-test target to `Demo.xcodeproj` and drive it via the existing deep-link launch arg:
+- [x] **XCUITest coverage for interactive playground paths.** ✅ STARTED. The `DemoUITests` target drives the deep-link launch arg, so each test is a one-line jump to a single component, then taps real UI:
   ```swift
-  let app = XCUIApplication()
   app.launchArguments = ["-PinwheelPreview", "uikit-state-view"]
   app.launch()
-  // tap wrench → "Failed" → assert app.staticTexts["Oops!"].exists
+  app.buttons["pinwheel.settings"].tap()   // wrench (a11y id)
+  app.buttons["Failed"].tap()              // bridged tweak
+  XCTAssertTrue(app.staticTexts["Oops!"].waitForExistence(timeout: 10))
+  app.buttons["Retry"].tap()               // failed-state action fires
+  XCTAssertTrue(app.staticTexts["Loading..."].waitForExistence(timeout: 10))
   ```
-  The `-PinwheelPreview <id>` entry point makes each test a one-line deep-link to a single component — no navigation. (Today the only test target is the SPM unit-test target `PinwheelTests`; this needs a new UI-test target, which is pbxproj work.)
+  - `DemoUITests/StateViewUITests.swift` covers the SwiftUI `PinStateView` and the UIKit shell: default render, the `Tweakable`→SwiftUI tweak bridge, and the failed-state Retry action (all green via `xcodebuild test -scheme Demo`).
+  - Testability hooks added: `pinwheel.settings` / `pinwheel.close` accessibility ids on the playground floating controls; the UIKit StateView demo's Retry now switches to `.loading` (observable, matching the SwiftUI demo).
+  - Follow-up: extend to Button (enabled/loading) and the TableView family.
 
 ## Critical files
 

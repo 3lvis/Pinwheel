@@ -33,6 +33,6 @@ class UIKitPinStateViewExample: UIKitPinView, Tweakable {
 
 extension UIKitPinStateViewExample: UIKitPinStateViewDelegate {
     func stateViewDidSelectAction(_ stateView: Pinwheel.UIKitPinStateView) {
-        print("action!")
+        stateView.state = .loading(title: "Loading...", subtitle: "Please wait while we fetch your details.")
     }
 }
