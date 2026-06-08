@@ -17,4 +17,6 @@ If SwiftUI's native primitive plus `PinwheelTheme` already covers it and nothing
 - **Switch → `Toggle`** — no standalone `PinSwitch`; the only switch lives inside the UIKit `UIKitPinTableView` family.
 - **DNA (Font / Color / Spacing)** — these are *tokens*, never components, in either world: `Config` providers → `UIColor`/`UIFont`/`CGFloat` extensions (UIKit) and `PinwheelTheme.Typography`/`Colors` + `.spacing*` (SwiftUI). Single source = the providers, which is why theming/light-dark resolves across the bridge for free.
 
+**Modifier naming:** chained modifiers on our *own* types are unprefixed (`PinButton().style(.secondary)`, `PinItem().presentation(.medium)`); prefix with `pinwheel` *only* when extending a SwiftUI type to avoid collisions (`View.pinwheelTweaks { }`). Mirror SwiftUI's own names where one exists (`systemImage:`, `.font(_:)`).
+
 This is separate from the **intentional UIKit surface** (`UIKitPinView` base, `UIKitPinFullscreenView`, the `UIKitPinTableView` family): those stay UIKit because of lifecycle / keyboard avoidance / cell recycling — not because a SwiftUI primitive suffices.

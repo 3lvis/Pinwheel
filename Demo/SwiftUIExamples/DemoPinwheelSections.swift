@@ -52,7 +52,7 @@ enum DemoPinwheelSections {
             PinwheelItem("TableView", id: "table-view") {
                 PinTableViewExample()
             }
-            .pinwheelPresentation(.medium)
+            .presentation(.medium)
         }
     }
 
@@ -67,7 +67,7 @@ enum DemoPinwheelSections {
             PinwheelItem("UIKit Button", id: "uikit-button", view: UIKitPinButtonExample.self)
             PinwheelItem("UIKit StateView", id: "uikit-state-view", view: UIKitPinStateViewExample.self)
             PinwheelItem("UIKit TableView", id: "uikit-table-view", view: UIKitPinTableViewExample.self)
-                .pinwheelPresentation(.medium)
+                .presentation(.medium)
         }
     }
 }

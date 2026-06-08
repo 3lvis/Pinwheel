@@ -237,7 +237,7 @@ public extension PinwheelItem {
         return presentation
     }
 
-    func pinwheelPresentation(_ presentation: PinwheelPresentation) -> PinwheelItem {
+    func presentation(_ presentation: PinwheelPresentation) -> PinwheelItem {
         return with(
             presentation: presentation,
             supportedInterfaceOrientations: supportedInterfaceOrientations,
@@ -247,7 +247,7 @@ public extension PinwheelItem {
         )
     }
 
-    func pinwheelSupportedInterfaceOrientations(_ orientations: UIInterfaceOrientationMask) -> PinwheelItem {
+    func supportedInterfaceOrientations(_ orientations: UIInterfaceOrientationMask) -> PinwheelItem {
         return with(
             presentation: presentation,
             supportedInterfaceOrientations: orientations,
@@ -257,7 +257,7 @@ public extension PinwheelItem {
         )
     }
 
-    func pinwheelSafeArea(top: Bool = true, bottom: Bool = true) -> PinwheelItem {
+    func safeArea(top: Bool = true, bottom: Bool = true) -> PinwheelItem {
         return with(
             presentation: presentation,
             supportedInterfaceOrientations: supportedInterfaceOrientations,
@@ -267,7 +267,7 @@ public extension PinwheelItem {
         )
     }
 
-    func pinwheelTabletDisplayMode(_ mode: TabletDisplayMode) -> PinwheelItem {
+    func tabletDisplayMode(_ mode: TabletDisplayMode) -> PinwheelItem {
         return with(
             presentation: presentation,
             supportedInterfaceOrientations: supportedInterfaceOrientations,

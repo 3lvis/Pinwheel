@@ -28,8 +28,8 @@ class UIKitPinButtonExample: UIKitPinView {
         primaryLoadingDisabled.isEnabled = false
         primaryLoadingDisabled.showActivityIndicator(true)
 
-        primaryTitleAndSymbol = UIKitPinButton(title: "Continue", symbol: "arrow.right")
-        primarySymbolOnly = UIKitPinButton(symbol: "arrow.right")
+        primaryTitleAndSymbol = UIKitPinButton(title: "Continue", systemImage: "arrow.right")
+        primarySymbolOnly = UIKitPinButton(systemImage: "arrow.right")
 
         secondary = UIKitPinButton(title: "Long toggle loading", style: .secondary)
         secondary.addTarget(self, action: #selector(loading), for: .touchUpInside)

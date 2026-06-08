@@ -31,7 +31,7 @@ public enum UIKitPinButtonStyle {
 /// isLoading mutation and target-action), so no SwiftUI knowledge is needed at the
 /// call site.
 public final class UIKitPinButton: UIControl {
-    private let symbol: String?
+    private let systemImage: String?
     private let font: PinTextStyle
     private let style: UIKitPinButtonStyle
     private var host: PinHostView<AnyView>!
@@ -45,12 +45,12 @@ public final class UIKitPinButton: UIControl {
 
     public init(
         title: String? = nil,
-        symbol: String? = nil,
+        systemImage: String? = nil,
         font: PinTextStyle = .subtitleSemibold,
         style: UIKitPinButtonStyle = .primary
     ) {
         self.title = title
-        self.symbol = symbol
+        self.systemImage = systemImage
         self.font = font
         self.style = style
         super.init(frame: .zero)
@@ -82,7 +82,7 @@ public final class UIKitPinButton: UIControl {
 
     private func makeRootView() -> AnyView {
         AnyView(
-            PinButton(title, systemImage: symbol) { [weak self] in
+            PinButton(title, systemImage: systemImage) { [weak self] in
                 guard let self else { return }
                 self.sendActions(for: .touchUpInside)
                 self.onTap?()

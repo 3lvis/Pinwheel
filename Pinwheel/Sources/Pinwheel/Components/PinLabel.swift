@@ -14,7 +14,7 @@ import SwiftUI
 /// ```swift
 /// PinLabel("Has chevron")                                 // body, primary
 /// PinLabel("Title").font(.title)
-/// PinLabel("subtitle").font(.caption).color(.secondary)   // .raw(_) for arbitrary colors
+/// PinLabel("subtitle").font(.caption).color(.secondary)   // .custom(_) for arbitrary colors
 /// ```
 ///
 /// `PinLabel` is a pure SwiftUI value (no `UIHostingController`): Label is the one
@@ -22,14 +22,15 @@ import SwiftUI
 /// fed by the same `Config` provider tokens, so neither needs to host the other.
 public struct PinLabel: SwiftUI.View {
     /// A themed text color role. Use the semantic cases to stay on the design
-    /// system; `.raw(_)` is the escape hatch for an arbitrary color.
+    /// system; `.custom(_)` is the escape hatch for an arbitrary color (named to
+    /// match `PinButton.Style.custom`).
     public enum TextColor {
         case primary
         case secondary
         case tertiary
         case action
         case critical
-        case raw(SwiftUI.Color)
+        case custom(SwiftUI.Color)
 
         var color: SwiftUI.Color {
             switch self {
@@ -38,7 +39,7 @@ public struct PinLabel: SwiftUI.View {
             case .tertiary: return PinwheelTheme.Colors.tertiaryText
             case .action: return PinwheelTheme.Colors.actionText
             case .critical: return PinwheelTheme.Colors.criticalText
-            case .raw(let color): return color
+            case .custom(let color): return color
             }
         }
     }
