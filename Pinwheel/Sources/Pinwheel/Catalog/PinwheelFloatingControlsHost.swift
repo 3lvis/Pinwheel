@@ -182,31 +182,42 @@ private struct PinwheelDevicePill: SwiftUI.View {
     let chrome: PinwheelChrome
 
     var body: some SwiftUI.View {
-        if let device = chrome.simulatedDevice {
-            HStack(spacing: .spacingS) {
-                // Indicator only — not tappable.
-                Image(systemName: "iphone.gen3")
-                PinLabel(device.title).font(.caption)
-
-                // The only interactive part: reset to the real device (also hides
-                // the pill, since `simulatedDevice` becomes nil).
-                SwiftUI.Button {
-                    chrome.selectedDeviceIndex = nil
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(PinwheelTheme.Colors.secondaryText)
-                }
-                .buttonStyle(.plain)
+        // Shrink + fade on the way out, keyed on the same visibility the FAB uses,
+        // so closing dismisses both together and the pill's reset animates away.
+        ZStack {
+            if chrome.isDevicePillVisible, let device = chrome.simulatedDevice {
+                pill(for: device)
+                    .transition(.scale.combined(with: .opacity))
             }
-            .foregroundStyle(PinwheelTheme.Colors.primaryText)
-            .padding(.horizontal, .spacingM)
-            .padding(.vertical, .spacingS)
-            .background(
-                Capsule()
-                    .fill(PinwheelTheme.Colors.secondaryBackground)
-                    .shadow(color: .black.opacity(0.15), radius: 8, y: 3)
-            )
         }
+        .animation(.easeOut(duration: 0.22), value: chrome.isDevicePillVisible)
+    }
+
+    private func pill(for device: Device) -> some SwiftUI.View {
+        HStack(spacing: .spacingS) {
+            // Indicator only — not tappable.
+            Image(systemName: "iphone.gen3")
+            PinLabel(device.title).font(.caption)
+
+            // The only interactive part: reset to the real device. Clearing the
+            // index fades the pill (above) and animates the frame back to full
+            // size (the playground animates on `selectedDeviceIndex`).
+            SwiftUI.Button {
+                chrome.selectedDeviceIndex = nil
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundStyle(PinwheelTheme.Colors.secondaryText)
+            }
+            .buttonStyle(.plain)
+        }
+        .foregroundStyle(PinwheelTheme.Colors.primaryText)
+        .padding(.horizontal, .spacingM)
+        .padding(.vertical, .spacingS)
+        .background(
+            Capsule()
+                .fill(PinwheelTheme.Colors.secondaryBackground)
+                .shadow(color: .black.opacity(0.15), radius: 8, y: 3)
+        )
     }
 }
 

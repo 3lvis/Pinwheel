@@ -31,6 +31,9 @@ struct PinwheelPlayground: SwiftUI.View {
                         : PinwheelTheme.Colors.primaryBackground)
                         .ignoresSafeArea()
                 )
+                // Animate the frame resize (and letterbox crossfade) when the
+                // simulated device changes — including the pill's reset to full size.
+                .animation(.easeInOut(duration: 0.25), value: chrome.selectedDeviceIndex)
                 .onAppear {
                     chrome.selectedDeviceIndex = PinwheelStateStore.selectedDeviceIndex(for: selection)
                     chrome.onClose = onClose

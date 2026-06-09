@@ -52,5 +52,11 @@ final class PinwheelChrome {
     }
 
     func selectSettings() { showsSettings = true }
-    func selectClose() { onClose?() }
+
+    /// Hide the controls immediately so the FAB and device pill dismiss in sync
+    /// with the close, instead of lingering until the dismissal animation ends.
+    func selectClose() {
+        isPresentingItem = false
+        onClose?()
+    }
 }

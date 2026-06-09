@@ -152,6 +152,9 @@ final class CornerAnchoringView: UIView {
         bottomRightViewSafeBottomConstraint?.isActive = true
 
         panRecognizer.addTarget(self, action: #selector(anchoredViewPanned(recognizer:)))
+        // Don't hold the button's touch-up while the pan recognizer evaluates a
+        // possible drag, so a tap on close/settings fires immediately.
+        panRecognizer.delaysTouchesEnded = false
         buttonsView.addGestureRecognizer(panRecognizer)
 
         setupKeyboardNotifications()
