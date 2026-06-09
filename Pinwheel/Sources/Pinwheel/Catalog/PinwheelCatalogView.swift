@@ -32,8 +32,7 @@ struct PinwheelCatalogView: SwiftUI.View {
             PinwheelFloatingControlsHost(
                 chrome: chrome,
                 tweakCount: chrome.tweakCount,
-                fabVisible: chrome.isFloatingControlsVisible,
-                pillVisible: chrome.isDevicePillVisible
+                fabVisible: chrome.isFloatingControlsVisible
             )
         )
         .onAppear {
