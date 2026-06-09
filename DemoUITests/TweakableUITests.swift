@@ -130,7 +130,7 @@ final class TweakableUITests: XCTestCase {
         XCTAssertTrue(option1.waitForExistence(timeout: 10), "Option 1 should be listed")
         option1.tap()
 
-        XCTAssertTrue(app.staticTexts["Choosen Option 1!\n\nYou can drag the button too :D"].waitForExistence(timeout: 10),
+        XCTAssertTrue(app.staticTexts["Chosen Option 1!\n\nYou can drag the button too :D"].waitForExistence(timeout: 10),
                       "A UIKit tweak chosen from the catalog should update the hosted view's label")
     }
 
@@ -143,7 +143,7 @@ final class TweakableUITests: XCTestCase {
         XCTAssertTrue(option1.waitForExistence(timeout: 10), "bridged Option 1 should be listed")
         option1.tap()
 
-        XCTAssertTrue(app.staticTexts["Choosen Option 1!\n\nYou can drag the button too :D"].waitForExistence(timeout: 10),
+        XCTAssertTrue(app.staticTexts["Chosen Option 1!\n\nYou can drag the button too :D"].waitForExistence(timeout: 10),
                       "A bridged UIKit action tweak should update the example label")
     }
 }
