@@ -20,3 +20,7 @@ If SwiftUI's native primitive plus `PinwheelTheme` already covers it and nothing
 **Modifier naming:** chained modifiers on our *own* types are unprefixed (`PinButton().style(.secondary)`, `PinItem().presentation(.medium)`); prefix with `pinwheel` *only* when extending a SwiftUI type to avoid collisions (`View.pinwheelTweaks { }`). Mirror SwiftUI's own names where one exists (`systemImage:`, `.font(_:)`).
 
 This is separate from the **intentional UIKit surface** (`UIKitPinView` base, `UIKitPinFullscreenView`, the `UIKitPinTableView` family): those stay UIKit because of lifecycle / keyboard avoidance / cell recycling — not because a SwiftUI primitive suffices.
+
+## Testing
+
+`DemoUITests` are **regression tests**, not a coverage goal. Add a UI test when a real bug/regression surfaces in an interactive path (e.g. a tap that stopped firing) — write the test that would have caught it. We do **not** aim for full UI coverage; don't add speculative UI tests for paths that haven't broken.
