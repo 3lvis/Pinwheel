@@ -59,6 +59,7 @@ struct PinwheelFloatingControlsHost: UIViewRepresentable {
     @MainActor
     final class Coordinator {
         private var window: PinwheelFloatingControlsWindow?
+        private var fabShown = false
 
         func attach(scene: UIWindowScene, chrome: PinwheelChrome) {
             guard window == nil else { return }
@@ -66,21 +67,32 @@ struct PinwheelFloatingControlsHost: UIViewRepresentable {
             window.controller.onSettings = { [weak chrome] in chrome?.selectSettings() }
             window.controller.onClose = { [weak chrome] in chrome?.selectClose() }
             window.controller.installPill(chrome: chrome)
+            window.controller.anchoringView.setControlsHidden(true, animated: false)
             self.window = window
         }
 
         func update(fabVisible: Bool, pillVisible: Bool, tweakCount: Int) {
             guard let window else { return }
             window.controller.itemsCount = tweakCount
-            // Fade the FAB (not the whole window) so the pill can stay up while the
-            // settings sheet is open — the FAB hides, the pill doesn't.
-            UIView.animate(withDuration: 0.25) {
-                window.controller.anchoringView.alpha = fabVisible ? 1 : 0
+
+            let shouldShowWindow = fabVisible || pillVisible
+            if shouldShowWindow { window.isHidden = false }
+
+            // Animate the FAB (fade + shrink) only on a visibility change, so the
+            // pill can stay up while the settings sheet is open (FAB hides, pill
+            // doesn't). Drop the whole window only once nothing needs it.
+            if fabVisible != fabShown {
+                fabShown = fabVisible
+                window.controller.anchoringView.setControlsHidden(!fabVisible, animated: true) {
+                    if !shouldShowWindow { window.isHidden = true }
+                }
+            } else if !shouldShowWindow {
+                window.isHidden = true
             }
-            window.isHidden = !(fabVisible || pillVisible)
         }
 
         func teardown() {
+            fabShown = false
             window?.isHidden = true
             window = nil
         }

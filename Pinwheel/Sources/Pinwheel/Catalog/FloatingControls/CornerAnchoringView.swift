@@ -75,6 +75,22 @@ class CornerAnchoringView: UIView {
         }
     }
 
+    /// Shows/hides the controls with a quick fade + shrink toward their corner.
+    func setControlsHidden(_ hidden: Bool, animated: Bool, completion: (() -> Void)? = nil) {
+        let apply = {
+            self.buttonsView.alpha = hidden ? 0 : 1
+            self.buttonsView.transform = hidden ? CGAffineTransform(scaleX: 0.6, y: 0.6) : .identity
+        }
+        if animated {
+            UIView.animate(withDuration: 0.22, delay: 0, options: [.curveEaseOut], animations: apply) { _ in
+                completion?()
+            }
+        } else {
+            apply()
+            completion?()
+        }
+    }
+
     init() {
         super.init(frame: .zero)
         translatesAutoresizingMaskIntoConstraints = false

@@ -22,7 +22,15 @@ struct PinwheelPlayground: SwiftUI.View {
         return GeometryReader { geometry in
             content(in: geometry)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(SwiftUI.Color(uiColor: .primaryBackground).ignoresSafeArea())
+                // Letterbox a simulated (smaller) device against the inverse-of-
+                // surface token so the resized frame is visible — near-black in
+                // light, light in dark — rather than blending into the content.
+                .background(
+                    (chrome.simulatedDevice != nil
+                        ? PinwheelTheme.Colors.primaryText
+                        : PinwheelTheme.Colors.primaryBackground)
+                        .ignoresSafeArea()
+                )
                 .onAppear {
                     chrome.selectedDeviceIndex = PinwheelStateStore.selectedDeviceIndex(for: selection)
                     chrome.onClose = onClose
