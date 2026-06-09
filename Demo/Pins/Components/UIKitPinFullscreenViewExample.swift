@@ -20,6 +20,18 @@ class UIKitPinFullscreenViewExample: UIKitPinFullscreenView {
         let textView = UITextView(withAutoLayout: true)
         textView.returnKeyType = .done
         textView.delegate = self
+        textView.text = """
+        UIKitPinFullscreenView is a UIKit base class for keyboard-aware full-screen \
+        screens (forms, composers, editors). Subclass it, override setup(), and anchor \
+        bottom content with safeAnchorToKeyboardTopAndSafeAreaBottom(subview:).
+
+        Edit this text: the two labels below ride up above the keyboard while editing, \
+        and drop back to the safe-area bottom when it dismisses (tap Return). It also \
+        gives a viewDidFirstAppear() lifecycle hook a bare UIView lacks.
+
+        SwiftUI needs no equivalent — keyboard avoidance and onAppear are built in — \
+        which is why this stays a UIKit-only surface.
+        """
         addSubview(textView)
         addSubview(rightAnchoredLabel)
         addSubview(leftAnchoredLabel)
