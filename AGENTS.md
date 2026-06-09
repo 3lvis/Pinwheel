@@ -21,6 +21,22 @@ If SwiftUI's native primitive plus `PinwheelTheme` already covers it and nothing
 
 This is separate from the **intentional UIKit surface** (`UIKitPinView` base, `UIKitPinFullscreenView`, the `UIKitPinTableView` family): those stay UIKit because of lifecycle / keyboard avoidance / cell recycling — not because a SwiftUI primitive suffices.
 
+## Way of working
+
+The mantra, so a fresh agent works the way we do from line one:
+
+- **Theme is law.** Every Pinwheel surface resolves provider-backed tokens (`PinwheelTheme` / the `Config` providers), never Apple's system styles. When you add API, design it so the *wrong* (system-style) path is unrepresentable — that's why `PinLabel.font` takes a themed `PinTextStyle`, not a raw `Font`. See the section above.
+- **One implementation per component.** A bridgeable component is a SwiftUI `Pin*` source plus a thin `UIKitPin*` shell that hosts it — never two parallel implementations. Theming/light-dark crosses the bridge for free because both sides read the same provider tokens.
+- **Shared vocabularies are top-level types.** When two or more components reuse a concept, promote it to a top-level `public` type instead of nesting it under one component (`PinTextStyle` for typography, `PinState` for content state, `PinLabel.TextColor` for color roles). No component should "own" what another reuses.
+- **SwiftUI-native API.** Bare initializer + chained, themed modifiers (`PinLabel("x").font(.caption).color(.secondary)`, `PinButton("x") { }.style(.secondary).loading(flag)`). Mirror SwiftUI's own names where one exists (`systemImage:`, `.font(_:)`). `.style` is a button's visual variant; `.font` is typography on any text component. Raw escape hatches are explicit and named (`.color(.custom(...))`, `.style(.custom(text:background:))`). Modifier-prefix rule is in the section above.
+- **Verify visually, don't assume.** After a UI change, *look* at it before saying it's done:
+  - Render the permanent `#Preview` in `Demo/SwiftUIExamples/DemoPinwheelSections.swift` — set `previewComponentID` to the component's id and `mcp__xcode__RenderPreview` it. No throwaway `#Preview` needed.
+  - Or deep-link a booted sim: `simctl launch <bundle> -PinwheelPreview <id> [-PinwheelPreviewTweak <title>]`.
+  - `Scripts/preview-all.sh` snapshots every component and tweak variant to PNGs for a full sweep.
+  - When the SwiftUI side must match the UIKit one, compare against the UIKit example (or `main`) — the UIKit rendering is the source of truth for parity.
+- **Build/verify via the Xcode MCP.** `mcp__xcode__BuildProject` after every change, `RenderPreview` to look, `RunSomeTests`/`GetTestList` for the regression tests (`tabIdentifier: "windowtab1"`). Full details + the session-restart gotcha (MCP tools only register at session start with Xcode open on the project and Intelligence "Xcode Tools" on) live in the `xcode-mcp` skill (`.claude/skills/xcode-mcp/SKILL.md`); `xcodebuild`/`simctl` are the fallback.
+- **Keep it green and current.** Builds stay warning-free. Update the docs/backlog (`docs/`) and the registry as components change. Commit in small, focused units with clean, minimal messages and push when a logical unit is done.
+
 ## Testing
 
 `DemoUITests` are **regression tests**, not a coverage goal. Add a UI test when a real bug/regression surfaces in an interactive path (e.g. a tap that stopped firing) — write the test that would have caught it. We do **not** aim for full UI coverage; don't add speculative UI tests for paths that haven't broken.
