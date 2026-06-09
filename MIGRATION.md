@@ -2,6 +2,27 @@
 
 This guide is for projects moving from the UIKit-first Pinwheel API to the SwiftUI-first API.
 
+## Build The Catalog With `PinwheelCatalog`
+
+The UIKit-first catalog host has been removed — `PinwheelTableViewController` and the item-hosting `PinwheelViewController` / `PinwheelHostingViewController` (and `PinwheelItem.viewController`) no longer exist. Present the catalog with the SwiftUI `PinwheelCatalog` instead:
+
+```swift
+@main
+struct DemoApp: App {
+    var body: some Scene {
+        WindowGroup {
+            PinwheelCatalog {
+                PinwheelSection("Components", id: "components") {
+                    PinwheelItem("Button", id: "button") { ButtonDemo() }
+                }
+            }
+        }
+    }
+}
+```
+
+UIKit *content* still drops into this catalog — the `view:` and `viewController:` item initializers below are unchanged.
+
 ## Prefer SwiftUI Items
 
 Old UIKit items still work:
