@@ -183,16 +183,6 @@ extension UIKitPinTableView: UIKitPinTableViewCellDelegate {
     }
 }
 
-extension UIKitPinTableView: UIKitPinTableViewDataSource {
-    public func tableViewNumberOfItems(_ tableView: UIKitPinTableView) -> Int {
-        return items.count
-    }
-
-    public func tableView(_ tableView: UIKitPinTableView, itemAtIndex index: Int) -> any UIKitPinTableViewItem {
-        return items[index]
-    }
-}
-
 extension UIKitPinTableView: UIKitPinStateViewDelegate {
     public func stateViewDidSelectAction(_ stateView: UIKitPinStateView) {
         self.delegate?.tableViewDidSelectFailedStateAction(self)

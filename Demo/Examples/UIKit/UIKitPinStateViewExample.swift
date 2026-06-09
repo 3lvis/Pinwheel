@@ -5,16 +5,16 @@ class UIKitPinStateViewExample: UIKitPinView, Tweakable {
     lazy var tweaks: [Tweak] = {
         return [
             TextTweak(title: "Loading") {
-                self.stateView.state = .loading(title: "Loading...", subtitle: "Please wait while we fetch your details.")
+                self.stateView.state = .loading(title: DemoStateFixture.loadingTitle, subtitle: DemoStateFixture.loadingSubtitle)
             },
             TextTweak(title: "Loaded") {
                 self.stateView.state = .loaded
             },
             TextTweak(title: "Empty") {
-                self.stateView.state = .empty(title: "Ready to Move?", subtitle: "Kick things off with your first booking.")
+                self.stateView.state = .empty(title: DemoStateFixture.emptyTitle, subtitle: DemoStateFixture.emptySubtitle)
             },
             TextTweak(title: "Failed") {
-                self.stateView.state = .failed(title: "Oops!", subtitle: "We couldn't load your bookings.", actionTitle: "Retry")
+                self.stateView.state = .failed(title: DemoStateFixture.failedTitle, subtitle: DemoStateFixture.failedSubtitle, actionTitle: DemoStateFixture.retryActionTitle)
             }
         ]
     }()
@@ -33,6 +33,6 @@ class UIKitPinStateViewExample: UIKitPinView, Tweakable {
 
 extension UIKitPinStateViewExample: UIKitPinStateViewDelegate {
     func stateViewDidSelectAction(_ stateView: Pinwheel.UIKitPinStateView) {
-        stateView.state = .loading(title: "Loading...", subtitle: "Please wait while we fetch your details.")
+        stateView.state = .loading(title: DemoStateFixture.loadingTitle, subtitle: DemoStateFixture.loadingSubtitle)
     }
 }

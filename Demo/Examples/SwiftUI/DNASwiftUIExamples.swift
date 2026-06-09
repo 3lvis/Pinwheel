@@ -15,11 +15,11 @@ struct PinFontExample: SwiftUI.View {
     var body: some SwiftUI.View {
         List(styles, id: \.0) { title, style in
             PinLabel(title).font(style)
-                .listRowBackground(SwiftUI.Color(uiColor: .primaryBackground))
+                .listRowBackground(PinwheelTheme.Colors.primaryBackground)
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
-        .background(SwiftUI.Color(uiColor: .primaryBackground))
+        .background(PinwheelTheme.Colors.primaryBackground)
     }
 }
 
@@ -47,7 +47,7 @@ struct PinColorExample: SwiftUI.View {
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
-        .background(SwiftUI.Color(uiColor: .primaryBackground))
+        .background(PinwheelTheme.Colors.primaryBackground)
     }
 }
 
@@ -70,12 +70,12 @@ struct PinSpacingExample: SwiftUI.View {
                     PinLabel("\(title) \(Int(spacing))")
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, .spacingS)
-                        .background(SwiftUI.Color(uiColor: .tertiaryText))
+                        .background(PinwheelTheme.Colors.tertiaryText)
                         .padding(.horizontal, spacing)
                 }
             }
             .padding(.top, .spacingXXL)
         }
-        .background(SwiftUI.Color(uiColor: .primaryBackground))
+        .background(PinwheelTheme.Colors.primaryBackground)
     }
 }

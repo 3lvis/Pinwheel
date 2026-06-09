@@ -45,7 +45,7 @@ public extension PinList {
     struct Row: SwiftUI.View {
         private enum Kind {
             case text(subtitle: String?, detail: String?, chevron: Bool, enabled: Bool, action: (() -> Void)?)
-            case toggle(subtitle: String?, isOn: Binding<Bool>)
+            case toggle(subtitle: String?, enabled: Bool, isOn: Binding<Bool>)
         }
 
         private let title: String
@@ -70,17 +70,19 @@ public extension PinList {
             Row(title: title, kind: .text(subtitle: subtitle, detail: detail, chevron: chevron, enabled: enabled, action: action))
         }
 
-        /// A switch row bound to `isOn`.
-        public static func toggle(_ title: String, subtitle: String? = nil, isOn: Binding<Bool>) -> Row {
-            Row(title: title, kind: .toggle(subtitle: subtitle, isOn: isOn))
+        /// A switch row bound to `isOn`. `enabled: false` dims it and makes it
+        /// non-interactive.
+        public static func toggle(_ title: String, subtitle: String? = nil, enabled: Bool = true, isOn: Binding<Bool>) -> Row {
+            Row(title: title, kind: .toggle(subtitle: subtitle, enabled: enabled, isOn: isOn))
         }
 
         public var body: some SwiftUI.View {
             switch kind {
             case let .text(subtitle, detail, chevron, enabled, action):
                 textRow(subtitle: subtitle, detail: detail, chevron: chevron, enabled: enabled, action: action)
-            case let .toggle(subtitle, isOn):
-                Toggle(isOn: isOn) { labels(subtitle: subtitle, enabled: true) }
+            case let .toggle(subtitle, enabled, isOn):
+                Toggle(isOn: isOn) { labels(subtitle: subtitle, enabled: enabled) }
+                    .disabled(!enabled)
             }
         }
 

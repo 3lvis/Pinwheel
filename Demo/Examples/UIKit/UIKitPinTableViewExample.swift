@@ -5,16 +5,16 @@ class UIKitPinTableViewExample: UIKitPinView, Tweakable {
     lazy var tweaks: [Tweak] = {
         return [
             TextTweak(title: "Loading") {
-                self.tableView.state = .loading(title: "Loading...", subtitle: "Please wait while we fetch your details.")
+                self.tableView.state = .loading(title: DemoStateFixture.loadingTitle, subtitle: DemoStateFixture.loadingSubtitle)
             },
             TextTweak(title: "Loaded") {
                 self.tableView.state = .loaded([UIKitPinTextTableViewItem(title: "Only value")])
             },
             TextTweak(title: "Empty") {
-                self.tableView.state = .empty(title: "Ready to Move?", subtitle: "Kick things off with your first booking.")
+                self.tableView.state = .empty(title: DemoStateFixture.emptyTitle, subtitle: DemoStateFixture.emptySubtitle)
             },
             TextTweak(title: "Failed") {
-                self.tableView.state = .failed(title: "Oops!", subtitle: "We couldn't load your bookings.", actionTitle: "Retry")
+                self.tableView.state = .failed(title: DemoStateFixture.failedTitle, subtitle: DemoStateFixture.failedSubtitle, actionTitle: DemoStateFixture.retryActionTitle)
             }
         ]
     }()

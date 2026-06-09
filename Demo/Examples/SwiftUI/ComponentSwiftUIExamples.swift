@@ -12,7 +12,7 @@ struct PinLabelExample: SwiftUI.View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(.spacingL)
-        .background(SwiftUI.Color(uiColor: .primaryBackground))
+        .background(PinwheelTheme.Colors.primaryBackground)
     }
 }
 
@@ -25,7 +25,7 @@ struct PinTweakableExample: SwiftUI.View {
             .multilineTextAlignment(.center)
             .padding(.spacingXXL)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(SwiftUI.Color(uiColor: .primaryBackground))
+            .background(PinwheelTheme.Colors.primaryBackground)
             .pinwheelTweaks {
                 PinwheelTweak("Option 1") {
                     selection = "Chosen Option 1"
@@ -96,7 +96,7 @@ struct PinButtonExample: SwiftUI.View {
             .padding(.vertical, .spacingXXL)
             .frame(maxWidth: .infinity)
         }
-        .background(SwiftUI.Color(uiColor: .primaryBackground))
+        .background(PinwheelTheme.Colors.primaryBackground)
         .pinwheelTweaks {
             PinwheelTweak("Loading", isOn: $isLoading)
             PinwheelTweak("Disabled", isOn: $isDisabled)
@@ -105,28 +105,19 @@ struct PinButtonExample: SwiftUI.View {
 }
 
 struct PinStateViewExample: SwiftUI.View {
-    @SwiftUI.State private var state: PinState = .empty(
-        title: "Ready to Move?",
-        subtitle: "Kick things off with your first booking."
-    )
+    @SwiftUI.State private var state: PinState = DemoStateFixture.empty
 
     var body: some SwiftUI.View {
         PinStateView(state) {
-            state = .loading(title: "Loading...", subtitle: "Please wait while we fetch your details.")
+            state = DemoStateFixture.loading
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(SwiftUI.Color(uiColor: .primaryBackground))
+        .background(PinwheelTheme.Colors.primaryBackground)
         .pinwheelTweaks {
-            PinwheelTweak("Loading") {
-                state = .loading(title: "Loading...", subtitle: "Please wait while we fetch your details.")
-            }
+            PinwheelTweak("Loading") { state = DemoStateFixture.loading }
             PinwheelTweak("Loaded") { state = .loaded }
-            PinwheelTweak("Empty") {
-                state = .empty(title: "Ready to Move?", subtitle: "Kick things off with your first booking.")
-            }
-            PinwheelTweak("Failed") {
-                state = .failed(title: "Oops!", subtitle: "We couldn't load your bookings.", actionTitle: "Retry")
-            }
+            PinwheelTweak("Empty") { state = DemoStateFixture.empty }
+            PinwheelTweak("Failed") { state = DemoStateFixture.failed }
         }
     }
 }

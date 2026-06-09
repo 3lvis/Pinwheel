@@ -16,12 +16,13 @@ struct PinTableViewExample: SwiftUI.View {
             .text("Has chevron", chevron: true) {},
             .toggle("Off", isOn: $off),
             .toggle("On", isOn: $on),
+            .toggle("Disabled", enabled: false, isOn: $on),
         ], onRetry: { state = .loaded })
         .pinwheelTweaks {
-            PinwheelTweak("Loading") { state = .loading(title: "Loading...", subtitle: "Please wait while we fetch your details.") }
+            PinwheelTweak("Loading") { state = DemoStateFixture.loading }
             PinwheelTweak("Loaded") { state = .loaded }
-            PinwheelTweak("Empty") { state = .empty(title: "Ready to Move?", subtitle: "Kick things off with your first booking.") }
-            PinwheelTweak("Failed") { state = .failed(title: "Oops!", subtitle: "We couldn't load your bookings.", actionTitle: "Retry") }
+            PinwheelTweak("Empty") { state = DemoStateFixture.empty }
+            PinwheelTweak("Failed") { state = DemoStateFixture.failed }
         }
     }
 }
