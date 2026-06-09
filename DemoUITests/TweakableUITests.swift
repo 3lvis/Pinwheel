@@ -5,18 +5,26 @@ import XCTest
 /// option should mutate the example's content. Covers both the SwiftUI
 /// `pinwheelTweaks` path and the UIKit `Tweakable` → `PinwheelTweak` bridge.
 final class TweakableUITests: XCTestCase {
+    private var app: XCUIApplication!
+
     override func setUpWithError() throws {
         continueAfterFailure = false
+        app = XCUIApplication()
+        // -UITesting makes the app clear persisted catalog state and disable
+        // animations on launch (see DemoApp); tests add -PinwheelPreview as needed.
+        app.launchArguments = ["-UITesting"]
     }
 
-    private func launch(_ previewID: String) -> XCUIApplication {
-        let app = XCUIApplication()
-        app.launchArguments = ["-PinwheelPreview", previewID]
+    override func tearDownWithError() throws {
+        app = nil
+    }
+
+    private func launchPreview(_ previewID: String) {
+        app.launchArguments += ["-PinwheelPreview", previewID]
         app.launch()
-        return app
     }
 
-    private func openSettings(in app: XCUIApplication) {
+    private func openSettings() {
         let settings = app.buttons["pinwheel.settings"]
         XCTAssertTrue(settings.waitForExistence(timeout: 10), "settings (wrench) button should exist")
         settings.tap()
@@ -27,7 +35,7 @@ final class TweakableUITests: XCTestCase {
     /// opened only when the current section differs from `section`, the section
     /// button is unambiguous (it can't collide with the section-picker button,
     /// which is labelled with the *current* section).
-    private func openCatalogItem(_ itemName: String, section: String, in app: XCUIApplication) {
+    private func openCatalogItem(_ itemName: String, section: String) {
         let close = app.buttons["pinwheel.close"]
         if close.waitForExistence(timeout: 2) {
             close.tap()
@@ -51,8 +59,8 @@ final class TweakableUITests: XCTestCase {
 
     @MainActor
     func testSwiftUIActionTweakUpdatesContent() {
-        let app = launch("tweakable")
-        openSettings(in: app)
+        launchPreview("tweakable")
+        openSettings()
 
         let option1 = app.buttons["Option 1"]
         XCTAssertTrue(option1.waitForExistence(timeout: 10), "Option 1 should be listed")
@@ -64,8 +72,8 @@ final class TweakableUITests: XCTestCase {
 
     @MainActor
     func testSwiftUIToggleTweakUpdatesContent() {
-        let app = launch("tweakable")
-        openSettings(in: app)
+        launchPreview("tweakable")
+        openSettings()
 
         let option3 = app.switches["Option 3, Toggle-backed option"]
         XCTAssertTrue(option3.waitForExistence(timeout: 10), "Option 3 toggle should be listed")
@@ -80,15 +88,15 @@ final class TweakableUITests: XCTestCase {
 
     @MainActor
     func testSwiftUISecondActionTweakStillUpdatesContent() {
-        let app = launch("tweakable")
+        launchPreview("tweakable")
 
-        openSettings(in: app)
+        openSettings()
         let option1 = app.buttons["Option 1"]
         XCTAssertTrue(option1.waitForExistence(timeout: 10))
         option1.tap()
         XCTAssertTrue(app.staticTexts["Chosen Option 1"].waitForExistence(timeout: 10))
 
-        openSettings(in: app)
+        openSettings()
         // The row carries a description, so its accessibility label is the
         // combined "title, description".
         let option2 = app.buttons["Option 2, Description 2"]
@@ -102,12 +110,11 @@ final class TweakableUITests: XCTestCase {
 
     @MainActor
     func testCatalogTweakableActionUpdatesContent() {
-        let app = XCUIApplication()
         app.launch()
 
-        openCatalogItem("Tweakable", section: "Components", in: app)
+        openCatalogItem("Tweakable", section: "Components")
 
-        openSettings(in: app)
+        openSettings()
         let option1 = app.buttons["Option 1"]
         XCTAssertTrue(option1.waitForExistence(timeout: 10), "Option 1 should be listed")
         option1.tap()
@@ -120,12 +127,11 @@ final class TweakableUITests: XCTestCase {
 
     @MainActor
     func testCatalogUIKitTweakableActionUpdatesContent() {
-        let app = XCUIApplication()
         app.launch()
 
-        openCatalogItem("UIKit Tweakable", section: "UIKit", in: app)
+        openCatalogItem("UIKit Tweakable", section: "UIKit")
 
-        openSettings(in: app)
+        openSettings()
         let option1 = app.buttons["Option 1"]
         XCTAssertTrue(option1.waitForExistence(timeout: 10), "Option 1 should be listed")
         option1.tap()
@@ -136,8 +142,8 @@ final class TweakableUITests: XCTestCase {
 
     @MainActor
     func testUIKitActionTweakUpdatesContent() {
-        let app = launch("uikit-tweakable")
-        openSettings(in: app)
+        launchPreview("uikit-tweakable")
+        openSettings()
 
         let option1 = app.buttons["Option 1"]
         XCTAssertTrue(option1.waitForExistence(timeout: 10), "bridged Option 1 should be listed")

@@ -5,20 +5,28 @@ import XCTest
 /// playground settings, switching to the failed state via a tweak, and tapping
 /// the failed-state action ("Retry").
 final class StateViewUITests: XCTestCase {
+    private var app: XCUIApplication!
+
     override func setUpWithError() throws {
         continueAfterFailure = false
+        app = XCUIApplication()
+        // -UITesting makes the app clear persisted catalog state and disable
+        // animations on launch (see DemoApp); tests add -PinwheelPreview as needed.
+        app.launchArguments = ["-UITesting"]
     }
 
-    private func launch(_ previewID: String) -> XCUIApplication {
-        let app = XCUIApplication()
-        app.launchArguments = ["-PinwheelPreview", previewID]
+    override func tearDownWithError() throws {
+        app = nil
+    }
+
+    private func launchPreview(_ previewID: String) {
+        app.launchArguments += ["-PinwheelPreview", previewID]
         app.launch()
-        return app
     }
 
     /// Opens the playground settings and selects the "Failed" tweak, leaving the
     /// component in its failed state with the action button visible.
-    private func selectFailedState(in app: XCUIApplication) {
+    private func selectFailedState() {
         let settings = app.buttons["pinwheel.settings"]
         XCTAssertTrue(settings.waitForExistence(timeout: 10), "settings (wrench) button should exist")
         settings.tap()
@@ -32,14 +40,14 @@ final class StateViewUITests: XCTestCase {
 
     @MainActor
     func testSwiftUIStateViewRendersDefaultEmptyState() {
-        let app = launch("state-view")
+        launchPreview("state-view")
         XCTAssertTrue(app.staticTexts["Ready to Move?"].waitForExistence(timeout: 10))
     }
 
     @MainActor
     func testSwiftUIStateViewRetryTriggersLoading() {
-        let app = launch("state-view")
-        selectFailedState(in: app)
+        launchPreview("state-view")
+        selectFailedState()
 
         XCTAssertTrue(app.staticTexts["Oops!"].waitForExistence(timeout: 10))
         let retry = app.buttons["Retry"]
@@ -54,8 +62,8 @@ final class StateViewUITests: XCTestCase {
 
     @MainActor
     func testUIKitStateViewBridgesTweaksAndRetry() {
-        let app = launch("uikit-state-view")
-        selectFailedState(in: app)
+        launchPreview("uikit-state-view")
+        selectFailedState()
 
         XCTAssertTrue(app.staticTexts["Oops!"].waitForExistence(timeout: 10))
         let retry = app.buttons["Retry"]
