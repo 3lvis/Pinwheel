@@ -190,7 +190,7 @@ The demo app uses native SwiftUI examples as the default sections:
 
 - `DNA`
 - `Components`
-- `Reciclable`
+- `Recyclable`
 
 Legacy UIKit examples are preserved in a dedicated `UIKit` section.
 

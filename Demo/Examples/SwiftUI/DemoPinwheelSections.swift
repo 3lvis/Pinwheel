@@ -4,7 +4,7 @@ import SwiftUI
 @MainActor
 enum DemoPinwheelSections {
     static var all: [PinwheelSection] {
-        [dna, components, reciclable, uikit]
+        [dna, components, recyclable, uikit]
     }
 
     static var dna: PinwheelSection {
@@ -43,8 +43,8 @@ enum DemoPinwheelSections {
         }
     }
 
-    static var reciclable: PinwheelSection {
-        PinwheelSection("Reciclable", id: "reciclable") {
+    static var recyclable: PinwheelSection {
+        PinwheelSection("Recyclable", id: "recyclable") {
             PinwheelItem("TableView", id: "table-view") {
                 PinTableViewExample()
             }

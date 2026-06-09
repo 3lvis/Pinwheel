@@ -118,12 +118,12 @@ These stay UIKit because no SwiftUI primitive matches their ergonomics/perf:
 
 Audited TODOs (nothing else is pending):
 
-1. **Rename the "Reciclable" section** — the folder is gone, but the runtime
-   `PinwheelSection("Reciclable", id: "reciclable")` (title + persisted id) remains
-   misspelled. Renaming changes a persisted id, so it needs a migration or an
-   accepted state reset. Low effort, cosmetic.
-2. **Bridged-component cost** — one `UIHostingController` per `UIKitPinButton`/
+1. **Bridged-component cost** — one `UIHostingController` per `UIKitPinButton`/
    `UIKitPinStateView`; revisit only if used in dense reused contexts (table cells).
+   A watch-item, not actionable now.
+
+(The "Recyclable" section was renamed from the misspelled "Reciclable"; its
+persisted id changed `reciclable` → `recyclable`, a one-time selection reset.)
 
 ## Catalog
 

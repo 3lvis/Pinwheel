@@ -16,7 +16,7 @@ struct DemoApp: App {
                 PinwheelCatalog {
                     DemoPinwheelSections.dna
                     DemoPinwheelSections.components
-                    DemoPinwheelSections.reciclable
+                    DemoPinwheelSections.recyclable
                     DemoPinwheelSections.uikit
                 }
             }

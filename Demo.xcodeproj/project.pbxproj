@@ -26,13 +26,8 @@
 		2893C6492A48908000039B8A /* Pinwheel */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Pinwheel; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		281F88FD2FD74E3800DEEBC7 /* DemoUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = DemoUITests; sourceTree = "<group>"; };
-		2847DF4A2A48903E009A6B8E /* Demo */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (2847DFAA2A48903E009A6B8E /* Exceptions for "Demo" folder in "Demo" target */, ); explicitFileTypes = {}; explicitFolders = (); path = Demo; sourceTree = "<group>"; };
-/* End PBXFileSystemSynchronizedRootGroup section */
-
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		2847DFAA2A48903E009A6B8E /* Exceptions for "Demo" folder in "Demo" target */ = {
+		2847DFAA2A48903E009A6B8E /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -40,6 +35,11 @@
 			target = 2847DF472A48903D009A6B8E /* Demo */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		281F88FD2FD74E3800DEEBC7 /* DemoUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = DemoUITests; sourceTree = "<group>"; };
+		2847DF4A2A48903E009A6B8E /* Demo */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (2847DFAA2A48903E009A6B8E /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Demo; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		281F88F92FD74E3800DEEBC7 /* Frameworks */ = {
