@@ -73,9 +73,7 @@ final class TweakableUITests: XCTestCase {
         // so tap the switch control on the trailing edge to actually flip it.
         option3.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
 
-        // Dismiss the sheet to read the label underneath.
-        app.buttons["Done"].tap()
-
+        // The label updates behind the sheet (no Done button to dismiss anymore).
         XCTAssertTrue(app.staticTexts["Option 3 is on"].waitForExistence(timeout: 10),
                       "Toggling a bool tweak should update the example label")
     }

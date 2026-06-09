@@ -169,10 +169,6 @@ private struct PinwheelSettingsView: SwiftUI.View {
                     ToolbarItem(placement: .principal) {
                         PinLabel("Options").font(.subtitleSemibold)
                     }
-                    ToolbarItem(placement: .topBarLeading) {
-                        SwiftUI.Button("Done") { dismiss() }
-                            .tint(PinwheelTheme.Colors.actionText)
-                    }
                     ToolbarItem(placement: .topBarTrailing) {
                         NavigationLink {
                             PinwheelDeviceList(selectedIndex: $selectedDeviceIndex)
@@ -239,11 +235,6 @@ private struct PinwheelDeviceList: SwiftUI.View {
 
     private let devices = Device.all
 
-    private var showsReset: Bool {
-        guard let selectedIndex, let device = devices[safe: selectedIndex] else { return false }
-        return !device.isCurrent
-    }
-
     var body: some SwiftUI.View {
         List {
             ForEach(Array(devices.enumerated()), id: \.offset) { index, device in
@@ -273,12 +264,6 @@ private struct PinwheelDeviceList: SwiftUI.View {
         .toolbar {
             ToolbarItem(placement: .principal) {
                 PinLabel("Device").font(.subtitleSemibold)
-            }
-            if showsReset {
-                ToolbarItem(placement: .topBarTrailing) {
-                    SwiftUI.Button("Reset") { selectedIndex = nil }
-                        .tint(PinwheelTheme.Colors.actionText)
-                }
             }
         }
     }
