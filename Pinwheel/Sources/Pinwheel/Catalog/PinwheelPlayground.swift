@@ -99,16 +99,10 @@ struct PinwheelPlayground: SwiftUI.View {
 
     private func originForDevice(_ device: Device?, in containerSize: CGSize) -> CGPoint {
         guard let device else { return .zero }
-
-        switch device.autoresizingMask {
-        case let mask where mask.contains(.flexibleHeight) && !mask.contains(.flexibleLeftMargin):
-            return CGPoint(x: 0, y: max((containerSize.height - device.frame.height) / 2, 0))
-        default:
-            return CGPoint(
-                x: max((containerSize.width - device.frame.width) / 2, 0),
-                y: max((containerSize.height - device.frame.height) / 2, 0)
-            )
-        }
+        return CGPoint(
+            x: max((containerSize.width - device.frame.width) / 2, 0),
+            y: max((containerSize.height - device.frame.height) / 2, 0)
+        )
     }
 
     private func horizontalSizeClass(for device: Device?) -> SwiftUI.UserInterfaceSizeClass? {

@@ -45,7 +45,7 @@ public struct PinLabel: SwiftUI.View {
     }
 
     private let text: String
-    private var font: PinTextStyle = .body
+    private var typography: PinTextStyle = .body
     private var color: TextColor = .primary
 
     public init(_ text: String) {
@@ -55,11 +55,11 @@ public struct PinLabel: SwiftUI.View {
     /// Sets the typography (default `.body`).
     public func font(_ font: PinTextStyle) -> PinLabel {
         var copy = self
-        copy.font = font
+        copy.typography = font
         return copy
     }
 
-    /// Sets the text color role (default `.primary`). Use `.raw(_)` for an
+    /// Sets the text color role (default `.primary`). Use `.custom(_)` for an
     /// arbitrary color.
     public func color(_ color: TextColor) -> PinLabel {
         var copy = self
@@ -69,7 +69,7 @@ public struct PinLabel: SwiftUI.View {
 
     public var body: some SwiftUI.View {
         Text(text)
-            .font(font.font)
+            .font(typography.font)
             .foregroundStyle(color.color)
     }
 }

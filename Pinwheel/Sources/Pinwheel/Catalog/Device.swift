@@ -1,7 +1,7 @@
 import UIKit
 
 struct Device {
-    public enum Kind: String {
+    enum Kind: String {
         case iphoneSE = "iPhone SE (2nd & 3rd generation)"
         case iphone12_13Mini = "iPhone 12/13 mini"
         case iphoneXS_11Pro = "iPhone XS/11 Pro"
@@ -18,7 +18,6 @@ struct Device {
     var kind: Kind
     var traits: UITraitCollection
     var frame: CGRect
-    var autoresizingMask: UIView.AutoresizingMask
     var title: String {
         return kind.rawValue
     }
@@ -73,10 +72,9 @@ struct Device {
         self.kind = kind
         self.traits = traits
         self.frame = CGRect(x: x, y: y, width: size.width, height: size.height)
-        self.autoresizingMask = [.flexibleRightMargin, .flexibleLeftMargin, .flexibleTopMargin, .flexibleBottomMargin]
     }
 
-    public static var all: [Device] {
+    static var all: [Device] {
         return [
             Device(kind: .iphoneSE),
             Device(kind: .iphone12_13Mini),

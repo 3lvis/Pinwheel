@@ -30,7 +30,7 @@ open class UIKitPinFullscreenView: UIView {
     }
 
     private var didFirstAppear = false
-    var didFirstAppearWorkItem: DispatchWorkItem?
+    private var didFirstAppearWorkItem: DispatchWorkItem?
 
     public func viewDidAppear() {
         didFirstAppearWorkItem?.cancel()
@@ -46,16 +46,17 @@ open class UIKitPinFullscreenView: UIView {
 
         didFirstAppearWorkItem?.cancel()
 
-        didFirstAppearWorkItem = DispatchWorkItem { [weak self] in
+        let workItem = DispatchWorkItem { [weak self] in
             guard let weakSelf = self else { return }
             if !weakSelf.didFirstAppear {
                 weakSelf.didFirstAppear = true
                 weakSelf.viewDidFirstAppear()
             }
         }
+        didFirstAppearWorkItem = workItem
 
         if !didFirstAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: didFirstAppearWorkItem!)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: workItem)
         }
     }
 
@@ -96,8 +97,6 @@ open class UIKitPinFullscreenView: UIView {
     }
 
     deinit {
-        subviewSafeBottomConstraint.removeAll()
-        subviewKeyboardBottomConstraint.removeAll()
         NotificationCenter.default.removeObserver(self)
     }
 }
