@@ -36,16 +36,13 @@ final class TweakableUITests: XCTestCase {
     /// button is unambiguous (it can't collide with the section-picker button,
     /// which is labelled with the *current* section).
     private func openCatalogItem(_ itemName: String, section: String) {
-        let close = app.buttons["pinwheel.close"]
-        if close.waitForExistence(timeout: 2) {
-            close.tap()
-        }
-
+        // -UITesting resets state, so the catalog always launches to the list —
+        // there's no restored item to dismiss first.
         XCTAssertTrue(app.buttons["pinwheel.sectionPicker"].waitForExistence(timeout: 10),
                       "section picker should exist")
 
         let item = app.buttons[itemName]
-        if !item.waitForExistence(timeout: 2) {
+        if !item.exists {
             app.buttons["pinwheel.sectionPicker"].tap()
             let sectionButton = app.buttons[section]
             XCTAssertTrue(sectionButton.waitForExistence(timeout: 10), "\(section) section should be listed")
