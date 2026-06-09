@@ -88,6 +88,7 @@ struct PinwheelFloatingControlsOverlay: UIViewRepresentable {
     @MainActor
     final class Coordinator {
         private var window: PinwheelFloatingControlsWindow?
+        private var visible = false
 
         func attach(scene: UIWindowScene, chrome: PinwheelChrome) {
             guard window == nil else { return }
@@ -98,11 +99,33 @@ struct PinwheelFloatingControlsOverlay: UIViewRepresentable {
         }
 
         func update(tweakCount: Int, isVisible: Bool) {
-            window?.controller.itemsCount = tweakCount
-            window?.isHidden = !isVisible
+            guard let window else { return }
+            window.controller.itemsCount = tweakCount
+            setVisible(isVisible, on: window)
+        }
+
+        /// Fade the FAB out as the settings sheet rises (and back in on dismiss /
+        /// when an item is presented) rather than toggling `isHidden` abruptly.
+        private func setVisible(_ shouldShow: Bool, on window: PinwheelFloatingControlsWindow) {
+            guard shouldShow != visible else { return }
+            visible = shouldShow
+
+            if shouldShow {
+                window.alpha = 0
+                window.isHidden = false
+                UIView.animate(withDuration: 0.25) { window.alpha = 1 }
+            } else {
+                UIView.animate(withDuration: 0.25) {
+                    window.alpha = 0
+                } completion: { [weak self] _ in
+                    // Skip hiding if we were asked to show again mid-animation.
+                    if self?.visible == false { window.isHidden = true }
+                }
+            }
         }
 
         func teardown() {
+            visible = false
             window?.isHidden = true
             window = nil
         }
