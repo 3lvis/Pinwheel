@@ -176,8 +176,8 @@ final class PinwheelFloatingControlsViewController: UIViewController, CornerAnch
 }
 
 /// The floating pill showing the simulated device, above everything and persisting
-/// after the settings sheet is dismissed. Tapping it reopens the device picker.
-/// Renders nothing on the real device.
+/// after the settings sheet is dismissed. An indicator — only the reset `×` is
+/// interactive. Renders nothing on the real device.
 private struct PinwheelDevicePill: SwiftUI.View {
     let chrome: PinwheelChrome
 

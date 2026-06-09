@@ -228,8 +228,7 @@ private struct PinwheelSettingsView: SwiftUI.View {
 }
 
 /// The pushed device list. Disabled devices (too big for the screen) are dimmed;
-/// the selected one is checked. A trailing Reset (shown only when a non-current
-/// device is selected) returns to the real device.
+/// the selected one is checked. Resetting to the real device is via the pill's `×`.
 private struct PinwheelDeviceList: SwiftUI.View {
     @SwiftUI.Binding var selectedIndex: Int?
 
