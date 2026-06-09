@@ -24,7 +24,7 @@ Pinwheel is SwiftUI-first with UIKit compatibility. A prior pass created **two p
 |---|---|---|
 | **Button** | SwiftUI `PinButton` (exists) + thin `UIKitPinButton` shell over `PinHostView`; delete old reimpl | Declarative leaf; already ported |
 | **StateView** | SwiftUI `PinStateView` + thin shell; delete reimpl | Pure state-driven content |
-| **Label** | Keep trivial `UIKitPinLabel` (`UILabel` subclass); optional SwiftUI `PinLabel` | Bridge overhead not worth it |
+| **Label** | SwiftUI `PinLabel` (themed `Text`) + independent trivial `UIKitPinLabel` (`UILabel`) | No hosting bridge either way; `PinLabel` prevents the system-font footgun (see Phase 4) |
 | **FullscreenView / `View` base** | Keep UIKit, unchanged | Keyboard avoidance, lifecycle hooks, open subclassing — inherently UIKit |
 | **TableView family** | Keep UIKit, unchanged | Cell recycling, dataSource/delegate contract, `UISwitch` items, A–Z section indexer (`Core/Indexer.swift`) — no `List` equivalent |
 

@@ -64,8 +64,10 @@ Verified this session: `button` (SwiftUI), `uikit-button` (bridge), `state-view`
 
 ## Open follow-ups (not blocking)
 
-- **UIKit-component previews render top-anchored in the playground.** `PinwheelUIKitView` (the `UIViewRepresentable`) doesn't propagate full height, so a hosted UIKit example collapses to content height. Pre-existing (old StateView looked identical); the component centers correctly in the pure-SwiftUI path and in real full-bounds UIKit hierarchies. A `sizeThatFits` fill attempt had no observable effect and was reverted — it needs a deeper look at how the playground frames representable-hosted UIKit views, not a one-line fix.
-- **Greenfield SwiftUI `PinList`** — explicitly deferred; would *not* replace `UIKitPinTableView`.
+- **Greenfield SwiftUI `PinList`** — explicitly deferred; a SwiftUI-native list (optionally driven by the same `UIKitPinTableViewItem` models), *not* a replacement for `UIKitPinTableView`.
+- **Extend XCUITest coverage** — `StateViewUITests` covers the StateView paths; Button (enabled/loading) and the TableView family aren't covered yet.
+
+(Resolved earlier: UIKit examples rendered top-anchored in the playground — fixed by hosting `view:` items in a full-bounds view controller; see "Post-phase fixes" in the bridge doc.)
 
 ## Risk checklist
 
