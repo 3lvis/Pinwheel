@@ -6,6 +6,18 @@ public extension UIView {
         translatesAutoresizingMaskIntoConstraints = !autoLayout
     }
 
+    /// The nearest view controller in the responder chain, if any.
+    var parentViewController: UIViewController? {
+        var responder: UIResponder? = next
+        while let current = responder {
+            if let viewController = current as? UIViewController {
+                return viewController
+            }
+            responder = current.next
+        }
+        return nil
+    }
+
     func resetDropShadow() {
         layer.shadowColor = nil
         layer.shadowOpacity = 0
@@ -20,6 +32,17 @@ public extension UIView {
         layer.shadowOffset = offset
         layer.shadowRadius = radius
         layer.rasterizationScale = UIScreen.main.scale
+    }
+}
+
+extension UIViewController {
+    /// Applies a simulated device's traits via `traitOverrides` — the
+    /// replacement for the deprecated `setOverrideTraitCollection(_:forChild:)`,
+    /// called on the child whose traits should be overridden.
+    func applyDeviceTraitOverrides(_ traits: UITraitCollection) {
+        traitOverrides.horizontalSizeClass = traits.horizontalSizeClass
+        traitOverrides.verticalSizeClass = traits.verticalSizeClass
+        traitOverrides.userInterfaceIdiom = traits.userInterfaceIdiom
     }
 }
 

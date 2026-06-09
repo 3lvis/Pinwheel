@@ -1,12 +1,13 @@
-// swift-tools-version: 5.8
-// The swift-tools-version declares the minimum version of Swift required to build this package.
+// swift-tools-version: 6.3
+// Root manifest for external `.package(url:)` consumers; mirrors
+// Pinwheel/Package.swift — keep dependencies in sync across both.
 
 import PackageDescription
 
 let package = Package(
     name: "Pinwheel",
     platforms: [
-        .iOS(.v16)
+        .iOS(.v18)
     ],
     products: [
         .library(
@@ -16,7 +17,11 @@ let package = Package(
     targets: [
         .target(
             name: "Pinwheel",
-            path: "Pinwheel/Sources"),
+            path: "Pinwheel/Sources",
+            swiftSettings: [
+                .swiftLanguageMode(.v6),
+                .defaultIsolation(MainActor.self),
+            ]),
         .testTarget(
             name: "PinwheelTests",
             dependencies: ["Pinwheel"],

@@ -3,46 +3,52 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2847DF4C2A48903E009A6B8E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2847DF4B2A48903E009A6B8E /* AppDelegate.swift */; };
-		2847DF552A48903F009A6B8E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2847DF542A48903F009A6B8E /* Assets.xcassets */; };
-		284D78022A5215E9001F20B3 /* BottomSheetExampleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 284D78012A5215E9001F20B3 /* BottomSheetExampleViewController.swift */; };
-		2868C2C12C3CA2A20008A2CA /* PinButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2868C2C02C3CA2A20008A2CA /* PinButton.swift */; };
-		286CF2C22A4F86A4008D3B26 /* PinTweakable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 286CF2C12A4F86A4008D3B26 /* PinTweakable.swift */; };
-		2879050E2C1A74C700FF8DF4 /* PinFullscreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2879050D2C1A74C700FF8DF4 /* PinFullscreenView.swift */; };
-		2886CAB72C3CAFE300D677B6 /* PinStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2886CAB62C3CAFE300D677B6 /* PinStateView.swift */; };
 		2893C64C2A48908700039B8A /* Pinwheel in Frameworks */ = {isa = PBXBuildFile; productRef = 2893C64B2A48908700039B8A /* Pinwheel */; };
-		28AAFA612A49F3E900E1CA35 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28AAFA602A49F3E900E1CA35 /* Config.swift */; };
-		28F459392A49860400504BF6 /* PinColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459332A49860400504BF6 /* PinColor.swift */; };
-		28F4593A2A49860400504BF6 /* PinSpacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459352A49860400504BF6 /* PinSpacing.swift */; };
-		28F4593B2A49860400504BF6 /* PinFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459372A49860400504BF6 /* PinFont.swift */; };
-		28F4594A2A498B6B00504BF6 /* PinLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459492A498B6B00504BF6 /* PinLabel.swift */; };
-		28F459532A498CFF00504BF6 /* PinBasicTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28F459522A498CFF00504BF6 /* PinBasicTableView.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		281F89022FD74E3800DEEBC7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2847DF402A48903D009A6B8E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2847DF472A48903D009A6B8E;
+			remoteInfo = Demo;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		281F88FC2FD74E3800DEEBC7 /* DemoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2847DF482A48903E009A6B8E /* Demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Demo.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		2847DF4B2A48903E009A6B8E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		2847DF542A48903F009A6B8E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		2847DF592A48903F009A6B8E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		284D78012A5215E9001F20B3 /* BottomSheetExampleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomSheetExampleViewController.swift; sourceTree = "<group>"; };
-		2868C2C02C3CA2A20008A2CA /* PinButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinButton.swift; sourceTree = "<group>"; };
-		286CF2C12A4F86A4008D3B26 /* PinTweakable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinTweakable.swift; sourceTree = "<group>"; };
-		2879050D2C1A74C700FF8DF4 /* PinFullscreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinFullscreenView.swift; sourceTree = "<group>"; };
-		2886CAB62C3CAFE300D677B6 /* PinStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinStateView.swift; sourceTree = "<group>"; };
 		2893C6492A48908000039B8A /* Pinwheel */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Pinwheel; sourceTree = "<group>"; };
-		28AAFA602A49F3E900E1CA35 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
-		28F459332A49860400504BF6 /* PinColor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinColor.swift; sourceTree = "<group>"; };
-		28F459352A49860400504BF6 /* PinSpacing.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinSpacing.swift; sourceTree = "<group>"; };
-		28F459372A49860400504BF6 /* PinFont.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinFont.swift; sourceTree = "<group>"; };
-		28F459492A498B6B00504BF6 /* PinLabel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinLabel.swift; sourceTree = "<group>"; };
-		28F459522A498CFF00504BF6 /* PinBasicTableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PinBasicTableView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		2847DFAA2A48903E009A6B8E /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 2847DF472A48903D009A6B8E /* Demo */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		281F88FD2FD74E3800DEEBC7 /* DemoUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = DemoUITests; sourceTree = "<group>"; };
+		2847DF4A2A48903E009A6B8E /* Demo */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (2847DFAA2A48903E009A6B8E /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Demo; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
+		281F88F92FD74E3800DEEBC7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2847DF452A48903D009A6B8E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -59,6 +65,7 @@
 			children = (
 				2893C6492A48908000039B8A /* Pinwheel */,
 				2847DF4A2A48903E009A6B8E /* Demo */,
+				281F88FD2FD74E3800DEEBC7 /* DemoUITests */,
 				2847DF492A48903E009A6B8E /* Products */,
 				2893C64A2A48908700039B8A /* Frameworks */,
 			);
@@ -68,28 +75,9 @@
 			isa = PBXGroup;
 			children = (
 				2847DF482A48903E009A6B8E /* Demo.app */,
+				281F88FC2FD74E3800DEEBC7 /* DemoUITests.xctest */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		2847DF4A2A48903E009A6B8E /* Demo */ = {
-			isa = PBXGroup;
-			children = (
-				2847DF4B2A48903E009A6B8E /* AppDelegate.swift */,
-				28F4592E2A49860400504BF6 /* Pins */,
-				2847DF542A48903F009A6B8E /* Assets.xcassets */,
-				2847DF592A48903F009A6B8E /* Info.plist */,
-				28AAFA602A49F3E900E1CA35 /* Config.swift */,
-			);
-			path = Demo;
-			sourceTree = "<group>";
-		};
-		286CF2C02A4F8699008D3B26 /* Tweakable */ = {
-			isa = PBXGroup;
-			children = (
-				286CF2C12A4F86A4008D3B26 /* PinTweakable.swift */,
-			);
-			path = Tweakable;
 			sourceTree = "<group>";
 		};
 		2893C64A2A48908700039B8A /* Frameworks */ = {
@@ -99,98 +87,32 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		28F4592E2A49860400504BF6 /* Pins */ = {
-			isa = PBXGroup;
-			children = (
-				28F4592F2A49860400504BF6 /* Components */,
-				28F459312A49860400504BF6 /* DNA */,
-				28F459502A498CFF00504BF6 /* Reciclable */,
-			);
-			path = Pins;
-			sourceTree = "<group>";
-		};
-		28F4592F2A49860400504BF6 /* Components */ = {
-			isa = PBXGroup;
-			children = (
-				286CF2C02A4F8699008D3B26 /* Tweakable */,
-				28F459482A498B6B00504BF6 /* Label */,
-				28F459452A49882C00504BF6 /* BottomSheet */,
-				2879050D2C1A74C700FF8DF4 /* PinFullscreenView.swift */,
-				2868C2C02C3CA2A20008A2CA /* PinButton.swift */,
-				2886CAB62C3CAFE300D677B6 /* PinStateView.swift */,
-			);
-			path = Components;
-			sourceTree = "<group>";
-		};
-		28F459312A49860400504BF6 /* DNA */ = {
-			isa = PBXGroup;
-			children = (
-				28F459322A49860400504BF6 /* Color */,
-				28F459342A49860400504BF6 /* Spacing */,
-				28F459362A49860400504BF6 /* Font */,
-			);
-			path = DNA;
-			sourceTree = "<group>";
-		};
-		28F459322A49860400504BF6 /* Color */ = {
-			isa = PBXGroup;
-			children = (
-				28F459332A49860400504BF6 /* PinColor.swift */,
-			);
-			path = Color;
-			sourceTree = "<group>";
-		};
-		28F459342A49860400504BF6 /* Spacing */ = {
-			isa = PBXGroup;
-			children = (
-				28F459352A49860400504BF6 /* PinSpacing.swift */,
-			);
-			path = Spacing;
-			sourceTree = "<group>";
-		};
-		28F459362A49860400504BF6 /* Font */ = {
-			isa = PBXGroup;
-			children = (
-				28F459372A49860400504BF6 /* PinFont.swift */,
-			);
-			path = Font;
-			sourceTree = "<group>";
-		};
-		28F459452A49882C00504BF6 /* BottomSheet */ = {
-			isa = PBXGroup;
-			children = (
-				284D78012A5215E9001F20B3 /* BottomSheetExampleViewController.swift */,
-			);
-			path = BottomSheet;
-			sourceTree = "<group>";
-		};
-		28F459482A498B6B00504BF6 /* Label */ = {
-			isa = PBXGroup;
-			children = (
-				28F459492A498B6B00504BF6 /* PinLabel.swift */,
-			);
-			path = Label;
-			sourceTree = "<group>";
-		};
-		28F459502A498CFF00504BF6 /* Reciclable */ = {
-			isa = PBXGroup;
-			children = (
-				28F459512A498CFF00504BF6 /* Basic */,
-			);
-			path = Reciclable;
-			sourceTree = "<group>";
-		};
-		28F459512A498CFF00504BF6 /* Basic */ = {
-			isa = PBXGroup;
-			children = (
-				28F459522A498CFF00504BF6 /* PinBasicTableView.swift */,
-			);
-			path = Basic;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		281F88FB2FD74E3800DEEBC7 /* DemoUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 281F89062FD74E3800DEEBC7 /* Build configuration list for PBXNativeTarget "DemoUITests" */;
+			buildPhases = (
+				281F88F82FD74E3800DEEBC7 /* Sources */,
+				281F88F92FD74E3800DEEBC7 /* Frameworks */,
+				281F88FA2FD74E3800DEEBC7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				281F89032FD74E3800DEEBC7 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				281F88FD2FD74E3800DEEBC7 /* DemoUITests */,
+			);
+			name = DemoUITests;
+			packageProductDependencies = (
+			);
+			productName = DemoUITests;
+			productReference = 281F88FC2FD74E3800DEEBC7 /* DemoUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		2847DF472A48903D009A6B8E /* Demo */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2847DF5C2A48903F009A6B8E /* Build configuration list for PBXNativeTarget "Demo" */;
@@ -202,6 +124,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				2847DF4A2A48903E009A6B8E /* Demo */,
 			);
 			name = Demo;
 			packageProductDependencies = (
@@ -218,9 +143,13 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1430;
+				LastSwiftUpdateCheck = 2650;
 				LastUpgradeCheck = 1530;
 				TargetAttributes = {
+					281F88FB2FD74E3800DEEBC7 = {
+						CreatedOnToolsVersion = 26.5;
+						TestTargetID = 2847DF472A48903D009A6B8E;
+					};
 					2847DF472A48903D009A6B8E = {
 						CreatedOnToolsVersion = 14.3.1;
 					};
@@ -235,49 +164,107 @@
 				Base,
 			);
 			mainGroup = 2847DF3F2A48903D009A6B8E;
+			packageReferences = (
+				2893C64D2A48908700039B8A /* XCLocalSwiftPackageReference "Pinwheel" */,
+			);
 			productRefGroup = 2847DF492A48903E009A6B8E /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				2847DF472A48903D009A6B8E /* Demo */,
+				281F88FB2FD74E3800DEEBC7 /* DemoUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		281F88FA2FD74E3800DEEBC7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2847DF462A48903D009A6B8E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2847DF552A48903F009A6B8E /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		281F88F82FD74E3800DEEBC7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2847DF442A48903D009A6B8E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				28F459532A498CFF00504BF6 /* PinBasicTableView.swift in Sources */,
-				284D78022A5215E9001F20B3 /* BottomSheetExampleViewController.swift in Sources */,
-				286CF2C22A4F86A4008D3B26 /* PinTweakable.swift in Sources */,
-				28F4594A2A498B6B00504BF6 /* PinLabel.swift in Sources */,
-				28F4593A2A49860400504BF6 /* PinSpacing.swift in Sources */,
-				2879050E2C1A74C700FF8DF4 /* PinFullscreenView.swift in Sources */,
-				28AAFA612A49F3E900E1CA35 /* Config.swift in Sources */,
-				2868C2C12C3CA2A20008A2CA /* PinButton.swift in Sources */,
-				2886CAB72C3CAFE300D677B6 /* PinStateView.swift in Sources */,
-				2847DF4C2A48903E009A6B8E /* AppDelegate.swift in Sources */,
-				28F459392A49860400504BF6 /* PinColor.swift in Sources */,
-				28F4593B2A49860400504BF6 /* PinFont.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		281F89032FD74E3800DEEBC7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2847DF472A48903D009A6B8E /* Demo */;
+			targetProxy = 281F89022FD74E3800DEEBC7 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		281F89042FD74E3800DEEBC7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nordser.DemoUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Demo;
+			};
+			name = Debug;
+		};
+		281F89052FD74E3800DEEBC7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nordser.DemoUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Demo;
+			};
+			name = Release;
+		};
 		2847DF5A2A48903F009A6B8E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -330,7 +317,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -386,7 +373,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -412,7 +399,7 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -444,7 +431,7 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -463,6 +450,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		281F89062FD74E3800DEEBC7 /* Build configuration list for PBXNativeTarget "DemoUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				281F89042FD74E3800DEEBC7 /* Debug */,
+				281F89052FD74E3800DEEBC7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		2847DF432A48903D009A6B8E /* Build configuration list for PBXProject "Demo" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -483,9 +479,17 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		2893C64D2A48908700039B8A /* XCLocalSwiftPackageReference "Pinwheel" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Pinwheel;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		2893C64B2A48908700039B8A /* Pinwheel */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = 2893C64D2A48908700039B8A /* XCLocalSwiftPackageReference "Pinwheel" */;
 			productName = Pinwheel;
 		};
 /* End XCSwiftPackageProductDependency section */

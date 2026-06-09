@@ -1,29 +1,28 @@
-// swift-tools-version: 5.8
-// The swift-tools-version declares the minimum version of Swift required to build this package.
+// swift-tools-version: 6.3
+// Manifest used by the Demo; the root Package.swift re-exposes this for external
+// `.package(url:)` consumers — keep dependencies in sync across both.
 
 import PackageDescription
 
 let package = Package(
     name: "Pinwheel",
     platforms: [
-        .iOS(.v16)
+        .iOS(.v18)
     ],
     products: [
-        // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
             name: "Pinwheel",
             targets: ["Pinwheel"]),
     ],
-    dependencies: [
-        // Dependencies declare other packages that this package depends on.
-        // .package(url: /* package url */, from: "1.0.0"),
-    ],
+    dependencies: [],
     targets: [
-        // Targets are the basic building blocks of a package. A target can define a module or a test suite.
-        // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
             name: "Pinwheel",
-            dependencies: []),
+            dependencies: [],
+            swiftSettings: [
+                .swiftLanguageMode(.v6),
+                .defaultIsolation(MainActor.self),
+            ]),
         .testTarget(
             name: "PinwheelTests",
             dependencies: ["Pinwheel"]),

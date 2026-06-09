@@ -1,3 +1,4 @@
+import UIKit
 import Pinwheel
 
 struct DemoFontProvider: FontProvider {
@@ -67,31 +68,19 @@ struct DemoColorProvider: ColorProvider {
     var primaryText: UIColor {
         let defaultColor: UIColor = .init(hex: "021622")
         let darkColor: UIColor = .init(hex: "FFFFFF")
-        if #available(iOS 13.0, *) {
-            return .dynamicColor(defaultColor: defaultColor, darkModeColor: darkColor)
-        } else {
-            return defaultColor
-        }
+        return .dynamicColor(defaultColor: defaultColor, darkModeColor: darkColor)
     }
 
     var secondaryText: UIColor {
         let defaultColor: UIColor = .init(hex: "98A0A8")
         let darkColor: UIColor = .init(hex: "8D9AA5")
-        if #available(iOS 13.0, *) {
-            return .dynamicColor(defaultColor: defaultColor, darkModeColor: darkColor)
-        } else {
-            return defaultColor
-        }
+        return .dynamicColor(defaultColor: defaultColor, darkModeColor: darkColor)
     }
 
     var tertiaryText: UIColor {
         let defaultColor: UIColor = .init(hex: "E0E7EA")
         let darkColor: UIColor = .init(hex: "404850")
-        if #available(iOS 13.0, *) {
-            return .dynamicColor(defaultColor: defaultColor, darkModeColor: darkColor)
-        } else {
-            return defaultColor
-        }
+        return .dynamicColor(defaultColor: defaultColor, darkModeColor: darkColor)
     }
     
     var actionText: UIColor {
@@ -101,50 +90,30 @@ struct DemoColorProvider: ColorProvider {
     var criticalText: UIColor {
         let defaultColor: UIColor = .init(hex: "FE4749")
         let darkColor: UIColor = .init(hex: "C90002")
-        if #available(iOS 13.0, *) {
-            return .dynamicColor(defaultColor: defaultColor, darkModeColor: darkColor)
-        } else {
-            return defaultColor
-        }
+        return .dynamicColor(defaultColor: defaultColor, darkModeColor: darkColor)
     }
 
     var primaryBackground: UIColor {
         let defaultColor: UIColor = .init(hex: "FFFFFF")
         let darkColor: UIColor = .init(hex: "1C2024")
-        if #available(iOS 13.0, *) {
-            return .dynamicColor(defaultColor: defaultColor, darkModeColor: darkColor)
-        } else {
-            return defaultColor
-        }
+        return .dynamicColor(defaultColor: defaultColor, darkModeColor: darkColor)
     }
 
     var secondaryBackground: UIColor {
         let defaultColor: UIColor = .init(hex: "F3F8F9")
         let darkColor: UIColor = .init(hex: "2A3036")
-        if #available(iOS 13.0, *) {
-            return .dynamicColor(defaultColor: defaultColor, darkModeColor: darkColor)
-        } else {
-            return defaultColor
-        }
+        return .dynamicColor(defaultColor: defaultColor, darkModeColor: darkColor)
     }
 
     var actionBackground: UIColor {
         let defaultColor: UIColor = .init(hex: "DEF5FF")
         let darkColor: UIColor = .init(hex: "003349")
-        if #available(iOS 13.0, *) {
-            return .dynamicColor(defaultColor: defaultColor, darkModeColor: darkColor)
-        } else {
-            return defaultColor
-        }
+        return .dynamicColor(defaultColor: defaultColor, darkModeColor: darkColor)
     }
 
     var criticalBackground: UIColor {
         let defaultColor: UIColor = .init(hex: "FBE7E6")
         let darkColor: UIColor = .init(hex: "3D2525")
-        if #available(iOS 13.0, *) {
-            return .dynamicColor(defaultColor: defaultColor, darkModeColor: darkColor)
-        } else {
-            return defaultColor
-        }
+        return .dynamicColor(defaultColor: defaultColor, darkModeColor: darkColor)
     }
 }
