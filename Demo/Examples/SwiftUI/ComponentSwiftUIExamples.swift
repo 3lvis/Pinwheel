@@ -12,7 +12,7 @@ struct PinLabelExample: SwiftUI.View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(.spacingL)
-        .background(PinwheelTheme.Colors.primaryBackground)
+        .background(.primaryBackground)
     }
 }
 
@@ -25,7 +25,7 @@ struct PinTweakableExample: SwiftUI.View {
             .multilineTextAlignment(.center)
             .padding(.spacingXXL)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(PinwheelTheme.Colors.primaryBackground)
+            .background(.primaryBackground)
             .pinwheelTweaks {
                 PinwheelTweak("Option 1") {
                     selection = "Chosen Option 1"
@@ -96,7 +96,7 @@ struct PinButtonExample: SwiftUI.View {
             .padding(.vertical, .spacingXXL)
             .frame(maxWidth: .infinity)
         }
-        .background(PinwheelTheme.Colors.primaryBackground)
+        .background(.primaryBackground)
         .pinwheelTweaks {
             PinwheelTweak("Loading", isOn: $isLoading)
             PinwheelTweak("Disabled", isOn: $isDisabled)
@@ -112,7 +112,7 @@ struct PinStateViewExample: SwiftUI.View {
             state = DemoStateFixture.loading
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(PinwheelTheme.Colors.primaryBackground)
+        .background(.primaryBackground)
         .pinwheelTweaks {
             PinwheelTweak("Loading") { state = DemoStateFixture.loading }
             PinwheelTweak("Loaded") { state = .loaded }

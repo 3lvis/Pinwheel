@@ -26,10 +26,7 @@ struct PinwheelPlayground: SwiftUI.View {
                 // surface token so the resized frame is visible — near-black in
                 // light, light in dark — rather than blending into the content.
                 .background(
-                    (chrome.simulatedDevice != nil
-                        ? PinwheelTheme.Colors.primaryText
-                        : PinwheelTheme.Colors.primaryBackground)
-                        .ignoresSafeArea()
+                    chrome.simulatedDevice != nil ? .primaryText : .primaryBackground
                 )
                 // Animate the frame resize (and letterbox crossfade) when the
                 // simulated device changes — including the pill's reset to full size.
@@ -79,7 +76,7 @@ struct PinwheelPlayground: SwiftUI.View {
         return PinwheelHostedItem(item: item)
             .environment(\.horizontalSizeClass, horizontalSizeClass(for: device))
             .environment(\.verticalSizeClass, verticalSizeClass(for: device))
-            .background(SwiftUI.Color(uiColor: .primaryBackground))
+            .background(.primaryBackground)
             .frame(width: size.width, height: size.height, alignment: .center)
             .position(x: origin.x + size.width / 2, y: origin.y + size.height / 2)
             .clipped()
@@ -169,16 +166,16 @@ private struct PinwheelDevicePill: SwiftUI.View {
                 chrome.selectedDeviceIndex = nil
             } label: {
                 Image(systemName: "xmark.circle.fill")
-                    .foregroundStyle(PinwheelTheme.Colors.secondaryText)
+                    .foregroundStyle(.secondaryText)
             }
             .buttonStyle(.plain)
         }
-        .foregroundStyle(PinwheelTheme.Colors.primaryText)
+        .foregroundStyle(.primaryText)
         .padding(.horizontal, .spacingM)
         .padding(.vertical, .spacingS)
         .background(
             Capsule()
-                .fill(PinwheelTheme.Colors.secondaryBackground)
+                .fill(.secondaryBackground)
                 .shadow(color: .black.opacity(0.15), radius: 8, y: 3)
         )
     }
@@ -226,7 +223,7 @@ private struct PinwheelSettingsView: SwiftUI.View {
                         } label: {
                             Image(systemName: "iphone.gen3")
                         }
-                        .tint(PinwheelTheme.Colors.actionText)
+                        .tint(.actionText)
                     }
                 }
         }
@@ -242,7 +239,7 @@ private struct PinwheelSettingsView: SwiftUI.View {
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
-        .background(PinwheelTheme.Colors.primaryBackground)
+        .background(.primaryBackground)
         .overlay {
             if tweaks.isEmpty {
                 PinLabel("No options").color(.secondary)
@@ -296,7 +293,7 @@ private struct PinwheelDeviceList: SwiftUI.View {
                         Spacer()
                         if isSelected(index, device) {
                             Image(systemName: "checkmark")
-                                .foregroundStyle(PinwheelTheme.Colors.actionText)
+                                .foregroundStyle(.actionText)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -309,7 +306,7 @@ private struct PinwheelDeviceList: SwiftUI.View {
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
-        .background(PinwheelTheme.Colors.primaryBackground)
+        .background(.primaryBackground)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {

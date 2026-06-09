@@ -78,11 +78,11 @@ struct PinwheelCatalogView: SwiftUI.View {
                         }
                     }
                     .buttonStyle(.plain)
-                    .foregroundStyle(PinwheelTheme.Colors.actionText)
+                    .foregroundStyle(.actionText)
                     .accessibilityIdentifier("pinwheel.sectionPicker")
                 }
             }
-            .background(PinwheelTheme.Colors.primaryBackground)
+            .background(.primaryBackground)
     }
 
     private var sectionPicker: some SwiftUI.View {
@@ -98,13 +98,13 @@ struct PinwheelCatalogView: SwiftUI.View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .buttonStyle(.plain)
-                .foregroundStyle(isSelected ? PinwheelTheme.Colors.actionText : PinwheelTheme.Colors.primaryText)
-                .listRowSeparatorTint(PinwheelTheme.Colors.secondaryBackground)
+                .foregroundStyle(isSelected ? .actionText : .primaryText)
+                .listRowSeparatorTint(.secondaryBackground)
                 .listRowBackground(PinwheelTheme.Colors.primaryBackground)
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
-            .background(PinwheelTheme.Colors.primaryBackground)
+            .background(.primaryBackground)
             .navigationTitle("Sections")
             .navigationBarTitleDisplayMode(.inline)
         }
@@ -215,7 +215,7 @@ private struct PinwheelIndexView: SwiftUI.View {
                 }
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
-                .background(PinwheelTheme.Colors.primaryBackground)
+                .background(.primaryBackground)
 
                 VStack(spacing: 2) {
                     ForEach(groupedItems, id: \.letter) { group in
@@ -225,7 +225,7 @@ private struct PinwheelIndexView: SwiftUI.View {
                             }
                         }
                         .font(PinwheelTheme.Typography.caption)
-                        .foregroundStyle(PinwheelTheme.Colors.actionText)
+                        .foregroundStyle(.actionText)
                     }
                 }
                 .padding(.trailing, 4)

@@ -34,7 +34,7 @@ public struct PinList: SwiftUI.View {
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
-            .background(PinwheelTheme.Colors.primaryBackground)
+            .background(.primaryBackground)
         default:
             PinStateView(state, onAction: onRetry)
         }
@@ -113,7 +113,7 @@ public extension PinList {
                 }
                 if chevron {
                     Image(systemName: "chevron.right")
-                        .foregroundStyle(PinwheelTheme.Colors.secondaryText)
+                        .foregroundStyle(.secondaryText)
                 }
             }
 

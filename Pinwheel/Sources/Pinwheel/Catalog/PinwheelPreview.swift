@@ -67,7 +67,7 @@ private struct PinwheelPreviewCaption: SwiftUI.View {
             .padding(.horizontal, .spacingS)
             .padding(.vertical, .spacingXXS)
             .background(
-                Capsule().fill(PinwheelTheme.Colors.secondaryBackground)
+                Capsule().fill(.secondaryBackground)
             )
             .padding(.top, .spacingXS)
     }
@@ -188,6 +188,6 @@ private struct PinwheelPreviewNotFound: SwiftUI.View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.spacingL)
         }
-        .background(PinwheelTheme.Colors.primaryBackground.ignoresSafeArea())
+        .background(.primaryBackground)
     }
 }

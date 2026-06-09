@@ -146,11 +146,11 @@ private struct PinButtonStyle: SwiftUI.ButtonStyle {
                 // token — the inverse of the FAB (primaryBackground surface +
                 // actionText accent). Never hard-code white: a provider with a
                 // pale action color would render invisible text.
-                return PinwheelTheme.Colors.primaryBackground
+                return .primaryBackground
             case .secondary:
-                return isEnabled ? PinwheelTheme.Colors.primaryText : PinwheelTheme.Colors.tertiaryText
+                return isEnabled ? .primaryText : .tertiaryText
             case .tertiary:
-                return isEnabled ? PinwheelTheme.Colors.secondaryText : PinwheelTheme.Colors.tertiaryText
+                return isEnabled ? .secondaryText : .tertiaryText
             case .custom(let text, _):
                 return isEnabled ? text : text.opacity(0.5)
             }
@@ -159,9 +159,9 @@ private struct PinButtonStyle: SwiftUI.ButtonStyle {
         private var background: SwiftUI.Color? {
             switch style {
             case .primary:
-                return isEnabled ? PinwheelTheme.Colors.actionText : PinwheelTheme.Colors.actionBackground
+                return isEnabled ? .actionText : .actionBackground
             case .secondary:
-                return PinwheelTheme.Colors.secondaryBackground
+                return .secondaryBackground
             case .tertiary:
                 return nil
             case .custom(_, let background):

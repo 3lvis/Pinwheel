@@ -50,3 +50,22 @@ public enum PinwheelTheme {
         public static var criticalBackground: Color { Color(uiColor: .criticalBackground) }
     }
 }
+
+/// SwiftUI-native shorthand for the themed colors, so any `ShapeStyle`/`Color`
+/// context takes a token the way it takes `.red` — `.background(.primaryBackground)`,
+/// `.foregroundStyle(.actionText)`, `.tint(.actionText)`. These forward to the
+/// canonical `PinwheelTheme.Colors` tokens; the leading-dot form just removes the
+/// `PinwheelTheme.Colors.` noise at call sites. (Doesn't reach `.listRowBackground`,
+/// whose parameter is a generic `View`, not a `ShapeStyle` — those stay spelled out.)
+public extension ShapeStyle where Self == Color {
+    static var primaryText: Color { PinwheelTheme.Colors.primaryText }
+    static var secondaryText: Color { PinwheelTheme.Colors.secondaryText }
+    static var tertiaryText: Color { PinwheelTheme.Colors.tertiaryText }
+    static var actionText: Color { PinwheelTheme.Colors.actionText }
+    static var criticalText: Color { PinwheelTheme.Colors.criticalText }
+
+    static var primaryBackground: Color { PinwheelTheme.Colors.primaryBackground }
+    static var secondaryBackground: Color { PinwheelTheme.Colors.secondaryBackground }
+    static var actionBackground: Color { PinwheelTheme.Colors.actionBackground }
+    static var criticalBackground: Color { PinwheelTheme.Colors.criticalBackground }
+}

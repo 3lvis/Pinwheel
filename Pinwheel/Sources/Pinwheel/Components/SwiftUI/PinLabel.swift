@@ -34,11 +34,11 @@ public struct PinLabel: SwiftUI.View {
 
         var color: SwiftUI.Color {
             switch self {
-            case .primary: return PinwheelTheme.Colors.primaryText
-            case .secondary: return PinwheelTheme.Colors.secondaryText
-            case .tertiary: return PinwheelTheme.Colors.tertiaryText
-            case .action: return PinwheelTheme.Colors.actionText
-            case .critical: return PinwheelTheme.Colors.criticalText
+            case .primary: return .primaryText
+            case .secondary: return .secondaryText
+            case .tertiary: return .tertiaryText
+            case .action: return .actionText
+            case .critical: return .criticalText
             case .custom(let color): return color
             }
         }
