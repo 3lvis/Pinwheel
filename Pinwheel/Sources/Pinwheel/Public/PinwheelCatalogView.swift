@@ -29,7 +29,7 @@ struct PinwheelCatalogView: SwiftUI.View {
         }
         .environment(chrome)
         .background(
-            PinwheelFloatingControlsOverlay(
+            PinwheelFloatingControlsHost(
                 chrome: chrome,
                 tweakCount: chrome.tweakCount,
                 isVisible: chrome.isFloatingControlsVisible

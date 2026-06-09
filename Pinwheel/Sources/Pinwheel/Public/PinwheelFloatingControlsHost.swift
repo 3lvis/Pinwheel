@@ -39,7 +39,7 @@ final class PinwheelChrome {
 /// `CornerAnchoringView` FAB and pushes `PinwheelChrome` state into it. Placed as
 /// a background of the catalog/preview root; touches outside the FAB buttons fall
 /// through to the app below.
-struct PinwheelFloatingControlsOverlay: UIViewRepresentable {
+struct PinwheelFloatingControlsHost: UIViewRepresentable {
     let chrome: PinwheelChrome
     let tweakCount: Int
     let isVisible: Bool
