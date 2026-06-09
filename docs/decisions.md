@@ -84,11 +84,9 @@ These stay UIKit because no SwiftUI primitive matches their ergonomics/perf:
 
 - **Sources organized by domain, not access level.** `API/` (public surface),
   `DNA/` (tokens, both worlds, incl. SwiftUI `PinwheelTheme`), `Components/SwiftUI`
-  + `Components/UIKit` (split by world; `TableView/` under UIKit), `Catalog/` (live
-  SwiftUI catalog + FAB + device/state), `Bridge/` (SwiftUI↔UIKit), `UIKitCatalog/`
-  (legacy UIKit-first catalog VCs, unused by the Demo, kept for migrators),
-  `Extensions/`. The legacy catalog is isolated so its "is anyone still using
-  this?" status is obvious.
+  + `Components/UIKit` (split by world; `TableView/` under UIKit), `Catalog/` (the
+  one, pure-SwiftUI catalog + FAB + device/state), `Bridge/` (SwiftUI↔UIKit),
+  `Extensions/`.
 - **Demo mirrors the split** — `Demo/Examples/SwiftUI` + `Demo/Examples/UIKit`.
 - **Both targets are file-system-synchronized groups**, so the folder layout *is*
   the project structure — moving/adding files needs no `project.pbxproj` edits.
@@ -99,22 +97,32 @@ These stay UIKit because no SwiftUI primitive matches their ergonomics/perf:
   external `.package(url:)` consumers. Awkward (`Pinwheel/Sources/Pinwheel/`, two
   manifests) but changing it touches external import paths — not worth it now.
 
+## Catalog & settings are pure SwiftUI
+
+- **One catalog, one settings sheet — both SwiftUI.** The legacy UIKit-first catalog
+  (`PinwheelTableViewController` + section/split VCs + the item-hosting
+  `PinwheelViewController`/`PinwheelHostingViewController` + `TweakingOptionsTableViewController`
+  + helpers) was removed: it was public-but-dead (instantiated nowhere; the Demo and
+  README lead with the SwiftUI `PinwheelCatalog`, and `MIGRATION.md` exists to move
+  off it). That deleted the second (UIKit) settings sheet as a side effect, leaving
+  only SwiftUI `PinwheelSettingsView`. `PinwheelItem.viewController` and the
+  `makeViewController` path went with it.
+- **UIKit compatibility is unchanged** — the UIKit *component* surface
+  (`UIKitPinView`/`Button`/`StateView`/`Label`/`FullscreenView`, the
+  `UIKitPinTableView` family), the bridges (`PinHostView`,
+  `PinwheelUIKitCompatibility`), and the `PinwheelItem(view:)`/`(viewController:)`
+  initializers that drop UIKit content *into* the SwiftUI catalog all stay. You just
+  can't build the catalog *host* in UIKit anymore (nothing did).
+
 ## Open follow-ups
 
 Audited TODOs (nothing else is pending):
 
-1. **Unify the settings sheet** — two exist: SwiftUI `PinwheelSettingsView` (SwiftUI
-   catalog) and UIKit `TweakingOptionsTableViewController` (UIKit catalog / hosting
-   VCs). Consolidating onto one means touching the UIKit catalog VCs; now that the
-   FAB is a UIKit window, presenting the settings *from* that window is the natural
-   way to do it. **Biggest concrete win.**
-2. **Rename the "Reciclable" section** — the folder is gone, but the runtime
+1. **Rename the "Reciclable" section** — the folder is gone, but the runtime
    `PinwheelSection("Reciclable", id: "reciclable")` (title + persisted id) remains
    misspelled. Renaming changes a persisted id, so it needs a migration or an
    accepted state reset. Low effort, cosmetic.
-3. **Legacy `UIKitCatalog/`** — unused by the Demo; decide keep-for-migrators vs
-   eventual removal (depends on external consumers). Watch-item, not actionable yet.
-4. **Bridged-component cost** — one `UIHostingController` per `UIKitPinButton`/
+2. **Bridged-component cost** — one `UIHostingController` per `UIKitPinButton`/
    `UIKitPinStateView`; revisit only if used in dense reused contexts (table cells).
 
 ## Catalog

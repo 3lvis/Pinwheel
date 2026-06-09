@@ -7,6 +7,15 @@ public enum TabletDisplayMode {
     case fullscreen
 }
 
+/// How a catalog item is presented when opened.
+public enum PinwheelPresentation {
+    case medium
+    case large
+    case fullscreen
+}
+
+public typealias PresentationStyle = PinwheelPresentation
+
 @resultBuilder
 public enum PinwheelSectionBuilder {
     public static func buildBlock(_ components: PinwheelSection...) -> [PinwheelSection] {
@@ -85,17 +94,7 @@ public struct PinwheelItem {
     public let constrainToTopSafeArea: Bool
     public let constrainToBottomSafeArea: Bool
     public let tabletDisplayMode: TabletDisplayMode
-    private let makeViewController: (PinwheelPresentation, UIInterfaceOrientationMask, Bool, Bool) -> UIViewController
     private let makeSwiftUIView: () -> AnyView
-
-    public var viewController: UIViewController {
-        return makeViewController(
-            presentation,
-            supportedInterfaceOrientations,
-            constrainToTopSafeArea,
-            constrainToBottomSafeArea
-        )
-    }
 
     func swiftUIView() -> AnyView {
         return makeSwiftUIView()
@@ -109,7 +108,6 @@ public struct PinwheelItem {
         constrainToTopSafeArea: Bool,
         constrainToBottomSafeArea: Bool,
         tabletDisplayMode: TabletDisplayMode,
-        makeViewController: @escaping (PinwheelPresentation, UIInterfaceOrientationMask, Bool, Bool) -> UIViewController,
         makeSwiftUIView: @escaping () -> AnyView
     ) {
         self.id = id
@@ -119,7 +117,6 @@ public struct PinwheelItem {
         self.constrainToTopSafeArea = constrainToTopSafeArea
         self.constrainToBottomSafeArea = constrainToBottomSafeArea
         self.tabletDisplayMode = tabletDisplayMode
-        self.makeViewController = makeViewController
         self.makeSwiftUIView = makeSwiftUIView
     }
 
@@ -132,10 +129,6 @@ public struct PinwheelItem {
             constrainToTopSafeArea: true,
             constrainToBottomSafeArea: true,
             tabletDisplayMode: tabletDisplayMode,
-            makeViewController: { presentation, _, _, _ in
-                viewController.configurePinwheelPresentationStyle(presentation)
-                return viewController
-            },
             makeSwiftUIView: {
                 AnyView(PinwheelUIKitViewController { viewController })
             }
@@ -158,14 +151,6 @@ public struct PinwheelItem {
             constrainToTopSafeArea: true,
             constrainToBottomSafeArea: true,
             tabletDisplayMode: .fullscreen,
-            makeViewController: { presentation, orientations, constrainToTopSafeArea, constrainToBottomSafeArea in
-                PinwheelViewController<ViewType>(
-                    presentationStyle: presentation,
-                    supportedInterfaceOrientations: orientations,
-                    constrainToTopSafeArea: constrainToTopSafeArea,
-                    constrainToBottomSafeArea: constrainToBottomSafeArea
-                )
-            },
             makeSwiftUIView: {
                 // Build the hosted view once and reuse it across playground
                 // re-renders. The bridged tweak closures capture this instance,
@@ -202,15 +187,6 @@ public struct PinwheelItem {
             constrainToTopSafeArea: true,
             constrainToBottomSafeArea: true,
             tabletDisplayMode: .fullscreen,
-            makeViewController: { presentation, orientations, constrainToTopSafeArea, constrainToBottomSafeArea in
-                PinwheelHostingViewController(
-                    rootView: content(),
-                    presentationStyle: presentation,
-                    supportedInterfaceOrientations: orientations,
-                    constrainToTopSafeArea: constrainToTopSafeArea,
-                    constrainToBottomSafeArea: constrainToBottomSafeArea
-                )
-            },
             makeSwiftUIView: {
                 AnyView(content())
             }
@@ -230,11 +206,6 @@ public struct PinwheelItem {
             constrainToTopSafeArea: true,
             constrainToBottomSafeArea: true,
             tabletDisplayMode: .fullscreen,
-            makeViewController: { presentation, _, _, _ in
-                let controller = viewController()
-                controller.configurePinwheelPresentationStyle(presentation)
-                return controller
-            },
             makeSwiftUIView: {
                 AnyView(PinwheelUIKitViewController(makeViewController: viewController))
             }
@@ -305,7 +276,6 @@ public extension PinwheelItem {
             constrainToTopSafeArea: constrainToTopSafeArea,
             constrainToBottomSafeArea: constrainToBottomSafeArea,
             tabletDisplayMode: tabletDisplayMode,
-            makeViewController: makeViewController,
             makeSwiftUIView: makeSwiftUIView
         )
     }
@@ -336,29 +306,6 @@ public struct PinwheelCatalog: SwiftUI.View {
 
     public var body: some SwiftUI.View {
         PinwheelCatalogView(sections: sections, usesEmbeddedNavigation: usesEmbeddedNavigation)
-    }
-}
-
-extension UIViewController {
-    func configurePinwheelPresentationStyle(_ presentationStyle: PresentationStyle) {
-        if #available(iOS 15.0, *) {
-            switch presentationStyle {
-            case .medium:
-                modalPresentationStyle = .pageSheet
-                sheetPresentationController?.detents = [.medium()]
-                sheetPresentationController?.preferredCornerRadius = .spacingXL
-                sheetPresentationController?.prefersGrabberVisible = true
-            case .large:
-                modalPresentationStyle = .pageSheet
-                sheetPresentationController?.detents = [.large()]
-                sheetPresentationController?.preferredCornerRadius = .spacingXL
-                sheetPresentationController?.prefersGrabberVisible = true
-            case .fullscreen:
-                modalPresentationStyle = .fullScreen
-            }
-        } else if presentationStyle == .fullscreen {
-            modalPresentationStyle = .fullScreen
-        }
     }
 }
 
