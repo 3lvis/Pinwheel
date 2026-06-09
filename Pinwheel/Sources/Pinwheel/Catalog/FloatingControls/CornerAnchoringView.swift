@@ -157,7 +157,13 @@ final class CornerAnchoringView: UIView {
         setupKeyboardNotifications()
     }
 
-    func setupKeyboardNotifications() {
+    /// Keeps the FAB above the keyboard. The controls live in a pass-through
+    /// overlay window above the app (and above any sheet), so nothing else moves
+    /// them clear of the keyboard. Each bottom corner holds two bottom
+    /// constraints — one to the safe area, one to `keyboardLayoutGuide.topAnchor`
+    /// — and these notifications swap between them so the settings/close buttons
+    /// stay tappable on keyboard-bearing screens (e.g. the fullscreen editor).
+    private func setupKeyboardNotifications() {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
