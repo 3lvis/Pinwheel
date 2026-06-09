@@ -40,11 +40,18 @@ struct PinwheelPlayground: SwiftUI.View {
                         .padding(.top, .spacingS)
                 }
                 .onAppear {
-                    chrome.selectedDeviceIndex = PinwheelStateStore.selectedDeviceIndex(for: selection)
+                    // Preview/deep-link renders stay isolated from interactive
+                    // catalog persistence: always the host device (no restored
+                    // simulation leaking a pill + letterbox into a snapshot), and
+                    // no write-back below that would clobber a saved device pick.
+                    if !previewMode {
+                        chrome.selectedDeviceIndex = PinwheelStateStore.selectedDeviceIndex(for: selection)
+                    }
                     chrome.onClose = onClose
                     chrome.isPresentingItem = true
                 }
                 .onChange(of: chrome.selectedDeviceIndex) { _, newValue in
+                    guard !previewMode else { return }
                     PinwheelStateStore.setSelectedDeviceIndex(newValue, for: selection)
                 }
                 .onDisappear {
