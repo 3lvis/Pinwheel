@@ -33,10 +33,6 @@ enum DemoPinwheelSections {
                 PinTweakableExample()
             }
 
-            PinwheelItem("FullscreenView", id: "fullscreen-view") {
-                PinFullscreenViewExample()
-            }
-
             PinwheelItem("Button", id: "button") {
                 PinButtonExample()
             }

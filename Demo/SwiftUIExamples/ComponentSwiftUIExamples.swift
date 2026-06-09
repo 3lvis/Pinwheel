@@ -43,30 +43,6 @@ struct PinTweakableExample: SwiftUI.View {
     }
 }
 
-struct PinFullscreenViewExample: SwiftUI.View {
-    @SwiftUI.State private var text = ""
-
-    var body: some SwiftUI.View {
-        VStack(spacing: .spacingM) {
-            TextEditor(text: $text)
-                .font(.body)
-                .scrollContentBackground(.hidden)
-                .background(SwiftUI.Color(uiColor: .secondaryBackground))
-                .frame(minHeight: 180)
-
-            Spacer()
-
-            HStack {
-                PinLabel("Left Label")
-                Spacer()
-                PinLabel("Right Label")
-            }
-        }
-        .padding(.spacingM)
-        .background(SwiftUI.Color(uiColor: .primaryBackground))
-    }
-}
-
 struct PinButtonExample: SwiftUI.View {
     @SwiftUI.State private var isLoading = false
     @SwiftUI.State private var isDisabled = false
