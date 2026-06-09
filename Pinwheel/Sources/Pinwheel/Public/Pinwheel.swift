@@ -147,6 +147,9 @@ public struct PinwheelItem {
         id: String? = nil,
         view: ViewType.Type
     ) {
+        // Shared by the `makeSwiftUIView` closure below so the hosted view is
+        // created once and reused (see the note at its use site).
+        var sharedHostedView: ViewType?
         self.init(
             id: id ?? title.pinwheelGeneratedID,
             title: title,
@@ -164,7 +167,17 @@ public struct PinwheelItem {
                 )
             },
             makeSwiftUIView: {
-                let view = ViewType(frame: .zero)
+                // Build the hosted view once and reuse it across playground
+                // re-renders. The bridged tweak closures capture this instance,
+                // and `PinwheelUIKitViewController` hosts the same one — a fresh
+                // `ViewType` per call would leave the tweaks mutating an
+                // off-screen instance, so UIKit tweaks appeared to do nothing
+                // (the displayed label never changed) under nested presentation.
+                let view = sharedHostedView ?? {
+                    let created = ViewType(frame: .zero)
+                    sharedHostedView = created
+                    return created
+                }()
                 let tweaks = (view as? Tweakable)?.tweaks.compactMap { PinwheelTweak($0) } ?? []
                 return AnyView(
                     PinwheelUIKitViewController {

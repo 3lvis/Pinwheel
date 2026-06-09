@@ -22,6 +22,31 @@ final class TweakableUITests: XCTestCase {
         settings.tap()
     }
 
+    /// Navigates the real catalog to `itemName`, switching to `section` via the
+    /// picker only when the item isn't already on screen. Because the picker is
+    /// opened only when the current section differs from `section`, the section
+    /// button is unambiguous (it can't collide with the section-picker button,
+    /// which is labelled with the *current* section).
+    private func openCatalogItem(_ itemName: String, section: String, in app: XCUIApplication) {
+        let close = app.buttons["pinwheel.close"]
+        if close.waitForExistence(timeout: 2) {
+            close.tap()
+        }
+
+        XCTAssertTrue(app.buttons["pinwheel.sectionPicker"].waitForExistence(timeout: 10),
+                      "section picker should exist")
+
+        let item = app.buttons[itemName]
+        if !item.waitForExistence(timeout: 2) {
+            app.buttons["pinwheel.sectionPicker"].tap()
+            let sectionButton = app.buttons[section]
+            XCTAssertTrue(sectionButton.waitForExistence(timeout: 10), "\(section) section should be listed")
+            sectionButton.tap()
+            XCTAssertTrue(item.waitForExistence(timeout: 10), "\(itemName) should be listed")
+        }
+        item.tap()
+    }
+
     // MARK: - SwiftUI pinwheelTweaks
 
     @MainActor
@@ -82,28 +107,7 @@ final class TweakableUITests: XCTestCase {
         let app = XCUIApplication()
         app.launch()
 
-        // A previously presented item may be restored on launch; dismiss it.
-        let close = app.buttons["pinwheel.close"]
-        if close.waitForExistence(timeout: 2) {
-            close.tap()
-        }
-
-        XCTAssertTrue(app.buttons["pinwheel.sectionPicker"].waitForExistence(timeout: 10),
-                      "section picker should exist")
-
-        // Switch to the Components section unless we're already there (in which
-        // case the Tweakable row is already on screen). Opening the picker only
-        // when needed avoids the "Components" label colliding with the picker
-        // button when that section is already selected.
-        let tweakable = app.buttons["Tweakable"]
-        if !tweakable.waitForExistence(timeout: 2) {
-            app.buttons["pinwheel.sectionPicker"].tap()
-            let components = app.sheets.buttons["Components"]
-            XCTAssertTrue(components.waitForExistence(timeout: 10), "Components section should be listed")
-            components.tap()
-            XCTAssertTrue(tweakable.waitForExistence(timeout: 10), "Tweakable item should be listed")
-        }
-        tweakable.tap()
+        openCatalogItem("Tweakable", section: "Components", in: app)
 
         openSettings(in: app)
         let option1 = app.buttons["Option 1"]
@@ -115,6 +119,22 @@ final class TweakableUITests: XCTestCase {
     }
 
     // MARK: - UIKit Tweakable bridge
+
+    @MainActor
+    func testCatalogUIKitTweakableActionUpdatesContent() {
+        let app = XCUIApplication()
+        app.launch()
+
+        openCatalogItem("UIKit Tweakable", section: "UIKit", in: app)
+
+        openSettings(in: app)
+        let option1 = app.buttons["Option 1"]
+        XCTAssertTrue(option1.waitForExistence(timeout: 10), "Option 1 should be listed")
+        option1.tap()
+
+        XCTAssertTrue(app.staticTexts["Choosen Option 1!\n\nYou can drag the button too :D"].waitForExistence(timeout: 10),
+                      "A UIKit tweak chosen from the catalog should update the hosted view's label")
+    }
 
     @MainActor
     func testUIKitActionTweakUpdatesContent() {
