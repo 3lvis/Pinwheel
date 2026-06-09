@@ -68,6 +68,7 @@ struct PinwheelCatalogView: SwiftUI.View {
                     }
                     .buttonStyle(.plain)
                     .foregroundStyle(PinwheelTheme.Colors.actionText)
+                    .accessibilityIdentifier("pinwheel.sectionPicker")
                 }
             }
             .background(PinwheelTheme.Colors.primaryBackground)
