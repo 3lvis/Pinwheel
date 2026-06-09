@@ -142,8 +142,11 @@ private struct PinButtonStyle: SwiftUI.ButtonStyle {
         private var foreground: SwiftUI.Color {
             switch style {
             case .primary:
-                // White reads correctly on the action color in light and dark.
-                return .white
+                // The label sits on the action-colored fill, so it's the surface
+                // token — the inverse of the FAB (primaryBackground surface +
+                // actionText accent). Never hard-code white: a provider with a
+                // pale action color would render invisible text.
+                return PinwheelTheme.Colors.primaryBackground
             case .secondary:
                 return isEnabled ? PinwheelTheme.Colors.primaryText : PinwheelTheme.Colors.tertiaryText
             case .tertiary:
