@@ -113,6 +113,18 @@ These stay UIKit because no SwiftUI primitive matches their ergonomics/perf:
   `PinwheelUIKitCompatibility`), and the `PinwheelItem(view:)`/`(viewController:)`
   initializers that drop UIKit content *into* the SwiftUI catalog all stay. You just
   can't build the catalog *host* in UIKit anymore (nothing did).
+- **Settings: tweaks and devices are separate screens.** The sheet is a
+  `NavigationStack` — an "Options" root (tweaks only) with a trailing device-icon
+  button that pushes a "Device" list (back + a Reset shown only when a non-current
+  device is selected; oversized devices dimmed). Devices were deliberately taken
+  off the options list.
+- **The simulated device shows as a floating pill** in the overlay window
+  (`PinwheelDevicePill`), above the sheet and persisting after dismiss, so the
+  active device is always visible. It's an indicator — the only interactive part is
+  a reset `×` that returns to the real device. Selection lives on `PinwheelChrome`
+  (`selectedDeviceIndex`) so the sheet, the playground resize, and the pill share
+  one source of truth. The FAB fades independently of the pill (the FAB hides while
+  settings is open; the pill doesn't).
 
 ## Open follow-ups
 

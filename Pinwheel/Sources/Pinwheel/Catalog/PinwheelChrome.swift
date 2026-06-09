@@ -19,8 +19,6 @@ final class PinwheelChrome {
     var isPresentingItem: Bool = false
     /// Drives the SwiftUI settings sheet; the wrench button sets this `true`.
     var showsSettings: Bool = false
-    /// When opening settings, start on the device list (the device pill uses this).
-    var showsDeviceList: Bool = false
     /// The simulated device index into `Device.all`, or nil for the real device.
     /// Held here so the settings sheet, the playground resize, and the floating
     /// device pill share one source of truth.
@@ -35,6 +33,22 @@ final class PinwheelChrome {
     /// is closed (so it never floats over the settings sheet itself).
     var isFloatingControlsVisible: Bool {
         isPresentingItem && !showsSettings
+    }
+
+    /// The simulated device — set, and not the real device. nil means "no
+    /// simulation" (real device), which the pill treats as nothing to show.
+    var simulatedDevice: Device? {
+        guard let selectedDeviceIndex, let device = Device.all[safe: selectedDeviceIndex], !device.isCurrent else {
+            return nil
+        }
+        return device
+    }
+
+    /// The device pill shows whenever a non-current device is simulated — even
+    /// while the settings sheet is open (so you can see the active device while
+    /// picking) and after it's dismissed.
+    var isDevicePillVisible: Bool {
+        isPresentingItem && simulatedDevice != nil
     }
 
     func selectSettings() { showsSettings = true }

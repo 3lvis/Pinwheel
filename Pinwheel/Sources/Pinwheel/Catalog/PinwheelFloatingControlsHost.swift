@@ -1,14 +1,15 @@
 import SwiftUI
 import UIKit
 
-/// Installs a pass-through overlay `UIWindow` hosting the UIKit
-/// `CornerAnchoringView` FAB and pushes `PinwheelChrome` state into it. Placed as
-/// a background of the catalog/preview root; touches outside the FAB buttons fall
-/// through to the app below.
+/// Installs a pass-through overlay `UIWindow` hosting the UIKit `CornerAnchoringView`
+/// FAB and the SwiftUI device pill, and pushes `PinwheelChrome` state into it.
+/// Placed as a background of the catalog/preview root; touches outside the FAB
+/// buttons and the pill fall through to the app below.
 struct PinwheelFloatingControlsHost: UIViewRepresentable {
     let chrome: PinwheelChrome
     let tweakCount: Int
-    let isVisible: Bool
+    let fabVisible: Bool
+    let pillVisible: Bool
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -22,7 +23,11 @@ struct PinwheelFloatingControlsHost: UIViewRepresentable {
         let chrome = chrome
         probe.onMoveToScene = { scene in
             context.coordinator.attach(scene: scene, chrome: chrome)
-            context.coordinator.update(tweakCount: chrome.tweakCount, isVisible: chrome.isFloatingControlsVisible)
+            context.coordinator.update(
+                fabVisible: chrome.isFloatingControlsVisible,
+                pillVisible: chrome.isDevicePillVisible,
+                tweakCount: chrome.tweakCount
+            )
         }
         return probe
     }
@@ -31,7 +36,7 @@ struct PinwheelFloatingControlsHost: UIViewRepresentable {
         if let scene = uiView.window?.windowScene {
             context.coordinator.attach(scene: scene, chrome: chrome)
         }
-        context.coordinator.update(tweakCount: tweakCount, isVisible: isVisible)
+        context.coordinator.update(fabVisible: fabVisible, pillVisible: pillVisible, tweakCount: tweakCount)
     }
 
     static func dismantleUIView(_ uiView: ProbeView, coordinator: Coordinator) {
@@ -54,54 +59,36 @@ struct PinwheelFloatingControlsHost: UIViewRepresentable {
     @MainActor
     final class Coordinator {
         private var window: PinwheelFloatingControlsWindow?
-        private var visible = false
 
         func attach(scene: UIWindowScene, chrome: PinwheelChrome) {
             guard window == nil else { return }
             let window = PinwheelFloatingControlsWindow(windowScene: scene)
             window.controller.onSettings = { [weak chrome] in chrome?.selectSettings() }
             window.controller.onClose = { [weak chrome] in chrome?.selectClose() }
+            window.controller.installPill(chrome: chrome)
             self.window = window
         }
 
-        func update(tweakCount: Int, isVisible: Bool) {
+        func update(fabVisible: Bool, pillVisible: Bool, tweakCount: Int) {
             guard let window else { return }
             window.controller.itemsCount = tweakCount
-            setVisible(isVisible, on: window)
-        }
-
-        /// Fade the FAB out as the settings sheet rises (and back in on dismiss /
-        /// when an item is presented) rather than toggling `isHidden` abruptly.
-        private func setVisible(_ shouldShow: Bool, on window: PinwheelFloatingControlsWindow) {
-            guard shouldShow != visible else { return }
-            visible = shouldShow
-
-            if shouldShow {
-                window.alpha = 0
-                window.isHidden = false
-                UIView.animate(withDuration: 0.25) { window.alpha = 1 }
-            } else {
-                UIView.animate(withDuration: 0.25) {
-                    window.alpha = 0
-                } completion: { [weak self] _ in
-                    // Skip hiding if we were asked to show again mid-animation.
-                    if self?.visible == false { window.isHidden = true }
-                }
+            // Fade the FAB (not the whole window) so the pill can stay up while the
+            // settings sheet is open — the FAB hides, the pill doesn't.
+            UIView.animate(withDuration: 0.25) {
+                window.controller.anchoringView.alpha = fabVisible ? 1 : 0
             }
+            window.isHidden = !(fabVisible || pillVisible)
         }
 
         func teardown() {
-            visible = false
             window?.isHidden = true
             window = nil
         }
     }
 }
 
-/// A pass-through window: only the FAB buttons capture touches; everything else
-/// falls through to the app window below. The hosted `CornerAnchoringView`
-/// already reports `point(inside:)` only over its buttons, and
-/// `PinwheelPassthroughView` forwards that up to the window's root.
+/// A pass-through window: only the FAB buttons and the device pill capture touches;
+/// everything else falls through to the app window below.
 final class PinwheelFloatingControlsWindow: UIWindow {
     let controller = PinwheelFloatingControlsViewController()
 
@@ -116,17 +103,18 @@ final class PinwheelFloatingControlsWindow: UIWindow {
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-        guard let hit = super.hitTest(point, with: event) else { return nil }
-        // Only actual FAB buttons (descendants of the anchoring view) capture
-        // touches; everywhere else the window is transparent so the app below
-        // stays interactive. `UIWindow.hitTest` returns the window itself for
-        // empty areas, which would otherwise swallow every touch.
-        return hit.isDescendant(of: controller.anchoringView) ? hit : nil
+        // Pass through everywhere except the FAB buttons and the pill. Over empty
+        // areas `UIWindow.hitTest` returns the window itself (or the pass-through
+        // container); only deeper interactive views should capture the touch.
+        guard let hit = super.hitTest(point, with: event), hit !== self, hit !== controller.view else {
+            return nil
+        }
+        return hit
     }
 }
 
-/// Hosts the UIKit `CornerAnchoringView` in the overlay window and forwards its
-/// button taps to the coordinator.
+/// Hosts the UIKit `CornerAnchoringView` FAB and the SwiftUI device pill in the
+/// overlay window, forwarding the FAB button taps to the coordinator.
 final class PinwheelFloatingControlsViewController: UIViewController, CornerAnchoringViewDelegate {
     let anchoringView = CornerAnchoringView()
     var onSettings: (() -> Void)?
@@ -150,6 +138,22 @@ final class PinwheelFloatingControlsViewController: UIViewController, CornerAnch
         view = container
     }
 
+    /// Adds the SwiftUI device pill, pinned top-center. It observes `chrome`, so it
+    /// shows/updates itself — and is zero-sized (thus untouchable) when hidden.
+    func installPill(chrome: PinwheelChrome) {
+        let host = UIHostingController(rootView: PinwheelDevicePill(chrome: chrome))
+        host.view.backgroundColor = .clear
+        host.sizingOptions = [.intrinsicContentSize]
+        addChild(host)
+        host.view.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(host.view)
+        host.didMove(toParent: self)
+        NSLayoutConstraint.activate([
+            host.view.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            host.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: .spacingS)
+        ])
+    }
+
     func cornerAnchoringViewDidSelectTweakButton(_ cornerAnchoringView: CornerAnchoringView) {
         onSettings?()
     }
@@ -159,8 +163,43 @@ final class PinwheelFloatingControlsViewController: UIViewController, CornerAnch
     }
 }
 
+/// The floating pill showing the simulated device, above everything and persisting
+/// after the settings sheet is dismissed. Tapping it reopens the device picker.
+/// Renders nothing on the real device.
+private struct PinwheelDevicePill: SwiftUI.View {
+    let chrome: PinwheelChrome
+
+    var body: some SwiftUI.View {
+        if let device = chrome.simulatedDevice {
+            HStack(spacing: .spacingS) {
+                // Indicator only — not tappable.
+                Image(systemName: "iphone.gen3")
+                PinLabel(device.title).font(.caption)
+
+                // The only interactive part: reset to the real device (also hides
+                // the pill, since `simulatedDevice` becomes nil).
+                SwiftUI.Button {
+                    chrome.selectedDeviceIndex = nil
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(PinwheelTheme.Colors.secondaryText)
+                }
+                .buttonStyle(.plain)
+            }
+            .foregroundStyle(PinwheelTheme.Colors.primaryText)
+            .padding(.horizontal, .spacingM)
+            .padding(.vertical, .spacingS)
+            .background(
+                Capsule()
+                    .fill(PinwheelTheme.Colors.secondaryBackground)
+                    .shadow(color: .black.opacity(0.15), radius: 8, y: 3)
+            )
+        }
+    }
+}
+
 /// Forwards hit-testing to its subviews, so the surrounding overlay window is
-/// transparent to touches everywhere except the FAB buttons.
+/// transparent to touches everywhere except the FAB buttons and the pill.
 final class PinwheelPassthroughView: UIView {
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
         for subview in subviews where !subview.isHidden && subview.isUserInteractionEnabled && subview.alpha > 0.01 {

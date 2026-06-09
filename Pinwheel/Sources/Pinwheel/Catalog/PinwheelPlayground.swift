@@ -34,7 +34,6 @@ struct PinwheelPlayground: SwiftUI.View {
                 .onDisappear {
                     chrome.isPresentingItem = false
                     chrome.showsSettings = false
-                    chrome.showsDeviceList = false
                     chrome.selectedDeviceIndex = nil
                     chrome.tweaks = []
                     chrome.onClose = nil
@@ -42,8 +41,7 @@ struct PinwheelPlayground: SwiftUI.View {
                 .sheet(isPresented: $chrome.showsSettings) {
                     PinwheelSettingsView(
                         tweaks: chrome.tweaks,
-                        selectedDeviceIndex: $chrome.selectedDeviceIndex,
-                        startOnDeviceList: chrome.showsDeviceList
+                        selectedDeviceIndex: $chrome.selectedDeviceIndex
                     )
                     .presentationDetents([.medium, .large])
                 }
@@ -152,18 +150,13 @@ private struct PinwheelHostedItem: SwiftUI.View {
 private struct PinwheelSettingsView: SwiftUI.View {
     let tweaks: [PinwheelTweak]
     @SwiftUI.Binding var selectedDeviceIndex: Int?
-    var startOnDeviceList: Bool = false
 
     @Environment(\.dismiss) private var dismiss
-    @SwiftUI.State private var showingDevices = false
 
     var body: some SwiftUI.View {
         NavigationStack {
             optionsList
                 .navigationBarTitleDisplayMode(.inline)
-                .navigationDestination(isPresented: $showingDevices) {
-                    PinwheelDeviceList(selectedIndex: $selectedDeviceIndex)
-                }
                 .toolbar {
                     ToolbarItem(placement: .principal) {
                         PinLabel("Options").font(.subtitleSemibold)
@@ -173,8 +166,8 @@ private struct PinwheelSettingsView: SwiftUI.View {
                             .tint(PinwheelTheme.Colors.actionText)
                     }
                     ToolbarItem(placement: .topBarTrailing) {
-                        SwiftUI.Button {
-                            showingDevices = true
+                        NavigationLink {
+                            PinwheelDeviceList(selectedIndex: $selectedDeviceIndex)
                         } label: {
                             Image(systemName: "iphone.gen3")
                         }
@@ -182,7 +175,6 @@ private struct PinwheelSettingsView: SwiftUI.View {
                     }
                 }
         }
-        .onAppear { if startOnDeviceList { showingDevices = true } }
     }
 
     @ViewBuilder
