@@ -11,8 +11,8 @@ struct PinTableViewExample: SwiftUI.View {
             .text("Only title"),
             .text("Title and subtitle", subtitle: "subtitle"),
             .text("Title, subtitle and detail", subtitle: "subtitle", detail: "Detail text"),
-            .text("Has chevron", chevron: true) { state = .loaded },
             .text("Is disabled", enabled: false),
+            .text("Has chevron", chevron: true) { state = .loaded },
             .toggle("Off", isOn: $off),
             .toggle("On", isOn: $on),
         ], onRetry: { state = .loaded })

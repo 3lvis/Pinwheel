@@ -88,7 +88,7 @@ public extension PinList {
             VStack(alignment: .leading, spacing: .spacingXXS) {
                 PinLabel(title).color(enabled ? .primary : .secondary)
                 if let subtitle {
-                    PinLabel(subtitle).font(.caption).color(.secondary)
+                    PinLabel(subtitle).font(.caption).color(enabled ? .primary : .secondary)
                 }
             }
         }
