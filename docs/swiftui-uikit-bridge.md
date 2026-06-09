@@ -72,7 +72,7 @@ These landed after Phases 1–5 while exercising the catalog/preview:
 
 - [x] `UIKitPinFullscreenView`, the `UIKitPinView` base, and the `UIKitPinTableView` family left as-is.
 - [x] Doc-comment convention applied: each genuinely-UIKit type now opens with an "Intentional UIKit surface" note explaining why it can't bridge with comparable ergonomics/perf (keyboard avoidance + lifecycle for FullscreenView; `setup()` lifecycle + open subclassing for the base View; cell recycling / dataSource-delegate / `UISwitch` / A–Z indexer for TableView; hosting-overhead for Label). The thin-host shells (`UIKitPinButton`, `UIKitPinStateView`) already document themselves as hosts over the SwiftUI source.
-- [ ] (Later / optional) a greenfield SwiftUI `PinList` — explicitly NOT a replacement for `UIKitPinTableView`.
+- [x] **Greenfield SwiftUI `PinList`** (`Components/PinList.swift`) — themed `List` + loading/empty/failed state, the SwiftUI counterpart of `UIKitPinTableView` (NOT a replacement; the UIKit table stays for recycling). Value-based rows: `PinList(state:, rows: [.text(…), .toggle(…, isOn:)], onRetry:)`. Reuses `PinStateView` for non-loaded states. State vocabulary was unified into a top-level **`PinState`** (promoted out of `PinStateView.State`), used by both `PinStateView` and `PinList` — same move as `PinTextStyle`.
 
 ---
 

@@ -64,8 +64,9 @@ Verified this session: `button` (SwiftUI), `uikit-button` (bridge), `state-view`
 
 ## Open follow-ups (not blocking)
 
-- **Greenfield SwiftUI `PinList`** — explicitly deferred; a SwiftUI-native list (optionally driven by the same `UIKitPinTableViewItem` models), *not* a replacement for `UIKitPinTableView`.
-- **Extend XCUITest coverage** — `StateViewUITests` covers the StateView paths; Button (enabled/loading) and the TableView family aren't covered yet.
+- **Extend XCUITest coverage** — added only as regression tests when a path breaks (per `AGENTS.md`); no full-coverage goal. `StateViewUITests` exists; Button/PinList aren't covered yet (and won't be until something regresses).
+
+(Done since: `PinList` shipped — themed SwiftUI list + state, value-based rows, reusing `PinStateView`; state vocabulary unified into top-level `PinState`.)
 
 (Resolved earlier: UIKit examples rendered top-anchored in the playground — fixed by hosting `view:` items in a full-bounds view controller; see "Post-phase fixes" in the bridge doc.)
 

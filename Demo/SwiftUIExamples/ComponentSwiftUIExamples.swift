@@ -129,7 +129,7 @@ struct PinButtonExample: SwiftUI.View {
 }
 
 struct PinStateViewExample: SwiftUI.View {
-    @SwiftUI.State private var state: PinStateView.State = .empty(
+    @SwiftUI.State private var state: PinState = .empty(
         title: "Ready to Move?",
         subtitle: "Kick things off with your first booking."
     )

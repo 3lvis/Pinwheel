@@ -5,14 +5,14 @@ public protocol UIKitPinStateViewDelegate: AnyObject {
     func stateViewDidSelectAction(_ stateView: UIKitPinStateView)
 }
 
-/// UIKit-facing state, mapped onto the SwiftUI `PinStateView.State`.
+/// UIKit-facing state, mapped onto the SwiftUI `PinState`.
 public enum UIKitPinStateViewState {
     case loading(title: String, subtitle: String)
     case loaded
     case empty(title: String, subtitle: String)
     case failed(title: String, subtitle: String, actionTitle: String)
 
-    var pinState: PinStateView.State {
+    var pinState: PinState {
         switch self {
         case .loading(let title, let subtitle):
             return .loading(title: title, subtitle: subtitle)

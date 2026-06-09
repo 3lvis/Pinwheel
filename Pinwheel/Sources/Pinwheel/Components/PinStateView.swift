@@ -4,17 +4,10 @@ import SwiftUI
 /// loading / empty / failed placeholder; `.loaded` renders nothing, so it can
 /// sit as an overlay that reveals the underlying content once loaded.
 public struct PinStateView: SwiftUI.View {
-    public enum State: Equatable {
-        case loading(title: String, subtitle: String)
-        case loaded
-        case empty(title: String, subtitle: String)
-        case failed(title: String, subtitle: String, actionTitle: String)
-    }
-
-    private let state: State
+    private let state: PinState
     private let onAction: () -> Void
 
-    public init(_ state: State, onAction: @escaping () -> Void = {}) {
+    public init(_ state: PinState, onAction: @escaping () -> Void = {}) {
         self.state = state
         self.onAction = onAction
     }
