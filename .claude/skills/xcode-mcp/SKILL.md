@@ -43,7 +43,7 @@ If you can't restart (or no MCP), use the **Fallback** section below — it prod
 | `ExecuteSnippet` | Run a Swift snippet in a file's context (print output) | `tabIdentifier`, `sourceFilePath`, `codeSnippet`, `purpose` | console output |
 | `XcodeRead`/`XcodeWrite`/`XcodeUpdate`/`XcodeGrep`/`XcodeGlob`/`XcodeLS`/`XcodeMV`/`XcodeRM`/`XcodeMakeDir`/`XcodeGetCurrentFile`/`XcodeRefreshCodeIssuesInFile` | File ops inside the project organization | vary | — |
 
-`sourceFilePath` is project-relative within the Xcode organization, e.g. `Demo/Examples/SwiftUI/DemoPinwheelSections.swift`.
+`sourceFilePath` is project-relative within the Xcode organization. Refer to files by **name + role** and resolve the current path with `XcodeGlob`/`XcodeGrep` at call time — folders get reorganized, so hard-coded paths in docs rot (e.g. find the catalog registry with `XcodeGlob "**/DemoPinwheelSections.swift"`).
 
 ## How RenderPreview targets a `#Preview`
 
@@ -59,10 +59,10 @@ This is exactly why the repo keeps ONE permanent `#Preview` (see below) instead 
 
 ## This repo's iteration shortcuts
 
-- **Render any component without a simulator:** the permanent `#Preview` at the bottom of `Demo/Examples/SwiftUI/DemoPinwheelSections.swift` renders whatever `previewComponentID` points at. Edit that one constant, then `RenderPreview(... sourceFilePath: "Demo/Examples/SwiftUI/DemoPinwheelSections.swift")`.
+- **Render any component without a simulator:** the permanent `#Preview` at the bottom of the catalog registry file (`DemoPinwheelSections.swift`) renders whatever `previewComponentID` points at. Edit that one constant, then `RenderPreview` with that file's project-relative `sourceFilePath` (locate it via `XcodeGlob` if it has moved).
 - **Deep-link the running app to one component:** launch arg `-PinwheelPreview <id>` (bare `button` or qualified `components/button`); reads `PinwheelPreview.requestedID`. Bundle id `com.nordser.pinwheel`. Add `-PinwheelPreviewTweak <title>` to land directly on a variant (e.g. the StateView "Failed" state) without tapping. In preview mode the render is captioned with `id · variant`, and the component's tweak titles are dumped to `<dataContainer>/Documents/pinwheel-preview-tweaks.txt`.
 - **Snapshot every component + variant:** `Scripts/preview-all.sh` builds+installs once, then deep-links each component and each of its tweak variants, writing captioned PNGs to `/tmp/pinwheel-previews`. `--no-build` reuses the last build.
-- **Interaction tests (taps):** `DemoUITests/StateViewUITests.swift` is the template — set `app.launchArguments = ["-PinwheelPreview", "<id>"]`, then drive real UI. Accessibility ids on the playground floating controls: `pinwheel.settings` (wrench), `pinwheel.close`. Tweak rows and `PinButton`s are addressable by their visible label (`app.buttons["Failed"]`, `app.buttons["Retry"]`). Run with `RunSomeTests` targeting `DemoUITests`.
+- **Interaction tests (taps):** `StateViewUITests.swift` (in the `DemoUITests` target) is the template — set `app.launchArguments = ["-PinwheelPreview", "<id>"]`, then drive real UI. Accessibility ids on the playground floating controls: `pinwheel.settings` (wrench), `pinwheel.close`. Tweak rows and `PinButton`s are addressable by their visible label (`app.buttons["Failed"]`, `app.buttons["Retry"]`). Run with `RunSomeTests` targeting `DemoUITests`.
 
 ## Fallback (no MCP)
 

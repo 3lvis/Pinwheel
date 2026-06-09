@@ -24,12 +24,13 @@ The mantra, so a fresh agent works the way we do from line one:
 - **Shared vocabularies are top-level types.** When two or more components reuse a concept, promote it to a top-level `public` type instead of nesting it under one component (`PinTextStyle` for typography, `PinState` for content state, `PinLabel.TextColor` for color roles). No component should "own" what another reuses.
 - **SwiftUI-native API.** Bare initializer + chained, themed modifiers (`PinLabel("x").font(.caption).color(.secondary)`, `PinButton("x") { }.style(.secondary).loading(flag)`). Mirror SwiftUI's own names where one exists (`systemImage:`, `.font(_:)`). `.style` is a button's visual variant; `.font` is typography on any text component. Raw escape hatches are explicit and named (`.color(.custom(...))`, `.style(.custom(text:background:))`). Modifier-prefix rule is in the section above.
 - **Verify visually, don't assume.** After a UI change, *look* at it before saying it's done:
-  - Render the permanent `#Preview` in `Demo/Examples/SwiftUI/DemoPinwheelSections.swift` — set `previewComponentID` to the component's id and `mcp__xcode__RenderPreview` it. No throwaway `#Preview` needed.
+  - Render the permanent `#Preview` in the catalog registry file (`DemoPinwheelSections.swift`) — set `previewComponentID` to the component's id and `mcp__xcode__RenderPreview` it (pass its current project-relative path; `XcodeGlob` finds it if it moved). No throwaway `#Preview` needed.
   - Or deep-link a booted sim: `simctl launch <bundle> -PinwheelPreview <id> [-PinwheelPreviewTweak <title>]`.
   - `Scripts/preview-all.sh` snapshots every component and tweak variant to PNGs for a full sweep.
   - When the SwiftUI side must match the UIKit one, compare against the UIKit example (or `main`) — the UIKit rendering is the source of truth for parity.
 - **Build/verify via the Xcode MCP.** `mcp__xcode__BuildProject` after every change, `RenderPreview` to look, `RunSomeTests`/`GetTestList` for the regression tests (`tabIdentifier: "windowtab1"`). Full details + the session-restart gotcha (MCP tools only register at session start with Xcode open on the project and Intelligence "Xcode Tools" on) live in the `xcode-mcp` skill (`.claude/skills/xcode-mcp/SKILL.md`); `xcodebuild`/`simctl` are the fallback.
 - **Keep it green and current.** Builds stay warning-free. Update `docs/decisions.md` (decisions + open follow-ups) and the registry as components change. Commit in small, focused units with clean, minimal messages and push when a logical unit is done.
+- **Reference files by name + role, not full path.** Folders get reorganized and hard-coded paths rot; say "the catalog registry (`DemoPinwheelSections.swift`)" and grep/`XcodeGlob` for the current location. Top-level dirs that are part of the build contract (`docs/`, `Scripts/`, `DemoUITests`) are fine to name; the canonical folder map is in `docs/decisions.md` › Project layout.
 
 ## Testing
 
