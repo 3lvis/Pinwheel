@@ -12,7 +12,6 @@ struct PinwheelPlayground: SwiftUI.View {
     /// on a variant (e.g. the StateView "Failed" state) without tapping.
     var autoApplyTweak: String?
 
-    @SwiftUI.State private var selectedDeviceIndex: Int?
     @SwiftUI.State private var didApplyPreviewTweak = false
     @SwiftUI.State private var didDumpPreviewTweaks = false
 
@@ -25,33 +24,34 @@ struct PinwheelPlayground: SwiftUI.View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(SwiftUI.Color(uiColor: .primaryBackground).ignoresSafeArea())
                 .onAppear {
-                    selectedDeviceIndex = PinwheelStateStore.selectedDeviceIndex(for: selection)
+                    chrome.selectedDeviceIndex = PinwheelStateStore.selectedDeviceIndex(for: selection)
                     chrome.onClose = onClose
                     chrome.isPresentingItem = true
+                }
+                .onChange(of: chrome.selectedDeviceIndex) { _, newValue in
+                    PinwheelStateStore.setSelectedDeviceIndex(newValue, for: selection)
                 }
                 .onDisappear {
                     chrome.isPresentingItem = false
                     chrome.showsSettings = false
+                    chrome.showsDeviceList = false
+                    chrome.selectedDeviceIndex = nil
                     chrome.tweaks = []
                     chrome.onClose = nil
                 }
                 .sheet(isPresented: $chrome.showsSettings) {
                     PinwheelSettingsView(
                         tweaks: chrome.tweaks,
-                        selectedDeviceIndex: selectedDeviceIndex,
-                        selection: selection
-                    ) { deviceIndex in
-                        selectedDeviceIndex = deviceIndex
-                        PinwheelStateStore.setSelectedDeviceIndex(deviceIndex, for: selection)
-                        chrome.showsSettings = false
-                    }
-                    .presentationDetents([.medium])
+                        selectedDeviceIndex: $chrome.selectedDeviceIndex,
+                        startOnDeviceList: chrome.showsDeviceList
+                    )
+                    .presentationDetents([.medium, .large])
                 }
         }
     }
 
     private var selectedDevice: Device? {
-        return selectedDeviceIndex.flatMap { Device.all[safe: $0] }
+        return chrome.selectedDeviceIndex.flatMap { Device.all[safe: $0] }
     }
 
     private func content(in geometry: GeometryProxy) -> some SwiftUI.View {
@@ -146,62 +146,59 @@ private struct PinwheelHostedItem: SwiftUI.View {
     }
 }
 
+/// The playground's settings: a tweaks-only "Options" screen with a device-icon
+/// nav button that pushes the device list. Devices are kept off the Options
+/// screen — selecting one resizes the playground and surfaces the device pill.
 private struct PinwheelSettingsView: SwiftUI.View {
     let tweaks: [PinwheelTweak]
-    let selectedDeviceIndex: Int?
-    let selection: PinwheelSelection
-    let selectDevice: (Int) -> Void
+    @SwiftUI.Binding var selectedDeviceIndex: Int?
+    var startOnDeviceList: Bool = false
 
     @Environment(\.dismiss) private var dismiss
+    @SwiftUI.State private var showingDevices = false
 
     var body: some SwiftUI.View {
         NavigationStack {
-            List {
-                if !tweaks.isEmpty {
-                    Section("Tweaks") {
-                        ForEach(tweaks) { tweak in
-                            tweakRow(tweak)
-                        }
-                    }
+            optionsList
+                .navigationBarTitleDisplayMode(.inline)
+                .navigationDestination(isPresented: $showingDevices) {
+                    PinwheelDeviceList(selectedIndex: $selectedDeviceIndex)
                 }
-
-                Section("Device") {
-                    ForEach(Array(Device.all.enumerated()), id: \.offset) { index, device in
+                .toolbar {
+                    ToolbarItem(placement: .principal) {
+                        PinLabel("Options").font(.subtitleSemibold)
+                    }
+                    ToolbarItem(placement: .topBarLeading) {
+                        SwiftUI.Button("Done") { dismiss() }
+                            .tint(PinwheelTheme.Colors.actionText)
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
                         SwiftUI.Button {
-                            selectDevice(index)
+                            showingDevices = true
                         } label: {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(device.title)
-                                    if device.traits.userInterfaceIdiom == .phone && device.frame.size == UIScreen.main.bounds.size {
-                                        Text("Current")
-                                            .font(.caption)
-                                            .foregroundStyle(SwiftUI.Color(uiColor: .secondaryText))
-                                    }
-                                }
-
-                                Spacer()
-
-                                if selectedDeviceIndex == index {
-                                    Image(systemName: "checkmark")
-                                        .foregroundStyle(SwiftUI.Color(uiColor: .actionText))
-                                }
-                            }
+                            Image(systemName: "iphone.gen3")
                         }
-                        .disabled(!device.isEnabled)
+                        .tint(PinwheelTheme.Colors.actionText)
                     }
                 }
+        }
+        .onAppear { if startOnDeviceList { showingDevices = true } }
+    }
+
+    @ViewBuilder
+    private var optionsList: some SwiftUI.View {
+        List {
+            ForEach(tweaks) { tweak in
+                tweakRow(tweak)
+                    .listRowBackground(PinwheelTheme.Colors.primaryBackground)
             }
-            .scrollContentBackground(.hidden)
-            .background(SwiftUI.Color(uiColor: .primaryBackground))
-            .navigationTitle("Options")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    SwiftUI.Button("Done") {
-                        dismiss()
-                    }
-                }
+        }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(PinwheelTheme.Colors.primaryBackground)
+        .overlay {
+            if tweaks.isEmpty {
+                PinLabel("No options").color(.secondary)
             }
         }
     }
@@ -214,26 +211,81 @@ private struct PinwheelSettingsView: SwiftUI.View {
                 action()
                 dismiss()
             } label: {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(tweak.title)
-                    if let description = tweak.description {
-                        Text(description)
-                            .font(.caption)
-                            .foregroundStyle(SwiftUI.Color(uiColor: .secondaryText))
-                    }
-                }
+                rowLabels(tweak)
             }
+            .buttonStyle(.plain)
         case .toggle(let isOn):
-            Toggle(isOn: isOn) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(tweak.title)
-                    if let description = tweak.description {
-                        Text(description)
-                            .font(.caption)
-                            .foregroundStyle(SwiftUI.Color(uiColor: .secondaryText))
+            Toggle(isOn: isOn) { rowLabels(tweak) }
+        }
+    }
+
+    private func rowLabels(_ tweak: PinwheelTweak) -> some SwiftUI.View {
+        VStack(alignment: .leading, spacing: .spacingXXS) {
+            PinLabel(tweak.title)
+            if let description = tweak.description {
+                PinLabel(description).font(.caption).color(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
+    }
+}
+
+/// The pushed device list. Disabled devices (too big for the screen) are dimmed;
+/// the selected one is checked. A trailing Reset (shown only when a non-current
+/// device is selected) returns to the real device.
+private struct PinwheelDeviceList: SwiftUI.View {
+    @SwiftUI.Binding var selectedIndex: Int?
+
+    private let devices = Device.all
+
+    private var showsReset: Bool {
+        guard let selectedIndex, let device = devices[safe: selectedIndex] else { return false }
+        return !device.isCurrent
+    }
+
+    var body: some SwiftUI.View {
+        List {
+            ForEach(Array(devices.enumerated()), id: \.offset) { index, device in
+                SwiftUI.Button {
+                    selectedIndex = index
+                } label: {
+                    HStack {
+                        PinLabel(device.title).color(device.isEnabled ? .primary : .tertiary)
+                        Spacer()
+                        if isSelected(index, device) {
+                            Image(systemName: "checkmark")
+                                .foregroundStyle(PinwheelTheme.Colors.actionText)
+                        }
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(!device.isEnabled)
+                .listRowBackground(PinwheelTheme.Colors.primaryBackground)
+            }
+        }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(PinwheelTheme.Colors.primaryBackground)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                PinLabel("Device").font(.subtitleSemibold)
+            }
+            if showsReset {
+                ToolbarItem(placement: .topBarTrailing) {
+                    SwiftUI.Button("Reset") { selectedIndex = nil }
+                        .tint(PinwheelTheme.Colors.actionText)
                 }
             }
         }
+    }
+
+    /// With no explicit selection, the current (real) device is the active one.
+    private func isSelected(_ index: Int, _ device: Device) -> Bool {
+        if let selectedIndex { return selectedIndex == index }
+        return device.isCurrent
     }
 }

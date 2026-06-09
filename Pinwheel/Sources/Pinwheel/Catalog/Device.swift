@@ -28,6 +28,11 @@ struct Device {
         return frame.width <= currentSize.width && frame.height <= currentSize.height
     }
 
+    /// The device matching the real screen — the default ("no simulation") target.
+    var isCurrent: Bool {
+        return traits.userInterfaceIdiom == .phone && frame.size == UIScreen.main.bounds.size
+    }
+
     init(kind: Kind) {
         let size: CGSize
 

@@ -19,6 +19,12 @@ final class PinwheelChrome {
     var isPresentingItem: Bool = false
     /// Drives the SwiftUI settings sheet; the wrench button sets this `true`.
     var showsSettings: Bool = false
+    /// When opening settings, start on the device list (the device pill uses this).
+    var showsDeviceList: Bool = false
+    /// The simulated device index into `Device.all`, or nil for the real device.
+    /// Held here so the settings sheet, the playground resize, and the floating
+    /// device pill share one source of truth.
+    var selectedDeviceIndex: Int?
     /// Dismisses the presented component; the close button invokes this.
     var onClose: (() -> Void)?
 
