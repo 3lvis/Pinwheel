@@ -7,6 +7,12 @@ import XCTest
 final class TweakableUITests: XCTestCase {
     private var app: XCUIApplication!
 
+    /// Failure ceiling for element waits — `waitForExistence` returns as soon as
+    /// the element appears, so this only bounds how long a *failing* test waits.
+    /// 5s is the community default; this suite is local, animation-free and
+    /// network-free, so elements appear well within it.
+    private let defaultTimeout: TimeInterval = 5
+
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
@@ -26,7 +32,7 @@ final class TweakableUITests: XCTestCase {
 
     private func openSettings() {
         let settings = app.buttons["pinwheel.settings"]
-        XCTAssertTrue(settings.waitForExistence(timeout: 10), "settings (wrench) button should exist")
+        XCTAssertTrue(settings.waitForExistence(timeout: defaultTimeout), "settings (wrench) button should exist")
         settings.tap()
     }
 
@@ -38,16 +44,16 @@ final class TweakableUITests: XCTestCase {
     private func openCatalogItem(_ itemName: String, section: String) {
         // -UITesting resets state, so the catalog always launches to the list —
         // there's no restored item to dismiss first.
-        XCTAssertTrue(app.buttons["pinwheel.sectionPicker"].waitForExistence(timeout: 10),
+        XCTAssertTrue(app.buttons["pinwheel.sectionPicker"].waitForExistence(timeout: defaultTimeout),
                       "section picker should exist")
 
         let item = app.buttons[itemName]
         if !item.exists {
             app.buttons["pinwheel.sectionPicker"].tap()
             let sectionButton = app.buttons[section]
-            XCTAssertTrue(sectionButton.waitForExistence(timeout: 10), "\(section) section should be listed")
+            XCTAssertTrue(sectionButton.waitForExistence(timeout: defaultTimeout), "\(section) section should be listed")
             sectionButton.tap()
-            XCTAssertTrue(item.waitForExistence(timeout: 10), "\(itemName) should be listed")
+            XCTAssertTrue(item.waitForExistence(timeout: defaultTimeout), "\(itemName) should be listed")
         }
         item.tap()
     }
@@ -60,10 +66,10 @@ final class TweakableUITests: XCTestCase {
         openSettings()
 
         let option1 = app.buttons["Option 1"]
-        XCTAssertTrue(option1.waitForExistence(timeout: 10), "Option 1 should be listed")
+        XCTAssertTrue(option1.waitForExistence(timeout: defaultTimeout), "Option 1 should be listed")
         option1.tap()
 
-        XCTAssertTrue(app.staticTexts["Chosen Option 1"].waitForExistence(timeout: 10),
+        XCTAssertTrue(app.staticTexts["Chosen Option 1"].waitForExistence(timeout: defaultTimeout),
                       "Choosing an action tweak should update the example label")
     }
 
@@ -73,13 +79,13 @@ final class TweakableUITests: XCTestCase {
         openSettings()
 
         let option3 = app.switches["Option 3, Toggle-backed option"]
-        XCTAssertTrue(option3.waitForExistence(timeout: 10), "Option 3 toggle should be listed")
+        XCTAssertTrue(option3.waitForExistence(timeout: defaultTimeout), "Option 3 toggle should be listed")
         // The row is a single combined element; tapping its center hits the label,
         // so tap the switch control on the trailing edge to actually flip it.
         option3.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
 
         // The label updates behind the sheet (no Done button to dismiss anymore).
-        XCTAssertTrue(app.staticTexts["Option 3 is on"].waitForExistence(timeout: 10),
+        XCTAssertTrue(app.staticTexts["Option 3 is on"].waitForExistence(timeout: defaultTimeout),
                       "Toggling a bool tweak should update the example label")
     }
 
@@ -89,17 +95,17 @@ final class TweakableUITests: XCTestCase {
 
         openSettings()
         let option1 = app.buttons["Option 1"]
-        XCTAssertTrue(option1.waitForExistence(timeout: 10))
+        XCTAssertTrue(option1.waitForExistence(timeout: defaultTimeout))
         option1.tap()
-        XCTAssertTrue(app.staticTexts["Chosen Option 1"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Chosen Option 1"].waitForExistence(timeout: defaultTimeout))
 
         openSettings()
         // The row carries a description, so its accessibility label is the
         // combined "title, description".
         let option2 = app.buttons["Option 2, Description 2"]
-        XCTAssertTrue(option2.waitForExistence(timeout: 10), "Option 2 should still be listed on reopen")
+        XCTAssertTrue(option2.waitForExistence(timeout: defaultTimeout), "Option 2 should still be listed on reopen")
         option2.tap()
-        XCTAssertTrue(app.staticTexts["Chosen Option 2"].waitForExistence(timeout: 10),
+        XCTAssertTrue(app.staticTexts["Chosen Option 2"].waitForExistence(timeout: defaultTimeout),
                       "A second tweak selection should still update the example label")
     }
 
@@ -113,10 +119,10 @@ final class TweakableUITests: XCTestCase {
 
         openSettings()
         let option1 = app.buttons["Option 1"]
-        XCTAssertTrue(option1.waitForExistence(timeout: 10), "Option 1 should be listed")
+        XCTAssertTrue(option1.waitForExistence(timeout: defaultTimeout), "Option 1 should be listed")
         option1.tap()
 
-        XCTAssertTrue(app.staticTexts["Chosen Option 1"].waitForExistence(timeout: 10),
+        XCTAssertTrue(app.staticTexts["Chosen Option 1"].waitForExistence(timeout: defaultTimeout),
                       "Choosing a tweak from the catalog (nested presentation) should update the label")
     }
 
@@ -130,10 +136,10 @@ final class TweakableUITests: XCTestCase {
 
         openSettings()
         let option1 = app.buttons["Option 1"]
-        XCTAssertTrue(option1.waitForExistence(timeout: 10), "Option 1 should be listed")
+        XCTAssertTrue(option1.waitForExistence(timeout: defaultTimeout), "Option 1 should be listed")
         option1.tap()
 
-        XCTAssertTrue(app.staticTexts["Chosen Option 1!\n\nYou can drag the button too :D"].waitForExistence(timeout: 10),
+        XCTAssertTrue(app.staticTexts["Chosen Option 1!\n\nYou can drag the button too :D"].waitForExistence(timeout: defaultTimeout),
                       "A UIKit tweak chosen from the catalog should update the hosted view's label")
     }
 
@@ -143,10 +149,10 @@ final class TweakableUITests: XCTestCase {
         openSettings()
 
         let option1 = app.buttons["Option 1"]
-        XCTAssertTrue(option1.waitForExistence(timeout: 10), "bridged Option 1 should be listed")
+        XCTAssertTrue(option1.waitForExistence(timeout: defaultTimeout), "bridged Option 1 should be listed")
         option1.tap()
 
-        XCTAssertTrue(app.staticTexts["Chosen Option 1!\n\nYou can drag the button too :D"].waitForExistence(timeout: 10),
+        XCTAssertTrue(app.staticTexts["Chosen Option 1!\n\nYou can drag the button too :D"].waitForExistence(timeout: defaultTimeout),
                       "A bridged UIKit action tweak should update the example label")
     }
 }
