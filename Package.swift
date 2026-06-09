@@ -1,5 +1,6 @@
 // swift-tools-version: 6.3
-// The swift-tools-version declares the minimum version of Swift required to build this package.
+// Root manifest for external `.package(url:)` consumers; mirrors
+// Pinwheel/Package.swift — keep dependencies in sync across both.
 
 import PackageDescription
 

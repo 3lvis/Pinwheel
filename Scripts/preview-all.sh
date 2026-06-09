@@ -50,7 +50,9 @@ xcrun simctl bootstatus "${UDID}" -b >/dev/null 2>&1 || true
 
 if [ "${1:-}" != "--no-build" ]; then
   echo "Building ${SCHEME} ..."
-  xcodebuild -scheme "${SCHEME}" -destination "id=${UDID}" -derivedDataPath "${DERIVED}" build >/dev/null
+  BUILD_LOG="/tmp/pinwheel-preview-build.log"
+  xcodebuild -scheme "${SCHEME}" -destination "id=${UDID}" -derivedDataPath "${DERIVED}" build >"${BUILD_LOG}" 2>&1 \
+    || { echo "ERROR: build failed - see ${BUILD_LOG}"; tail -40 "${BUILD_LOG}"; exit 1; }
 fi
 
 APP="$(find "${DERIVED}/Build/Products" -name "${SCHEME}.app" -maxdepth 3 2>/dev/null | head -1 || true)"

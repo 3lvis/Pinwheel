@@ -24,6 +24,9 @@ public enum PinTextStyle {
     }
 }
 
+/// The deliberate UIKit→SwiftUI token adaptor: every token resolves a
+/// provider-backed `UIFont`/`UIColor` (via the `Config` providers) and wraps it
+/// as a SwiftUI `Font`/`Color`, so both worlds stay on the same design tokens.
 public enum PinwheelTheme {
     public enum Typography {
         public static var title: Font { Font(UIFont.title) }
