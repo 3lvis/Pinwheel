@@ -180,17 +180,33 @@ final class PinwheelFloatingControlsViewController: UIViewController, CornerAnch
 /// interactive. Renders nothing on the real device.
 private struct PinwheelDevicePill: SwiftUI.View {
     let chrome: PinwheelChrome
+    @SwiftUI.State private var rendered: Device?
 
     var body: some SwiftUI.View {
-        // Shrink + fade on the way out, keyed on the same visibility the FAB uses,
-        // so closing dismisses both together and the pill's reset animates away.
+        // Shrink-toward-identity + fade, in place. The pill stays mounted through
+        // the hide (so its hosting frame never reflows — a removal `.transition`
+        // collapses the top-pinned intrinsic frame upward, reading as a slide),
+        // then unmounts a beat later so the overlay's pass-through hit region
+        // collapses again when idle.
         ZStack {
-            if chrome.isDevicePillVisible, let device = chrome.simulatedDevice {
-                pill(for: device)
-                    .transition(.scale.combined(with: .opacity))
+            if let rendered {
+                pill(for: rendered)
             }
         }
+        .scaleEffect(chrome.isDevicePillVisible ? 1 : 0.8)
+        .opacity(chrome.isDevicePillVisible ? 1 : 0)
         .animation(.easeOut(duration: 0.22), value: chrome.isDevicePillVisible)
+        .onChange(of: chrome.isDevicePillVisible, initial: true) { _, visible in
+            if visible { rendered = chrome.simulatedDevice }
+        }
+        .onChange(of: chrome.selectedDeviceIndex) {
+            if chrome.isDevicePillVisible { rendered = chrome.simulatedDevice }
+        }
+        .task(id: chrome.isDevicePillVisible) {
+            guard !chrome.isDevicePillVisible else { return }
+            try? await Task.sleep(for: .seconds(0.22))
+            rendered = nil
+        }
     }
 
     private func pill(for device: Device) -> some SwiftUI.View {
