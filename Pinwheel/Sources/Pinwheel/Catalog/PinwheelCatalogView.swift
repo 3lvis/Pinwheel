@@ -4,17 +4,17 @@ struct PinwheelCatalogView: SwiftUI.View {
     let sections: [PinwheelSection]
     let usesEmbeddedNavigation: Bool
 
-    @SwiftUI.State private var selectedSectionID: String?
-    @SwiftUI.State private var showsSectionPicker = false
-    @SwiftUI.State private var fullscreenItem: PresentedPinwheelItem?
-    @SwiftUI.State private var sheetItem: PresentedPinwheelItem?
-    @SwiftUI.State private var restoredSelection = false
-    @SwiftUI.State private var chrome = PinwheelChrome()
+    @State private var selectedSectionID: String?
+    @State private var showsSectionPicker = false
+    @State private var fullscreenItem: PresentedPinwheelItem?
+    @State private var sheetItem: PresentedPinwheelItem?
+    @State private var restoredSelection = false
+    @State private var chrome = PinwheelChrome()
 
     init(sections: [PinwheelSection], usesEmbeddedNavigation: Bool) {
         self.sections = sections
         self.usesEmbeddedNavigation = usesEmbeddedNavigation
-        self._selectedSectionID = SwiftUI.State(initialValue: PinwheelStateStore.selectedSectionID)
+        self._selectedSectionID = State(initialValue: PinwheelStateStore.selectedSectionID)
     }
 
     var body: some SwiftUI.View {
@@ -93,9 +93,6 @@ struct PinwheelCatalogView: SwiftUI.View {
                 SwiftUI.Button {
                     selectedSectionID = section.id
                     PinwheelStateStore.selectedSectionID = section.id
-                    if let sectionIndex = sections.firstIndex(where: { $0.id == section.id }) {
-                        State.lastSelectedSection = sectionIndex
-                    }
                     showsSectionPicker = false
                 } label: {
                     PinLabel(section.title).color(isSelected ? .action : .primary)
@@ -132,11 +129,6 @@ struct PinwheelCatalogView: SwiftUI.View {
         PinwheelStateStore.selectedSectionID = section.id
         PinwheelStateStore.selectedItemID = item.id
 
-        if let sectionIndex = sections.firstIndex(where: { $0.id == section.id }),
-           let itemIndex = section.items.firstIndex(where: { $0.id == item.id }) {
-            State.lastSelectedIndexPath = IndexPath(row: itemIndex, section: sectionIndex)
-        }
-
         let presentedItem = PresentedPinwheelItem(selection: selection, item: item)
         switch item.presentation {
         case .medium, .large:
@@ -162,7 +154,7 @@ struct PinwheelCatalogView: SwiftUI.View {
             return
         }
 
-        let sectionID = sections[safe: State.lastSelectedSection]?.id ?? sections[0].id
+        let sectionID = sections[0].id
         selectedSectionID = sectionID
         PinwheelStateStore.selectedSectionID = sectionID
     }

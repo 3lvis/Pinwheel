@@ -5,15 +5,14 @@ protocol CornerAnchoringViewDelegate: AnyObject {
     func cornerAnchoringViewDidSelectCloseButton(_ cornerAnchoringView: CornerAnchoringView)
 }
 
-class CornerAnchoringView: UIView {
+final class CornerAnchoringView: UIView {
     weak var delegate: CornerAnchoringViewDelegate?
     let buttonSize = CGFloat.spacingXXL * 2
 
     private lazy var closeButton: FloatingButton = {
         let button = FloatingButton(withAutoLayout: true)
-        if #available(iOS 13.0, *) {
-            let config = UIImage.SymbolConfiguration(pointSize: 26, weight: .bold)
-            let image = UIImage(systemName: "xmark", withConfiguration: config)!
+        let config = UIImage.SymbolConfiguration(pointSize: 26, weight: .bold)
+        if let image = UIImage(systemName: "xmark", withConfiguration: config) {
             button.setImage(image.withRenderingMode(.alwaysTemplate), for: .normal)
         }
         button.addTarget(self, action: #selector(closeButtonAction), for: .touchUpInside)
@@ -23,9 +22,8 @@ class CornerAnchoringView: UIView {
 
     private lazy var settingsButton: FloatingButton = {
         let button = FloatingButton(withAutoLayout: true)
-        if #available(iOS 13.0, *) {
-            let config = UIImage.SymbolConfiguration(pointSize: 25, weight: .regular)
-            let image = UIImage(systemName: "wrench.adjustable.fill", withConfiguration: config)!
+        let config = UIImage.SymbolConfiguration(pointSize: 25, weight: .regular)
+        if let image = UIImage(systemName: "wrench.adjustable.fill", withConfiguration: config) {
             button.setImage(image.withRenderingMode(.alwaysTemplate), for: .normal)
         }
         button.addTarget(self, action: #selector(tweakButtonAction), for: .touchUpInside)
@@ -107,11 +105,11 @@ class CornerAnchoringView: UIView {
         setup()
     }
 
-    var bottomLeftViewSafeBottomConstraint: NSLayoutConstraint?
-    var bottomLeftViewKeyboardBottomConstraint: NSLayoutConstraint?
+    private var bottomLeftViewSafeBottomConstraint: NSLayoutConstraint?
+    private var bottomLeftViewKeyboardBottomConstraint: NSLayoutConstraint?
 
-    var bottomRightViewSafeBottomConstraint: NSLayoutConstraint?
-    var bottomRightViewKeyboardBottomConstraint: NSLayoutConstraint?
+    private var bottomRightViewSafeBottomConstraint: NSLayoutConstraint?
+    private var bottomRightViewKeyboardBottomConstraint: NSLayoutConstraint?
 
     func setup() {
         let topLeftView = addAnchorAreaView()
@@ -212,8 +210,8 @@ class CornerAnchoringView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
 
-        if let index = State.lastCornerForTweakingButton {
-            buttonsView.center = anchorPositions[index]
+        if let index = PinwheelStateStore.floatingControlsCorner, let position = anchorPositions[safe: index] {
+            buttonsView.center = position
         } else {
             buttonsView.center = anchorPositions.last ?? .zero
         }
@@ -250,7 +248,7 @@ class CornerAnchoringView: UIView {
                 dx: relativeVelocity(forVelocity: velocity.x, from: buttonsView.center.x, to: nearestCornerPosition.x),
                 dy: relativeVelocity(forVelocity: velocity.y, from: buttonsView.center.y, to: nearestCornerPosition.y)
             )
-            State.lastCornerForTweakingButton = index
+            PinwheelStateStore.floatingControlsCorner = index
             let timingParameters = UISpringTimingParameters(damping: 1, response: 0.4, initialVelocity: relativeInitialVelocity)
             let animator = UIViewPropertyAnimator(duration: 0, timingParameters: timingParameters)
             animator.addAnimations {
@@ -312,7 +310,7 @@ extension UISpringTimingParameters {
     ///   - damping: The 'bounciness' of the animation. Value must be between 0 and 1.
     ///   - response: The 'speed' of the animation.
     ///   - initialVelocity: The vector describing the starting motion of the property. Optional, default is `.zero`.
-    public convenience init(damping: CGFloat, response: CGFloat, initialVelocity: CGVector = .zero) {
+    convenience init(damping: CGFloat, response: CGFloat, initialVelocity: CGVector = .zero) {
         let stiffness = pow(2 * .pi / response, 2)
         let damp = 4 * .pi * damping / response
         self.init(mass: 1, stiffness: stiffness, damping: damp, initialVelocity: initialVelocity)

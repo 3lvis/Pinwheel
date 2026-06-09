@@ -14,8 +14,6 @@ public enum PinwheelPresentation {
     case fullscreen
 }
 
-public typealias PresentationStyle = PinwheelPresentation
-
 @resultBuilder
 public enum PinwheelSectionBuilder {
     public static func buildBlock(_ components: PinwheelSection...) -> [PinwheelSection] {
@@ -77,10 +75,6 @@ public struct PinwheelSection {
         self.id = id ?? title.pinwheelGeneratedID
         self.title = title
         self.items = items()
-    }
-
-    func capitalizedTitles() -> [String] {
-        return items.map { $0.title.capitalizingFirstLetter }
     }
 }
 
@@ -216,11 +210,6 @@ public struct PinwheelItem {
 extension PinwheelItem: Identifiable {}
 
 public extension PinwheelItem {
-    @available(*, deprecated, renamed: "presentation")
-    var presentationStyle: PinwheelPresentation {
-        return presentation
-    }
-
     func presentation(_ presentation: PinwheelPresentation) -> PinwheelItem {
         return with(
             presentation: presentation,
@@ -332,6 +321,8 @@ enum PinwheelStateStore {
     private static let selectedSectionIDKey = "Pinwheel.SelectedSectionID"
     private static let selectedItemIDKey = "Pinwheel.SelectedItemID"
     private static let selectedDeviceBySelectionKey = "Pinwheel.SelectedDeviceBySelection"
+    // Legacy key retained so the persisted FAB corner survives this consolidation.
+    private static let floatingControlsCornerKey = "lastCornerForTweakingButtonKey"
 
     static var selectedSectionID: String? {
         get { UserDefaults.standard.string(forKey: selectedSectionIDKey) }
@@ -345,7 +336,18 @@ enum PinwheelStateStore {
 
     static func clearSelectedItem() {
         UserDefaults.standard.removeObject(forKey: selectedItemIDKey)
-        State.lastSelectedIndexPath = nil
+    }
+
+    /// Index of the screen corner the floating controls last settled in.
+    static var floatingControlsCorner: Int? {
+        get { UserDefaults.standard.object(forKey: floatingControlsCornerKey) as? Int }
+        set {
+            if let newValue {
+                UserDefaults.standard.set(newValue, forKey: floatingControlsCornerKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: floatingControlsCornerKey)
+            }
+        }
     }
 
     static func selectedDeviceIndex(for selection: PinwheelSelection) -> Int? {
