@@ -4,6 +4,22 @@ Durable design decisions for the SwiftUI-first Pinwheel and why they were made.
 Working conventions and the build/verify loop live in `AGENTS.md`; testing policy
 (regression-only XCUITests) is in `AGENTS.md` too.
 
+## Component surface (when a `Pin*` exists)
+
+- Add a SwiftUI `Pin*` (with a thin `UIKitPin*` shell) **only when** SwiftUI lacks
+  a first-class primitive, so styling would be hand-rolled anyway (`PinButton` —
+  pill, variants, loading, symbol, haptics), **or** there's real imperative /
+  UIKit-hosting value to bridge (`PinStateView` as a state machine a UIKit table
+  can drive). If SwiftUI's primitive + `PinwheelTheme` already covers it and
+  nothing needs to host it in UIKit, don't wrap it.
+- **Exception — theme footguns get a wrapper anyway.** `Label → PinLabel` because
+  raw `Text(...).font(.body)` silently resolves to Apple's system style (see Theme
+  below). The test is "does the raw primitive bypass the theme?", not just "does a
+  primitive exist?".
+- **Switch → `Toggle`** (no standalone `PinSwitch`; the only switch lives inside
+  the `UIKitPinTableView` family). **DNA (Font/Color/Spacing)** are *tokens*, never
+  components, in either world.
+
 ## Bridging
 
 - **One implementation per bridgeable component.** A `Pin*` SwiftUI source plus a
@@ -64,13 +80,42 @@ These stay UIKit because no SwiftUI primitive matches their ergonomics/perf:
   rows) — the counterpart of `UIKitPinTableView`, *not* a replacement: the UIKit
   table stays for recycling. Non-loaded states reuse `PinStateView`.
 
-## Follow-ups
+## Project layout
 
-- **Unify the settings sheet.** There are currently two: SwiftUI `PinwheelSettingsView`
-  (SwiftUI catalog) and UIKit `TweakingOptionsTableViewController` (UIKit catalog /
-  hosting VCs). Consolidating onto `PinwheelSettingsView` (hosted via
-  `UIHostingController` for the UIKit path) would delete the UIKit one, but it means
-  modifying the UIKit catalog VCs — deferred to avoid touching that path now.
+- **Sources organized by domain, not access level.** `API/` (public surface),
+  `DNA/` (tokens, both worlds, incl. SwiftUI `PinwheelTheme`), `Components/SwiftUI`
+  + `Components/UIKit` (split by world; `TableView/` under UIKit), `Catalog/` (live
+  SwiftUI catalog + FAB + device/state), `Bridge/` (SwiftUI↔UIKit), `UIKitCatalog/`
+  (legacy UIKit-first catalog VCs, unused by the Demo, kept for migrators),
+  `Extensions/`. The legacy catalog is isolated so its "is anyone still using
+  this?" status is obvious.
+- **Demo mirrors the split** — `Demo/Examples/SwiftUI` + `Demo/Examples/UIKit`.
+- **Both targets are file-system-synchronized groups**, so the folder layout *is*
+  the project structure — moving/adding files needs no `project.pbxproj` edits.
+  (The Demo app target's synced group excludes `Info.plist` so it isn't double-
+  copied as a resource.)
+- **Distribution nesting left as-is (deliberate):** the package lives in `Pinwheel/`
+  (the Demo references it locally); a second root `Package.swift` re-exposes it for
+  external `.package(url:)` consumers. Awkward (`Pinwheel/Sources/Pinwheel/`, two
+  manifests) but changing it touches external import paths — not worth it now.
+
+## Open follow-ups
+
+Audited TODOs (nothing else is pending):
+
+1. **Unify the settings sheet** — two exist: SwiftUI `PinwheelSettingsView` (SwiftUI
+   catalog) and UIKit `TweakingOptionsTableViewController` (UIKit catalog / hosting
+   VCs). Consolidating onto one means touching the UIKit catalog VCs; now that the
+   FAB is a UIKit window, presenting the settings *from* that window is the natural
+   way to do it. **Biggest concrete win.**
+2. **Rename the "Reciclable" section** — the folder is gone, but the runtime
+   `PinwheelSection("Reciclable", id: "reciclable")` (title + persisted id) remains
+   misspelled. Renaming changes a persisted id, so it needs a migration or an
+   accepted state reset. Low effort, cosmetic.
+3. **Legacy `UIKitCatalog/`** — unused by the Demo; decide keep-for-migrators vs
+   eventual removal (depends on external consumers). Watch-item, not actionable yet.
+4. **Bridged-component cost** — one `UIHostingController` per `UIKitPinButton`/
+   `UIKitPinStateView`; revisit only if used in dense reused contexts (table cells).
 
 ## Catalog
 
@@ -84,7 +129,7 @@ These stay UIKit because no SwiftUI primitive matches their ergonomics/perf:
   controls are the single UIKit `CornerAnchoringView` (direct-manipulation drag +
   velocity throw + corner persistence) — used by both the UIKit catalog (embedded
   in its VCs) and the SwiftUI catalog/preview (hosted in a `UIWindow` above the
-  app via `PinwheelFloatingControls`). The window means the FAB floats over sheet
+  app via `PinwheelFloatingControlsHost`). The window means the FAB floats over sheet
   presentations and is never clipped to a `.medium`/`.large` detent; its
   `hitTest` returns only the FAB buttons so the content below stays interactive.
   The deleted SwiftUI `PinwheelFloatingControls`/`PinwheelFloatingButton` were a

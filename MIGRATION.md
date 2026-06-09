@@ -26,8 +26,8 @@ Initializer arguments for presentation and display details are no longer the pre
 PinwheelItem("Table", id: "table") {
     TableDemo()
 }
-.pinwheelPresentation(.medium)
-.pinwheelTabletDisplayMode(.detail)
+.presentation(.medium)
+.tabletDisplayMode(.detail)
 ```
 
 ## Move Safe-Area And Orientation Options To Modifiers
@@ -36,8 +36,8 @@ PinwheelItem("Table", id: "table") {
 PinwheelItem("Fullscreen Form", id: "fullscreen-form") {
     FullscreenFormDemo()
 }
-.pinwheelSafeArea(top: false, bottom: false)
-.pinwheelSupportedInterfaceOrientations(.portrait)
+.safeArea(top: false, bottom: false)
+.supportedInterfaceOrientations(.portrait)
 ```
 
 ## Keep UIKit Demos During Transition

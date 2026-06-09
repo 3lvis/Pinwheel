@@ -52,7 +52,7 @@ struct DesignSystemDemoApp: App {
                     PinwheelItem("Empty State", id: "empty-state") {
                         EmptyStateDemo()
                     }
-                    .pinwheelPresentation(.medium)
+                    .presentation(.medium)
                 }
             }
         }
@@ -101,10 +101,10 @@ Advanced behavior is configured with fluent modifiers:
 PinwheelItem("Booking Sheet", id: "booking-sheet") {
     BookingSheetDemo()
 }
-.pinwheelPresentation(.medium)
-.pinwheelSupportedInterfaceOrientations(.portrait)
-.pinwheelSafeArea(top: true, bottom: false)
-.pinwheelTabletDisplayMode(.detail)
+.presentation(.medium)
+.supportedInterfaceOrientations(.portrait)
+.safeArea(top: true, bottom: false)
+.tabletDisplayMode(.detail)
 ```
 
 Available presentations:
@@ -159,7 +159,7 @@ UIKit view controllers can be wrapped with a factory:
 PinwheelItem("UIKit Checkout", id: "uikit-checkout") {
     CheckoutViewController()
 }
-.pinwheelPresentation(.large)
+.presentation(.large)
 ```
 
 SwiftUI can also embed UIKit explicitly:
