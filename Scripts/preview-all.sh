@@ -28,7 +28,9 @@ OUT="${PINWHEEL_PREVIEW_OUT:-/tmp/pinwheel-previews}"
 DERIVED="/tmp/pinwheel-preview-dd"
 
 cd "$(dirname "$0")/.."
-REGISTRY="Demo/SwiftUIExamples/DemoPinwheelSections.swift"
+# Locate the registry by name so this survives folder reorganizations.
+REGISTRY="$(find Demo -name DemoPinwheelSections.swift -print -quit)"
+[ -n "${REGISTRY}" ] || { echo "ERROR: could not find DemoPinwheelSections.swift under Demo/"; exit 1; }
 
 mkdir -p "${OUT}"
 rm -f "${OUT}"/*.png
@@ -70,22 +72,29 @@ snapshot() { # <preview-id> <output-name> [tweak-title]
 
 slug() { echo "$1" | tr '[:upper:]' '[:lower:]' | tr ' ' '-'; }
 
-echo "Snapshotting components ..."
-for ID in ${IDS}; do
-  rm -f "${TWEAKS_FILE}"
-  snapshot "${ID}" "${ID}"           # default state; app dumps this component's tweaks
-  echo "  ok: ${ID}"
+# Capture each component (and its tweak variants) in both light and dark; dark
+# files get a `-dark` suffix. The app re-launches per snapshot, so it picks up the
+# current simulator appearance on launch.
+for APPEARANCE in light dark; do
+  xcrun simctl ui "${UDID}" appearance "${APPEARANCE}" >/dev/null 2>&1 || true
+  SUFFIX=""; [ "${APPEARANCE}" = "dark" ] && SUFFIX="-dark"
+  echo "Snapshotting components (${APPEARANCE}) ..."
+  for ID in ${IDS}; do
+    rm -f "${TWEAKS_FILE}"
+    snapshot "${ID}" "${ID}${SUFFIX}"      # default state; app dumps this component's tweaks
+    echo "  ok: ${ID}${SUFFIX}"
 
-  if [ -f "${TWEAKS_FILE}" ]; then
-    # Read into memory first: each variant launch re-dumps this file, so reading
-    # straight from it would truncate mid-loop.
-    TWEAK_LIST="$(cat "${TWEAKS_FILE}")"
-    while IFS= read -r TWEAK; do
-      [ -n "${TWEAK}" ] || continue
-      snapshot "${ID}" "${ID}__$(slug "${TWEAK}")" "${TWEAK}"
-      echo "    ok: ${ID} / ${TWEAK}"
-    done <<< "${TWEAK_LIST}"
-  fi
+    if [ -f "${TWEAKS_FILE}" ]; then
+      # Read into memory first: each variant launch re-dumps this file, so reading
+      # straight from it would truncate mid-loop.
+      TWEAK_LIST="$(cat "${TWEAKS_FILE}")"
+      while IFS= read -r TWEAK; do
+        [ -n "${TWEAK}" ] || continue
+        snapshot "${ID}" "${ID}__$(slug "${TWEAK}")${SUFFIX}" "${TWEAK}"
+        echo "    ok: ${ID} / ${TWEAK} (${APPEARANCE})"
+      done <<< "${TWEAK_LIST}"
+    fi
+  done
 done
 
 # Optional contact sheet if ImageMagick is installed.
