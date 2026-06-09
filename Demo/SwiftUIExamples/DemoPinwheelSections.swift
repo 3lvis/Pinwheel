@@ -78,7 +78,7 @@ enum DemoPinwheelSections {
 /// Ids are bare (`"button"`) or qualified (`"components/button"`); an unknown id
 /// renders a list of every available id. For a running simulator instead,
 /// deep-link the Demo: `simctl launch <bundle> -PinwheelPreview button`.
-private let previewComponentID = "button"
+private let previewComponentID = "table-view"
 
 #Preview("Pinwheel Component") {
     PinwheelPreview(previewComponentID, sections: DemoPinwheelSections.all)
