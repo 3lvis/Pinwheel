@@ -13,39 +13,40 @@ struct PinwheelPlayground: SwiftUI.View {
     var autoApplyTweak: String?
 
     @SwiftUI.State private var selectedDeviceIndex: Int?
-    @SwiftUI.State private var tweaks: [PinwheelTweak] = []
-    @SwiftUI.State private var showsSettings = false
     @SwiftUI.State private var didApplyPreviewTweak = false
     @SwiftUI.State private var didDumpPreviewTweaks = false
 
-    var body: some SwiftUI.View {
-        GeometryReader { geometry in
-            ZStack {
-                content(in: geometry)
+    @Environment(PinwheelChrome.self) private var chrome
 
-                PinwheelFloatingControls(tweakCount: tweaks.count) {
-                    showsSettings = true
-                } close: {
-                    onClose()
+    var body: some SwiftUI.View {
+        @Bindable var chrome = chrome
+        return GeometryReader { geometry in
+            content(in: geometry)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(SwiftUI.Color(uiColor: .primaryBackground).ignoresSafeArea())
+                .onAppear {
+                    selectedDeviceIndex = PinwheelStateStore.selectedDeviceIndex(for: selection)
+                    chrome.onClose = onClose
+                    chrome.isPresentingItem = true
                 }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(SwiftUI.Color(uiColor: .primaryBackground).ignoresSafeArea())
-            .onAppear {
-                selectedDeviceIndex = PinwheelStateStore.selectedDeviceIndex(for: selection)
-            }
-            .sheet(isPresented: $showsSettings) {
-                PinwheelSettingsView(
-                    tweaks: tweaks,
-                    selectedDeviceIndex: selectedDeviceIndex,
-                    selection: selection
-                ) { deviceIndex in
-                    selectedDeviceIndex = deviceIndex
-                    PinwheelStateStore.setSelectedDeviceIndex(deviceIndex, for: selection)
-                    showsSettings = false
+                .onDisappear {
+                    chrome.isPresentingItem = false
+                    chrome.showsSettings = false
+                    chrome.tweaks = []
+                    chrome.onClose = nil
                 }
-                .presentationDetents([.medium])
-            }
+                .sheet(isPresented: $chrome.showsSettings) {
+                    PinwheelSettingsView(
+                        tweaks: chrome.tweaks,
+                        selectedDeviceIndex: selectedDeviceIndex,
+                        selection: selection
+                    ) { deviceIndex in
+                        selectedDeviceIndex = deviceIndex
+                        PinwheelStateStore.setSelectedDeviceIndex(deviceIndex, for: selection)
+                        chrome.showsSettings = false
+                    }
+                    .presentationDetents([.medium])
+                }
         }
     }
 
@@ -58,7 +59,7 @@ struct PinwheelPlayground: SwiftUI.View {
         let size = device?.frame.size ?? geometry.size
         let origin = originForDevice(device, in: geometry.size)
 
-        return item.swiftUIView()
+        return PinwheelHostedItem(item: item)
             .environment(\.horizontalSizeClass, horizontalSizeClass(for: device))
             .environment(\.verticalSizeClass, verticalSizeClass(for: device))
             .background(SwiftUI.Color(uiColor: .primaryBackground))
@@ -66,7 +67,7 @@ struct PinwheelPlayground: SwiftUI.View {
             .position(x: origin.x + size.width / 2, y: origin.y + size.height / 2)
             .clipped()
             .onPreferenceChange(PinwheelTweaksPreferenceKey.self) { tweaks in
-                self.tweaks = tweaks
+                chrome.tweaks = tweaks
                 handlePreviewTweaks(tweaks)
             }
     }
@@ -126,105 +127,22 @@ struct PinwheelPlayground: SwiftUI.View {
     }
 }
 
-private struct PinwheelFloatingControls: SwiftUI.View {
-    let tweakCount: Int
-    let settings: () -> Void
-    let close: () -> Void
+/// Hosts a catalog item's SwiftUI view, building it exactly once (in `@State`) so
+/// its identity, `@State`, and emitted tweak preferences stay stable across
+/// playground re-renders — opening the settings sheet re-renders the playground,
+/// and rebuilding `item.swiftUIView()` each time would recreate the hosted view
+/// and transiently reset its tweak preference to empty (the settings sheet then
+/// showed no tweaks). One playground hosts one item, so identity is naturally
+/// stable for the playground's lifetime.
+private struct PinwheelHostedItem: SwiftUI.View {
+    @SwiftUI.State private var view: AnyView
 
-    @SwiftUI.State private var cornerIndex = State.lastCornerForTweakingButton ?? 3
-    @GestureState private var dragOffset: CGSize = .zero
+    init(item: PinwheelItem) {
+        _view = SwiftUI.State(initialValue: item.swiftUIView())
+    }
 
     var body: some SwiftUI.View {
-        GeometryReader { geometry in
-            VStack(spacing: .spacingS) {
-                PinwheelFloatingButton(symbol: "wrench.adjustable.fill", badge: tweakCount, action: settings)
-                    .accessibilityIdentifier("pinwheel.settings")
-                PinwheelFloatingButton(symbol: "xmark", badge: 0, action: close)
-                    .accessibilityIdentifier("pinwheel.close")
-            }
-            .position(position(in: geometry.size))
-            .offset(dragOffset)
-            .gesture(
-                DragGesture()
-                    .updating($dragOffset) { value, state, _ in
-                        state = value.translation
-                    }
-                    .onEnded { value in
-                        let current = CGPoint(
-                            x: position(in: geometry.size).x + value.translation.width,
-                            y: position(in: geometry.size).y + value.translation.height
-                        )
-                        cornerIndex = nearestCorner(to: current, in: geometry.size)
-                        State.lastCornerForTweakingButton = cornerIndex
-                    }
-            )
-            .animation(.spring(response: 0.35, dampingFraction: 0.85), value: cornerIndex)
-        }
-        .ignoresSafeArea(.keyboard)
-    }
-
-    private func position(in size: CGSize) -> CGPoint {
-        return position(for: cornerIndex, in: size)
-    }
-
-    private func position(for index: Int, in size: CGSize) -> CGPoint {
-        let margin = CGFloat.spacingL + CGFloat.spacingXXL
-        let stackHeight = CGFloat.spacingXXL * 4 + CGFloat.spacingS
-        let top = margin + stackHeight / 2
-        let bottom = size.height - margin - stackHeight / 2
-        let left = margin
-        let right = size.width - margin
-
-        switch index {
-        case 0:
-            return CGPoint(x: left, y: top)
-        case 1:
-            return CGPoint(x: right, y: top)
-        case 2:
-            return CGPoint(x: left, y: bottom)
-        default:
-            return CGPoint(x: right, y: bottom)
-        }
-    }
-
-    private func nearestCorner(to point: CGPoint, in size: CGSize) -> Int {
-        let positions = (0...3).map { position(for: $0, in: size) }
-
-        return positions.enumerated().min { first, second in
-            point.distance(to: first.element) < point.distance(to: second.element)
-        }?.offset ?? 3
-    }
-}
-
-private struct PinwheelFloatingButton: SwiftUI.View {
-    let symbol: String
-    let badge: Int
-    let action: () -> Void
-
-    var body: some SwiftUI.View {
-        SwiftUI.Button(action: action) {
-            ZStack(alignment: .bottomTrailing) {
-                Circle()
-                    .fill(SwiftUI.Color(uiColor: .primaryBackground))
-                    .frame(width: .spacingXXL * 2, height: .spacingXXL * 2)
-                    .shadow(color: .black.opacity(0.18), radius: 14, y: 6)
-                    .overlay {
-                        Image(systemName: symbol)
-                            .font(.system(size: 25, weight: .bold))
-                            .foregroundStyle(SwiftUI.Color(uiColor: .actionText))
-                    }
-
-                if badge > 0 {
-                    Text("\(badge)")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(SwiftUI.Color(uiColor: .primaryBackground))
-                        .frame(width: 24, height: 24)
-                        .background(Circle().fill(SwiftUI.Color(uiColor: .actionText)))
-                        .offset(x: 4, y: 4)
-                }
-            }
-        }
-        .buttonStyle(.plain)
+        view
     }
 }
 

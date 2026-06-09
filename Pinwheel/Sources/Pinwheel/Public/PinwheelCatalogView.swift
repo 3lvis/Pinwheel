@@ -9,6 +9,7 @@ struct PinwheelCatalogView: SwiftUI.View {
     @SwiftUI.State private var fullscreenItem: PresentedPinwheelItem?
     @SwiftUI.State private var sheetItem: PresentedPinwheelItem?
     @SwiftUI.State private var restoredSelection = false
+    @SwiftUI.State private var chrome = PinwheelChrome()
 
     init(sections: [PinwheelSection], usesEmbeddedNavigation: Bool) {
         self.sections = sections
@@ -26,6 +27,14 @@ struct PinwheelCatalogView: SwiftUI.View {
                 content
             }
         }
+        .environment(chrome)
+        .background(
+            PinwheelFloatingControlsOverlay(
+                chrome: chrome,
+                tweakCount: chrome.tweakCount,
+                isVisible: chrome.isFloatingControlsVisible
+            )
+        )
         .onAppear {
             normalizeSelection()
             restorePresentedItemIfNeeded()
@@ -42,12 +51,14 @@ struct PinwheelCatalogView: SwiftUI.View {
             PinwheelPlayground(item: item.item, selection: item.selection) {
                 closePresentedItem()
             }
+            .environment(chrome)
             .presentationDetents(detents(for: item.item.presentation))
         }
         .fullScreenCover(item: $fullscreenItem) { item in
             PinwheelPlayground(item: item.item, selection: item.selection) {
                 closePresentedItem()
             }
+            .environment(chrome)
         }
     }
 

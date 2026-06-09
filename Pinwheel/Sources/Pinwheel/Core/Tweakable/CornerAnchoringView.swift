@@ -17,6 +17,7 @@ class CornerAnchoringView: UIView {
             button.setImage(image.withRenderingMode(.alwaysTemplate), for: .normal)
         }
         button.addTarget(self, action: #selector(closeButtonAction), for: .touchUpInside)
+        button.accessibilityIdentifier = "pinwheel.close"
         return button
     }()
 
@@ -28,6 +29,7 @@ class CornerAnchoringView: UIView {
             button.setImage(image.withRenderingMode(.alwaysTemplate), for: .normal)
         }
         button.addTarget(self, action: #selector(tweakButtonAction), for: .touchUpInside)
+        button.accessibilityIdentifier = "pinwheel.settings"
         return button
     }()
 

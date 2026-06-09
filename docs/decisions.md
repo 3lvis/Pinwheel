@@ -64,6 +64,14 @@ These stay UIKit because no SwiftUI primitive matches their ergonomics/perf:
   rows) — the counterpart of `UIKitPinTableView`, *not* a replacement: the UIKit
   table stays for recycling. Non-loaded states reuse `PinStateView`.
 
+## Follow-ups
+
+- **Unify the settings sheet.** There are currently two: SwiftUI `PinwheelSettingsView`
+  (SwiftUI catalog) and UIKit `TweakingOptionsTableViewController` (UIKit catalog /
+  hosting VCs). Consolidating onto `PinwheelSettingsView` (hosted via
+  `UIHostingController` for the UIKit path) would delete the UIKit one, but it means
+  modifying the UIKit catalog VCs — deferred to avoid touching that path now.
+
 ## Catalog
 
 - **Stable ids.** Persistence (selected section/item/device) keys off ids; prefer
@@ -72,3 +80,20 @@ These stay UIKit because no SwiftUI primitive matches their ergonomics/perf:
 - **Registry doubles as the preview index.** `PinwheelPreview(id, sections:)`
   renders any catalog item in isolation; the Demo deep-links to one component via
   the `-PinwheelPreview <id>` launch arg.
+- **One FAB, hosted in a pass-through overlay window.** The floating tweak/close
+  controls are the single UIKit `CornerAnchoringView` (direct-manipulation drag +
+  velocity throw + corner persistence) — used by both the UIKit catalog (embedded
+  in its VCs) and the SwiftUI catalog/preview (hosted in a `UIWindow` above the
+  app via `PinwheelFloatingControls`). The window means the FAB floats over sheet
+  presentations and is never clipped to a `.medium`/`.large` detent; its
+  `hitTest` returns only the FAB buttons so the content below stays interactive.
+  The deleted SwiftUI `PinwheelFloatingControls`/`PinwheelFloatingButton` were a
+  second, hand-rolled FAB with worse ergonomics.
+- **`PinwheelChrome` is the SwiftUI↔window seam.** An `@Observable` the catalog/
+  preview owns and the window observes: tweaks (held here, not in playground
+  `@State`, so they survive re-renders), presented-state, settings visibility,
+  and the close action. The FAB hides while the settings sheet is open
+  (`isPresentingItem && !showsSettings`) so settings can't be opened over itself.
+- **Hosted items are built once** (`PinwheelHostedItem`) so playground re-renders
+  (e.g. opening settings) don't recreate the hosted view or reset its emitted
+  tweak preference.

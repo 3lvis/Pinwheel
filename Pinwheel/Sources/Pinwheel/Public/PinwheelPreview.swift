@@ -19,6 +19,8 @@ public struct PinwheelPreview: SwiftUI.View {
     private let sections: [PinwheelSection]
     private let id: String
 
+    @SwiftUI.State private var chrome = PinwheelChrome()
+
     public init(_ id: String, sections: [PinwheelSection]) {
         self.id = id
         self.sections = sections
@@ -40,6 +42,14 @@ public struct PinwheelPreview: SwiftUI.View {
             .overlay(alignment: .top) {
                 PinwheelPreviewCaption(id: match.item.id, variant: Self.requestedTweak)
             }
+            .environment(chrome)
+            .background(
+                PinwheelFloatingControlsOverlay(
+                    chrome: chrome,
+                    tweakCount: chrome.tweakCount,
+                    isVisible: chrome.isFloatingControlsVisible
+                )
+            )
         } else {
             PinwheelPreviewNotFound(requestedID: id, sections: sections)
         }
