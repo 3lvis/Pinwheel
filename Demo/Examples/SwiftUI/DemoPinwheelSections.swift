@@ -64,6 +64,9 @@ enum DemoPinwheelSections {
             PinwheelItem("UIKit StateView", id: "uikit-state-view", view: UIKitPinStateViewExample.self)
             PinwheelItem("UIKit TableView", id: "uikit-table-view", view: UIKitPinTableViewExample.self)
                 .presentation(.medium)
+            PinwheelItem("UIKit DataSource TableView", id: "uikit-datasource-table-view", view: UIKitPinDataSourceTableViewExample.self)
+                .presentation(.medium)
+            PinwheelItem("UIKit ViewController", id: "uikit-view-controller", viewController: { UIKitPinViewControllerExample() })
         }
     }
 }
