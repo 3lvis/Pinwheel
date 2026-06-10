@@ -124,7 +124,11 @@ public struct PinwheelItem {
             constrainToBottomSafeArea: true,
             tabletDisplayMode: tabletDisplayMode,
             makeSwiftUIView: {
-                AnyView(PinwheelUIKitViewController { viewController })
+                let tweaks = (viewController as? Tweakable)?.tweaks.compactMap { PinwheelTweak($0) } ?? []
+                return AnyView(
+                    PinwheelUIKitViewController { viewController }
+                        .pinwheelTweaks(tweaks)
+                )
             }
         )
     }
@@ -192,6 +196,11 @@ public struct PinwheelItem {
         id: String? = nil,
         viewController: @escaping () -> UIViewController
     ) {
+        // Build the hosted controller once and reuse it across playground
+        // re-renders, mirroring the `view:` initializer: the bridged tweak
+        // closures capture this instance, so a fresh controller per render would
+        // leave them mutating an off-screen copy (tweaks silently no-op).
+        var sharedViewController: UIViewController?
         self.init(
             id: id ?? title.pinwheelGeneratedID,
             title: title,
@@ -201,7 +210,16 @@ public struct PinwheelItem {
             constrainToBottomSafeArea: true,
             tabletDisplayMode: .fullscreen,
             makeSwiftUIView: {
-                AnyView(PinwheelUIKitViewController(makeViewController: viewController))
+                let controller = sharedViewController ?? {
+                    let created = viewController()
+                    sharedViewController = created
+                    return created
+                }()
+                let tweaks = (controller as? Tweakable)?.tweaks.compactMap { PinwheelTweak($0) } ?? []
+                return AnyView(
+                    PinwheelUIKitViewController { controller }
+                        .pinwheelTweaks(tweaks)
+                )
             }
         )
     }

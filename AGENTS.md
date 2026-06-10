@@ -44,6 +44,7 @@ Durable design decisions and why they were made.
 - **UIKit `view:` catalog items host at full bounds** via `PinwheelUIKitContainerViewController` (a `UIViewControllerRepresentable` handed the full proposed size), not a bare `UIViewRepresentable` (which sized to the fitting size and collapsed edge-pinned / table-backed examples to the top-left).
 - **UIKit `Tweakable` options bridge into the playground.** A hosted `view:` item's UIKit `Tweak`s map to `PinwheelTweak`s (`TextTweak` → action, `BoolTweak` → toggle) and surface in the settings sheet.
 - **A hosted UIKit `view:` is built once and reused.** `makeSwiftUIView` is called on every playground re-render; it must hand back the *same* `ViewType` instance each time. The bridged tweak closures capture that instance and the hosting controller displays it — a fresh instance per render makes the tweaks mutate an off-screen copy, so UIKit tweaks silently do nothing under nested presentation.
+- **`viewController:` items follow the same rule** — both `PinwheelItem(_:id:viewController:)` inits build the controller once and bridge `Tweakable` (reading its `tweaks` into the playground), mirroring `view:`. A `UIViewController` that conforms to `Tweakable` gets its tweaks in the settings sheet, and they drive the live (on-screen) instance — not an off-screen copy.
 
 ### Intentional UIKit surface (kept on purpose)
 
