@@ -1,33 +1,41 @@
 # Agent Guidelines
 
+Two parts. **Cross-project principles** (below) are portable — lift them into other repos and extend them as we learn something worth carrying. Everything after is **Pinwheel-specific**: how we work here, testing, and the decisions log. Read **Pinwheel — decisions** before changing public API or structure.
+
+## Cross-project principles
+
+Portable across repos — written to stay tool- and domain-agnostic; the Pinwheel sections point back to one where they apply it. Grow this list whenever a lesson generalizes beyond a single repo.
+
+- **Make the wrong thing unrepresentable.** Prefer APIs and types where the incorrect path *can't be expressed* over ones that merely document the right one. (Pinwheel: "Theme is law".)
+- **Verify before claiming done.** After any change with a visible or runtime effect, look at it or run it — render, screenshot, test — rather than assuming. Report what you actually observed, failures included.
+- **Keep it green; commit in small, focused units.** Builds stay warning-free; commit messages clean and minimal; push when a logical unit is done; keep the repo's decisions/notes current as you change things.
+- **Reference files by name + role, not hard-coded paths.** Folders get reorganized and paths rot — name a file by what it is and search for its current location.
+- **Earn every abstraction; watch single-use indirection.** A caseless `enum`/`struct`, or a method, that wraps one operation with a single caller usually reads better as a `private` method on the type it serves, or inlined. Legit exceptions: runtime hooks (`@objc`/lifecycle), readability decomposition (e.g. SwiftUI subviews), result builders, and units that are genuinely reused or independently tested.
+- **Tests guard against regressions, not coverage.** Add a test when a real bug/regression surfaces in a path that matters; skip speculative tests for paths that haven't broken.
+
+## Pinwheel — way of working
+
 - Treat Pinwheel as a SwiftUI-first package with UIKit compatibility.
 - Do not add `import UIKit` to SwiftUI-first views, SwiftUI examples, or SwiftUI API call sites.
 - Keep UIKit usage isolated to UIKit compatibility types, UIKit example components, or clearly named bridge/adaptor files that translate existing UIKit-backed providers into SwiftUI-native values.
 - Prefer SwiftUI `Font`, `Color`, `View`, and environment-driven APIs for new package surfaces.
-
-This file is both *how we work* (the conventions below) and *what we decided and why* (the **Decisions** section at the end). Read the decisions before changing public API or structure.
-
-## Way of working
-
-- **Theme is law.** Every Pinwheel surface resolves provider-backed tokens (`PinwheelTheme` / the `Config` providers), never Apple's system styles. Design API so the *wrong* (system-style) path is unrepresentable — that's why `PinLabel.font` takes a themed `PinTextStyle`, not a raw `Font`.
+- **Theme is law.** Every Pinwheel surface resolves provider-backed tokens (`PinwheelTheme` / the `Config` providers), never Apple's system styles. Design API so the *wrong* (system-style) path is unrepresentable — that's why `PinLabel.font` takes a themed `PinTextStyle`, not a raw `Font`. (The cross-project "make the wrong thing unrepresentable", applied to theming.)
 - **One implementation per component.** A bridgeable component is a SwiftUI `Pin*` source plus a thin `UIKitPin*` shell that hosts it — never two parallel implementations. Theming/light-dark crosses the bridge for free because both sides read the same provider tokens.
 - **Shared vocabularies are top-level types.** When two or more components reuse a concept, promote it to a top-level `public` type (`PinTextStyle`, `PinState`, `PinLabel.TextColor`) rather than nesting it under one component.
 - **SwiftUI-native API.** Bare initializer + chained, themed modifiers (`PinLabel("x").font(.caption).color(.secondary)`, `PinButton("x") { }.style(.secondary).loading(flag)`). Mirror SwiftUI's own names where one exists (`systemImage:`, `.font(_:)`); `.font` is typography on any text component, `.style` is a button's visual variant. Raw escape hatches are explicit and named (`.color(.custom(...))`, `.style(.custom(text:background:))`). **Modifier naming:** chained modifiers on our *own* types are unprefixed; prefix with `pinwheel` *only* when extending a SwiftUI type to avoid collisions (`View.pinwheelTweaks { }`).
-- **Verify visually, don't assume.** After a UI change, *look* before saying it's done:
+- **Verify visually — the how** (applying the cross-project "verify before claiming done"):
   - Render the permanent `#Preview` in the catalog registry (`DemoPinwheelSections.swift`) — set `previewComponentID` and `RenderPreview` it (pass its current project-relative path; `XcodeGlob` finds it if it moved). No throwaway `#Preview` needed.
   - Or deep-link a booted sim: `simctl launch <bundle> -PinwheelPreview <id> [-PinwheelPreviewTweak <title>]`.
   - `Scripts/preview-all.sh` snapshots every component + tweak variant (light in `$OUT`, dark in `$OUT/dark`) for a full sweep.
   - When matching SwiftUI to UIKit, the UIKit example (or `main`) is the parity source of truth.
 - **Build/verify via the Xcode MCP** — `BuildProject` after every change, `RenderPreview` to look, `RunSomeTests` for the regression tests (`tabIdentifier: "windowtab1"`). Setup + the session-restart gotcha live in the `xcode-mcp` skill; `xcodebuild`/`simctl` are the fallback.
-- **Keep it green and current.** Builds stay warning-free. Update the **Decisions** section below as components change. Commit in small, focused units with clean, minimal messages; push when a logical unit is done.
-- **Reference files by name + role, not full path.** Folders get reorganized and hard-coded paths rot; say "the catalog registry (`DemoPinwheelSections.swift`)" and grep/`XcodeGlob` for the current location. Top-level dirs that are part of the build contract (`Scripts/`, `DemoUITests`) are fine to name; the canonical folder map is in Decisions › Project layout.
-- **Keep an eye on single-use indirection.** A caseless `enum`/`struct` (or method) that wraps one operation with a single caller usually reads better as a `private` method on the type it serves, or inlined. Fine as-is, though: `@objc`/lifecycle hooks, SwiftUI subview decomposition, and result builders.
+- **Keep the decisions log current** as components change, and name build-contract dirs freely (`Scripts/`, `DemoUITests`); the canonical folder map is in Decisions › Project layout.
 
-## Testing
+## Pinwheel — testing
 
-`DemoUITests` are **regression tests**, not a coverage goal. Add a UI test when a real bug/regression surfaces in an interactive path (e.g. a tap that stopped firing) — write the test that would have caught it. We do **not** aim for full UI coverage; don't add speculative UI tests for paths that haven't broken.
+`DemoUITests` apply the cross-project testing rule: they are **regression tests**, not a coverage goal. Add a UI test when a real bug/regression surfaces in an interactive path (e.g. a tap that stopped firing) — write the test that would have caught it. Don't add speculative UI tests for paths that haven't broken.
 
-## Decisions
+## Pinwheel — decisions
 
 Durable design decisions and why they were made.
 
