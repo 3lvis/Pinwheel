@@ -79,4 +79,24 @@ final class StateViewUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Loading..."].waitForExistence(timeout: defaultTimeout),
                       "Tapping Retry should fire the delegate and switch the UIKit state view to loading")
     }
+
+    // MARK: - UIKit view-controller host (UIKitPinStateView inside a UIViewController)
+
+    /// Same contract as the `view:`-hosted case above, but through the
+    /// `PinwheelItem(viewController:)` path — guards that a `UIViewController`'s
+    /// `Tweakable` tweaks bridge into the settings sheet and that the retry tap
+    /// drives the live (on-screen) instance, not an off-screen copy.
+    @MainActor
+    func testUIKitViewControllerStateViewBridgesTweaksAndRetry() {
+        launchPreview("uikit-view-controller")
+        selectFailedState()
+
+        XCTAssertTrue(app.staticTexts["Oops!"].waitForExistence(timeout: defaultTimeout))
+        let retry = app.buttons["Retry"]
+        XCTAssertTrue(retry.waitForExistence(timeout: defaultTimeout))
+        retry.tap()
+
+        XCTAssertTrue(app.staticTexts["Loading..."].waitForExistence(timeout: defaultTimeout),
+                      "Tapping Retry should fire the delegate and switch the view-controller-hosted state view to loading")
+    }
 }
