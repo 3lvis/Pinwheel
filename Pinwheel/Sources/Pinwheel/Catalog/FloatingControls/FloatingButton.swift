@@ -57,7 +57,18 @@ final class FloatingButton: UIButton {
     private func setup() {
         translatesAutoresizingMaskIntoConstraints = false
 
-        configureStyle()
+        updateBackgroundColor()
+        updateLayerColors()
+        layer.shadowOpacity = 1
+        layer.borderWidth = style.borderWidth
+        badgeView.backgroundColor = style.badgeBackgroundColor
+        badgeView.layer.cornerRadius = style.badgeSize / 2
+        badgeLabel.textColor = style.badgeTextColor
+        tintColor = style.tintColor
+        layer.shadowOffset = style.shadowOffset
+        layer.shadowRadius = style.shadowRadius
+        setTitleColor(style.titleColor, for: .normal)
+
         contentMode = .center
 
         titleLabel?.font = .subtitle
@@ -81,19 +92,5 @@ final class FloatingButton: UIButton {
     private func updateLayerColors() {
         layer.shadowColor = style.shadowColor.cgColor
         layer.borderColor = style.borderColor?.cgColor
-    }
-
-    private func configureStyle() {
-        updateBackgroundColor()
-        updateLayerColors()
-        layer.shadowOpacity = 1
-        layer.borderWidth = style.borderWidth
-        badgeView.backgroundColor = style.badgeBackgroundColor
-        badgeView.layer.cornerRadius = style.badgeSize / 2
-        badgeLabel.textColor = style.badgeTextColor
-        tintColor = style.tintColor
-        layer.shadowOffset = style.shadowOffset
-        layer.shadowRadius = style.shadowRadius
-        setTitleColor(style.titleColor, for: .normal)
     }
 }

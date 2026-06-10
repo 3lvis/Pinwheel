@@ -31,7 +31,7 @@ public struct PinwheelPreview: SwiftUI.View {
     }
 
     public var body: some SwiftUI.View {
-        if let match = PinwheelPreviewResolver.resolve(id: id, in: sections) {
+        if let match = Self.resolve(id: id, in: sections) {
             PinwheelPlayground(
                 item: match.item,
                 selection: PinwheelSelection(sectionID: match.section.id, itemID: match.item.id),
@@ -53,6 +53,34 @@ public struct PinwheelPreview: SwiftUI.View {
         } else {
             PinwheelPreviewNotFound(requestedID: id, sections: sections)
         }
+    }
+
+    /// Resolves a bare item id (`"button"`) or a qualified `"sectionID/itemID"`
+    /// to its section + item, or nil if absent.
+    private static func resolve(
+        id rawID: String,
+        in sections: [PinwheelSection]
+    ) -> (section: PinwheelSection, item: PinwheelItem)? {
+        let trimmed = rawID.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+
+        if let slash = trimmed.firstIndex(of: "/") {
+            let sectionID = String(trimmed[..<slash])
+            let itemID = String(trimmed[trimmed.index(after: slash)...])
+            guard let section = sections.first(where: { $0.id == sectionID }),
+                  let item = section.items.first(where: { $0.id == itemID }) else {
+                return nil
+            }
+            return (section, item)
+        }
+
+        for section in sections {
+            if let item = section.items.first(where: { $0.id == trimmed }) {
+                return (section, item)
+            }
+        }
+
+        return nil
     }
 }
 
@@ -120,48 +148,6 @@ public extension PinwheelPreview {
     }
 }
 
-/// Writes the current preview component's tweak titles to the app's Documents
-/// directory (one per line) so external tooling — e.g. `Scripts/preview-all.sh`
-/// — can enumerate variants without parsing source. Preview-mode only.
-enum PinwheelPreviewTweakDump {
-    static let fileName = "pinwheel-preview-tweaks.txt"
-
-    static func write(_ titles: [String]) {
-        guard let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
-            return
-        }
-        let url = directory.appendingPathComponent(fileName)
-        try? titles.joined(separator: "\n").write(to: url, atomically: true, encoding: .utf8)
-    }
-}
-
-enum PinwheelPreviewResolver {
-    static func resolve(
-        id rawID: String,
-        in sections: [PinwheelSection]
-    ) -> (section: PinwheelSection, item: PinwheelItem)? {
-        let trimmed = rawID.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return nil }
-
-        if let slash = trimmed.firstIndex(of: "/") {
-            let sectionID = String(trimmed[..<slash])
-            let itemID = String(trimmed[trimmed.index(after: slash)...])
-            guard let section = sections.first(where: { $0.id == sectionID }),
-                  let item = section.items.first(where: { $0.id == itemID }) else {
-                return nil
-            }
-            return (section, item)
-        }
-
-        for section in sections {
-            if let item = section.items.first(where: { $0.id == trimmed }) {
-                return (section, item)
-            }
-        }
-
-        return nil
-    }
-}
 
 private struct PinwheelPreviewNotFound: SwiftUI.View {
     let requestedID: String

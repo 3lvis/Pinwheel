@@ -98,7 +98,7 @@ struct PinwheelPlayground: SwiftUI.View {
 
         if !didDumpPreviewTweaks {
             didDumpPreviewTweaks = true
-            PinwheelPreviewTweakDump.write(tweaks.map(\.title))
+            writePreviewTweakTitles(tweaks.map(\.title))
         }
 
         guard let target = autoApplyTweak, !didApplyPreviewTweak,
@@ -110,6 +110,17 @@ struct PinwheelPlayground: SwiftUI.View {
         DispatchQueue.main.async {
             tweak.applyAsPreviewVariant()
         }
+    }
+
+    /// Dumps the current component's tweak titles (one per line) to the app's
+    /// Documents directory so external tooling — e.g. `Scripts/preview-all.sh` —
+    /// can enumerate variants without parsing source. Preview-mode only.
+    private func writePreviewTweakTitles(_ titles: [String]) {
+        guard let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            return
+        }
+        let url = directory.appendingPathComponent("pinwheel-preview-tweaks.txt")
+        try? titles.joined(separator: "\n").write(to: url, atomically: true, encoding: .utf8)
     }
 
     private func originForDevice(_ device: Device?, in containerSize: CGSize) -> CGPoint {

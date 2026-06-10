@@ -21,6 +21,7 @@ This file is both *how we work* (the conventions below) and *what we decided and
 - **Build/verify via the Xcode MCP** — `BuildProject` after every change, `RenderPreview` to look, `RunSomeTests` for the regression tests (`tabIdentifier: "windowtab1"`). Setup + the session-restart gotcha live in the `xcode-mcp` skill; `xcodebuild`/`simctl` are the fallback.
 - **Keep it green and current.** Builds stay warning-free. Update the **Decisions** section below as components change. Commit in small, focused units with clean, minimal messages; push when a logical unit is done.
 - **Reference files by name + role, not full path.** Folders get reorganized and hard-coded paths rot; say "the catalog registry (`DemoPinwheelSections.swift`)" and grep/`XcodeGlob` for the current location. Top-level dirs that are part of the build contract (`Scripts/`, `DemoUITests`) are fine to name; the canonical folder map is in Decisions › Project layout.
+- **Keep an eye on single-use indirection.** A caseless `enum`/`struct` (or method) that wraps one operation with a single caller usually reads better as a `private` method on the type it serves, or inlined. Fine as-is, though: `@objc`/lifecycle hooks, SwiftUI subview decomposition, and result builders.
 
 ## Testing
 
