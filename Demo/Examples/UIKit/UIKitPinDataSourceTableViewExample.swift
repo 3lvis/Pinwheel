@@ -1,12 +1,8 @@
 import UIKit
 import Pinwheel
 
-/// Demos the data-source-driven `UIKitPinTableView` — the `init(dataSource:)`
-/// path, where rows are served on demand by `UIKitPinTableViewDataSource` rather
-/// than handed over as a static `[UIKitPinTableViewItem]` (see
-/// `UIKitPinTableViewExample` for that). The Add/Remove tweaks mutate the backing
-/// count and `reloadData()`, showing why you'd reach for the data source: dynamic
-/// content.
+/// Demos the data-source path (`init(dataSource:)`) — the dynamic-content
+/// counterpart to the static-array `UIKitPinTableViewExample`.
 class UIKitPinDataSourceTableViewExample: UIKitPinView, Tweakable {
     private var rowCount = 6
 

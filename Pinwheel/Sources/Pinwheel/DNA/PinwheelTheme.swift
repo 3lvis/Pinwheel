@@ -51,12 +51,9 @@ public enum PinwheelTheme {
     }
 }
 
-/// SwiftUI-native shorthand for the themed colors, so any `ShapeStyle`/`Color`
-/// context takes a token the way it takes `.red` — `.background(.primaryBackground)`,
-/// `.foregroundStyle(.actionText)`, `.tint(.actionText)`. These forward to the
-/// canonical `PinwheelTheme.Colors` tokens; the leading-dot form just removes the
-/// `PinwheelTheme.Colors.` noise at call sites. (Doesn't reach `.listRowBackground`,
-/// whose parameter is a generic `View`, not a `ShapeStyle` — those stay spelled out.)
+/// SwiftUI-native shorthand for the themed colors — `.background(.primaryBackground)`,
+/// like `.red`. Forwards to the canonical `PinwheelTheme.Colors`. Can't reach
+/// `.listRowBackground(_:)`, whose parameter is a generic `View`, not a `ShapeStyle`.
 public extension ShapeStyle where Self == Color {
     static var primaryText: Color { PinwheelTheme.Colors.primaryText }
     static var secondaryText: Color { PinwheelTheme.Colors.secondaryText }

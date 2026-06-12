@@ -160,8 +160,8 @@ private struct PinwheelDevicePill: SwiftUI.View {
     @Environment(PinwheelChrome.self) private var chrome
 
     var body: some SwiftUI.View {
-        // Shrink toward identity + fade, keyed on the same visibility the FAB uses,
-        // so closing dismisses both together and the pill's reset animates away.
+        // Keyed on the same visibility the FAB uses, so closing dismisses both
+        // together and the pill's reset animates away.
         ZStack {
             if chrome.isDevicePillVisible, let device = chrome.simulatedDevice {
                 pill(for: device)
@@ -173,13 +173,11 @@ private struct PinwheelDevicePill: SwiftUI.View {
 
     private func pill(for device: Device) -> some SwiftUI.View {
         HStack(spacing: .spacingS) {
-            // Indicator only — not tappable.
             Image(systemName: "iphone.gen3")
             PinLabel(device.title).font(.caption)
 
-            // The only interactive part: reset to the real device. Clearing the
-            // index fades the pill (above) and animates the frame back to full
-            // size (the playground animates on `selectedDeviceIndex`).
+            // Clearing the index both fades the pill and resizes the frame back to
+            // full — the playground animates on `selectedDeviceIndex`.
             SwiftUI.Button {
                 chrome.selectedDeviceIndex = nil
             } label: {
