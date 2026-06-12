@@ -1,17 +1,6 @@
 # Agent Guidelines
 
-Two parts. **Cross-project principles** (below) are portable — lift them into other repos and extend them as we learn something worth carrying. Everything after is **Pinwheel-specific**: how we work here, testing, and the decisions log. Read **Pinwheel — decisions** before changing public API or structure.
-
-## Cross-project principles
-
-Portable across repos — written to stay tool- and domain-agnostic; the Pinwheel sections point back to one where they apply it. Grow this list whenever a lesson generalizes beyond a single repo.
-
-- **Make the wrong thing unrepresentable.** Prefer APIs and types where the incorrect path *can't be expressed* over ones that merely document the right one. (Pinwheel: "Theme is law".)
-- **Verify before claiming done.** After any change with a visible or runtime effect, look at it or run it — render, screenshot, test — rather than assuming. Report what you actually observed, failures included.
-- **Keep it green; commit in small, focused units.** Builds stay warning-free; commit messages clean and minimal; push when a logical unit is done; keep the repo's decisions/notes current as you change things.
-- **Reference files by name + role, not hard-coded paths.** Folders get reorganized and paths rot — name a file by what it is and search for its current location.
-- **Earn every abstraction; watch single-use indirection.** A caseless `enum`/`struct`, or a method, that wraps one operation with a single caller usually reads better as a `private` method on the type it serves, or inlined. Legit exceptions: runtime hooks (`@objc`/lifecycle), readability decomposition (e.g. SwiftUI subviews), result builders, and units that are genuinely reused or independently tested.
-- **Tests guard against regressions, not coverage.** Add a test when a real bug/regression surfaces in a path that matters; skip speculative tests for paths that haven't broken.
+Pinwheel-specific guidance: how we work here, testing, and the decisions log. The generic, portable iOS conventions live one level up in the iOS domain `CLAUDE.md` (`~/code/<org>/ios/CLAUDE.md`) and are inherited automatically via the `CLAUDE.md` walk-up — they're not repeated here. Read **Pinwheel — decisions** before changing public API or structure.
 
 ## Pinwheel — way of working
 
