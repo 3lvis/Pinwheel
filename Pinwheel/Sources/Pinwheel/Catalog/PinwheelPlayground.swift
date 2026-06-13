@@ -19,73 +19,73 @@ struct PinwheelPlayground: SwiftUI.View {
 
     var body: some SwiftUI.View {
         @Bindable var chrome = chrome
-        return GeometryReader { geometry in
-            content(in: geometry)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                // Letterbox a simulated (smaller) device against the inverse-of-
-                // surface token so the resized frame is visible — near-black in
-                // light, light in dark — rather than blending into the content.
-                .background(
-                    chrome.simulatedDevice != nil ? .primaryText : .primaryBackground
+        return content
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // Letterbox a simulated (smaller) device against the inverse-of-
+            // surface token so the resized frame is visible — near-black in
+            // light, light in dark — rather than blending into the content.
+            .background(
+                chrome.simulatedDevice != nil ? .primaryText : .primaryBackground
+            )
+            // The frame resize is NOT implicitly animated: an
+            // `.animation(_:value: selectedDeviceIndex)` here animates the whole
+            // subtree — including the hosted item and the preference plumbing —
+            // and recursed SwiftUI's layout engine into a stack overflow that
+            // crashed the app on every device pick. The resize snaps instead.
+            // The device pill rides on top of the playground (not in the FAB's
+            // overlay window) so its shrink+fade is a plain SwiftUI transition —
+            // hosting it in the window collapsed its intrinsic frame on the way
+            // out instead of scaling in place.
+            .overlay(alignment: .top) {
+                PinwheelDevicePill()
+                    .padding(.top, .spacingS)
+            }
+            .onAppear {
+                // Preview/deep-link renders stay isolated from interactive
+                // catalog persistence: always the host device (no restored
+                // simulation leaking a pill + letterbox into a snapshot), and
+                // no write-back below that would clobber a saved device pick.
+                if !previewMode {
+                    chrome.selectedDeviceIndex = PinwheelStateStore.selectedDeviceIndex(for: selection)
+                }
+                chrome.onClose = onClose
+                chrome.isPresentingItem = true
+            }
+            .onChange(of: chrome.selectedDeviceIndex) { _, newValue in
+                guard !previewMode else { return }
+                PinwheelStateStore.setSelectedDeviceIndex(newValue, for: selection)
+            }
+            .onDisappear {
+                chrome.isPresentingItem = false
+                chrome.showsSettings = false
+                chrome.selectedDeviceIndex = nil
+                chrome.tweaks = []
+                chrome.onClose = nil
+            }
+            .sheet(isPresented: $chrome.showsSettings) {
+                PinwheelSettingsView(
+                    tweaks: chrome.tweaks,
+                    selectedDeviceIndex: $chrome.selectedDeviceIndex
                 )
-                // Animate the frame resize (and letterbox crossfade) when the
-                // simulated device changes — including the pill's reset to full size.
-                .animation(.easeInOut(duration: 0.25), value: chrome.selectedDeviceIndex)
-                // The device pill rides on top of the playground (not in the FAB's
-                // overlay window) so its shrink+fade is a plain SwiftUI transition —
-                // hosting it in the window collapsed its intrinsic frame on the way
-                // out instead of scaling in place.
-                .overlay(alignment: .top) {
-                    PinwheelDevicePill()
-                        .padding(.top, .spacingS)
-                }
-                .onAppear {
-                    // Preview/deep-link renders stay isolated from interactive
-                    // catalog persistence: always the host device (no restored
-                    // simulation leaking a pill + letterbox into a snapshot), and
-                    // no write-back below that would clobber a saved device pick.
-                    if !previewMode {
-                        chrome.selectedDeviceIndex = PinwheelStateStore.selectedDeviceIndex(for: selection)
-                    }
-                    chrome.onClose = onClose
-                    chrome.isPresentingItem = true
-                }
-                .onChange(of: chrome.selectedDeviceIndex) { _, newValue in
-                    guard !previewMode else { return }
-                    PinwheelStateStore.setSelectedDeviceIndex(newValue, for: selection)
-                }
-                .onDisappear {
-                    chrome.isPresentingItem = false
-                    chrome.showsSettings = false
-                    chrome.selectedDeviceIndex = nil
-                    chrome.tweaks = []
-                    chrome.onClose = nil
-                }
-                .sheet(isPresented: $chrome.showsSettings) {
-                    PinwheelSettingsView(
-                        tweaks: chrome.tweaks,
-                        selectedDeviceIndex: $chrome.selectedDeviceIndex
-                    )
-                    .presentationDetents([.medium, .large])
-                }
-        }
+                .presentationDetents([.medium, .large])
+            }
     }
 
     private var selectedDevice: Device? {
         return chrome.selectedDeviceIndex.flatMap { Device.all[safe: $0] }
     }
 
-    private func content(in geometry: GeometryProxy) -> some SwiftUI.View {
+    private var content: some SwiftUI.View {
         let device = selectedDevice
-        let size = device?.frame.size ?? geometry.size
-        let origin = originForDevice(device, in: geometry.size)
-
+        // A simulated device pins the content to its point size; the real device
+        // leaves both dimensions nil so the outer infinity frame fills it.
+        // Centering is that frame's default alignment, so no GeometryReader or
+        // `.position` is needed to letterbox a smaller device.
         return PinwheelHostedItem(item: item)
             .environment(\.horizontalSizeClass, horizontalSizeClass(for: device))
             .environment(\.verticalSizeClass, verticalSizeClass(for: device))
             .background(.primaryBackground)
-            .frame(width: size.width, height: size.height, alignment: .center)
-            .position(x: origin.x + size.width / 2, y: origin.y + size.height / 2)
+            .frame(width: device?.frame.width, height: device?.frame.height)
             .clipped()
             .onPreferenceChange(PinwheelTweaksPreferenceKey.self) { tweaks in
                 chrome.tweaks = tweaks
@@ -121,14 +121,6 @@ struct PinwheelPlayground: SwiftUI.View {
         }
         let url = directory.appendingPathComponent("pinwheel-preview-tweaks.txt")
         try? titles.joined(separator: "\n").write(to: url, atomically: true, encoding: .utf8)
-    }
-
-    private func originForDevice(_ device: Device?, in containerSize: CGSize) -> CGPoint {
-        guard let device else { return .zero }
-        return CGPoint(
-            x: max((containerSize.width - device.frame.width) / 2, 0),
-            y: max((containerSize.height - device.frame.height) / 2, 0)
-        )
     }
 
     private func horizontalSizeClass(for device: Device?) -> SwiftUI.UserInterfaceSizeClass? {

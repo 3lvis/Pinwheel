@@ -143,6 +143,30 @@ final class TweakableUITests: XCTestCase {
                       "A UIKit tweak chosen from the catalog should update the hosted view's label")
     }
 
+    // MARK: - Device selection (repro)
+
+    @MainActor
+    func testSelectingSimulatedDeviceDoesNotCrash() {
+        launchPreview("tweakable")
+        openSettings()
+
+        let deviceButton = app.buttons["iphone.gen3"]
+        XCTAssertTrue(deviceButton.waitForExistence(timeout: defaultTimeout), "device nav button should exist")
+        deviceButton.tap()
+
+        let device = app.buttons["iPhone XS/11 Pro"]
+        XCTAssertTrue(device.waitForExistence(timeout: defaultTimeout), "iPhone XS/11 Pro should be listed")
+        device.tap()
+
+        // Selecting a simulated device used to overflow SwiftUI's layout engine
+        // and crash the app (the resize was implicitly animated). Selecting does
+        // not dismiss the settings sheet, so the device list stays on screen —
+        // re-querying another row proves the app survived and stayed responsive
+        // (a crashed/hung app fails this query rather than returning at once).
+        XCTAssertTrue(app.buttons["iPhone SE (2nd & 3rd generation)"].waitForExistence(timeout: defaultTimeout),
+                      "device list should stay responsive after selecting a device")
+    }
+
     @MainActor
     func testUIKitActionTweakUpdatesContent() {
         launchPreview("uikit-tweakable")
