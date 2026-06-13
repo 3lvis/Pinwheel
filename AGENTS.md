@@ -1,6 +1,6 @@
 # Agent Guidelines
 
-Pinwheel-specific guidance: how we work here, testing, and the decisions log. The generic, portable iOS conventions live one level up in the iOS domain `CLAUDE.md` (`~/code/<org>/ios/CLAUDE.md`) and are inherited automatically via the `CLAUDE.md` walk-up — they're not repeated here. Read **Pinwheel — decisions** before changing public API or structure.
+Pinwheel-specific guidance: how we work here, testing, and the decisions log. The generic, portable iOS conventions live one level up in the iOS domain `AGENTS.md` (`~/code/<org>/ios/AGENTS.md`) and are inherited automatically via the agent-memory walk-up — they're not repeated here. Read **Pinwheel — decisions** before changing public API or structure.
 
 ## Pinwheel — way of working
 
