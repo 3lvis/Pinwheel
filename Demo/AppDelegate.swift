@@ -26,7 +26,7 @@ struct DemoApp: App {
                 PinwheelPreview(previewID, sections: DemoPinwheelSections.all)
             } else {
                 PinwheelCatalog {
-                    DemoPinwheelSections.dna
+                    DemoPinwheelSections.tokens
                     DemoPinwheelSections.components
                     DemoPinwheelSections.recyclable
                     DemoPinwheelSections.uikit

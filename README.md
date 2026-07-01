@@ -188,7 +188,7 @@ Pinwheel can preview a demo in known iPhone and iPad sizes from the floating set
 
 The demo app uses native SwiftUI examples as the default sections:
 
-- `DNA`
+- `Tokens`
 - `Components`
 - `Recyclable`
 

@@ -4,11 +4,11 @@ import SwiftUI
 @MainActor
 enum DemoPinwheelSections {
     static var all: [PinwheelSection] {
-        [dna, components, recyclable, uikit]
+        [tokens, components, recyclable, uikit]
     }
 
-    static var dna: PinwheelSection {
-        PinwheelSection("DNA", id: "dna") {
+    static var tokens: PinwheelSection {
+        PinwheelSection("Tokens", id: "tokens") {
             PinwheelItem("Font", id: "font") {
                 PinFontExample()
             }

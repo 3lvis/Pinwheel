@@ -32,7 +32,7 @@ Durable design decisions and why they were made.
 
 - Add a SwiftUI `Pin*` (with a thin `UIKitPin*` shell) **only when** SwiftUI lacks a first-class primitive, so styling would be hand-rolled anyway (`PinButton` — pill, variants, loading, symbol, haptics), **or** there's real imperative / UIKit-hosting value to bridge (`PinStateView` as a state machine a UIKit table can drive). If SwiftUI's primitive + `PinwheelTheme` already covers it and nothing needs to host it in UIKit, don't wrap it.
 - **Exception — theme footguns get a wrapper anyway.** `Label → PinLabel` because raw `Text(...).font(.body)` silently resolves to Apple's system style (see Theme below). The test is "does the raw primitive bypass the theme?", not just "does a primitive exist?".
-- **Switch → `Toggle`** (no standalone `PinSwitch`; the only switch lives inside the `UIKitPinTableView` family). **DNA (Font/Color/Spacing)** are *tokens*, never components, in either world.
+- **Switch → `Toggle`** (no standalone `PinSwitch`; the only switch lives inside the `UIKitPinTableView` family). **Tokens (Font/Color/Spacing)** are *tokens*, never components, in either world.
 
 ### Bridging
 
@@ -62,7 +62,7 @@ These stay UIKit because no SwiftUI primitive matches their ergonomics/perf:
 
 ### Project layout
 
-- **Sources organized by domain, not access level.** `API/` (public surface), `DNA/` (tokens, both worlds, incl. SwiftUI `PinwheelTheme`), `Components/SwiftUI` + `Components/UIKit` (split by world; `TableView/` under UIKit), `Catalog/` (the one, pure-SwiftUI catalog + FAB + device/state), `Bridge/` (SwiftUI↔UIKit), `Extensions/`.
+- **Sources organized by domain, not access level.** `API/` (public surface), `Tokens/` (tokens, both worlds, incl. SwiftUI `PinwheelTheme`), `Components/SwiftUI` + `Components/UIKit` (split by world; `TableView/` under UIKit), `Catalog/` (the one, pure-SwiftUI catalog + FAB + device/state), `Bridge/` (SwiftUI↔UIKit), `Extensions/`.
 - **Demo mirrors the split** — `Demo/Examples/SwiftUI` + `Demo/Examples/UIKit`.
 - **Both targets are file-system-synchronized groups**, so the folder layout *is* the project structure — moving/adding files needs no `project.pbxproj` edits. (The Demo app target's synced group excludes `Info.plist` so it isn't double-copied as a resource.)
 - **Distribution nesting left as-is (deliberate):** the package lives in `Pinwheel/` (the Demo references it locally); a second root `Package.swift` re-exposes it for external `.package(url:)` consumers. Awkward (`Pinwheel/Sources/Pinwheel/`, two manifests) but changing it touches external import paths — not worth it now.
