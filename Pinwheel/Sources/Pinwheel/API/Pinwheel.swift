@@ -14,6 +14,14 @@ public enum PinwheelPresentation {
     case fullscreen
 }
 
+/// Orthogonal labels a catalog item carries for browsing/filtering — the world
+/// an example lives in, so SwiftUI/UIKit is a tag on a concept-grouped item
+/// rather than its own section. `rawValue` is the chip text.
+public enum PinTag: String, Hashable, Sendable {
+    case swiftUI = "SwiftUI"
+    case uiKit = "UIKit"
+}
+
 @resultBuilder
 public enum PinwheelSectionBuilder {
     public static func buildBlock(_ components: PinwheelSection...) -> [PinwheelSection] {
@@ -61,18 +69,21 @@ public enum PinwheelItemBuilder {
 }
 
 public struct PinwheelSection {
-    public let id: String
     public let title: String
     public let items: [PinwheelItem]
 
-    public init(title: String, id: String? = nil, items: [PinwheelItem]) {
-        self.id = id ?? title.pinwheelGeneratedID
+    /// Stable identity for persistence — the title slugified. Section titles are
+    /// unique within a catalog.
+    public var id: String {
+        title.pinwheelGeneratedID
+    }
+
+    public init(title: String, items: [PinwheelItem]) {
         self.title = title
         self.items = items
     }
 
-    public init(_ title: String, id: String? = nil, @PinwheelItemBuilder items: () -> [PinwheelItem]) {
-        self.id = id ?? title.pinwheelGeneratedID
+    public init(_ title: String, @PinwheelItemBuilder items: () -> [PinwheelItem]) {
         self.title = title
         self.items = items()
     }
@@ -81,42 +92,55 @@ public struct PinwheelSection {
 extension PinwheelSection: Identifiable {}
 
 public struct PinwheelItem {
-    public let id: String
     public let title: String
     public let presentation: PinwheelPresentation
     public let supportedInterfaceOrientations: UIInterfaceOrientationMask
     public let constrainToTopSafeArea: Bool
     public let constrainToBottomSafeArea: Bool
     public let tabletDisplayMode: TabletDisplayMode
+    public let tags: [PinTag]
     private let makeSwiftUIView: () -> AnyView
+
+    /// Stable identity for persistence and deep-links: the title slugified and
+    /// prefixed by any tags, so same-titled items in different worlds (SwiftUI
+    /// "Font" vs UIKit "Font") get distinct ids. Title + tags must be unique
+    /// within a section.
+    public var id: String {
+        PinwheelItem.generatedID(title: title, tags: tags)
+    }
+
+    /// The id an item with this `title` and `tags` resolves to — lets callers
+    /// form a deep-link (`-PinwheelPreview <id>`) without hardcoding the slug.
+    nonisolated public static func generatedID(title: String, tags: [PinTag] = []) -> String {
+        return (tags.map(\.rawValue) + [title]).joined(separator: " ").pinwheelGeneratedID
+    }
 
     func swiftUIView() -> AnyView {
         return makeSwiftUIView()
     }
 
     private init(
-        id: String,
         title: String,
         presentation: PinwheelPresentation,
         supportedInterfaceOrientations: UIInterfaceOrientationMask,
         constrainToTopSafeArea: Bool,
         constrainToBottomSafeArea: Bool,
         tabletDisplayMode: TabletDisplayMode,
+        tags: [PinTag] = [],
         makeSwiftUIView: @escaping () -> AnyView
     ) {
-        self.id = id
         self.title = title
         self.presentation = presentation
         self.supportedInterfaceOrientations = supportedInterfaceOrientations
         self.constrainToTopSafeArea = constrainToTopSafeArea
         self.constrainToBottomSafeArea = constrainToBottomSafeArea
         self.tabletDisplayMode = tabletDisplayMode
+        self.tags = tags
         self.makeSwiftUIView = makeSwiftUIView
     }
 
-    public init(title: String, id: String? = nil, viewController: UIViewController, tabletDisplayMode: TabletDisplayMode = .fullscreen) {
+    public init(title: String, viewController: UIViewController, tabletDisplayMode: TabletDisplayMode = .fullscreen) {
         self.init(
-            id: id ?? title.pinwheelGeneratedID,
             title: title,
             presentation: .fullscreen,
             supportedInterfaceOrientations: .all,
@@ -135,14 +159,12 @@ public struct PinwheelItem {
 
     public init<ViewType: UIView>(
         _ title: String,
-        id: String? = nil,
         view: ViewType.Type
     ) {
         // Shared by the `makeSwiftUIView` closure below so the hosted view is
         // created once and reused (see the note at its use site).
         var sharedHostedView: ViewType?
         self.init(
-            id: id ?? title.pinwheelGeneratedID,
             title: title,
             presentation: .fullscreen,
             supportedInterfaceOrientations: .all,
@@ -174,11 +196,9 @@ public struct PinwheelItem {
 
     public init<Content: SwiftUI.View>(
         _ title: String,
-        id: String? = nil,
         @ViewBuilder content: @escaping () -> Content
     ) {
         self.init(
-            id: id ?? title.pinwheelGeneratedID,
             title: title,
             presentation: .fullscreen,
             supportedInterfaceOrientations: .all,
@@ -193,7 +213,6 @@ public struct PinwheelItem {
 
     public init(
         _ title: String,
-        id: String? = nil,
         viewController: @escaping () -> UIViewController
     ) {
         // Build the hosted controller once and reuse it across playground
@@ -202,7 +221,6 @@ public struct PinwheelItem {
         // leave them mutating an off-screen copy (tweaks silently no-op).
         var sharedViewController: UIViewController?
         self.init(
-            id: id ?? title.pinwheelGeneratedID,
             title: title,
             presentation: .fullscreen,
             supportedInterfaceOrientations: .all,
@@ -268,21 +286,33 @@ public extension PinwheelItem {
         )
     }
 
+    func tags(_ tags: PinTag...) -> PinwheelItem {
+        return with(
+            presentation: presentation,
+            supportedInterfaceOrientations: supportedInterfaceOrientations,
+            constrainToTopSafeArea: constrainToTopSafeArea,
+            constrainToBottomSafeArea: constrainToBottomSafeArea,
+            tabletDisplayMode: tabletDisplayMode,
+            tags: tags
+        )
+    }
+
     private func with(
         presentation: PinwheelPresentation,
         supportedInterfaceOrientations: UIInterfaceOrientationMask,
         constrainToTopSafeArea: Bool,
         constrainToBottomSafeArea: Bool,
-        tabletDisplayMode: TabletDisplayMode
+        tabletDisplayMode: TabletDisplayMode,
+        tags: [PinTag]? = nil
     ) -> PinwheelItem {
         return PinwheelItem(
-            id: id,
             title: title,
             presentation: presentation,
             supportedInterfaceOrientations: supportedInterfaceOrientations,
             constrainToTopSafeArea: constrainToTopSafeArea,
             constrainToBottomSafeArea: constrainToBottomSafeArea,
             tabletDisplayMode: tabletDisplayMode,
+            tags: tags ?? self.tags,
             makeSwiftUIView: makeSwiftUIView
         )
     }
@@ -317,7 +347,7 @@ public struct PinwheelCatalog: SwiftUI.View {
 }
 
 private extension String {
-    var pinwheelGeneratedID: String {
+    nonisolated var pinwheelGeneratedID: String {
         let allowed = CharacterSet.alphanumerics
         let scalars = unicodeScalars.map { scalar -> Character in
             if allowed.contains(scalar) {

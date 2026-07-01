@@ -28,8 +28,7 @@ struct DemoApp: App {
                 PinwheelCatalog {
                     DemoPinwheelSections.tokens
                     DemoPinwheelSections.components
-                    DemoPinwheelSections.recyclable
-                    DemoPinwheelSections.uikit
+                    DemoPinwheelSections.screens
                 }
             }
         }

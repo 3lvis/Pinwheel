@@ -187,6 +187,8 @@ private struct PinwheelIndexView: SwiftUI.View {
     let section: PinwheelSection?
     let selectedItem: (PinwheelItem) -> Void
 
+    @State private var selectedTag: PinTag?
+
     var body: some SwiftUI.View {
         ScrollViewReader { proxy in
             ZStack(alignment: .trailing) {
@@ -197,10 +199,23 @@ private struct PinwheelIndexView: SwiftUI.View {
                                 SwiftUI.Button {
                                     selectedItem(item)
                                 } label: {
-                                    PinLabel(item.title.capitalizingFirstLetter)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                    HStack {
+                                        PinLabel(item.title.capitalizingFirstLetter)
+                                        Spacer()
+                                        ForEach(item.tags, id: \.self) { tag in
+                                            PinLabel(tag.rawValue)
+                                                .font(.caption)
+                                                .color(.secondary)
+                                                .padding(.horizontal, .spacingXS)
+                                                .padding(.vertical, .spacingXXS)
+                                                .background(.secondaryBackground, in: Capsule())
+                                        }
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .contentShape(Rectangle())
                                 }
                                 .buttonStyle(.plain)
+                                .accessibilityIdentifier(item.id)
                                 .listRowSeparator(.hidden)
                                 .listRowBackground(PinwheelTheme.Colors.primaryBackground)
                             }
@@ -231,12 +246,64 @@ private struct PinwheelIndexView: SwiftUI.View {
                 .padding(.trailing, 4)
             }
         }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if sectionTags.count > 1 {
+                filterBar
+            }
+        }
+        .onChange(of: section?.id) { selectedTag = nil }
+    }
+
+    private var filterBar: some SwiftUI.View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: .spacingS) {
+                pill(title: "All", isSelected: selectedTag == nil) { selectedTag = nil }
+                ForEach(sectionTags, id: \.self) { tag in
+                    pill(title: tag.rawValue, isSelected: selectedTag == tag) { selectedTag = tag }
+                }
+            }
+            .padding(.horizontal, .spacingM)
+            .padding(.vertical, .spacingS)
+        }
+        .background(.primaryBackground)
+    }
+
+    private func pill(title: String, isSelected: Bool, action: @escaping () -> Void) -> some SwiftUI.View {
+        SwiftUI.Button(action: action) {
+            PinLabel(title)
+                .font(.footnote)
+                .color(isSelected ? .action : .secondary)
+                .padding(.horizontal, .spacingS)
+                .padding(.vertical, .spacingXS)
+                .background(
+                    isSelected ? AnyShapeStyle(.actionBackground.opacity(0.15)) : AnyShapeStyle(.secondaryBackground),
+                    in: Capsule()
+                )
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// Distinct tags across the section's items, in first-appearance order — the
+    /// filter offers "All" plus one pill per tag actually present.
+    private var sectionTags: [PinTag] {
+        guard let section else { return [] }
+        var ordered: [PinTag] = []
+        for item in section.items {
+            for tag in item.tags where !ordered.contains(tag) {
+                ordered.append(tag)
+            }
+        }
+        return ordered
     }
 
     private var groupedItems: [(letter: String, items: [PinwheelItem])] {
         guard let section else { return [] }
 
-        let groups = Dictionary(grouping: section.items) { item in
+        let items = selectedTag.map { tag in
+            section.items.filter { $0.tags.contains(tag) }
+        } ?? section.items
+
+        let groups = Dictionary(grouping: items) { item in
             String(item.title.capitalizingFirstLetter.prefix(1))
         }
 
