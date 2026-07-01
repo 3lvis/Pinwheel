@@ -5,7 +5,6 @@ public protocol UIKitPinStateViewDelegate: AnyObject {
     func stateViewDidSelectAction(_ stateView: UIKitPinStateView)
 }
 
-/// UIKit-facing state, mapped onto the SwiftUI `PinState`.
 public enum UIKitPinStateViewState {
     case loading(title: String, subtitle: String)
     case loaded
@@ -31,20 +30,13 @@ public enum UIKitPinStateViewState {
     }
 }
 
-/// UIKit-friendly host over the SwiftUI `PinStateView`. There is a single state
-/// view implementation — the SwiftUI `PinStateView` — and this is a thin shell
-/// that gives a hybrid UIKit app the imperative ergonomics it expects (`state`
-/// mutation and a delegate/closure action callback), so no SwiftUI knowledge is
-/// needed at the call site.
 public final class UIKitPinStateView: UIView {
     public weak var delegate: UIKitPinStateViewDelegate?
 
-    /// Modern action handler for the failed-state button. The `delegate` also fires.
+    /// The `delegate` also fires.
     public var onAction: (() -> Void)?
 
-    // The view hides itself in `.loaded` (mirroring the old overlay behavior),
-    // so consumers that pin it over content — e.g. UIKitPinTableView — reveal
-    // the content underneath without managing the overlay's alpha themselves.
+    // Hides itself in `.loaded`, so consumers pinning it over content reveal the content underneath without managing alpha.
     public var state: UIKitPinStateViewState = .loaded {
         didSet {
             alpha = state.isLoaded ? 0 : 1
@@ -63,8 +55,6 @@ public final class UIKitPinStateView: UIView {
 
         host = PinHostView(rootView: makeRootView())
         addSubview(host)
-        // Hugs its content and centers vertically, matching the placeholder's
-        // centered layout when pinned over content (e.g. a table's overlay).
         NSLayoutConstraint.activate([
             host.leadingAnchor.constraint(equalTo: leadingAnchor),
             host.trailingAnchor.constraint(equalTo: trailingAnchor),

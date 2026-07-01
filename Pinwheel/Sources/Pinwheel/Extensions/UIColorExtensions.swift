@@ -1,9 +1,6 @@
 import UIKit
 
 extension UIColor {
-    /// Base initializer, it creates an instance of `UIColor` using an HEX string.
-    ///
-    /// - Parameter hex: The base HEX string to create the color.
     public convenience init(hex: String) {
         let noHashString = hex.replacingOccurrences(of: "#", with: "")
         let scanner = Scanner(string: noHashString)
@@ -21,11 +18,7 @@ extension UIColor {
         }
     }
 
-    /// Convenience method to create dynamic colors for dark mode if the OS supports it (independant of Pinwheel
-    /// settings)
-    /// - Parameters:
-    ///   - defaultColor: light mode version of the color
-    ///   - darkModeColor: dark mode version of the color
+    /// Resolves dynamically per system dark mode, independent of Pinwheel settings.
     @available(iOS 13.0, *)
     public class func dynamicColor(defaultColor: UIColor, darkModeColor: UIColor) -> UIColor {
         UIColor { traitCollection -> UIColor in
@@ -38,13 +31,11 @@ extension UIColor {
         }
     }
 
-    /// Returns hexadecimal representation of a color converted to the sRGB color space.
     var hexString: String {
         guard
             let targetColorSpace = CGColorSpace(name: CGColorSpace.sRGB),
             let cgColor = self.cgColor.converted(to: targetColorSpace, intent: .relativeColorimetric, options: nil)
         else {
-            // Not possible to convert source color space to RGB
             return "#000000"
         }
         let components = cgColor.components

@@ -73,7 +73,6 @@ final class CornerAnchoringView: UIView {
         }
     }
 
-    /// Shows/hides the controls with a quick fade + shrink toward their corner.
     func setControlsHidden(_ hidden: Bool, animated: Bool, completion: (() -> Void)? = nil) {
         let apply = {
             self.buttonsView.alpha = hidden ? 0 : 1
@@ -160,12 +159,10 @@ final class CornerAnchoringView: UIView {
         setupKeyboardNotifications()
     }
 
-    /// Keeps the FAB above the keyboard. The controls live in a pass-through
-    /// overlay window above the app (and above any sheet), so nothing else moves
-    /// them clear of the keyboard. Each bottom corner holds two bottom
-    /// constraints — one to the safe area, one to `keyboardLayoutGuide.topAnchor`
-    /// — and these notifications swap between them so the settings/close buttons
-    /// stay tappable on keyboard-bearing screens (e.g. the fullscreen editor).
+    /// The FAB lives in an overlay window above the app, so nothing else moves it
+    /// clear of the keyboard. These notifications swap each bottom corner between
+    /// its safe-area and `keyboardLayoutGuide.topAnchor` constraints so the
+    /// buttons stay tappable on keyboard-bearing screens.
     private func setupKeyboardNotifications() {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
@@ -273,7 +270,6 @@ final class CornerAnchoringView: UIView {
         return (initialVelocity / 1000) * decelerationRate / (1 - decelerationRate)
     }
 
-    /// Finds the position of the nearest corner to the given point.
     private func nearestCorner(to point: CGPoint) -> (Int, CGPoint) {
         var minDistance = CGFloat.greatestFiniteMagnitude
         var closestPosition = CGPoint.zero
@@ -289,13 +285,11 @@ final class CornerAnchoringView: UIView {
         return (arrayIndex, closestPosition)
     }
 
-    /// Calculates the relative velocity needed for the initial velocity of the animation.
     private func relativeVelocity(forVelocity velocity: CGFloat, from currentValue: CGFloat, to targetValue: CGFloat) -> CGFloat {
         guard currentValue - targetValue != 0 else { return 0 }
         return velocity / (targetValue - currentValue)
     }
 
-    /// Forwards all touches not applied to subviews.
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
         return subviews.contains(where: {
             !$0.isHidden && $0.point(inside: self.convert(point, to: $0), with: event)
@@ -313,12 +307,7 @@ final class CornerAnchoringView: UIView {
 
 extension UISpringTimingParameters {
 
-    /// A design-friendly way to create a spring timing curve.
-    ///
-    /// - Parameters:
-    ///   - damping: The 'bounciness' of the animation. Value must be between 0 and 1.
-    ///   - response: The 'speed' of the animation.
-    ///   - initialVelocity: The vector describing the starting motion of the property. Optional, default is `.zero`.
+    /// `damping` must be between 0 and 1.
     convenience init(damping: CGFloat, response: CGFloat, initialVelocity: CGVector = .zero) {
         let stiffness = pow(2 * .pi / response, 2)
         let damp = 4 * .pi * damping / response
@@ -329,8 +318,6 @@ extension UISpringTimingParameters {
 
 extension CGPoint {
 
-    /// Calculates the distance between two points in 2D space.
-    /// + returns: The distance from this point to the given point.
     func distance(to point: CGPoint) -> CGFloat {
         return sqrt(pow(point.x - self.x, 2) + pow(point.y - self.y, 2))
     }

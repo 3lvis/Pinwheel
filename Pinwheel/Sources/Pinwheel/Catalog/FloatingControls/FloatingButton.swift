@@ -28,7 +28,6 @@ final class FloatingButton: UIButton {
         return label
     }()
 
-    // MARK: - Init
     override convenience init(frame: CGRect) {
         self.init(frame: frame, style: .default)
     }
@@ -42,8 +41,6 @@ final class FloatingButton: UIButton {
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
-    // MARK: - Setup
 
     override func layoutSubviews() {
         super.layoutSubviews()

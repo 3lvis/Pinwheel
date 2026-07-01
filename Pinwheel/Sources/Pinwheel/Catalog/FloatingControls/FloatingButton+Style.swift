@@ -17,7 +17,6 @@ extension FloatingButton {
     }
 }
 
-// MARK: - Styles
 extension FloatingButton.Style {
     static var `default`: FloatingButton.Style {
         FloatingButton.Style(

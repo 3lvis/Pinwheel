@@ -7,8 +7,6 @@ public protocol UIKitPinTableViewCellDelegate: AnyObject {
 open class UIKitPinTableViewCell: UITableViewCell {
     weak var delegate: UIKitPinTableViewCellDelegate?
 
-    // MARK: - Public properties
-
     open var selectedIndexPath: IndexPath?
     open var isEnabled: Bool = true
 
@@ -63,12 +61,8 @@ open class UIKitPinTableViewCell: UITableViewCell {
     open lazy var detailLabelTrailingConstraint = detailLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
     open lazy var switchControlTrailingConstraint = switchControl.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
 
-    // MARK: - Private properties
-
     private lazy var stackViewToDetailLabelConstraint = stackView.trailingAnchor.constraint(lessThanOrEqualTo: detailLabel.leadingAnchor, constant: -.spacingXS)
     private lazy var stackViewToSwitchControlConstraint = stackView.trailingAnchor.constraint(lessThanOrEqualTo: switchControl.leadingAnchor, constant: -.spacingXS)
-
-    // MARK: - Setup
 
     public override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -78,8 +72,6 @@ open class UIKitPinTableViewCell: UITableViewCell {
     required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
-    // MARK: - Public methods
 
     public var indexPath: IndexPath?
 
@@ -143,8 +135,6 @@ open class UIKitPinTableViewCell: UITableViewCell {
         subtitleLabel.text = nil
         detailLabel.text = nil
     }
-
-    // MARK: - Private methods
 
     private func setup() {
         setDefaultSelectedBackgound()

@@ -8,17 +8,13 @@ import DemoCatalog
 final class StateViewUITests: XCTestCase {
     private var app: XCUIApplication!
 
-    /// Failure ceiling for element waits — `waitForExistence` returns as soon as
-    /// the element appears, so this only bounds how long a *failing* test waits.
-    /// 5s is the community default; this suite is local, animation-free and
-    /// network-free, so elements appear well within it.
+    // Only bounds how long a failing test waits — waitForExistence returns as
+    // soon as the element appears.
     private let defaultTimeout: TimeInterval = 5
 
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
-        // -UITesting makes the app clear persisted catalog state and disable
-        // animations on launch (see DemoApp); tests add -PinwheelPreview as needed.
         app.launchArguments = ["-UITesting"]
     }
 
@@ -31,8 +27,6 @@ final class StateViewUITests: XCTestCase {
         app.launch()
     }
 
-    /// Opens the playground settings and selects the "Failed" tweak, leaving the
-    /// component in its failed state with the action button visible.
     private func selectFailedState() {
         let settings = app.buttons["pinwheel.settings"]
         XCTAssertTrue(settings.waitForExistence(timeout: defaultTimeout), "settings (wrench) button should exist")

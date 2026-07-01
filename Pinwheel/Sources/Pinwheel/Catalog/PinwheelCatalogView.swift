@@ -283,8 +283,6 @@ private struct PinwheelIndexView: SwiftUI.View {
         .buttonStyle(.plain)
     }
 
-    /// Distinct tags across the section's items, in first-appearance order — the
-    /// filter offers "All" plus one pill per tag actually present.
     private var sectionTags: [PinTag] {
         guard let section else { return [] }
         var ordered: [PinTag] = []

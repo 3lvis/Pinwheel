@@ -20,8 +20,6 @@ class UIKitPinTableViewExample: UIKitPinView, Tweakable {
     }()
 
     lazy var tableView: UIKitPinTableView = {
-        // Shadow on, so this demos `ShadowScrollView`/`ShadowView` — the top
-        // scroll-edge shadow that deepens as rows pass under the top edge.
         let view = UIKitPinTableView(items: items, usingShadowWhenScrolling: true)
         view.delegate = self
         return view
@@ -48,9 +46,6 @@ class UIKitPinTableViewExample: UIKitPinView, Tweakable {
         let on = UIKitPinBoolTableViewItem(title: "On")
         on.isOn = true
 
-        // The variant rows above are the demo's focus; the filler rows below just
-        // make the list overflow the medium sheet so the scroll-edge shadow shows
-        // when you drag (it never appears if the content fits without scrolling).
         let variants: [UIKitPinTableViewItem] = [
             onlyTitle,
             titleAndSubtitle,
@@ -61,6 +56,8 @@ class UIKitPinTableViewExample: UIKitPinView, Tweakable {
             off,
             on
         ]
+        // Filler rows make the list overflow the sheet; the scroll-edge shadow
+        // only shows once content scrolls.
         let filler = (1...12).map { UIKitPinTextTableViewItem(title: "Row \($0)") }
         return variants + filler
     }()

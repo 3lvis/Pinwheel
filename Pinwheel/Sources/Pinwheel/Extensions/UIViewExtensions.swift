@@ -6,7 +6,6 @@ public extension UIView {
         translatesAutoresizingMaskIntoConstraints = !autoLayout
     }
 
-    /// The nearest view controller in the responder chain, if any.
     var parentViewController: UIViewController? {
         var responder: UIResponder? = next
         while let current = responder {
@@ -36,9 +35,7 @@ public extension UIView {
 }
 
 extension UIViewController {
-    /// Applies a simulated device's traits via `traitOverrides` — the
-    /// replacement for the deprecated `setOverrideTraitCollection(_:forChild:)`,
-    /// called on the child whose traits should be overridden.
+    /// Replaces the deprecated `setOverrideTraitCollection(_:forChild:)`; call on the child whose traits to override.
     func applyDeviceTraitOverrides(_ traits: UITraitCollection) {
         traitOverrides.horizontalSizeClass = traits.horizontalSizeClass
         traitOverrides.verticalSizeClass = traits.verticalSizeClass

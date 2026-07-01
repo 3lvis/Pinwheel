@@ -9,17 +9,13 @@ import DemoCatalog
 final class TweakableUITests: XCTestCase {
     private var app: XCUIApplication!
 
-    /// Failure ceiling for element waits — `waitForExistence` returns as soon as
-    /// the element appears, so this only bounds how long a *failing* test waits.
-    /// 5s is the community default; this suite is local, animation-free and
-    /// network-free, so elements appear well within it.
+    // Only bounds how long a failing test waits — waitForExistence returns as
+    // soon as the element appears.
     private let defaultTimeout: TimeInterval = 5
 
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
-        // -UITesting makes the app clear persisted catalog state and disable
-        // animations on launch (see DemoApp); tests add -PinwheelPreview as needed.
         app.launchArguments = ["-UITesting"]
     }
 
@@ -38,13 +34,11 @@ final class TweakableUITests: XCTestCase {
         settings.tap()
     }
 
-    /// Navigates the real catalog to `component` in `section`, switching sections
-    /// via the picker only when the item isn't already on screen. Items match by
-    /// stable id (`component.id(tag)`), not title: with world (SwiftUI/UIKit) now a
-    /// tag, two rows in a section can share a title (e.g. both "Tweakable").
+    // Matches items by stable id, not title: with world (SwiftUI/UIKit) now a
+    // tag, two rows in a section can share a title (e.g. both "Tweakable").
     private func openCatalogItem(_ component: Catalog, _ tag: PinTag, in section: CatalogSection) {
         // -UITesting resets state, so the catalog always launches to the list —
-        // there's no restored item to dismiss first.
+        // no restored item to dismiss first.
         XCTAssertTrue(app.buttons["pinwheel.sectionPicker"].waitForExistence(timeout: defaultTimeout),
                       "section picker should exist")
 
@@ -74,8 +68,7 @@ final class TweakableUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Chosen Option 1"].waitForExistence(timeout: defaultTimeout))
 
         openSettings()
-        // The row carries a description, so its accessibility label is the
-        // combined "title, description".
+        // A described row's accessibility label is the combined "title, description".
         let option2 = app.buttons["Option 2, Description 2"]
         XCTAssertTrue(option2.waitForExistence(timeout: defaultTimeout), "Option 2 should still be listed on reopen")
         option2.tap()
@@ -131,11 +124,9 @@ final class TweakableUITests: XCTestCase {
         XCTAssertTrue(device.waitForExistence(timeout: defaultTimeout), "iPhone XS/11 Pro should be listed")
         device.tap()
 
-        // Selecting a simulated device used to overflow SwiftUI's layout engine
-        // and crash the app (the resize was implicitly animated). Selecting does
-        // not dismiss the settings sheet, so the device list stays on screen —
-        // re-querying another row proves the app survived and stayed responsive
-        // (a crashed/hung app fails this query rather than returning at once).
+        // Selecting a simulated device used to crash the app (an implicitly
+        // animated resize overflowed SwiftUI's layout engine). Re-querying another
+        // row proves the app survived, since a crashed/hung app fails this query.
         XCTAssertTrue(app.buttons["iPhone SE (2nd & 3rd generation)"].waitForExistence(timeout: defaultTimeout),
                       "device list should stay responsive after selecting a device")
     }

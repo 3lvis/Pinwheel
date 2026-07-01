@@ -1,10 +1,6 @@
 import SwiftUI
 import UIKit
 
-/// Installs a pass-through overlay `UIWindow` hosting the UIKit `CornerAnchoringView`
-/// FAB, and pushes `PinwheelChrome` state into it. Placed as a background of the
-/// catalog/preview root; touches outside the FAB buttons fall through to the app
-/// below. (The device pill rides on the playground itself, not this window.)
 struct PinwheelFloatingControlsHost: UIViewRepresentable {
     let chrome: PinwheelChrome
     let tweakCount: Int
@@ -41,8 +37,6 @@ struct PinwheelFloatingControlsHost: UIViewRepresentable {
         coordinator.teardown()
     }
 
-    /// An invisible probe that reports when it enters a window scene, so the
-    /// overlay window can be created at exactly the right moment.
     final class ProbeView: UIView {
         var onMoveToScene: ((UIWindowScene) -> Void)?
 
@@ -74,9 +68,6 @@ struct PinwheelFloatingControlsHost: UIViewRepresentable {
 
             if fabVisible { window.isHidden = false }
 
-            // Animate the FAB (fade + shrink) only on a visibility change, then drop
-            // the window once the FAB is gone (the pill lives on the playground, so
-            // nothing else needs this window).
             if fabVisible != fabShown {
                 fabShown = fabVisible
                 window.controller.anchoringView.setControlsHidden(!fabVisible, animated: true) {
@@ -95,8 +86,6 @@ struct PinwheelFloatingControlsHost: UIViewRepresentable {
     }
 }
 
-/// A pass-through window: only the FAB buttons capture touches; everything else
-/// falls through to the app window below.
 final class PinwheelFloatingControlsWindow: UIWindow {
     let controller = PinwheelFloatingControlsViewController()
 
@@ -111,9 +100,8 @@ final class PinwheelFloatingControlsWindow: UIWindow {
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-        // Pass through everywhere except the FAB buttons. Over empty areas
-        // `UIWindow.hitTest` returns the window itself (or the pass-through
-        // container); only deeper interactive views should capture the touch.
+        // Over empty areas `UIWindow.hitTest` returns the window itself (or the
+        // pass-through container); only deeper interactive views capture the touch.
         guard let hit = super.hitTest(point, with: event), hit !== self, hit !== controller.view else {
             return nil
         }
@@ -121,8 +109,6 @@ final class PinwheelFloatingControlsWindow: UIWindow {
     }
 }
 
-/// Hosts the UIKit `CornerAnchoringView` FAB and the SwiftUI device pill in the
-/// overlay window, forwarding the FAB button taps to the coordinator.
 final class PinwheelFloatingControlsViewController: UIViewController, CornerAnchoringViewDelegate {
     let anchoringView = CornerAnchoringView()
     var onSettings: (() -> Void)?
@@ -155,8 +141,6 @@ final class PinwheelFloatingControlsViewController: UIViewController, CornerAnch
     }
 }
 
-/// Forwards hit-testing to its subviews, so the surrounding overlay window is
-/// transparent to touches everywhere except the FAB buttons.
 final class PinwheelPassthroughView: UIView {
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
         for subview in subviews where !subview.isHidden && subview.isUserInteractionEnabled && subview.alpha > 0.01 {

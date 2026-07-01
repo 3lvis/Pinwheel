@@ -1,18 +1,5 @@
 import SwiftUI
 
-/// SwiftUI-native pill button: themed styles, an optional SF Symbol, a loading
-/// state, and press feedback. Mirrors SwiftUI's `Button(_:systemImage:action:)`;
-/// visual style and loading are chained modifiers, like SwiftUI's `.buttonStyle`.
-///
-/// ```swift
-/// PinButton("Save") { save() }
-/// PinButton("Continue", systemImage: "arrow.right") { go() }.style(.secondary)
-/// PinButton("Saving") { }.loading(isSaving)
-/// PinButton(systemImage: "arrow.right") { }            // symbol-only
-/// ```
-///
-/// The button owns its type style (`subtitleSemibold`); `.custom` is the escape
-/// hatch for one-off colors.
 public struct PinButton: SwiftUI.View {
     public enum Style: Equatable {
         case primary
@@ -50,22 +37,18 @@ public struct PinButton: SwiftUI.View {
         self.action = action
     }
 
-    /// Sets the visual style (default `.primary`).
     public func style(_ style: Style) -> PinButton {
         var copy = self
         copy.style = style
         return copy
     }
 
-    /// Sets the title/symbol typography (default `.subtitleSemibold`). Takes a
-    /// themed `PinTextStyle`, not a raw `Font`, so it stays on the design system.
     public func font(_ style: PinTextStyle) -> PinButton {
         var copy = self
         copy.typography = style
         return copy
     }
 
-    /// Shows a loading spinner alongside the content (default `true`).
     public func loading(_ isLoading: Bool = true) -> PinButton {
         var copy = self
         copy.isLoading = isLoading
@@ -142,10 +125,7 @@ private struct PinButtonStyle: SwiftUI.ButtonStyle {
         private var foreground: SwiftUI.Color {
             switch style {
             case .primary:
-                // The label sits on the action-colored fill, so it's the surface
-                // token — the inverse of the FAB (primaryBackground surface +
-                // actionText accent). Never hard-code white: a provider with a
-                // pale action color would render invisible text.
+                // The label sits on the action-colored fill, so it's the surface token; hard-coding white renders invisible on a pale action color.
                 return .primaryBackground
             case .secondary:
                 return isEnabled ? .primaryText : .tertiaryText
