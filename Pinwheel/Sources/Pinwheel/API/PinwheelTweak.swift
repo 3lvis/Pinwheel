@@ -52,8 +52,7 @@ public struct PinwheelTweak: Identifiable, Equatable {
         return lhs.id == rhs.id && lhs.title == rhs.title && lhs.description == rhs.description
     }
 
-    /// Applies this tweak as a preview "variant": runs an action tweak, or turns
-    /// a toggle on. Used by the deep-link preview to land on a specific variant.
+    /// Lands the deep-link preview on this variant: runs an action, or forces a toggle on (never off).
     func applyAsPreviewVariant() {
         switch control {
         case .action(let action):

@@ -1,6 +1,5 @@
 import UIKit
 
-// MARK: - Semantic colors, dark mode compatible
 extension UIColor {
     public class var primaryText: UIColor { Config.colorProvider.primaryText }
     public class var secondaryText: UIColor { Config.colorProvider.secondaryText }

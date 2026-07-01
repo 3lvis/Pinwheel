@@ -43,11 +43,8 @@ enum DemoPinwheelSections {
 }
 
 #if DEBUG
-/// Fast visual iteration on any catalog component, no throwaway `#Preview`
-/// needed: change `previewComponentID` to any id below and render this preview.
-/// Ids are bare (`"swiftui-button"`) or qualified (`"components/swiftui-button"`);
-/// an unknown id renders a list of every available id. For a running simulator
-/// instead, deep-link the Demo: `simctl launch <bundle> -PinwheelPreview swiftui-button`.
+// Change to any catalog id and render the preview below; an unknown id renders a
+// list of every available id.
 private let previewComponentID = Catalog.fullscreenView.id(.uiKit)
 
 #Preview("Pinwheel Component") {

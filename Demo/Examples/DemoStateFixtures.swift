@@ -1,10 +1,7 @@
 import Pinwheel
 
-/// Shared copy for the loading / empty / failed example states, so the SwiftUI
-/// and UIKit parity examples stay in lockstep. The three state enums (`PinState`,
-/// `UIKitPinStateViewState`, `UIKitPinTableViewState`) are distinct types, so the
-/// strings are the shared piece; convenience `PinState` values are provided for
-/// the SwiftUI examples. Demo-only — not part of the package.
+// The three state enums are distinct types, so shared strings are what keep the
+// SwiftUI and UIKit parity examples in lockstep.
 enum DemoStateFixture {
     static let loadingTitle = "Loading..."
     static let loadingSubtitle = "Please wait while we fetch your details."

@@ -17,9 +17,7 @@ public struct PinwheelUIKitViewController: UIViewControllerRepresentable {
 }
 
 extension PinwheelTweak {
-    /// Bridges a UIKit `Tweak` to a SwiftUI `PinwheelTweak`, so a hosted
-    /// `Tweakable` UIKit view's options appear in the SwiftUI playground's
-    /// settings sheet. Returns nil for unknown `Tweak` kinds.
+    /// Returns nil for unknown `Tweak` kinds.
     init?(_ tweak: Tweak) {
         if let text = tweak as? TextTweak {
             self.init(text.title, description: text.description, action: text.action)
@@ -31,8 +29,6 @@ extension PinwheelTweak {
     }
 }
 
-/// Backs a bridged `BoolTweak` with mutable state and forwards changes to the
-/// UIKit tweak's action.
 private final class PinwheelTweakBoolStore {
     private var isOn: Bool
     private let action: (Bool) -> Void
@@ -53,14 +49,10 @@ private final class PinwheelTweakBoolStore {
     }
 }
 
-/// Hosts a UIKit view as a view controller's full-bounds content.
-///
-/// Used to embed `view:` catalog items in SwiftUI: a `UIViewControllerRepresentable`
-/// is handed the full proposed size by SwiftUI, so the hosted view lays out at
-/// full bounds — as it would in a real UIKit hierarchy. A bare
-/// `UIViewRepresentable` instead sizes to the view's fitting size, which left
-/// edge-pinned UIKit examples (e.g. the Tokens examples, table-backed examples)
-/// collapsed to content and pinned top-left in the catalog/preview.
+/// Hosts a UIKit view at full bounds. Wrapping in a `UIViewControllerRepresentable`
+/// (not a bare `UIViewRepresentable`) is deliberate: SwiftUI hands a controller the
+/// full proposed size, whereas a `UIViewRepresentable` sizes to the fitting size and
+/// collapses edge-pinned examples (Tokens, table-backed) to the top-left.
 final class PinwheelUIKitContainerViewController: UIViewController {
     private let makeContent: () -> UIView
 

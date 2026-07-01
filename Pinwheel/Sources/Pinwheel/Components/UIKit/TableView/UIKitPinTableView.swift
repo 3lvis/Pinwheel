@@ -23,15 +23,11 @@ public enum UIKitPinTableViewState {
     case failed(title: String, subtitle: String, actionTitle: String)
 }
 
-/// Intentional UIKit surface (not a thin host over SwiftUI). Cell recycling, the
-/// dataSource/delegate contract, `UISwitch` items and the A–Z section indexer
-/// have no `List` equivalent with comparable ergonomics/perf, so it stays UIKit.
-/// Its state overlay is the SwiftUI-backed `UIKitPinStateView` shell.
+/// Stays UIKit: cell recycling, the dataSource/delegate contract, `UISwitch` items
+/// and the A–Z section indexer have no `List` equivalent with comparable perf.
 open class UIKitPinTableView: ShadowScrollView {
     public static let estimatedRowHeight: CGFloat = 60.0
     open var selectedIndexPath: IndexPath?
-
-    // MARK: - Internal properties
 
     private lazy var tableView: UITableView = {
         let tableView = UITableView(withAutoLayout: true)
@@ -83,8 +79,6 @@ open class UIKitPinTableView: ShadowScrollView {
         return view
     }()
 
-    // MARK: - Setup
-
     public init(dataSource: UIKitPinTableViewDataSource, usingShadowWhenScrolling: Bool = false) {
         self.usingShadowWhenScrolling = usingShadowWhenScrolling
         self.dataSource = dataSource
@@ -126,7 +120,6 @@ open class UIKitPinTableView: ShadowScrollView {
     }
 }
 
-// MARK: - UITableViewDelegate
 extension UIKitPinTableView: UITableViewDelegate {
     public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
@@ -147,7 +140,6 @@ extension UIKitPinTableView: UITableViewDelegate {
     }
 }
 
-// MARK: - UITableViewDataSource
 extension UIKitPinTableView: UITableViewDataSource {
     public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if let dataSource = self.dataSource {

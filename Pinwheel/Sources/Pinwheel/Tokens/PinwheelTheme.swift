@@ -1,9 +1,8 @@
 import SwiftUI
 import UIKit
 
-/// The themed typography scale — the font token used by `PinLabel.font(_:)` and
-/// `PinButton.font(_:)`. Parallels Apple's `Font.TextStyle`, but resolves the
-/// provider-backed `PinwheelTheme.Typography` fonts instead of system styles.
+/// Parallels Apple's `Font.TextStyle`, but resolves provider-backed
+/// `PinwheelTheme.Typography` fonts instead of system styles.
 public enum PinTextStyle {
     case title
     case subtitle
@@ -24,9 +23,8 @@ public enum PinTextStyle {
     }
 }
 
-/// The deliberate UIKit→SwiftUI token adaptor: every token resolves a
-/// provider-backed `UIFont`/`UIColor` (via the `Config` providers) and wraps it
-/// as a SwiftUI `Font`/`Color`, so both worlds stay on the same design tokens.
+/// Wraps the provider-backed `UIFont`/`UIColor` tokens as SwiftUI `Font`/`Color`,
+/// so both worlds stay on the same design tokens.
 public enum PinwheelTheme {
     public enum Typography {
         public static var title: Font { Font(UIFont.title) }
@@ -51,9 +49,8 @@ public enum PinwheelTheme {
     }
 }
 
-/// SwiftUI-native shorthand for the themed colors — `.background(.primaryBackground)`,
-/// like `.red`. Forwards to the canonical `PinwheelTheme.Colors`. Can't reach
-/// `.listRowBackground(_:)`, whose parameter is a generic `View`, not a `ShapeStyle`.
+/// `.red`-style shorthand for the themed colors. Can't reach `.listRowBackground(_:)`,
+/// whose parameter is a generic `View`, not a `ShapeStyle`.
 public extension ShapeStyle where Self == Color {
     static var primaryText: Color { PinwheelTheme.Colors.primaryText }
     static var secondaryText: Color { PinwheelTheme.Colors.secondaryText }
