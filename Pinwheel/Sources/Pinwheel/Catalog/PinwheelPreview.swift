@@ -57,7 +57,7 @@ public struct PinwheelPreview: SwiftUI.View {
 
     /// Resolves a bare item id (`"button"`) or a qualified `"sectionID/itemID"`
     /// to its section + item, or nil if absent.
-    private static func resolve(
+    static func resolve(
         id rawID: String,
         in sections: [PinwheelSection]
     ) -> (section: PinwheelSection, item: PinwheelItem)? {

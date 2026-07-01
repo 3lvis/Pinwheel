@@ -1,10 +1,10 @@
 import XCTest
 import DemoCatalog
 
-/// Exercises the StateView through the deep-link preview (`-PinwheelPreview <id>`),
-/// covering interactions that screenshots can't verify headlessly: opening the
-/// playground settings, switching to the failed state via a tweak, and tapping
-/// the failed-state action ("Retry").
+/// App-layer wiring the unit layer can't reach: `PinStateView`'s failed-state
+/// action button firing and the view transitioning, across SwiftUI and the two
+/// UIKit hosting seams (`view:` and `viewController:`). The state values are data;
+/// only the button → transition → render glue needs a running UI.
 final class StateViewUITests: XCTestCase {
     private var app: XCUIApplication!
 
@@ -43,14 +43,8 @@ final class StateViewUITests: XCTestCase {
         failed.tap()
     }
 
-    // MARK: - SwiftUI PinStateView
-
-    @MainActor
-    func testSwiftUIStateViewRendersDefaultEmptyState() {
-        launchPreview(.stateView, .swiftUI)
-        XCTAssertTrue(app.staticTexts["Ready to Move?"].waitForExistence(timeout: defaultTimeout))
-    }
-
+    // KEEP: app-layer wiring — the SwiftUI failed-state action button fires and
+    // PinStateView transitions to loading.
     @MainActor
     func testSwiftUIStateViewRetryTriggersLoading() {
         launchPreview(.stateView, .swiftUI)
@@ -65,8 +59,8 @@ final class StateViewUITests: XCTestCase {
                       "Tapping Retry should switch the SwiftUI state view to loading")
     }
 
-    // MARK: - UIKit shell (UIKitPinStateView over PinStateView)
-
+    // KEEP: app-layer wiring — the UIKitPinStateView shell hosts PinStateView and
+    // bridges the retry action to its delegate.
     @MainActor
     func testUIKitStateViewBridgesTweaksAndRetry() {
         launchPreview(.stateView, .uiKit)
@@ -81,12 +75,8 @@ final class StateViewUITests: XCTestCase {
                       "Tapping Retry should fire the delegate and switch the UIKit state view to loading")
     }
 
-    // MARK: - UIKit view-controller host (UIKitPinStateView inside a UIViewController)
-
-    /// Same contract as the `view:`-hosted case above, but through the
-    /// `PinwheelItem(viewController:)` path — guards that a `UIViewController`'s
-    /// `Tweakable` tweaks bridge into the settings sheet and that the retry tap
-    /// drives the live (on-screen) instance, not an off-screen copy.
+    // KEEP: app-layer wiring — the `viewController:` hosting seam bridges Tweakable
+    // into the sheet and drives the live on-screen instance, not an off-screen copy.
     @MainActor
     func testUIKitViewControllerStateViewBridgesTweaksAndRetry() {
         launchPreview(.viewController, .uiKit)
