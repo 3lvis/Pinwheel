@@ -59,7 +59,7 @@ private final class PinwheelTweakBoolStore {
 /// is handed the full proposed size by SwiftUI, so the hosted view lays out at
 /// full bounds — as it would in a real UIKit hierarchy. A bare
 /// `UIViewRepresentable` instead sizes to the view's fitting size, which left
-/// edge-pinned UIKit examples (e.g. the DNA examples, table-backed examples)
+/// edge-pinned UIKit examples (e.g. the Tokens examples, table-backed examples)
 /// collapsed to content and pinned top-left in the catalog/preview.
 final class PinwheelUIKitContainerViewController: UIViewController {
     private let makeContent: () -> UIView
