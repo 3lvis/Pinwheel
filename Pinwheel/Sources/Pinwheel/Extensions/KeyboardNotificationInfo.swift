@@ -28,12 +28,9 @@ public struct KeyboardNotificationInfo {
         frameEnd = userInfo[UIWindow.keyboardFrameEndUserInfoKey] as? CGRect
     }
 
-    /// Calculate the total intersection between the keyboard and a view. The value returned
-    /// will be between 0 and whatever intersection occurs. This is in case the user has
-    /// an iPad with an external keyboard connected, which would've returned a negative value.
+    /// Clamped to >= 0 so an iPad with an external keyboard (which would report a negative intersection) reads as no overlap.
     public func keyboardFrameEndIntersectHeight(inView view: UIView) -> CGFloat {
-        // The Prefer Cross-Fade Transitions setting causes empty frameEnd,
-        // so we need to check for this to support the setting.
+        // The Prefer Cross-Fade Transitions accessibility setting leaves frameEnd empty.
         guard let frameEnd = frameEnd, !frameEnd.isEmpty else { return 0 }
         let frameInWindow = view.convert(view.bounds, to: nil)
         let intersection = frameEnd.intersection(frameInWindow)
@@ -46,8 +43,6 @@ public struct KeyboardNotificationInfo {
         return max(0, intersection.height + outOfBoundsHeight - safeInsetBottom)
     }
 }
-
-// MARK: - Private extensions
 
 private extension Notification {
     var keyboardNotificationAction: KeyboardNotificationInfo.KeyboardAction? {

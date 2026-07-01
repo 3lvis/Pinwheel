@@ -5,11 +5,7 @@ struct PinwheelPlayground: SwiftUI.View {
     let selection: PinwheelSelection
     let onClose: () -> Void
 
-    /// Preview mode (deep-link). When set, the component's tweak titles are
-    /// dumped for tooling and `autoApplyTweak` is applied once it's available.
     var previewMode: Bool = false
-    /// Title of a tweak to auto-apply on launch, so the preview lands directly
-    /// on a variant (e.g. the StateView "Failed" state) without tapping.
     var autoApplyTweak: String?
 
     @SwiftUI.State private var didApplyPreviewTweak = false
@@ -21,30 +17,22 @@ struct PinwheelPlayground: SwiftUI.View {
         @Bindable var chrome = chrome
         return content
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            // Letterbox a simulated (smaller) device against the inverse-of-
-            // surface token so the resized frame is visible — near-black in
-            // light, light in dark — rather than blending into the content.
+            // Letterbox a simulated device against the inverse-of-surface token
+            // so the resized frame stays visible in light and dark.
             .background(
                 chrome.simulatedDevice != nil ? .primaryText : .primaryBackground
             )
-            // The frame resize is NOT implicitly animated: an
-            // `.animation(_:value: selectedDeviceIndex)` here animates the whole
-            // subtree — including the hosted item and the preference plumbing —
-            // and recursed SwiftUI's layout engine into a stack overflow that
-            // crashed the app on every device pick. The resize snaps instead.
-            // The device pill rides on top of the playground (not in the FAB's
-            // overlay window) so its shrink+fade is a plain SwiftUI transition —
-            // hosting it in the window collapsed its intrinsic frame on the way
-            // out instead of scaling in place.
+            // Don't animate the device-frame resize with `.animation(value:)`: it
+            // recurses SwiftUI's layout into a stack overflow (crashes on every
+            // device pick). The pill rides the playground, not the FAB window, so
+            // its transition scales in place instead of collapsing.
             .overlay(alignment: .top) {
                 PinwheelDevicePill()
                     .padding(.top, .spacingS)
             }
             .onAppear {
-                // Preview/deep-link renders stay isolated from interactive
-                // catalog persistence: always the host device (no restored
-                // simulation leaking a pill + letterbox into a snapshot), and
-                // no write-back below that would clobber a saved device pick.
+                // Preview renders skip device restore/persistence so a saved
+                // simulation can't leak into a snapshot or clobber a real pick.
                 if !previewMode {
                     chrome.selectedDeviceIndex = PinwheelStateStore.selectedDeviceIndex(for: selection)
                 }
@@ -77,10 +65,6 @@ struct PinwheelPlayground: SwiftUI.View {
 
     private var content: some SwiftUI.View {
         let device = selectedDevice
-        // A simulated device pins the content to its point size; the real device
-        // leaves both dimensions nil so the outer infinity frame fills it.
-        // Centering is that frame's default alignment, so no GeometryReader or
-        // `.position` is needed to letterbox a smaller device.
         return PinwheelHostedItem(item: item)
             .environment(\.horizontalSizeClass, horizontalSizeClass(for: device))
             .environment(\.verticalSizeClass, verticalSizeClass(for: device))
@@ -106,15 +90,14 @@ struct PinwheelPlayground: SwiftUI.View {
             return
         }
         didApplyPreviewTweak = true
-        // Defer past the current view update before mutating the example's state.
+        // Defer past the current view update — mutating state mid-update is undefined.
         DispatchQueue.main.async {
             tweak.applyAsPreviewVariant()
         }
     }
 
-    /// Dumps the current component's tweak titles (one per line) to the app's
-    /// Documents directory so external tooling — e.g. `Scripts/preview-all.sh` —
-    /// can enumerate variants without parsing source. Preview-mode only.
+    // Writes tweak titles (one per line) to Documents/pinwheel-preview-tweaks.txt;
+    // `Scripts/preview-all.sh` reads that file to enumerate a component's variants.
     private func writePreviewTweakTitles(_ titles: [String]) {
         guard let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
             return
@@ -145,15 +128,10 @@ struct PinwheelPlayground: SwiftUI.View {
     }
 }
 
-/// The floating pill showing the simulated device, pinned to the top of the
-/// playground and persisting after the settings sheet is dismissed. An indicator —
-/// only the reset `×` is interactive. Renders nothing on the real device.
 private struct PinwheelDevicePill: SwiftUI.View {
     @Environment(PinwheelChrome.self) private var chrome
 
     var body: some SwiftUI.View {
-        // Keyed on the same visibility the FAB uses, so closing dismisses both
-        // together and the pill's reset animates away.
         ZStack {
             if chrome.isDevicePillVisible, let device = chrome.simulatedDevice {
                 pill(for: device)
@@ -168,8 +146,6 @@ private struct PinwheelDevicePill: SwiftUI.View {
             Image(systemName: "iphone.gen3")
             PinLabel(device.title).font(.caption)
 
-            // Clearing the index both fades the pill and resizes the frame back to
-            // full — the playground animates on `selectedDeviceIndex`.
             SwiftUI.Button {
                 chrome.selectedDeviceIndex = nil
             } label: {
@@ -189,13 +165,8 @@ private struct PinwheelDevicePill: SwiftUI.View {
     }
 }
 
-/// Hosts a catalog item's SwiftUI view, building it exactly once (in `@State`) so
-/// its identity, `@State`, and emitted tweak preferences stay stable across
-/// playground re-renders — opening the settings sheet re-renders the playground,
-/// and rebuilding `item.swiftUIView()` each time would recreate the hosted view
-/// and transiently reset its tweak preference to empty (the settings sheet then
-/// showed no tweaks). One playground hosts one item, so identity is naturally
-/// stable for the playground's lifetime.
+// Builds the item's view once (in `@State`) so playground re-renders don't
+// recreate it and reset its emitted tweak preference to empty.
 private struct PinwheelHostedItem: SwiftUI.View {
     @SwiftUI.State private var view: AnyView
 
@@ -208,9 +179,6 @@ private struct PinwheelHostedItem: SwiftUI.View {
     }
 }
 
-/// The playground's settings: a tweaks-only "Options" screen with a device-icon
-/// nav button that pushes the device list. Devices are kept off the Options
-/// screen — selecting one resizes the playground and surfaces the device pill.
 private struct PinwheelSettingsView: SwiftUI.View {
     let tweaks: [PinwheelTweak]
     @SwiftUI.Binding var selectedDeviceIndex: Int?
@@ -283,8 +251,6 @@ private struct PinwheelSettingsView: SwiftUI.View {
     }
 }
 
-/// The pushed device list. Disabled devices (too big for the screen) are dimmed;
-/// the selected one is checked. Resetting to the real device is via the pill's `×`.
 private struct PinwheelDeviceList: SwiftUI.View {
     @SwiftUI.Binding var selectedIndex: Int?
 
@@ -323,7 +289,6 @@ private struct PinwheelDeviceList: SwiftUI.View {
         }
     }
 
-    /// With no explicit selection, the current (real) device is the active one.
     private func isSelected(_ index: Int, _ device: Device) -> Bool {
         if let selectedIndex { return selectedIndex == index }
         return device.isCurrent

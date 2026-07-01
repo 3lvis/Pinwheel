@@ -1,8 +1,6 @@
 import UIKit
 import Pinwheel
 
-/// Demos the data-source path (`init(dataSource:)`) — the dynamic-content
-/// counterpart to the static-array `UIKitPinTableViewExample`.
 class UIKitPinDataSourceTableViewExample: UIKitPinView, Tweakable {
     private var rowCount = 6
 

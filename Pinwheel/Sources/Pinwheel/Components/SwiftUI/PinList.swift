@@ -1,18 +1,5 @@
 import SwiftUI
 
-/// SwiftUI-native themed list with a built-in loading / empty / failed state —
-/// the SwiftUI counterpart of `UIKitPinTableView`. `.loaded` renders the themed
-/// rows; any other `PinState` renders a `PinStateView` overlay (reusing the same
-/// state machine the UIKit table uses).
-///
-/// ```swift
-/// PinList(state: phase, rows: [
-///     .text("Only title"),
-///     .text("Title", subtitle: "sub", detail: "Detail", chevron: true) { open() },
-///     .text("Is disabled", enabled: false),
-///     .toggle("Notifications", isOn: $on),
-/// ], onRetry: retry)
-/// ```
 public struct PinList: SwiftUI.View {
     private let state: PinState
     private let rows: [Row]
@@ -27,8 +14,7 @@ public struct PinList: SwiftUI.View {
     public var body: some SwiftUI.View {
         switch state {
         case .loaded:
-            // Rows are a fixed value array per render, so positional identity is
-            // stable; there is no per-row id to key on.
+            // No per-row id to key on; positional identity is stable because rows are a fixed value array per render.
             List(Array(rows.enumerated()), id: \.offset) { _, row in
                 row.listRowBackground(PinwheelTheme.Colors.primaryBackground)
             }
@@ -42,8 +28,6 @@ public struct PinList: SwiftUI.View {
 }
 
 public extension PinList {
-    /// A row in a `PinList`. Built with the `.text` / `.toggle` factories so the
-    /// common case stays terse (defaults) while toggles carry a `Binding`.
     struct Row: SwiftUI.View {
         private enum Kind {
             case text(subtitle: String?, detail: String?, chevron: Bool, enabled: Bool, action: (() -> Void)?)
@@ -58,9 +42,6 @@ public extension PinList {
             self.kind = kind
         }
 
-        /// A text row: title, optional subtitle, optional trailing detail, an
-        /// optional chevron, and an optional tap `action`. `enabled: false` dims
-        /// it and makes it non-interactive.
         public static func text(
             _ title: String,
             subtitle: String? = nil,
@@ -72,8 +53,6 @@ public extension PinList {
             Row(title: title, kind: .text(subtitle: subtitle, detail: detail, chevron: chevron, enabled: enabled, action: action))
         }
 
-        /// A switch row bound to `isOn`. `enabled: false` dims it and makes it
-        /// non-interactive.
         public static func toggle(_ title: String, subtitle: String? = nil, enabled: Bool = true, isOn: Binding<Bool>) -> Row {
             Row(title: title, kind: .toggle(subtitle: subtitle, enabled: enabled, isOn: isOn))
         }

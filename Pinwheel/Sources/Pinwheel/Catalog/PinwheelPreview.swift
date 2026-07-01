@@ -1,20 +1,8 @@
 import Foundation
 import SwiftUI
 
-/// Renders a single catalog component in isolation, resolved by id — the same
-/// isolated render the catalog shows when an item is opened, with no navigation
-/// scaffolding. This is the preview index: the existing `PinwheelSection`/
-/// `PinwheelItem` registry doubles as the list of previewable components, so a
-/// component becomes previewable the moment it is added to the catalog.
-///
-/// Two iteration paths build on this:
-/// - SwiftUI `#Preview` — `PinwheelPreview("button", sections: ...)`.
-/// - Deep-linking a host app straight to one component, bypassing the catalog
-///   (see `requestedID`): `simctl launch <bundle> -PinwheelPreview button`.
-///
-/// `id` accepts either a bare item id (`"button"`) or a qualified
-/// `"sectionID/itemID"` (`"components/button"`) to disambiguate items that share
-/// an id across sections.
+/// Renders one catalog component by id. `id` is a bare item id (`"button"`) or a
+/// qualified `"sectionID/itemID"` to disambiguate items that share an id.
 public struct PinwheelPreview: SwiftUI.View {
     private let sections: [PinwheelSection]
     private let id: String
@@ -55,8 +43,6 @@ public struct PinwheelPreview: SwiftUI.View {
         }
     }
 
-    /// Resolves a bare item id (`"button"`) or a qualified `"sectionID/itemID"`
-    /// to its section + item, or nil if absent.
     private static func resolve(
         id rawID: String,
         in sections: [PinwheelSection]
@@ -84,8 +70,6 @@ public struct PinwheelPreview: SwiftUI.View {
     }
 }
 
-/// A compact label baked into the preview render so a snapshot identifies the
-/// component (and active variant) without relying on the file name.
 private struct PinwheelPreviewCaption: SwiftUI.View {
     let id: String
     let variant: String?
@@ -102,20 +86,10 @@ private struct PinwheelPreviewCaption: SwiftUI.View {
 }
 
 public extension PinwheelPreview {
-    /// The component id requested for an isolated preview launch, if any — read
-    /// from the `-PinwheelPreview <id>` launch argument or the
-    /// `PINWHEEL_PREVIEW` environment variable. A host app branches on this to
-    /// deep-link straight to one component:
-    ///
-    /// ```swift
-    /// if let id = PinwheelPreview.requestedID {
-    ///     PinwheelPreview(id, sections: allSections)
-    /// } else {
-    ///     PinwheelCatalog { ... }
-    /// }
-    /// ```
+    /// The component id for an isolated preview launch: the `-PinwheelPreview <id>`
+    /// launch argument or the `PINWHEEL_PREVIEW` env var, else nil.
     static var requestedID: String? {
-        // UserDefaults surfaces `-PinwheelPreview <value>` launch arguments.
+        // `-key value` launch args are surfaced as UserDefaults values.
         if let argument = UserDefaults.standard.string(forKey: "PinwheelPreview"),
            !argument.isEmpty {
             return argument
@@ -129,10 +103,8 @@ public extension PinwheelPreview {
         return nil
     }
 
-    /// The tweak/variant to auto-apply on a preview launch, if any — read from
-    /// the `-PinwheelPreviewTweak <title>` launch argument or the
-    /// `PINWHEEL_PREVIEW_TWEAK` environment variable. Lets tooling deep-link
-    /// straight to a variant (e.g. the StateView "Failed" state).
+    /// The tweak/variant to auto-apply on a preview launch: the
+    /// `-PinwheelPreviewTweak <title>` launch argument or `PINWHEEL_PREVIEW_TWEAK`, else nil.
     static var requestedTweak: String? {
         if let argument = UserDefaults.standard.string(forKey: "PinwheelPreviewTweak"),
            !argument.isEmpty {

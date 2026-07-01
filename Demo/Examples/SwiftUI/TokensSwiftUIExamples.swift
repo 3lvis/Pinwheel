@@ -2,7 +2,6 @@ import SwiftUI
 import Pinwheel
 
 struct PinFontExample: SwiftUI.View {
-    // The themed typography surface (provider-backed), mirroring UIKitPinFontExample.
     private let styles: [(String, PinTextStyle)] = [
         ("Title", .title),
         ("Subtitle", .subtitle),

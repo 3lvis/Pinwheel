@@ -1,7 +1,6 @@
 import SwiftUI
 import UIKit
 
-/// UIKit-facing style for `UIKitPinButton`, mapped onto the SwiftUI `PinButton.Style`.
 public enum UIKitPinButtonStyle {
     case primary
     case secondary
@@ -25,11 +24,6 @@ public enum UIKitPinButtonStyle {
     }
 }
 
-/// UIKit-friendly host over the SwiftUI `PinButton`. There is a single button
-/// implementation — the SwiftUI `PinButton` — and this is a thin shell that gives
-/// a hybrid UIKit app the imperative ergonomics it expects (title / isEnabled /
-/// isLoading mutation and target-action), so no SwiftUI knowledge is needed at the
-/// call site.
 public final class UIKitPinButton: UIControl {
     private let systemImage: String?
     private let font: PinTextStyle
@@ -40,7 +34,7 @@ public final class UIKitPinButton: UIControl {
     public var isLoading: Bool = false { didSet { reload() } }
     public override var isEnabled: Bool { didSet { reload() } }
 
-    /// Modern tap handler. `addTarget(_:action:for: .touchUpInside)` also works.
+    /// `addTarget(_:action:for: .touchUpInside)` also fires.
     public var onTap: (() -> Void)?
 
     public init(
@@ -71,7 +65,6 @@ public final class UIKitPinButton: UIControl {
         fatalError("init(coder:) has not been implemented")
     }
 
-    /// Compatibility with the old UIKit API.
     public func showActivityIndicator(_ shouldShow: Bool) {
         isLoading = shouldShow
     }

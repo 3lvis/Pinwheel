@@ -1,8 +1,6 @@
 import SwiftUI
 
-/// SwiftUI-native counterpart of the UIKit state view. Renders a centered
-/// loading / empty / failed placeholder; `.loaded` renders nothing, so it can
-/// sit as an overlay that reveals the underlying content once loaded.
+/// `.loaded` renders nothing, so this can sit as an overlay that reveals the underlying content once loaded.
 public struct PinStateView: SwiftUI.View {
     private let state: PinState
     private let onAction: () -> Void

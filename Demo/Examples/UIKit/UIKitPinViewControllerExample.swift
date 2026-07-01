@@ -1,9 +1,6 @@
 import UIKit
 import Pinwheel
 
-/// Demos the `PinwheelItem(_:viewController:)` seam by hosting a
-/// `UIKitPinStateView` inside a raw `UIViewController` — same state tweaks and
-/// retry reaction as the `view:`-hosted `UIKitPinStateViewExample`.
 class UIKitPinViewControllerExample: UIViewController, Tweakable {
     lazy var tweaks: [Tweak] = {
         return [

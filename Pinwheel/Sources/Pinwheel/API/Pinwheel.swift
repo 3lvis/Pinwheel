@@ -7,16 +7,14 @@ public enum TabletDisplayMode {
     case fullscreen
 }
 
-/// How a catalog item is presented when opened.
 public enum PinwheelPresentation {
     case medium
     case large
     case fullscreen
 }
 
-/// Orthogonal labels a catalog item carries for browsing/filtering — the world
-/// an example lives in, so SwiftUI/UIKit is a tag on a concept-grouped item
-/// rather than its own section. `rawValue` is the chip text.
+/// A world tag on a concept-grouped item, so SwiftUI/UIKit is a filter rather
+/// than its own section. `rawValue` is the chip text.
 public enum PinTag: String, Hashable, Sendable {
     case swiftUI = "SwiftUI"
     case uiKit = "UIKit"
@@ -72,8 +70,7 @@ public struct PinwheelSection {
     public let title: String
     public let items: [PinwheelItem]
 
-    /// Stable identity for persistence — the title slugified. Section titles are
-    /// unique within a catalog.
+    /// Slugified title; must be unique within a catalog since persistence keys off it.
     public var id: String {
         title.pinwheelGeneratedID
     }
@@ -101,16 +98,14 @@ public struct PinwheelItem {
     public let tags: [PinTag]
     private let makeSwiftUIView: () -> AnyView
 
-    /// Stable identity for persistence and deep-links: the title slugified and
-    /// prefixed by any tags, so same-titled items in different worlds (SwiftUI
-    /// "Font" vs UIKit "Font") get distinct ids. Title + tags must be unique
-    /// within a section.
+    /// Slugified title prefixed by tags, so same-titled items in different worlds
+    /// (SwiftUI "Font" vs UIKit "Font") get distinct ids. Title + tags must be
+    /// unique within a section.
     public var id: String {
         PinwheelItem.generatedID(title: title, tags: tags)
     }
 
-    /// The id an item with this `title` and `tags` resolves to — lets callers
-    /// form a deep-link (`-PinwheelPreview <id>`) without hardcoding the slug.
+    /// Lets callers form a deep-link (`-PinwheelPreview <id>`) without hardcoding the slug.
     nonisolated public static func generatedID(title: String, tags: [PinTag] = []) -> String {
         return (tags.map(\.rawValue) + [title]).joined(separator: " ").pinwheelGeneratedID
     }
@@ -161,8 +156,6 @@ public struct PinwheelItem {
         _ title: String,
         view: ViewType.Type
     ) {
-        // Shared by the `makeSwiftUIView` closure below so the hosted view is
-        // created once and reused (see the note at its use site).
         var sharedHostedView: ViewType?
         self.init(
             title: title,
@@ -172,12 +165,9 @@ public struct PinwheelItem {
             constrainToBottomSafeArea: true,
             tabletDisplayMode: .fullscreen,
             makeSwiftUIView: {
-                // Build the hosted view once and reuse it across playground
-                // re-renders. The bridged tweak closures capture this instance,
-                // and `PinwheelUIKitViewController` hosts the same one — a fresh
-                // `ViewType` per call would leave the tweaks mutating an
-                // off-screen instance, so UIKit tweaks appeared to do nothing
-                // (the displayed label never changed) under nested presentation.
+                // Reuse one instance across re-renders: the tweak closures capture
+                // it, so a fresh view per call would leave tweaks mutating an
+                // off-screen copy (they'd silently no-op).
                 let view = sharedHostedView ?? {
                     let created = ViewType(frame: .zero)
                     sharedHostedView = created
@@ -215,10 +205,9 @@ public struct PinwheelItem {
         _ title: String,
         viewController: @escaping () -> UIViewController
     ) {
-        // Build the hosted controller once and reuse it across playground
-        // re-renders, mirroring the `view:` initializer: the bridged tweak
-        // closures capture this instance, so a fresh controller per render would
-        // leave them mutating an off-screen copy (tweaks silently no-op).
+        // Reuse one instance across re-renders: the tweak closures capture it, so
+        // a fresh controller per call would leave tweaks mutating an off-screen
+        // copy (they'd silently no-op).
         var sharedViewController: UIViewController?
         self.init(
             title: title,
@@ -369,7 +358,7 @@ enum PinwheelStateStore {
     private static let selectedSectionIDKey = "Pinwheel.SelectedSectionID"
     private static let selectedItemIDKey = "Pinwheel.SelectedItemID"
     private static let selectedDeviceBySelectionKey = "Pinwheel.SelectedDeviceBySelection"
-    // Legacy key retained so the persisted FAB corner survives this consolidation.
+    // Legacy key retained so the persisted FAB corner survives.
     private static let floatingControlsCornerKey = "lastCornerForTweakingButtonKey"
 
     static var selectedSectionID: String? {
@@ -386,7 +375,6 @@ enum PinwheelStateStore {
         UserDefaults.standard.removeObject(forKey: selectedItemIDKey)
     }
 
-    /// Index of the screen corner the floating controls last settled in.
     static var floatingControlsCorner: Int? {
         get { UserDefaults.standard.object(forKey: floatingControlsCornerKey) as? Int }
         set {
