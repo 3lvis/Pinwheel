@@ -361,7 +361,12 @@ private extension String {
             .split(separator: "-")
             .joined(separator: "-")
 
-        return dashed.isEmpty ? UUID().uuidString : dashed
+        if !dashed.isEmpty { return dashed }
+        // `id` is computed, so a random fallback would re-roll on every read and
+        // break persistence/deep-links. Derive a deterministic id from the scalar
+        // code points for titles that slugify to empty (emoji/punctuation-only).
+        let hex = unicodeScalars.map { String($0.value, radix: 16) }.joined(separator: "-")
+        return hex.isEmpty ? "untitled" : hex
     }
 }
 
