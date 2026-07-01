@@ -122,6 +122,25 @@ PinwheelItem("Button") { PinButtonDemo() }.tags(.swiftUI)    // id "swiftui-butt
 PinwheelItem("Button", view: ButtonView.self).tags(.uiKit)   // id "uikit-button"
 ```
 
+## Typed component names
+
+Titles and ids are strings by default. To make them typed and refactor-safe, declare a `String` enum conforming to `PinwheelComponent` — you get typed item creation and a matching deep-link id, with no hand-written slug:
+
+```swift
+enum Catalog: String, PinwheelComponent {
+    case button = "Button"
+    case stateView = "StateView"
+}
+
+PinwheelItem(Catalog.button, view: ButtonView.self).tags(.uiKit)   // id "uikit-button"
+```
+
+Put that enum in a module your app **and** its UI-test target import (a UI-test target runs in a separate process and can't import the app). Then a preview or test deep-links by deriving the id from the same enum — one source of truth, no copied slug:
+
+```swift
+app.launchArguments += ["-PinwheelPreview", Catalog.stateView.id(.uiKit)]   // "uikit-stateview"
+```
+
 ## Previewing a Single Component
 
 Every catalog item is addressable by id, so you can render one component in isolation — no hand-written `#Preview` scaffolding. The `PinwheelSection`/`PinwheelItem` registry doubles as the preview index.

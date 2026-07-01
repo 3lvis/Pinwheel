@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		2893C64C2A48908700039B8A /* Pinwheel in Frameworks */ = {isa = PBXBuildFile; productRef = 2893C64B2A48908700039B8A /* Pinwheel */; };
+		BBBB00000000000000CA7104 /* DemoCatalog in Frameworks */ = {isa = PBXBuildFile; productRef = BBBB00000000000000CA7102 /* DemoCatalog */; };
+		BBBB00000000000000CA7105 /* DemoCatalog in Frameworks */ = {isa = PBXBuildFile; productRef = BBBB00000000000000CA7103 /* DemoCatalog */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +48,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BBBB00000000000000CA7105 /* DemoCatalog in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -54,6 +57,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2893C64C2A48908700039B8A /* Pinwheel in Frameworks */,
+				BBBB00000000000000CA7104 /* DemoCatalog in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -108,6 +112,7 @@
 			);
 			name = DemoUITests;
 			packageProductDependencies = (
+				BBBB00000000000000CA7103 /* DemoCatalog */,
 			);
 			productName = DemoUITests;
 			productReference = 281F88FC2FD74E3800DEEBC7 /* DemoUITests.xctest */;
@@ -131,6 +136,7 @@
 			name = Demo;
 			packageProductDependencies = (
 				2893C64B2A48908700039B8A /* Pinwheel */,
+				BBBB00000000000000CA7102 /* DemoCatalog */,
 			);
 			productName = Demo;
 			productReference = 2847DF482A48903E009A6B8E /* Demo.app */;
@@ -166,6 +172,7 @@
 			mainGroup = 2847DF3F2A48903D009A6B8E;
 			packageReferences = (
 				2893C64D2A48908700039B8A /* XCLocalSwiftPackageReference "Pinwheel" */,
+				BBBB00000000000000CA7101 /* XCLocalSwiftPackageReference "DemoCatalog" */,
 			);
 			productRefGroup = 2847DF492A48903E009A6B8E /* Products */;
 			projectDirPath = "";
@@ -484,6 +491,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Pinwheel;
 		};
+		BBBB00000000000000CA7101 /* XCLocalSwiftPackageReference "DemoCatalog" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = DemoCatalog;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -491,6 +502,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 2893C64D2A48908700039B8A /* XCLocalSwiftPackageReference "Pinwheel" */;
 			productName = Pinwheel;
+		};
+		BBBB00000000000000CA7102 /* DemoCatalog */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BBBB00000000000000CA7101 /* XCLocalSwiftPackageReference "DemoCatalog" */;
+			productName = DemoCatalog;
+		};
+		BBBB00000000000000CA7103 /* DemoCatalog */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BBBB00000000000000CA7101 /* XCLocalSwiftPackageReference "DemoCatalog" */;
+			productName = DemoCatalog;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -1,4 +1,5 @@
 import XCTest
+import DemoCatalog
 
 /// Exercises the StateView through the deep-link preview (`-PinwheelPreview <id>`),
 /// covering interactions that screenshots can't verify headlessly: opening the
@@ -25,8 +26,8 @@ final class StateViewUITests: XCTestCase {
         app = nil
     }
 
-    private func launchPreview(_ previewID: String) {
-        app.launchArguments += ["-PinwheelPreview", previewID]
+    private func launchPreview(_ component: Catalog, _ tag: PinTag) {
+        app.launchArguments += ["-PinwheelPreview", component.id(tag)]
         app.launch()
     }
 
@@ -46,13 +47,13 @@ final class StateViewUITests: XCTestCase {
 
     @MainActor
     func testSwiftUIStateViewRendersDefaultEmptyState() {
-        launchPreview("swiftui-stateview")
+        launchPreview(.stateView, .swiftUI)
         XCTAssertTrue(app.staticTexts["Ready to Move?"].waitForExistence(timeout: defaultTimeout))
     }
 
     @MainActor
     func testSwiftUIStateViewRetryTriggersLoading() {
-        launchPreview("swiftui-stateview")
+        launchPreview(.stateView, .swiftUI)
         selectFailedState()
 
         XCTAssertTrue(app.staticTexts["Oops!"].waitForExistence(timeout: defaultTimeout))
@@ -68,7 +69,7 @@ final class StateViewUITests: XCTestCase {
 
     @MainActor
     func testUIKitStateViewBridgesTweaksAndRetry() {
-        launchPreview("uikit-stateview")
+        launchPreview(.stateView, .uiKit)
         selectFailedState()
 
         XCTAssertTrue(app.staticTexts["Oops!"].waitForExistence(timeout: defaultTimeout))
@@ -88,7 +89,7 @@ final class StateViewUITests: XCTestCase {
     /// drives the live (on-screen) instance, not an off-screen copy.
     @MainActor
     func testUIKitViewControllerStateViewBridgesTweaksAndRetry() {
-        launchPreview("uikit-viewcontroller")
+        launchPreview(.viewController, .uiKit)
         selectFailedState()
 
         XCTAssertTrue(app.staticTexts["Oops!"].waitForExistence(timeout: defaultTimeout))
