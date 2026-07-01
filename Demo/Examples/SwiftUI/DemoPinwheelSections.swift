@@ -4,69 +4,40 @@ import SwiftUI
 @MainActor
 enum DemoPinwheelSections {
     static var all: [PinwheelSection] {
-        [tokens, components, recyclable, uikit]
+        [tokens, components, screens]
     }
 
     static var tokens: PinwheelSection {
-        PinwheelSection("Tokens", id: "tokens") {
-            PinwheelItem("Font", id: "font") {
-                PinFontExample()
-            }
-
-            PinwheelItem("Color", id: "color") {
-                PinColorExample()
-            }
-
-            PinwheelItem("Spacing", id: "spacing") {
-                PinSpacingExample()
-            }
+        PinwheelSection(.tokens) {
+            PinwheelItem(.font) { PinFontExample() }.tags(.swiftUI)
+            PinwheelItem(.color) { PinColorExample() }.tags(.swiftUI)
+            PinwheelItem(.spacing) { PinSpacingExample() }.tags(.swiftUI)
+            PinwheelItem(.font, view: UIKitPinFontExample.self).tags(.uiKit)
+            PinwheelItem(.color, view: UIKitPinColorExample.self).tags(.uiKit)
+            PinwheelItem(.spacing, view: UIKitPinSpacingExample.self).tags(.uiKit)
         }
     }
 
     static var components: PinwheelSection {
-        PinwheelSection("Components", id: "components") {
-            PinwheelItem("Label", id: "label") {
-                PinLabelExample()
-            }
-
-            PinwheelItem("Tweakable", id: "tweakable") {
-                PinTweakableExample()
-            }
-
-            PinwheelItem("Button", id: "button") {
-                PinButtonExample()
-            }
-
-            PinwheelItem("StateView", id: "state-view") {
-                PinStateViewExample()
-            }
+        PinwheelSection(.components) {
+            PinwheelItem(.label) { PinLabelExample() }.tags(.swiftUI)
+            PinwheelItem(.tweakable) { PinTweakableExample() }.tags(.swiftUI)
+            PinwheelItem(.button) { PinButtonExample() }.tags(.swiftUI)
+            PinwheelItem(.stateView) { PinStateViewExample() }.tags(.swiftUI)
+            PinwheelItem(.tableView) { PinTableViewExample() }.presentation(.medium).tags(.swiftUI)
+            PinwheelItem(.label, view: UIKitPinLabelExample.self).tags(.uiKit)
+            PinwheelItem(.tweakable, view: UIKitPinTweakableExample.self).tags(.uiKit)
+            PinwheelItem(.button, view: UIKitPinButtonExample.self).tags(.uiKit)
+            PinwheelItem(.stateView, view: UIKitPinStateViewExample.self).tags(.uiKit)
+            PinwheelItem(.tableView, view: UIKitPinTableViewExample.self).presentation(.medium).tags(.uiKit)
+            PinwheelItem(.dataSourceTableView, view: UIKitPinDataSourceTableViewExample.self).presentation(.medium).tags(.uiKit)
         }
     }
 
-    static var recyclable: PinwheelSection {
-        PinwheelSection("Recyclable", id: "recyclable") {
-            PinwheelItem("TableView", id: "table-view") {
-                PinTableViewExample()
-            }
-            .presentation(.medium)
-        }
-    }
-
-    static var uikit: PinwheelSection {
-        PinwheelSection("UIKit", id: "uikit") {
-            PinwheelItem("UIKit Font", id: "uikit-font", view: UIKitPinFontExample.self)
-            PinwheelItem("UIKit Color", id: "uikit-color", view: UIKitPinColorExample.self)
-            PinwheelItem("UIKit Spacing", id: "uikit-spacing", view: UIKitPinSpacingExample.self)
-            PinwheelItem("UIKit Label", id: "uikit-label", view: UIKitPinLabelExample.self)
-            PinwheelItem("UIKit Tweakable", id: "uikit-tweakable", view: UIKitPinTweakableExample.self)
-            PinwheelItem("UIKit FullscreenView", id: "uikit-fullscreen-view", view: UIKitPinFullscreenViewExample.self)
-            PinwheelItem("UIKit Button", id: "uikit-button", view: UIKitPinButtonExample.self)
-            PinwheelItem("UIKit StateView", id: "uikit-state-view", view: UIKitPinStateViewExample.self)
-            PinwheelItem("UIKit TableView", id: "uikit-table-view", view: UIKitPinTableViewExample.self)
-                .presentation(.medium)
-            PinwheelItem("UIKit DataSource TableView", id: "uikit-datasource-table-view", view: UIKitPinDataSourceTableViewExample.self)
-                .presentation(.medium)
-            PinwheelItem("UIKit ViewController", id: "uikit-view-controller", viewController: { UIKitPinViewControllerExample() })
+    static var screens: PinwheelSection {
+        PinwheelSection(.screens) {
+            PinwheelItem(.fullscreenView, view: UIKitPinFullscreenViewExample.self).tags(.uiKit)
+            PinwheelItem(.viewController, viewController: { UIKitPinViewControllerExample() }).tags(.uiKit)
         }
     }
 }
@@ -74,10 +45,10 @@ enum DemoPinwheelSections {
 #if DEBUG
 /// Fast visual iteration on any catalog component, no throwaway `#Preview`
 /// needed: change `previewComponentID` to any id below and render this preview.
-/// Ids are bare (`"button"`) or qualified (`"components/button"`); an unknown id
-/// renders a list of every available id. For a running simulator instead,
-/// deep-link the Demo: `simctl launch <bundle> -PinwheelPreview button`.
-private let previewComponentID = "uikit-fullscreen-view"
+/// Ids are bare (`"swiftui-button"`) or qualified (`"components/swiftui-button"`);
+/// an unknown id renders a list of every available id. For a running simulator
+/// instead, deep-link the Demo: `simctl launch <bundle> -PinwheelPreview swiftui-button`.
+private let previewComponentID = Component.fullscreenView.id(.uiKit)
 
 #Preview("Pinwheel Component") {
     PinwheelPreview(previewComponentID, sections: DemoPinwheelSections.all)

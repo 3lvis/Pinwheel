@@ -44,12 +44,12 @@ struct DesignSystemDemoApp: App {
     var body: some Scene {
         WindowGroup {
             PinwheelCatalog {
-                PinwheelSection("Components", id: "components") {
-                    PinwheelItem("Primary Button", id: "primary-button") {
+                PinwheelSection("Components") {
+                    PinwheelItem("Primary Button") {
                         PrimaryButtonDemo()
                     }
 
-                    PinwheelItem("Empty State", id: "empty-state") {
+                    PinwheelItem("Empty State") {
                         EmptyStateDemo()
                     }
                     .presentation(.medium)
@@ -60,7 +60,7 @@ struct DesignSystemDemoApp: App {
 }
 ```
 
-Use explicit IDs for sections and items when possible. Pinwheel persists the selected section, item, and simulated device by ID, so stable IDs survive title changes and reordering.
+Sections and items derive a stable id from their title — an item also folds in its `tags` (see [Tags](#tags)). Pinwheel persists the selected section, item, and simulated device by that id, so selection survives reordering. Titles must be unique within a section; two takes on the same component are disambiguated by their tags.
 
 ## Tweaks
 
@@ -90,7 +90,7 @@ struct PrimaryButtonDemo: View {
 The primary initializer stays small:
 
 ```swift
-PinwheelItem("Profile Card", id: "profile-card") {
+PinwheelItem("Profile Card") {
     ProfileCardDemo()
 }
 ```
@@ -98,7 +98,7 @@ PinwheelItem("Profile Card", id: "profile-card") {
 Advanced behavior is configured with fluent modifiers:
 
 ```swift
-PinwheelItem("Booking Sheet", id: "booking-sheet") {
+PinwheelItem("Booking Sheet") {
     BookingSheetDemo()
 }
 .presentation(.medium)
@@ -113,6 +113,15 @@ Available presentations:
 - `.medium`
 - `.large`
 
+## Tags
+
+Tag an item with the world it belongs to. Tags render as a filter of pills under the section picker, and they fold into the item's id — so the SwiftUI and UIKit takes on the same component get distinct ids without a manual one, and share one section:
+
+```swift
+PinwheelItem("Button") { PinButtonDemo() }.tags(.swiftUI)    // id "swiftui-button"
+PinwheelItem("Button", view: ButtonView.self).tags(.uiKit)   // id "uikit-button"
+```
+
 ## Previewing a Single Component
 
 Every catalog item is addressable by id, so you can render one component in isolation — no hand-written `#Preview` scaffolding. The `PinwheelSection`/`PinwheelItem` registry doubles as the preview index.
@@ -121,8 +130,8 @@ In SwiftUI (including an Xcode `#Preview`):
 
 ```swift
 PinwheelPreview("primary-button") {
-    PinwheelSection("Components", id: "components") {
-        PinwheelItem("Primary Button", id: "primary-button") { PrimaryButtonDemo() }
+    PinwheelSection("Components") {
+        PinwheelItem("Primary Button") { PrimaryButtonDemo() }
     }
 }
 ```
@@ -150,16 +159,15 @@ xcrun simctl launch <booted-device> com.example.app -PinwheelPreview primary-but
 UIKit views can still be shown directly:
 
 ```swift
-PinwheelItem("UIKit Profile Card", id: "uikit-profile-card", view: ProfileCardView.self)
+PinwheelItem("Profile Card", view: ProfileCardView.self).tags(.uiKit)
 ```
 
 UIKit view controllers can be wrapped with a factory:
 
 ```swift
-PinwheelItem("UIKit Checkout", id: "uikit-checkout") {
-    CheckoutViewController()
-}
-.presentation(.large)
+PinwheelItem("Checkout", viewController: { CheckoutViewController() })
+    .tags(.uiKit)
+    .presentation(.large)
 ```
 
 SwiftUI can also embed UIKit explicitly:
@@ -186,13 +194,13 @@ Pinwheel can preview a demo in known iPhone and iPad sizes from the floating set
 
 ## Demo App
 
-The demo app uses native SwiftUI examples as the default sections:
+The demo app groups examples by concept into three sections:
 
 - `Tokens`
 - `Components`
-- `Recyclable`
+- `Screens`
 
-Legacy UIKit examples are preserved in a dedicated `UIKit` section.
+Each component's SwiftUI and UIKit takes live in the same section, distinguished by a `SwiftUI` / `UIKit` tag rather than split into separate sections.
 
 ## Migration
 

@@ -46,13 +46,13 @@ final class StateViewUITests: XCTestCase {
 
     @MainActor
     func testSwiftUIStateViewRendersDefaultEmptyState() {
-        launchPreview("state-view")
+        launchPreview("swiftui-stateview")
         XCTAssertTrue(app.staticTexts["Ready to Move?"].waitForExistence(timeout: defaultTimeout))
     }
 
     @MainActor
     func testSwiftUIStateViewRetryTriggersLoading() {
-        launchPreview("state-view")
+        launchPreview("swiftui-stateview")
         selectFailedState()
 
         XCTAssertTrue(app.staticTexts["Oops!"].waitForExistence(timeout: defaultTimeout))
@@ -68,7 +68,7 @@ final class StateViewUITests: XCTestCase {
 
     @MainActor
     func testUIKitStateViewBridgesTweaksAndRetry() {
-        launchPreview("uikit-state-view")
+        launchPreview("uikit-stateview")
         selectFailedState()
 
         XCTAssertTrue(app.staticTexts["Oops!"].waitForExistence(timeout: defaultTimeout))
@@ -88,7 +88,7 @@ final class StateViewUITests: XCTestCase {
     /// drives the live (on-screen) instance, not an off-screen copy.
     @MainActor
     func testUIKitViewControllerStateViewBridgesTweaksAndRetry() {
-        launchPreview("uikit-view-controller")
+        launchPreview("uikit-viewcontroller")
         selectFailedState()
 
         XCTAssertTrue(app.staticTexts["Oops!"].waitForExistence(timeout: defaultTimeout))

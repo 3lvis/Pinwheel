@@ -41,19 +41,21 @@ final class TweakableUITests: XCTestCase {
     /// opened only when the current section differs from `section`, the section
     /// button is unambiguous (it can't collide with the section-picker button,
     /// which is labelled with the *current* section).
-    private func openCatalogItem(_ itemName: String, section: String) {
+    private func openCatalogItem(_ itemID: String, section: String) {
         // -UITesting resets state, so the catalog always launches to the list —
-        // there's no restored item to dismiss first.
+        // there's no restored item to dismiss first. Items are matched by their
+        // stable id, not title: with world (SwiftUI/UIKit) now a tag, two rows in
+        // a section can share a title (e.g. both "Tweakable").
         XCTAssertTrue(app.buttons["pinwheel.sectionPicker"].waitForExistence(timeout: defaultTimeout),
                       "section picker should exist")
 
-        let item = app.buttons[itemName]
+        let item = app.buttons[itemID]
         if !item.exists {
             app.buttons["pinwheel.sectionPicker"].tap()
             let sectionButton = app.buttons[section]
             XCTAssertTrue(sectionButton.waitForExistence(timeout: defaultTimeout), "\(section) section should be listed")
             sectionButton.tap()
-            XCTAssertTrue(item.waitForExistence(timeout: defaultTimeout), "\(itemName) should be listed")
+            XCTAssertTrue(item.waitForExistence(timeout: defaultTimeout), "\(itemID) should be listed")
         }
         item.tap()
     }
@@ -62,7 +64,7 @@ final class TweakableUITests: XCTestCase {
 
     @MainActor
     func testSwiftUIActionTweakUpdatesContent() {
-        launchPreview("tweakable")
+        launchPreview("swiftui-tweakable")
         openSettings()
 
         let option1 = app.buttons["Option 1"]
@@ -75,7 +77,7 @@ final class TweakableUITests: XCTestCase {
 
     @MainActor
     func testSwiftUIToggleTweakUpdatesContent() {
-        launchPreview("tweakable")
+        launchPreview("swiftui-tweakable")
         openSettings()
 
         let option3 = app.switches["Option 3, Toggle-backed option"]
@@ -91,7 +93,7 @@ final class TweakableUITests: XCTestCase {
 
     @MainActor
     func testSwiftUISecondActionTweakStillUpdatesContent() {
-        launchPreview("tweakable")
+        launchPreview("swiftui-tweakable")
 
         openSettings()
         let option1 = app.buttons["Option 1"]
@@ -115,7 +117,7 @@ final class TweakableUITests: XCTestCase {
     func testCatalogTweakableActionUpdatesContent() {
         app.launch()
 
-        openCatalogItem("Tweakable", section: "Components")
+        openCatalogItem("swiftui-tweakable", section: "Components")
 
         openSettings()
         let option1 = app.buttons["Option 1"]
@@ -132,7 +134,7 @@ final class TweakableUITests: XCTestCase {
     func testCatalogUIKitTweakableActionUpdatesContent() {
         app.launch()
 
-        openCatalogItem("UIKit Tweakable", section: "UIKit")
+        openCatalogItem("uikit-tweakable", section: "Components")
 
         openSettings()
         let option1 = app.buttons["Option 1"]
@@ -147,7 +149,7 @@ final class TweakableUITests: XCTestCase {
 
     @MainActor
     func testSelectingSimulatedDeviceDoesNotCrash() {
-        launchPreview("tweakable")
+        launchPreview("swiftui-tweakable")
         openSettings()
 
         let deviceButton = app.buttons["iphone.gen3"]
