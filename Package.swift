@@ -1,4 +1,4 @@
-// swift-tools-version: 6.3
+// swift-tools-version: 6.2
 // Root manifest for external `.package(url:)` consumers; mirrors
 // Pinwheel/Package.swift — keep dependencies in sync across both.
 

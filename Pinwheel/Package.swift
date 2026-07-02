@@ -1,4 +1,4 @@
-// swift-tools-version: 6.3
+// swift-tools-version: 6.2
 // Manifest used by the Demo; the root Package.swift re-exposes this for external
 // `.package(url:)` consumers — keep dependencies in sync across both.
 
