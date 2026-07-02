@@ -17,12 +17,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # `latest-stable` currently resolves to an Xcode 26.6 Release Candidate whose
-      # XCTest/concurrency runtime hangs @MainActor unit tests; pin the 26.5 GA
-      # (matches local, passes) until 26.6 ships as GA, then revisit.
+      # Pin a GM Xcode: setup-xcode's `latest-stable` has grabbed a 26.6 Release
+      # Candidate whose XCTest runtime hangs @MainActor tests. 26.3 is the newest
+      # GM on the runner image; if the image drops it this fails loudly at setup —
+      # bump to the newest GM then (never an RC).
       - uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '26.5'
+          xcode-version: '26.3'
 
       # Runner images roll iPhone models over time, so select an available one by
       # id instead of hardcoding a device name.
