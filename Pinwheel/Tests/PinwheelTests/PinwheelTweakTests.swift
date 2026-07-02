@@ -25,18 +25,14 @@ final class PinwheelTweakTests: XCTestCase {
         XCTAssertTrue(ran)
     }
 
-    func testBoolTweakBridgesToAToggleControl() {
-        let bridged = PinwheelTweak(BoolTweak(title: "Option", isOn: false, action: { _ in }))
-        guard case .toggle? = bridged?.control else {
+    func testBoolTweakBridgesToAToggleThatForwardsToTheUIKitAction() {
+        var received: Bool?
+        let bridged = PinwheelTweak(BoolTweak(title: "Option", isOn: false, action: { received = $0 }))
+        guard case .toggle(let binding)? = bridged?.control else {
             return XCTFail("a BoolTweak should bridge to a toggle control")
         }
-    }
-
-    func testBoolStoreForwardsToTheUIKitAction() {
-        var received: Bool?
-        let store = PinwheelTweakBoolStore(BoolTweak(title: "Option", isOn: false, action: { received = $0 }))
-        store.set(true)
-        XCTAssertEqual(received, true, "flipping the bridged value forwards to the UIKit tweak's action")
+        binding.wrappedValue = true
+        XCTAssertEqual(received, true, "flipping the bridged binding forwards to the UIKit tweak's action")
     }
 
     func testUnknownTweakKindBridgesToNil() {
