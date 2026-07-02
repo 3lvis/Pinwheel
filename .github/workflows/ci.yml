@@ -17,11 +17,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Pin a capability (newest stable Xcode on the image), not a version number,
-      # so a runner-image bump doesn't silently break the build.
+      # `latest-stable` currently resolves to an Xcode 26.6 Release Candidate whose
+      # XCTest/concurrency runtime hangs @MainActor unit tests; pin the 26.5 GA
+      # (matches local, passes) until 26.6 ships as GA, then revisit.
       - uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: latest-stable
+          xcode-version: '26.5'
 
       # Runner images roll iPhone models over time, so select an available one by
       # id instead of hardcoding a device name.
