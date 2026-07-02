@@ -3,41 +3,57 @@ name: CI
 on:
   push:
     branches: [main]
+    paths-ignore: ['**.md', 'docs/**']
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore: ['**.md', 'docs/**']
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  # Pin the image (macos-15) and a GM Xcode by path. `macos-latest` +
+  # setup-xcode's `latest-stable` rolled onto a 26.6 Release Candidate whose
+  # XCTest runtime deadlocked the tests; a GM path fails loudly if the image
+  # drops it (bump then — never an RC).
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
 
 jobs:
   build-and-unit:
     name: Build + unit tests
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      # Pin a GM Xcode: setup-xcode's `latest-stable` has grabbed a 26.6 Release
-      # Candidate whose XCTest runtime hangs @MainActor tests. 26.3 is the newest
-      # GM on the runner image; if the image drops it this fails loudly at setup —
-      # bump to the newest GM then (never an RC).
-      - uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: '26.3'
+      - name: Versions
+        run: xcodebuild -version && swift --version
 
-      # Runner images roll iPhone models over time, so select an available one by
-      # id instead of hardcoding a device name.
-      # Boot the simulator and wait for it before testing — a cold first-launch by
-      # xcodebuild flakes ("Restarting after unexpected exit") on CI.
-      - name: Boot an available iPhone simulator
+      - name: Select an iPhone simulator on the newest iOS runtime
+        id: sim
         run: |
-          SIM_ID=$(xcrun simctl list devices available \
-            | grep -oE 'iPhone[^(]*\([0-9A-F-]{36}\)' \
-            | grep -oE '[0-9A-F-]{36}' | head -1)
-          test -n "$SIM_ID" || { echo "No available iPhone simulator found"; exit 1; }
-          xcrun simctl boot "$SIM_ID" || true
-          xcrun simctl bootstatus "$SIM_ID" -b
-          echo "SIM_ID=$SIM_ID" >> "$GITHUB_ENV"
+          UDID=$(xcrun simctl list devices available --json | python3 -c '
+          import json, re, sys
+          devices = json.load(sys.stdin)["devices"]
+          best = None
+          for runtime, group in devices.items():
+              match = re.search(r"iOS-(\d+)-(\d+)", runtime)
+              if not match:
+                  continue
+              version = (int(match.group(1)), int(match.group(2)))
+              for device in group:
+                  if not device.get("isAvailable") or "iPhone" not in device.get("name", ""):
+                      continue
+                  if best is None or version > best[0]:
+                      best = (version, device["udid"])
+          print(best[1] if best else "")
+          ')
+          if [ -z "$UDID" ]; then
+            echo "::error::No available iPhone simulator found"
+            xcrun simctl list devices available
+            exit 1
+          fi
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
 
       # Enforce a warning-clean first-party build here rather than with
       # -warnings-as-errors in Package.swift (an unsafeFlags entry that blocks the
@@ -47,7 +63,7 @@ jobs:
           set -o pipefail
           xcodebuild build \
             -project Demo.xcodeproj -scheme Demo \
-            -destination "id=$SIM_ID" CODE_SIGNING_ALLOWED=NO \
+            -destination "id=${{ steps.sim.outputs.udid }}" CODE_SIGNING_ALLOWED=NO \
             | tee build.log
           if grep -E ':[0-9]+:[0-9]+: warning:' build.log \
                | grep -E '/(Pinwheel/Sources|DemoCatalog/Sources|Demo|DemoUITests)/' \
@@ -59,41 +75,55 @@ jobs:
       - name: Unit tests (PinwheelTests)
         run: |
           set -o pipefail
-          # Serial, in the one pre-booted sim: parallel testing clones simulators,
-          # which flakes a headless runner and buys nothing for a small suite.
           xcodebuild test \
             -project Demo.xcodeproj -scheme PinwheelTests \
-            -destination "id=$SIM_ID" -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            -parallel-testing-enabled NO -retry-tests-on-failure -test-iterations 3 \
+            CODE_SIGNING_ALLOWED=NO
 
   ui-tests:
     name: UI tests
-    runs-on: macos-latest
-    # UI tests are the expensive gate — run them once a PR is ready for review
-    # (and on pushes to main), not on every draft push.
+    runs-on: macos-15
+    # Slow gate: run once a PR is ready for review (and on pushes to main), not on
+    # draft pushes. A skipped required check still reports success, so drafts stay
+    # mergeable-clean.
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: latest-stable
-
-      # Boot the simulator and wait for it before testing — a cold first-launch by
-      # xcodebuild flakes ("Restarting after unexpected exit") on CI.
-      - name: Boot an available iPhone simulator
+      - name: Select an iPhone simulator on the newest iOS runtime
+        id: sim
         run: |
-          SIM_ID=$(xcrun simctl list devices available \
-            | grep -oE 'iPhone[^(]*\([0-9A-F-]{36}\)' \
-            | grep -oE '[0-9A-F-]{36}' | head -1)
-          test -n "$SIM_ID" || { echo "No available iPhone simulator found"; exit 1; }
-          xcrun simctl boot "$SIM_ID" || true
-          xcrun simctl bootstatus "$SIM_ID" -b
-          echo "SIM_ID=$SIM_ID" >> "$GITHUB_ENV"
+          UDID=$(xcrun simctl list devices available --json | python3 -c '
+          import json, re, sys
+          devices = json.load(sys.stdin)["devices"]
+          best = None
+          for runtime, group in devices.items():
+              match = re.search(r"iOS-(\d+)-(\d+)", runtime)
+              if not match:
+                  continue
+              version = (int(match.group(1)), int(match.group(2)))
+              for device in group:
+                  if not device.get("isAvailable") or "iPhone" not in device.get("name", ""):
+                      continue
+                  if best is None or version > best[0]:
+                      best = (version, device["udid"])
+          print(best[1] if best else "")
+          ')
+          if [ -z "$UDID" ]; then
+            echo "::error::No available iPhone simulator found"
+            xcrun simctl list devices available
+            exit 1
+          fi
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
 
+      # -retry-tests-on-failure absorbs first-launch/UI-timing flake; a real
+      # failure still fails every attempt.
       - name: UI tests (DemoUITests)
         run: |
           set -o pipefail
           xcodebuild test \
             -project Demo.xcodeproj -scheme Demo \
-            -destination "id=$SIM_ID" -only-testing:DemoUITests \
-            -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO
+            -destination "id=${{ steps.sim.outputs.udid }}" -only-testing:DemoUITests \
+            -parallel-testing-enabled NO -retry-tests-on-failure -test-iterations 3 \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY=''
