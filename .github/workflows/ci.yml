@@ -57,9 +57,11 @@ jobs:
       - name: Unit tests (PinwheelTests)
         run: |
           set -o pipefail
+          # Serial, in the one pre-booted sim: parallel testing clones simulators,
+          # which flakes a headless runner and buys nothing for a small suite.
           xcodebuild test \
             -project Demo.xcodeproj -scheme PinwheelTests \
-            -destination "id=$SIM_ID" CODE_SIGNING_ALLOWED=NO
+            -destination "id=$SIM_ID" -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO
 
   ui-tests:
     name: UI tests
@@ -91,4 +93,5 @@ jobs:
           set -o pipefail
           xcodebuild test \
             -project Demo.xcodeproj -scheme Demo \
-            -destination "id=$SIM_ID" -only-testing:DemoUITests CODE_SIGNING_ALLOWED=NO
+            -destination "id=$SIM_ID" -only-testing:DemoUITests \
+            -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO
