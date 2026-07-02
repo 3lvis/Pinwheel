@@ -29,7 +29,7 @@ extension PinwheelTweak {
     }
 }
 
-private final class PinwheelTweakBoolStore {
+final class PinwheelTweakBoolStore {
     private var isOn: Bool
     private let action: (Bool) -> Void
 
@@ -38,14 +38,15 @@ private final class PinwheelTweakBoolStore {
         self.action = tweak.action
     }
 
+    // Forwarding kept separate from `binding` so it's unit-testable without
+    // driving SwiftUI's Binding, which hangs in a hostless unit test.
+    func set(_ newValue: Bool) {
+        isOn = newValue
+        action(newValue)
+    }
+
     var binding: Binding<Bool> {
-        Binding(
-            get: { self.isOn },
-            set: { newValue in
-                self.isOn = newValue
-                self.action(newValue)
-            }
-        )
+        Binding(get: { self.isOn }, set: { self.set($0) })
     }
 }
 
