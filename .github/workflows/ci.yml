@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-unit:
+    name: Build + unit tests
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Pin a capability (newest stable Xcode on the image), not a version number,
+      # so a runner-image bump doesn't silently break the build.
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      # Runner images roll iPhone models over time, so select an available one by
+      # id instead of hardcoding a device name.
+      - name: Select an available iPhone simulator
+        run: |
+          SIM_ID=$(xcrun simctl list devices available \
+            | grep -oE 'iPhone[^(]*\([0-9A-F-]{36}\)' \
+            | grep -oE '[0-9A-F-]{36}' | head -1)
+          test -n "$SIM_ID" || { echo "No available iPhone simulator found"; exit 1; }
+          echo "SIM_ID=$SIM_ID" >> "$GITHUB_ENV"
+
+      # Enforce a warning-clean first-party build here rather than with
+      # -warnings-as-errors in Package.swift (an unsafeFlags entry that blocks the
+      # package from being consumed as a versioned SPM dependency).
+      - name: Build (fail on first-party warnings)
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project Demo.xcodeproj -scheme Demo \
+            -destination "id=$SIM_ID" CODE_SIGNING_ALLOWED=NO \
+            | tee build.log
+          if grep -E ':[0-9]+:[0-9]+: warning:' build.log \
+               | grep -E '/(Pinwheel/Sources|DemoCatalog/Sources|Demo|DemoUITests)/' \
+               | grep -vE '/(\.build/checkouts|DerivedData)/'; then
+            echo "::error::First-party warnings found — build must be warning-clean"
+            exit 1
+          fi
+
+      - name: Unit tests (PinwheelTests)
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project Demo.xcodeproj -scheme PinwheelTests \
+            -destination "id=$SIM_ID" CODE_SIGNING_ALLOWED=NO
+
+  ui-tests:
+    name: UI tests
+    runs-on: macos-latest
+    # UI tests are the expensive gate — run them once a PR is ready for review
+    # (and on pushes to main), not on every draft push.
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Select an available iPhone simulator
+        run: |
+          SIM_ID=$(xcrun simctl list devices available \
+            | grep -oE 'iPhone[^(]*\([0-9A-F-]{36}\)' \
+            | grep -oE '[0-9A-F-]{36}' | head -1)
+          test -n "$SIM_ID" || { echo "No available iPhone simulator found"; exit 1; }
+          echo "SIM_ID=$SIM_ID" >> "$GITHUB_ENV"
+
+      - name: UI tests (DemoUITests)
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project Demo.xcodeproj -scheme Demo \
+            -destination "id=$SIM_ID" -only-testing:DemoUITests CODE_SIGNING_ALLOWED=NO
