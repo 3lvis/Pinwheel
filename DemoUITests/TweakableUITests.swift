@@ -1,6 +1,11 @@
 import XCTest
 import DemoCatalog
 
+/// App-layer wiring for tweaks that a unit can't reach: the settings sheet →
+/// content re-render, nested catalog presentation, and UIKit hosting. The tweak
+/// model and the `Tweakable` → `PinwheelTweak` bridge logic are unit-tested in
+/// `PinwheelTweakTests`; these guard only the glue. Grow unit coverage by default
+/// — a new UI test here is the exception, justified by an app-layer fact.
 final class TweakableUITests: XCTestCase {
     private var app: XCUIApplication!
 
@@ -49,34 +54,9 @@ final class TweakableUITests: XCTestCase {
         item.tap()
     }
 
-    @MainActor
-    func testSwiftUIActionTweakUpdatesContent() {
-        launchPreview(.tweakable, .swiftUI)
-        openSettings()
-
-        let option1 = app.buttons["Option 1"]
-        XCTAssertTrue(option1.waitForExistence(timeout: defaultTimeout), "Option 1 should be listed")
-        option1.tap()
-
-        XCTAssertTrue(app.staticTexts["Chosen Option 1"].waitForExistence(timeout: defaultTimeout),
-                      "Choosing an action tweak should update the example label")
-    }
-
-    @MainActor
-    func testSwiftUIToggleTweakUpdatesContent() {
-        launchPreview(.tweakable, .swiftUI)
-        openSettings()
-
-        let option3 = app.switches["Option 3, Toggle-backed option"]
-        XCTAssertTrue(option3.waitForExistence(timeout: defaultTimeout), "Option 3 toggle should be listed")
-        // The row is a single combined element; tapping its center hits the label,
-        // so tap the trailing edge to flip the switch control itself.
-        option3.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
-
-        XCTAssertTrue(app.staticTexts["Option 3 is on"].waitForExistence(timeout: defaultTimeout),
-                      "Toggling a bool tweak should update the example label")
-    }
-
+    // KEEP: app-layer wiring — tweak preferences survive the settings sheet
+    // closing and reopening across a playground re-render. (Tweak invocation
+    // itself is unit-tested in PinwheelTweakTests.)
     @MainActor
     func testSwiftUISecondActionTweakStillUpdatesContent() {
         launchPreview(.tweakable, .swiftUI)
@@ -96,6 +76,8 @@ final class TweakableUITests: XCTestCase {
                       "A second tweak selection should still update the example label")
     }
 
+    // KEEP: app-layer wiring — the real user path (catalog list → fullScreenCover
+    // → playground → sheet) that a unit can't drive.
     @MainActor
     func testCatalogTweakableActionUpdatesContent() {
         app.launch()
@@ -111,6 +93,8 @@ final class TweakableUITests: XCTestCase {
                       "Choosing a tweak from the catalog (nested presentation) should update the label")
     }
 
+    // KEEP: app-layer wiring — the UIKit Tweakable bridge end-to-end plus hosting
+    // driving the on-screen instance (the mapping itself is in PinwheelTweakTests).
     @MainActor
     func testCatalogUIKitTweakableActionUpdatesContent() {
         app.launch()
@@ -126,6 +110,7 @@ final class TweakableUITests: XCTestCase {
                       "A UIKit tweak chosen from the catalog should update the hosted view's label")
     }
 
+    // KEEP: app-layer wiring — a SwiftUI layout-engine crash no unit can reproduce.
     @MainActor
     func testSelectingSimulatedDeviceDoesNotCrash() {
         launchPreview(.tweakable, .swiftUI)
@@ -144,18 +129,5 @@ final class TweakableUITests: XCTestCase {
         // row proves the app survived, since a crashed/hung app fails this query.
         XCTAssertTrue(app.buttons["iPhone SE (2nd & 3rd generation)"].waitForExistence(timeout: defaultTimeout),
                       "device list should stay responsive after selecting a device")
-    }
-
-    @MainActor
-    func testUIKitActionTweakUpdatesContent() {
-        launchPreview(.tweakable, .uiKit)
-        openSettings()
-
-        let option1 = app.buttons["Option 1"]
-        XCTAssertTrue(option1.waitForExistence(timeout: defaultTimeout), "bridged Option 1 should be listed")
-        option1.tap()
-
-        XCTAssertTrue(app.staticTexts["Chosen Option 1!\n\nYou can drag the button too :D"].waitForExistence(timeout: defaultTimeout),
-                      "A bridged UIKit action tweak should update the example label")
     }
 }

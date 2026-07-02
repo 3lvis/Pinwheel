@@ -43,7 +43,7 @@ public struct PinwheelPreview: SwiftUI.View {
         }
     }
 
-    private static func resolve(
+    static func resolve(
         id rawID: String,
         in sections: [PinwheelSection]
     ) -> (section: PinwheelSection, item: PinwheelItem)? {
