@@ -7,11 +7,10 @@ unchanged. Source stays the design source of truth; Figma becomes the playground
 
 ## What it does
 
-`FigmaCaptureScreen` renders a Pinwheel screen inside `FigmaCaptureHost`, which collects
-each tagged component (via an `anchorPreference` bounds sweep resolved in the screen's
-coordinate space) and writes fonno's IR to `Documents/figma-capture.json`. Reach it two
-ways: the **Screens** section of the catalog, or the `-FigmaCapture` launch arg. See
-`sample-capture.json` for a real run.
+`FigmaCaptureScreen` renders a Pinwheel screen inside `FigmaCaptureHost`, which reads the
+components' own `PinCaptureKey` descriptors, resolves each anchor to a frame in the screen's
+coordinate space, and writes fonno's IR to `Documents/figma-capture.json`. Reach it two
+ways: the **Screens** section of the catalog, or the `-FigmaCapture` launch arg.
 
 ```
 xcrun simctl launch <booted> com.nordser.pinwheel -FigmaCapture
