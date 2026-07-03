@@ -23,6 +23,7 @@ struct FigmaNode: Encodable {
     var w: Double
     var h: Double
     var fill: RGBA?
+    var fillToken: String?
     var radius: Double?
     var component: String?
     var font: FigmaFont?
@@ -42,6 +43,28 @@ struct FigmaFont: Encodable {
     let size: Double
     let weight: Int
     let color: RGBA
+    let colorToken: String?
+}
+
+// The closed set of Pinwheel color tokens. A captured component names the token it uses, so
+// Figma binds to the variable by name — no fragile colour-value matching.
+enum PinColorToken: String, CaseIterable {
+    case primaryText, secondaryText, tertiaryText, actionText, criticalText
+    case primaryBackground, secondaryBackground, actionBackground, criticalBackground
+
+    var color: Color {
+        switch self {
+        case .primaryText: return .primaryText
+        case .secondaryText: return .secondaryText
+        case .tertiaryText: return .tertiaryText
+        case .actionText: return .actionText
+        case .criticalText: return .criticalText
+        case .primaryBackground: return .primaryBackground
+        case .secondaryBackground: return .secondaryBackground
+        case .actionBackground: return .actionBackground
+        case .criticalBackground: return .criticalBackground
+        }
+    }
 }
 
 struct FigmaText: Encodable {
@@ -75,6 +98,7 @@ extension RGBA {
 struct CapturedComponent {
     let component: String
     let fill: RGBA?
+    let fillToken: String?
     let radius: Double?
     let text: String?
     let font: FigmaFont?
@@ -93,21 +117,25 @@ extension View {
     // this inside the `Pin*` views so they self-identify (no call-site tagging).
     func figmaCapture(
         component: String,
-        fill: Color? = nil,
+        fillToken: PinColorToken? = nil,
         radius: Double? = nil,
         text: String? = nil,
-        textColor: Color? = nil,
+        textColorToken: PinColorToken = .primaryText,
         fontSize: Double? = nil,
         fontWeight: Int = 400,
         fontFamily: String = "SF Pro Rounded"
     ) -> some View {
         let font = fontSize.map {
-            FigmaFont(family: fontFamily, size: $0, weight: fontWeight, color: RGBA(textColor ?? .primary))
+            FigmaFont(
+                family: fontFamily, size: $0, weight: fontWeight,
+                color: RGBA(textColorToken.color), colorToken: textColorToken.rawValue
+            )
         }
         return anchorPreference(key: CapturePreferenceKey.self, value: .bounds) { anchor in
             [CapturedComponent(
                 component: component,
-                fill: fill.map(RGBA.init),
+                fill: fillToken.map { RGBA($0.color) },
+                fillToken: fillToken?.rawValue,
                 radius: radius,
                 text: text,
                 font: font,
@@ -140,6 +168,7 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
                 tag: "component",
                 x: rect.minX, y: rect.minY, w: rect.width, h: rect.height,
                 fill: item.fill,
+                fillToken: item.fillToken,
                 radius: item.radius,
                 component: item.component,
                 font: item.font,
@@ -150,21 +179,15 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
         let root = FigmaNode(
             tag: "screen",
             x: 0, y: 0, w: size.width, h: size.height,
-            fill: RGBA(.primaryBackground),
+            fill: RGBA(PinColorToken.primaryBackground.color),
+            fillToken: PinColorToken.primaryBackground.rawValue,
             children: children
         )
         return FigmaDocument(width: size.width, height: size.height, root: root, tokens: Self.tokens)
     }
 
-    // Pinwheel emits token names directly — no RGB-matching, unlike the web capture.
     private static var tokens: [FigmaToken] {
-        let colors: [(String, Color)] = [
-            ("primaryText", .primaryText), ("secondaryText", .secondaryText), ("tertiaryText", .tertiaryText),
-            ("actionText", .actionText), ("criticalText", .criticalText),
-            ("primaryBackground", .primaryBackground), ("secondaryBackground", .secondaryBackground),
-            ("actionBackground", .actionBackground), ("criticalBackground", .criticalBackground),
-        ]
-        return colors.map { FigmaToken(name: $0.0, type: "color", value: RGBA($0.1)) }
+        PinColorToken.allCases.map { FigmaToken(name: $0.rawValue, type: "color", value: RGBA($0.color)) }
     }
 }
 

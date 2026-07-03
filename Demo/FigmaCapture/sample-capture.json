@@ -10,10 +10,11 @@
         "font" : {
           "color" : {
             "a" : 1,
-            "b" : 0,
-            "g" : 0,
-            "r" : 0
+            "b" : 0.13333333333333333,
+            "g" : 0.08627450980392157,
+            "r" : 0.00784313725490196
           },
+          "colorToken" : "primaryText",
           "family" : "SF Pro Rounded",
           "size" : 28,
           "weight" : 700
@@ -40,11 +41,12 @@
         "component" : "Label",
         "font" : {
           "color" : {
-            "a" : 0.6000000238418579,
-            "b" : 0.26274511218070984,
-            "g" : 0.23529410362243652,
-            "r" : 0.23529410362243652
+            "a" : 1,
+            "b" : 0.6588235294117647,
+            "g" : 0.6274509803921569,
+            "r" : 0.596078431372549
           },
+          "colorToken" : "secondaryText",
           "family" : "SF Pro Rounded",
           "size" : 17,
           "weight" : 400
@@ -75,13 +77,15 @@
           "g" : 0.6941176470588235,
           "r" : 0
         },
+        "fillToken" : "actionText",
         "font" : {
           "color" : {
             "a" : 1,
-            "b" : 0,
-            "g" : 0,
-            "r" : 0
+            "b" : 1,
+            "g" : 1,
+            "r" : 1
           },
+          "colorToken" : "primaryBackground",
           "family" : "SF Pro Rounded",
           "size" : 17,
           "weight" : 600
@@ -113,13 +117,15 @@
           "g" : 0.9725490196078431,
           "r" : 0.9529411764705882
         },
+        "fillToken" : "secondaryBackground",
         "font" : {
           "color" : {
             "a" : 1,
-            "b" : 0,
-            "g" : 0,
-            "r" : 0
+            "b" : 0.13333333333333333,
+            "g" : 0.08627450980392157,
+            "r" : 0.00784313725490196
           },
+          "colorToken" : "primaryText",
           "family" : "SF Pro Rounded",
           "size" : 17,
           "weight" : 600
@@ -147,6 +153,7 @@
       "g" : 1,
       "r" : 1
     },
+    "fillToken" : "primaryBackground",
     "h" : 778,
     "tag" : "screen",
     "w" : 402,
