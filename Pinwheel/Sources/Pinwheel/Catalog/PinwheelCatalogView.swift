@@ -220,7 +220,7 @@ private struct PinwheelIndexView: SwiftUI.View {
                                 .listRowBackground(PinwheelTheme.Colors.primaryBackground)
                             }
                         } header: {
-                            PinLabel(group.letter).font(.footnote).color(.secondary)
+                            PinLabel(group.letter).font(.body).color(.secondary)
                                 .textCase(nil)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
@@ -257,13 +257,14 @@ private struct PinwheelIndexView: SwiftUI.View {
     private var filterBar: some SwiftUI.View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: .spacingS) {
-                pill(title: "All", isSelected: selectedTag == nil) { selectedTag = nil }
                 ForEach(sectionTags, id: \.self) { tag in
-                    pill(title: tag.rawValue, isSelected: selectedTag == tag) { selectedTag = tag }
+                    pill(title: tag.rawValue, isSelected: selectedTag == tag) {
+                        selectedTag = selectedTag == tag ? nil : tag
+                    }
                 }
             }
-            .padding(.horizontal, .spacingM)
-            .padding(.vertical, .spacingS)
+            .padding(.horizontal, .spacingXM)
+            .padding(.vertical, .spacingM)
         }
         .background(.primaryBackground)
     }
@@ -271,14 +272,16 @@ private struct PinwheelIndexView: SwiftUI.View {
     private func pill(title: String, isSelected: Bool, action: @escaping () -> Void) -> some SwiftUI.View {
         SwiftUI.Button(action: action) {
             PinLabel(title)
-                .font(.footnote)
-                .color(isSelected ? .action : .secondary)
-                .padding(.horizontal, .spacingS)
-                .padding(.vertical, .spacingXS)
-                .background(
-                    isSelected ? AnyShapeStyle(.actionBackground.opacity(0.15)) : AnyShapeStyle(.secondaryBackground),
-                    in: Capsule()
-                )
+                .color(isSelected ? .custom(PinwheelTheme.Colors.primaryBackground) : .primary)
+                .padding(.horizontal, .spacingM)
+                .padding(.vertical, .spacingS)
+                .background {
+                    if isSelected {
+                        Capsule().fill(.actionText)
+                    } else {
+                        Capsule().strokeBorder(.secondaryText, lineWidth: 1)
+                    }
+                }
         }
         .buttonStyle(.plain)
     }
