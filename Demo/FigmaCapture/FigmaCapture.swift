@@ -192,6 +192,15 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
         let children = captured.map { item -> FigmaNode in
             let rect = proxy[item.bounds]
             let fillColor = item.fillTokenName.flatMap { PinColorToken(rawValue: $0)?.color }
+            let texts = item.text.map { string -> [FigmaText] in
+                // The calibration target is the text's own iOS width. For a label that's the
+                // node width; for a centered button the node is the padded pill, so measure
+                // the label text itself.
+                let textWidth = item.centersText
+                    ? Double((string as NSString).size(withAttributes: [.font: (item.textStyle ?? .body).demoUIFont]).width)
+                    : rect.width
+                return [FigmaText(text: string, x: rect.minX, y: rect.minY, w: textWidth, h: rect.height)]
+            }
             return FigmaNode(
                 tag: "component",
                 x: rect.minX, y: rect.minY, w: rect.width, h: rect.height,
@@ -200,7 +209,7 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
                 radius: item.cornerRadius.map { Double($0) },
                 component: item.name,
                 font: item.textStyle.map { FigmaFont($0, colorTokenName: item.textColorTokenName) },
-                texts: item.text.map { [FigmaText(text: $0, x: rect.minX, y: rect.minY, w: rect.width, h: rect.height)] },
+                texts: texts,
                 textAlign: item.centersText ? "center" : nil,
                 children: []
             )
