@@ -1,7 +1,5 @@
 @_exported import Pinwheel
 
-// A shared module because a UI-test target can't import the app, yet both the
-// Demo and DemoUITests need these component names to agree.
 public enum Catalog: String, PinwheelComponent {
     case font = "Font"
     case color = "Color"

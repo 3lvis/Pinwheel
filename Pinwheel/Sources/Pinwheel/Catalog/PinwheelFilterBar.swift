@@ -5,7 +5,6 @@ struct PinwheelFilterBar: SwiftUI.View {
     @Binding var selectedTag: PinTag?
     let scrolledDistance: CGFloat
 
-    // Height matches the offset so the scrim sits flush below the pill bar.
     private static let scrimHeight: CGFloat = 40
     private static let scrimRampDistance: CGFloat = 24
 
