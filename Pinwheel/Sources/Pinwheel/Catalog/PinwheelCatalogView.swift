@@ -256,10 +256,13 @@ private struct PinwheelIndexView: SwiftUI.View {
 
     private var filterBar: some SwiftUI.View {
         ScrollView(.horizontal, showsIndicators: false) {
+            // No "All" chip — no selection means all. Tapping the selected tag again
+            // clears it (back to all).
             HStack(spacing: .spacingS) {
-                pill(title: "All", isSelected: selectedTag == nil) { selectedTag = nil }
                 ForEach(sectionTags, id: \.self) { tag in
-                    pill(title: tag.rawValue, isSelected: selectedTag == tag) { selectedTag = tag }
+                    pill(title: tag.rawValue, isSelected: selectedTag == tag) {
+                        selectedTag = selectedTag == tag ? nil : tag
+                    }
                 }
             }
             .padding(.horizontal, .spacingM)
@@ -271,18 +274,21 @@ private struct PinwheelIndexView: SwiftUI.View {
     private func pill(title: String, isSelected: Bool, action: @escaping () -> Void) -> some SwiftUI.View {
         SwiftUI.Button(action: action) {
             PinLabel(title)
-                .font(.footnote)
-                // Selected: solid fill in the bright accent (the `actionText` token —
-                // `actionBackground` is a dark, muted variant) with inverse-of-surface
-                // text (no dedicated on-accent token; primaryBackground reads on the
-                // accent in both light and dark). Unselected: a muted secondary fill.
+                .font(.subtitle)
+                // Selected: solid accent fill (the `actionText` token — `actionBackground`
+                // is a dark, muted variant), its border the same accent so none shows, and
+                // inverse-of-surface text for high contrast on the fill. Unselected: no
+                // fill, just a border.
                 .color(isSelected ? .custom(PinwheelTheme.Colors.primaryBackground) : .primary)
-                .padding(.horizontal, .spacingM)
+                .padding(.horizontal, .spacingL)
                 .padding(.vertical, .spacingS)
-                .background(
-                    isSelected ? AnyShapeStyle(.actionText) : AnyShapeStyle(.secondaryBackground),
-                    in: Capsule()
-                )
+                .background {
+                    if isSelected {
+                        Capsule().fill(.actionText)
+                    } else {
+                        Capsule().strokeBorder(.secondaryText, lineWidth: 1)
+                    }
+                }
         }
         .buttonStyle(.plain)
     }
