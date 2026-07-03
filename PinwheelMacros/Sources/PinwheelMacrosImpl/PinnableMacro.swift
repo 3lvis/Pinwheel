@@ -20,8 +20,9 @@ public struct PinnableMacro: MemberMacro {
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
         let arguments = node.arguments?.as(LabeledExprListSyntax.self)
-        guard let nameExpression = arguments?.first(where: { $0.label == nil })?.expression,
-              let name = stringLiteralText(nameExpression) else {
+        // The component name is the type's own name — unique by construction, no collisions.
+        guard let name = (declaration.as(StructDeclSyntax.self)?.name
+                            ?? declaration.as(ClassDeclSyntax.self)?.name)?.text else {
             return []
         }
         let cornerRadius = labeledArgument("cornerRadius", in: arguments)?.trimmedDescription ?? "nil"
@@ -61,11 +62,6 @@ public struct PinnableMacro: MemberMacro {
             }
             """]
     }
-}
-
-private func stringLiteralText(_ expression: ExprSyntax) -> String? {
-    expression.as(StringLiteralExprSyntax.self)?
-        .segments.first?.as(StringSegmentSyntax.self)?.content.text
 }
 
 private func labeledArgument(_ label: String, in arguments: LabeledExprListSyntax?) -> ExprSyntax? {

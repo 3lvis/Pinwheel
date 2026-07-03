@@ -15,7 +15,7 @@ final class PinnableTests: XCTestCase {
     func testLabelGeneratesStyleDescriptor() {
         assertMacroExpansion(
             """
-            @Pinnable("Label")
+            @Pinnable
             struct PinLabel {
                 @PinText let text: String
                 @PinTypography var typography: PinTextStyle = .body
@@ -30,7 +30,7 @@ final class PinnableTests: XCTestCase {
 
                 var pinnedStyle: PinComponentStyle {
                     PinComponentStyle(
-                        name: "Label",
+                        name: "PinLabel",
                         text: text,
                         textStyle: typography,
                         textColorTokenName: color.captureTextColorToken,
@@ -49,7 +49,7 @@ final class PinnableTests: XCTestCase {
     func testButtonPassesConstantsAndFill() {
         assertMacroExpansion(
             """
-            @Pinnable("Button", cornerRadius: .spacingM, centersText: true)
+            @Pinnable(cornerRadius: .spacingM, centersText: true)
             struct PinButton {
                 @PinText let title: String?
                 @PinTypography var typography: PinTextStyle = .subtitleSemibold
@@ -64,7 +64,7 @@ final class PinnableTests: XCTestCase {
 
                 var pinnedStyle: PinComponentStyle {
                     PinComponentStyle(
-                        name: "Button",
+                        name: "PinButton",
                         text: title,
                         textStyle: typography,
                         textColorTokenName: nil,

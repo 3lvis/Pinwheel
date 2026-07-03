@@ -1,7 +1,7 @@
 import SwiftUI
 import PinwheelMacros
 
-@Pinnable("Button", cornerRadius: .spacingM, centersText: true)
+@Pinnable(cornerRadius: .spacingM, centersText: true)
 public struct PinButton: SwiftUI.View {
     public enum Style: Equatable, PinFillToken, PinTextColorToken {
         case primary

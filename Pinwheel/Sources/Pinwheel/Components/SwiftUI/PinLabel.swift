@@ -5,7 +5,7 @@ import PinwheelMacros
 /// names with the design system but silently bypass it; `PinLabel` resolves the
 /// provider-backed font, and taking a `PinTextStyle` (not a raw `Font`) makes the
 /// system-font path unrepresentable.
-@Pinnable("Label")
+@Pinnable
 public struct PinLabel: SwiftUI.View {
     public enum TextColor: PinTextColorToken {
         case primary

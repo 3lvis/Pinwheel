@@ -1,45 +1,68 @@
-# Spike: SwiftUI → Figma capture
+# SwiftUI → Figma capture
 
-Proves a Pinwheel screen can be serialized into the **same JSON** fonno's Figma plugin
-already imports (`fonno/frontend/tools/figma-capture/plugin/code.ts`), so that plugin —
-which builds Figma component masters/instances and binds token variables — is reused
+Serializes a Pinwheel screen into the **same JSON** fonno's Figma plugin imports
+(`fonno/frontend/tools/figma-capture/plugin/code.ts`), so that plugin — which builds Figma
+component masters/instances, binds token variables, and creates text styles — is reused
 unchanged. Source stays the design source of truth; Figma becomes the playground.
 
 ## What it does
 
 `FigmaCaptureScreen` renders a Pinwheel screen inside `FigmaCaptureHost`, which reads the
 components' own `PinCaptureKey` descriptors, resolves each anchor to a frame in the screen's
-coordinate space, and writes fonno's IR to `Documents/figma-capture.json`. Reach it two
-ways: the **Screens** section of the catalog, or the `-FigmaCapture` launch arg.
+coordinate space, and writes fonno's IR to `Documents/figma-capture.json`. Reach it two ways:
+the **Screens** section of the catalog, or the `-FigmaCapture` launch arg.
 
 ```
 xcrun simctl launch <booted> com.nordser.pinwheel -FigmaCapture
 # then pull Documents/figma-capture.json → feed to the fonno plugin's "Import layers"
 ```
 
+## Authoring: the `@Pinnable` macro (no boilerplate)
+
+Components don't hand-write capture wiring. `@Pinnable` (a SwiftSync-style macro in the
+`PinwheelMacros` package) generates the style descriptor from annotations:
+
+```swift
+@Pinnable(cornerRadius: .spacingM, centersText: true)
+public struct PinButton: View {
+    @PinText       private let title: String?
+    @PinFill @PinColor private var style: Style = .primary
+    @PinTypography private var typography: PinTextStyle = .subtitleSemibold
+    var body: some View { … .pinCaptured(pinnedStyle) }   // one line
+}
+```
+
+- The component **name is the type's own name** (`PinButton`) — compiler-unique, so two
+  components can't silently collide the way a free-text string could.
+- The `Style → token` and `TextColor → token` name maps live **once** on the token enums
+  (`PinFillToken`/`PinTextColorToken`), reused across components, not copied per component.
+- Adding a component is annotate-and-go; the switch maps and argument assembly are synthesized.
+
 ## What's proven (round-trip verified via the Figma REST API)
 
-- The IR is source-agnostic: SwiftUI emits the identical `{width,height,root,tokens}`
-  tree the DOM walker does. `serve.mjs` needs no changes.
-- Geometry is real, not guessed — the `Spacer` pushed the buttons to y=654/714; those
-  frames come from an actual hosted layout pass.
-- Components rebuild as real Figma **masters + instances**; a repeated component (two
-  Buttons) keeps its own text and fill per instance.
-- Fills bind to token **variables by name** (`actionText`, `secondaryBackground`) on a
-  single "Import layers" click.
-- Button labels center in their frame; plain labels stay leading.
+- The IR is source-agnostic: SwiftUI emits the identical tree the web DOM walker does;
+  `serve.mjs` and the shared plugin need no SwiftUI-specific changes.
+- Geometry is real, not guessed — a `Spacer` pushes the buttons down; those frames come from
+  an actual hosted layout pass.
+- Components rebuild as real Figma **masters + instances**; a repeated component keeps its own
+  text and fill per instance.
+- **Fills** bind to token **variables** by name (`actionText`) and **fonts** bind to Figma
+  **text styles** (`type/title`, `type/body`) on a single "Import layers" click.
+- Button labels center in their pill; plain labels stay leading.
+- **Widths match the device**: the plugin measures its own render and adds letter-spacing to
+  hit the captured iOS text width, compensating for SF Pro Rounded's optical-spacing difference
+  (labels + "Cancel" exact; "Pay now" within a sub-pixel).
 
-## Why iOS fits better than the web capture
+## Plan / not yet done
 
-- Components self-identify — no manual `data-fig`. `PinLabel`/`PinButton` emit their own
-  style via `.pinCaptured` (a library `PinCaptureKey` preference of design facts), so a
-  screen captures with zero call-site tagging and nothing can drift from the component.
-- Token names are emitted directly, vs the web path's fragile RGB-value matching.
-
-## Productionizing (not in the spike)
-
-- Extend the `.pinCaptured` emission beyond `PinLabel`/`PinButton` to the rest of the
-  `Pin*` components as screens need them.
-- Emit nested `layout` (HStack/VStack → Figma auto-layout); today every node is absolute
-  under the root (the IR already supports both, so this degrades gracefully).
-- Capture both light/dark; today RGBA resolves against light only.
+- **Harden `@Pinnable`** — diagnostics: a clear compile error when a required marker is missing
+  or a marked property's type doesn't conform to the expected token protocol, instead of a
+  confusing downstream failure.
+- **Extend annotation** to the rest of the `Pin*` components as screens need them (only
+  `PinLabel`/`PinButton` today).
+- **Light + dark capture** — RGBA currently resolves against light only; emit both modes so the
+  imported design carries both.
+- **Nested auto-layout** — emit `layout` for `HStack`/`VStack` containers; today every node is
+  absolute under the root (the IR already supports both, so this degrades gracefully).
+- **The "Pay now" sub-pixel** — only if exactness is wanted: have `PinButton` emit its real
+  laid-out label width instead of `.size`.
