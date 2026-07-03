@@ -100,7 +100,7 @@ struct PinwheelCatalogView: SwiftUI.View {
                 .buttonStyle(.plain)
                 .foregroundStyle(isSelected ? .actionText : .primaryText)
                 .listRowSeparatorTint(.secondaryBackground)
-                .listRowBackground(PinwheelTheme.Colors.primaryBackground)
+                .listRowBackground(Color.primaryBackground)
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
@@ -218,7 +218,7 @@ private struct PinwheelIndexView: SwiftUI.View {
                                 .buttonStyle(.plain)
                                 .accessibilityIdentifier(item.id)
                                 .listRowSeparator(.hidden)
-                                .listRowBackground(PinwheelTheme.Colors.primaryBackground)
+                                .listRowBackground(Color.primaryBackground)
                             }
                         } header: {
                             PinLabel(group.letter).font(.body).color(.secondary)

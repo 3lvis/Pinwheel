@@ -16,7 +16,7 @@ public struct PinList: SwiftUI.View {
         case .loaded:
             // No per-row id to key on; positional identity is stable because rows are a fixed value array per render.
             List(Array(rows.enumerated()), id: \.offset) { _, row in
-                row.listRowBackground(PinwheelTheme.Colors.primaryBackground)
+                row.listRowBackground(Color.primaryBackground)
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
