@@ -21,7 +21,9 @@ struct DemoApp: App {
 
     var body: some Scene {
         WindowGroup {
-            if let previewID = PinwheelPreview.requestedID {
+            if FigmaCaptureFile.requested {
+                FigmaCaptureScreen()
+            } else if let previewID = PinwheelPreview.requestedID {
                 PinwheelPreview(previewID, sections: DemoPinwheelSections.all)
             } else {
                 PinwheelCatalog {
