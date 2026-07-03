@@ -49,7 +49,14 @@ final class TweakableUITests: XCTestCase {
             let sectionButton = app.buttons[section.rawValue]
             XCTAssertTrue(sectionButton.waitForExistence(timeout: defaultTimeout), "\(section.rawValue) section should be listed")
             sectionButton.tap()
-            XCTAssertTrue(item.waitForExistence(timeout: defaultTimeout), "\(itemID) should be listed")
+            // The catalog list is lazy — a row far down isn't in the accessibility
+            // tree until scrolled into range (a smaller/slower CI sim shows fewer rows).
+            var swipes = 0
+            while !item.waitForExistence(timeout: 1) && swipes < 8 {
+                app.swipeUp()
+                swipes += 1
+            }
+            XCTAssertTrue(item.exists, "\(itemID) should be listed")
         }
         item.tap()
     }

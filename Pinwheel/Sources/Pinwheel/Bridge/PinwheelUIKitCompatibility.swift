@@ -22,30 +22,20 @@ extension PinwheelTweak {
         if let text = tweak as? TextTweak {
             self.init(text.title, description: text.description, action: text.action)
         } else if let toggle = tweak as? BoolTweak {
-            self.init(toggle.title, description: toggle.description, isOn: PinwheelTweakBoolStore(toggle).binding)
+            // Back the toggle with captured locals, not a class: a @MainActor class
+            // (the package's default isolation) has an isolated deinit that hops to
+            // the main actor on release and deadlocks when ARC frees it off-main
+            // (e.g. XCTest teardown on a headless CI runner).
+            let action = toggle.action
+            var isOn = toggle.isOn
+            self.init(
+                toggle.title,
+                description: toggle.description,
+                isOn: Binding(get: { isOn }, set: { isOn = $0; action($0) })
+            )
         } else {
             return nil
         }
-    }
-}
-
-private final class PinwheelTweakBoolStore {
-    private var isOn: Bool
-    private let action: (Bool) -> Void
-
-    init(_ tweak: BoolTweak) {
-        self.isOn = tweak.isOn
-        self.action = tweak.action
-    }
-
-    var binding: Binding<Bool> {
-        Binding(
-            get: { self.isOn },
-            set: { newValue in
-                self.isOn = newValue
-                self.action(newValue)
-            }
-        )
     }
 }
 
