@@ -92,28 +92,6 @@ extension RGBA {
     }
 }
 
-// MARK: - Capture pass
-
-// Each annotated view reports its descriptor plus a bounds anchor; the host
-// resolves the anchor to a frame in the screen's coordinate space.
-struct CapturedComponent {
-    let component: String
-    let fill: RGBA?
-    let fillToken: String?
-    let radius: Double?
-    let text: String?
-    let font: FigmaFont?
-    let textAlign: String?
-    let bounds: Anchor<CGRect>
-}
-
-private struct CapturePreferenceKey: PreferenceKey {
-    static let defaultValue: [CapturedComponent] = []
-    static func reduce(value: inout [CapturedComponent], nextValue: () -> [CapturedComponent]) {
-        value.append(contentsOf: nextValue())
-    }
-}
-
 // Resolves the real provider-backed font so the capture matches what the component renders,
 // instead of a hand-passed size/weight. Uses the demo's own provider (the library's `UIFont`
 // token accessors aren't public).
@@ -132,16 +110,17 @@ extension PinTextStyle {
 }
 
 extension FigmaFont {
-    @MainActor init(_ style: PinTextStyle, color: PinColorToken) {
+    @MainActor init(_ style: PinTextStyle, colorTokenName: String?) {
         let font = style.demoUIFont
         let traits = font.fontDescriptor.object(forKey: .traits) as? [UIFontDescriptor.TraitKey: Any]
         let weight = (traits?[.weight] as? CGFloat) ?? 0
+        let color = colorTokenName.flatMap { PinColorToken(rawValue: $0)?.color } ?? .primary
         // The design uses SF Pro Rounded; the system font's internal family name isn't
         // Figma-loadable, and the plugin falls back to Inter if the face is absent.
         self.init(
             family: "SF Pro Rounded", size: Double(font.pointSize),
             weight: FigmaFont.cssWeight(weight),
-            color: RGBA(color.color), colorToken: color.rawValue
+            color: RGBA(color), colorToken: colorTokenName
         )
     }
 
@@ -158,39 +137,13 @@ extension FigmaFont {
     }
 }
 
-extension View {
-    @MainActor func figmaCapture(
-        component: String,
-        fillToken: PinColorToken? = nil,
-        radius: Double? = nil,
-        text: String? = nil,
-        textColorToken: PinColorToken = .primaryText,
-        centersText: Bool = false,
-        textStyle: PinTextStyle? = nil
-    ) -> some View {
-        let font = textStyle.map { FigmaFont($0, color: textColorToken) }
-        return anchorPreference(key: CapturePreferenceKey.self, value: .bounds) { anchor in
-            [CapturedComponent(
-                component: component,
-                fill: fillToken.map { RGBA($0.color) },
-                fillToken: fillToken?.rawValue,
-                radius: radius,
-                text: text,
-                font: font,
-                textAlign: centersText ? "center" : nil,
-                bounds: anchor
-            )]
-        }
-    }
-}
-
 struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
     let content: Content
     let onCapture: (FigmaDocument) -> Void
 
     var body: some SwiftUI.View {
         content
-            .backgroundPreferenceValue(CapturePreferenceKey.self) { captured in
+            .backgroundPreferenceValue(PinCaptureKey.self) { captured in
                 GeometryReader { proxy in
                     Color.clear.onAppear {
                         onCapture(document(from: captured, proxy: proxy))
@@ -199,20 +152,23 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
             }
     }
 
-    private func document(from captured: [CapturedComponent], proxy: GeometryProxy) -> FigmaDocument {
+    // Maps the library's design-fact descriptors to fonno's Figma IR. All style comes
+    // from the component (`PinCapturedComponent`), nothing re-specified here.
+    private func document(from captured: [PinCapturedComponent], proxy: GeometryProxy) -> FigmaDocument {
         let size = proxy.size
         let children = captured.map { item -> FigmaNode in
             let rect = proxy[item.bounds]
+            let fillColor = item.fillTokenName.flatMap { PinColorToken(rawValue: $0)?.color }
             return FigmaNode(
                 tag: "component",
                 x: rect.minX, y: rect.minY, w: rect.width, h: rect.height,
-                fill: item.fill,
-                fillToken: item.fillToken,
-                radius: item.radius,
-                component: item.component,
-                font: item.font,
+                fill: fillColor.map { RGBA($0) },
+                fillToken: item.fillTokenName,
+                radius: item.cornerRadius.map { Double($0) },
+                component: item.name,
+                font: item.textStyle.map { FigmaFont($0, colorTokenName: item.textColorTokenName) },
                 texts: item.text.map { [FigmaText(text: $0, x: rect.minX, y: rect.minY, w: rect.width, h: rect.height)] },
-                textAlign: item.textAlign,
+                textAlign: item.centersText ? "center" : nil,
                 children: []
             )
         }

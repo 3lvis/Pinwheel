@@ -32,16 +32,15 @@ xcrun simctl launch <booted> com.nordser.pinwheel -FigmaCapture
 
 ## Why iOS fits better than the web capture
 
-- Components self-identify — no manual `data-fig` (here tagged at the call site only
-  because the spike doesn't yet touch the `Pin*` sources).
+- Components self-identify — no manual `data-fig`. `PinLabel`/`PinButton` emit their own
+  style via `.pinCaptured` (a library `PinCaptureKey` preference of design facts), so a
+  screen captures with zero call-site tagging and nothing can drift from the component.
 - Token names are emitted directly, vs the web path's fragile RGB-value matching.
 
 ## Productionizing (not in the spike)
 
-- Move `.figmaCapture` into the `Pin*` components so screens capture with no call-site
-  tagging, and read real component props (radius, font, text alignment) instead of the
-  hand-passed values here — e.g. the capture hardcodes a 24pt radius while `PinButton`
-  uses a smaller one.
+- Extend the `.pinCaptured` emission beyond `PinLabel`/`PinButton` to the rest of the
+  `Pin*` components as screens need them.
 - Emit nested `layout` (HStack/VStack → Figma auto-layout); today every node is absolute
   under the root (the IR already supports both, so this degrades gracefully).
 - Capture both light/dark; today RGBA resolves against light only.

@@ -16,6 +16,25 @@ public struct PinButton: SwiftUI.View {
             if case .tertiary = self { return true }
             return false
         }
+
+        // Token names behind the enabled fill/foreground below; keep in sync with
+        // `PinButtonStyle.background`/`foreground`.
+        var fillTokenName: String? {
+            switch self {
+            case .primary: return "actionText"
+            case .secondary: return "secondaryBackground"
+            case .tertiary, .custom: return nil
+            }
+        }
+
+        var textColorTokenName: String? {
+            switch self {
+            case .primary: return "primaryBackground"
+            case .secondary: return "primaryText"
+            case .tertiary: return "secondaryText"
+            case .custom: return nil
+            }
+        }
     }
 
     private let title: String?
@@ -64,6 +83,15 @@ public struct PinButton: SwiftUI.View {
         }
         .buttonStyle(PinButtonStyle(style: style, hasTitle: title != nil))
         .sensoryFeedback(.impact(weight: style.isPrimary ? .medium : .light), trigger: tapCount)
+        .pinCaptured(
+            name: "Button",
+            text: title,
+            cornerRadius: .spacingM,
+            fillTokenName: style.fillTokenName,
+            textColorTokenName: style.textColorTokenName,
+            textStyle: typography,
+            centersText: true
+        )
     }
 
     @ViewBuilder

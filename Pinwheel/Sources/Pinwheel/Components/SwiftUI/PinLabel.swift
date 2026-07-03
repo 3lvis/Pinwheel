@@ -23,6 +23,17 @@ public struct PinLabel: SwiftUI.View {
             case .custom(let color): return color
             }
         }
+
+        var tokenName: String? {
+            switch self {
+            case .primary: return "primaryText"
+            case .secondary: return "secondaryText"
+            case .tertiary: return "tertiaryText"
+            case .action: return "actionText"
+            case .critical: return "criticalText"
+            case .custom: return nil
+            }
+        }
     }
 
     private let text: String
@@ -49,5 +60,6 @@ public struct PinLabel: SwiftUI.View {
         Text(text)
             .font(typography.font)
             .foregroundStyle(color.color)
+            .pinCaptured(name: "Label", text: text, textColorTokenName: color.tokenName, textStyle: typography)
     }
 }
