@@ -17,10 +17,7 @@ struct PinwheelFilterBar: SwiftUI.View {
         pills
             .overlay(alignment: .bottom) {
                 LinearGradient(
-                    colors: [
-                        PinwheelTheme.Colors.primaryBackground,
-                        PinwheelTheme.Colors.primaryBackground.opacity(0)
-                    ],
+                    colors: [.primaryBackground, .primaryBackground.opacity(0)],
                     startPoint: .top,
                     endPoint: .bottom
                 )
@@ -49,7 +46,7 @@ struct PinwheelFilterBar: SwiftUI.View {
     private func pill(title: String, isSelected: Bool, action: @escaping () -> Void) -> some SwiftUI.View {
         SwiftUI.Button(action: action) {
             PinLabel(title)
-                .color(isSelected ? .custom(PinwheelTheme.Colors.primaryBackground) : .action)
+                .color(isSelected ? .custom(.primaryBackground) : .action)
                 .padding(.horizontal, .spacingM)
                 .padding(.vertical, .spacingS)
                 .background {
