@@ -190,8 +190,12 @@ private struct PinwheelIndexView: SwiftUI.View {
     @State private var selectedTag: PinTag?
     @State private var scrolledDistance: CGFloat = 0
 
+    // Height matches the offset so the scrim sits flush below the pill bar.
+    private static let scrimHeight: CGFloat = 40
+    private static let scrimRampDistance: CGFloat = 24
+
     private var fadeOpacity: Double {
-        Double(min(1, max(0, scrolledDistance) / 24))
+        Double(min(1, max(0, scrolledDistance) / Self.scrimRampDistance))
     }
 
     var body: some SwiftUI.View {
@@ -268,8 +272,8 @@ private struct PinwheelIndexView: SwiftUI.View {
                             startPoint: .top,
                             endPoint: .bottom
                         )
-                        .frame(height: 24)
-                        .offset(y: 24)
+                        .frame(height: Self.scrimHeight)
+                        .offset(y: Self.scrimHeight)
                         .opacity(fadeOpacity)
                         .allowsHitTesting(false)
                     }
