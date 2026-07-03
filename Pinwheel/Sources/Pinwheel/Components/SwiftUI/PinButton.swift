@@ -1,7 +1,9 @@
 import SwiftUI
+import PinwheelMacros
 
+@Pinnable("Button", cornerRadius: .spacingM, centersText: true)
 public struct PinButton: SwiftUI.View {
-    public enum Style: Equatable {
+    public enum Style: Equatable, PinFillToken, PinTextColorToken {
         case primary
         case secondary
         case tertiary
@@ -19,7 +21,7 @@ public struct PinButton: SwiftUI.View {
 
         // Token names behind the enabled fill/foreground below; keep in sync with
         // `PinButtonStyle.background`/`foreground`.
-        var fillTokenName: String? {
+        public var captureFillToken: String? {
             switch self {
             case .primary: return "actionText"
             case .secondary: return "secondaryBackground"
@@ -27,7 +29,7 @@ public struct PinButton: SwiftUI.View {
             }
         }
 
-        var textColorTokenName: String? {
+        public var captureTextColorToken: String? {
             switch self {
             case .primary: return "primaryBackground"
             case .secondary: return "primaryText"
@@ -37,11 +39,11 @@ public struct PinButton: SwiftUI.View {
         }
     }
 
-    private let title: String?
+    @PinText private let title: String?
     private let systemImage: String?
     private let action: () -> Void
-    private var style: Style = .primary
-    private var typography: PinTextStyle = .subtitleSemibold
+    @PinFill @PinColor private var style: Style = .primary
+    @PinTypography private var typography: PinTextStyle = .subtitleSemibold
     private var isLoading: Bool = false
 
     @SwiftUI.State private var tapCount = 0
@@ -83,15 +85,7 @@ public struct PinButton: SwiftUI.View {
         }
         .buttonStyle(PinButtonStyle(style: style, hasTitle: title != nil))
         .sensoryFeedback(.impact(weight: style.isPrimary ? .medium : .light), trigger: tapCount)
-        .pinCaptured(
-            name: "Button",
-            text: title,
-            cornerRadius: .spacingM,
-            fillTokenName: style.fillTokenName,
-            textColorTokenName: style.textColorTokenName,
-            textStyle: typography,
-            centersText: true
-        )
+        .pinCaptured(pinnedStyle)
     }
 
     @ViewBuilder
