@@ -49,14 +49,14 @@ struct PinwheelFilterBar: SwiftUI.View {
     private func pill(title: String, isSelected: Bool, action: @escaping () -> Void) -> some SwiftUI.View {
         SwiftUI.Button(action: action) {
             PinLabel(title)
-                .color(isSelected ? .custom(PinwheelTheme.Colors.primaryBackground) : .primary)
+                .color(isSelected ? .custom(PinwheelTheme.Colors.primaryBackground) : .action)
                 .padding(.horizontal, .spacingM)
                 .padding(.vertical, .spacingS)
                 .background {
                     if isSelected {
                         Capsule().fill(.actionText)
                     } else {
-                        Capsule().strokeBorder(.secondaryText, lineWidth: 1)
+                        Capsule().strokeBorder(.actionText, lineWidth: 1)
                     }
                 }
         }
