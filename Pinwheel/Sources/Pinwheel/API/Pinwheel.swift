@@ -165,8 +165,8 @@ public struct PinwheelItem {
             constrainToBottomSafeArea: true,
             tabletDisplayMode: .fullscreen,
             makeSwiftUIView: {
-                // Build once: the tweak closures capture this instance, so a fresh view
-                // per render would leave tweaks silently no-oping on an off-screen copy.
+                // Reuse the same view across renders. The tweak controls hold onto it, so a
+                // fresh one each render would leave them driving a hidden, discarded copy.
                 let view = sharedHostedView ?? {
                     let created = ViewType(frame: .zero)
                     sharedHostedView = created
@@ -204,8 +204,8 @@ public struct PinwheelItem {
         _ title: String,
         viewController: @escaping () -> UIViewController
     ) {
-        // Build once: the tweak closures capture this instance, so a fresh controller
-        // per render would leave tweaks silently no-oping on an off-screen copy.
+        // Reuse the same controller across renders. The tweak controls hold onto it, so a
+        // fresh one each render would leave them driving a hidden, discarded copy.
         var sharedViewController: UIViewController?
         self.init(
             title: title,

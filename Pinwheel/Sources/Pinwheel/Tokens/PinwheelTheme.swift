@@ -1,7 +1,6 @@
 import SwiftUI
 import UIKit
 
-/// Resolves provider-backed fonts, never Apple's system text styles.
 public enum PinTextStyle {
     case title
     case subtitle
