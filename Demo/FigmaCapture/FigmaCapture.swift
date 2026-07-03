@@ -28,6 +28,7 @@ struct FigmaNode: Encodable {
     var component: String?
     var font: FigmaFont?
     var texts: [FigmaText]?
+    var textAlign: String?
     var children: [FigmaNode]
 }
 
@@ -102,6 +103,7 @@ struct CapturedComponent {
     let radius: Double?
     let text: String?
     let font: FigmaFont?
+    let textAlign: String?
     let bounds: Anchor<CGRect>
 }
 
@@ -121,6 +123,7 @@ extension View {
         radius: Double? = nil,
         text: String? = nil,
         textColorToken: PinColorToken = .primaryText,
+        centersText: Bool = false,
         fontSize: Double? = nil,
         fontWeight: Int = 400,
         fontFamily: String = "SF Pro Rounded"
@@ -139,6 +142,7 @@ extension View {
                 radius: radius,
                 text: text,
                 font: font,
+                textAlign: centersText ? "center" : nil,
                 bounds: anchor
             )]
         }
@@ -173,6 +177,7 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
                 component: item.component,
                 font: item.font,
                 texts: item.text.map { [FigmaText(text: $0, x: rect.minX, y: rect.minY, w: rect.width, h: rect.height)] },
+                textAlign: item.textAlign,
                 children: []
             )
         }

@@ -25,11 +25,11 @@ struct FigmaCaptureScreen: SwiftUI.View {
 
             PinButton("Pay now") {}
                 .style(.primary)
-                .figmaCapture(component: "Button", fillToken: .actionText, radius: 24, text: "Pay now", textColorToken: .primaryBackground, fontSize: 17, fontWeight: 600)
+                .figmaCapture(component: "Button", fillToken: .actionText, radius: 24, text: "Pay now", textColorToken: .primaryBackground, centersText: true, fontSize: 17, fontWeight: 600)
 
             PinButton("Cancel") {}
                 .style(.secondary)
-                .figmaCapture(component: "Button", fillToken: .secondaryBackground, radius: 24, text: "Cancel", textColorToken: .primaryText, fontSize: 17, fontWeight: 600)
+                .figmaCapture(component: "Button", fillToken: .secondaryBackground, radius: 24, text: "Cancel", textColorToken: .primaryText, centersText: true, fontSize: 17, fontWeight: 600)
         }
         .padding(.spacingL)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

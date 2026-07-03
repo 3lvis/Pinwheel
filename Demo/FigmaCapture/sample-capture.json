@@ -93,6 +93,7 @@
         "h" : 48,
         "radius" : 24,
         "tag" : "component",
+        "textAlign" : "center",
         "texts" : [
           {
             "h" : 48,
@@ -133,6 +134,7 @@
         "h" : 48,
         "radius" : 24,
         "tag" : "component",
+        "textAlign" : "center",
         "texts" : [
           {
             "h" : 48,

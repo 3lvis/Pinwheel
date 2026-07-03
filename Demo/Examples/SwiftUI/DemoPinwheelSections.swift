@@ -36,6 +36,7 @@ enum DemoPinwheelSections {
 
     static var screens: PinwheelSection {
         PinwheelSection(CatalogSection.screens) {
+            PinwheelItem(Catalog.figmaCapture) { FigmaCaptureScreen() }.presentation(.fullscreen).tags(.swiftUI)
             PinwheelItem(Catalog.fullscreenView, view: UIKitPinFullscreenViewExample.self).tags(.uiKit)
             PinwheelItem(Catalog.viewController, viewController: { UIKitPinViewControllerExample() }).tags(.uiKit)
         }
