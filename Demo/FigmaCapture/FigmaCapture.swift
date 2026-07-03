@@ -56,27 +56,6 @@ struct FigmaTextStyle: Encodable {
     let weight: Int
 }
 
-// The closed set of Pinwheel color tokens. A captured component names the token it uses, so
-// Figma binds to the variable by name — no fragile colour-value matching.
-enum PinColorToken: String, CaseIterable {
-    case primaryText, secondaryText, tertiaryText, actionText, criticalText
-    case primaryBackground, secondaryBackground, actionBackground, criticalBackground
-
-    var color: Color {
-        switch self {
-        case .primaryText: return .primaryText
-        case .secondaryText: return .secondaryText
-        case .tertiaryText: return .tertiaryText
-        case .actionText: return .actionText
-        case .criticalText: return .criticalText
-        case .primaryBackground: return .primaryBackground
-        case .secondaryBackground: return .secondaryBackground
-        case .actionBackground: return .actionBackground
-        case .criticalBackground: return .criticalBackground
-        }
-    }
-}
-
 struct FigmaText: Encodable {
     let text: String
     let x: Double

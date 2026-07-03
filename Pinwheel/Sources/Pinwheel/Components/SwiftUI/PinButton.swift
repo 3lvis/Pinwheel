@@ -19,24 +19,27 @@ public struct PinButton: SwiftUI.View {
             return false
         }
 
-        // Token names behind the enabled fill/foreground below; keep in sync with
-        // `PinButtonStyle.background`/`foreground`.
-        public var captureFillToken: String? {
+        // The enabled fill/text tokens — one mapping that `PinButtonStyle` renders from and
+        // capture names off, so the two can't drift.
+        var fillToken: PinColorToken? {
             switch self {
-            case .primary: return "actionText"
-            case .secondary: return "secondaryBackground"
+            case .primary: return .actionText
+            case .secondary: return .secondaryBackground
             case .tertiary, .custom: return nil
             }
         }
 
-        public var captureTextColorToken: String? {
+        var textColorToken: PinColorToken? {
             switch self {
-            case .primary: return "primaryBackground"
-            case .secondary: return "primaryText"
-            case .tertiary: return "secondaryText"
+            case .primary: return .primaryBackground
+            case .secondary: return .primaryText
+            case .tertiary: return .secondaryText
             case .custom: return nil
             }
         }
+
+        public var captureFillToken: String? { fillToken?.rawValue }
+        public var captureTextColorToken: String? { textColorToken?.rawValue }
     }
 
     @PinText private let title: String?
@@ -144,31 +147,21 @@ private struct PinButtonStyle: SwiftUI.ButtonStyle {
                 .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
         }
 
+        // The label sits on the action-colored fill, so it's the surface token; hard-coding
+        // white renders invisible on a pale action color. Enabled color is the style's token;
+        // primary keeps it when disabled, secondary/tertiary dim to `tertiaryText`.
         private var foreground: SwiftUI.Color {
-            switch style {
-            case .primary:
-                // The label sits on the action-colored fill, so it's the surface token; hard-coding white renders invisible on a pale action color.
-                return .primaryBackground
-            case .secondary:
-                return isEnabled ? .primaryText : .tertiaryText
-            case .tertiary:
-                return isEnabled ? .secondaryText : .tertiaryText
-            case .custom(let text, _):
-                return isEnabled ? text : text.opacity(0.5)
-            }
+            if case .custom(let text, _) = style { return isEnabled ? text : text.opacity(0.5) }
+            guard let token = style.textColorToken else { return .primaryText }
+            if !isEnabled && style != .primary { return .tertiaryText }
+            return token.color
         }
 
         private var background: SwiftUI.Color? {
-            switch style {
-            case .primary:
-                return isEnabled ? .actionText : .actionBackground
-            case .secondary:
-                return .secondaryBackground
-            case .tertiary:
-                return nil
-            case .custom(_, let background):
-                return isEnabled ? background : background.opacity(0.5)
-            }
+            if case .custom(_, let background) = style { return isEnabled ? background : background.opacity(0.5) }
+            guard let token = style.fillToken else { return nil }
+            if !isEnabled && style == .primary { return .actionBackground }
+            return token.color
         }
     }
 }

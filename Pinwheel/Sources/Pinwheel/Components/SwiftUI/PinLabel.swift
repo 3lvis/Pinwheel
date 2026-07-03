@@ -15,27 +15,23 @@ public struct PinLabel: SwiftUI.View {
         case critical
         case custom(SwiftUI.Color)
 
-        var color: SwiftUI.Color {
+        var token: PinColorToken? {
             switch self {
             case .primary: return .primaryText
             case .secondary: return .secondaryText
             case .tertiary: return .tertiaryText
             case .action: return .actionText
             case .critical: return .criticalText
-            case .custom(let color): return color
-            }
-        }
-
-        public var captureTextColorToken: String? {
-            switch self {
-            case .primary: return "primaryText"
-            case .secondary: return "secondaryText"
-            case .tertiary: return "tertiaryText"
-            case .action: return "actionText"
-            case .critical: return "criticalText"
             case .custom: return nil
             }
         }
+
+        var color: SwiftUI.Color {
+            if case .custom(let color) = self { return color }
+            return token?.color ?? .primaryText
+        }
+
+        public var captureTextColorToken: String? { token?.rawValue }
     }
 
     @PinText private let text: String
