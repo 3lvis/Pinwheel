@@ -274,7 +274,8 @@ private struct PinwheelIndexView: SwiftUI.View {
     private func pill(title: String, isSelected: Bool, action: @escaping () -> Void) -> some SwiftUI.View {
         SwiftUI.Button(action: action) {
             PinLabel(title)
-                .font(.body)
+                // No explicit .font — inherits PinLabel's default (.body), the same
+                // as the list rows, so pill and row text stay one size by construction.
                 // Selected: solid accent fill (the `actionText` token — `actionBackground`
                 // is a dark, muted variant), its border the same accent so none shows, and
                 // inverse-of-surface text for high contrast on the fill. Unselected: no
