@@ -188,6 +188,11 @@ private struct PinwheelIndexView: SwiftUI.View {
     let selectedItem: (PinwheelItem) -> Void
 
     @State private var selectedTag: PinTag?
+    @State private var scrolledDistance: CGFloat = 0
+
+    private var fadeOpacity: Double {
+        Double(min(1, max(0, scrolledDistance) / 24))
+    }
 
     var body: some SwiftUI.View {
         ScrollViewReader { proxy in
@@ -231,6 +236,11 @@ private struct PinwheelIndexView: SwiftUI.View {
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
                 .background(.primaryBackground)
+                .onScrollGeometryChange(for: CGFloat.self) { geometry in
+                    geometry.contentOffset.y + geometry.contentInsets.top
+                } action: { _, distance in
+                    scrolledDistance = distance
+                }
 
                 VStack(spacing: 2) {
                     ForEach(groupedItems, id: \.letter) { group in
@@ -249,6 +259,20 @@ private struct PinwheelIndexView: SwiftUI.View {
         .safeAreaInset(edge: .top, spacing: 0) {
             if sectionTags.count > 1 {
                 filterBar
+                    .overlay(alignment: .bottom) {
+                        LinearGradient(
+                            colors: [
+                                PinwheelTheme.Colors.primaryBackground,
+                                PinwheelTheme.Colors.primaryBackground.opacity(0)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .frame(height: 24)
+                        .offset(y: 24)
+                        .opacity(fadeOpacity)
+                        .allowsHitTesting(false)
+                    }
             }
         }
         .onChange(of: section?.id) { selectedTag = nil }
@@ -263,8 +287,8 @@ private struct PinwheelIndexView: SwiftUI.View {
                     }
                 }
             }
-            .padding(.horizontal, .spacingXM)
-            .padding(.vertical, .spacingM)
+            .padding(.horizontal, .spacingS)
+            .padding(.vertical, .spacingS)
         }
         .background(.primaryBackground)
     }
