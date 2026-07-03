@@ -274,14 +274,14 @@ private struct PinwheelIndexView: SwiftUI.View {
     private func pill(title: String, isSelected: Bool, action: @escaping () -> Void) -> some SwiftUI.View {
         SwiftUI.Button(action: action) {
             PinLabel(title)
-                .font(.subtitle)
+                .font(.footnote)
                 // Selected: solid accent fill (the `actionText` token — `actionBackground`
                 // is a dark, muted variant), its border the same accent so none shows, and
                 // inverse-of-surface text for high contrast on the fill. Unselected: no
                 // fill, just a border.
                 .color(isSelected ? .custom(PinwheelTheme.Colors.primaryBackground) : .primary)
-                .padding(.horizontal, .spacingL)
-                .padding(.vertical, .spacingS)
+                .padding(.horizontal, .spacingM)
+                .padding(.vertical, .spacingXS)
                 .background {
                     if isSelected {
                         Capsule().fill(.actionText)
