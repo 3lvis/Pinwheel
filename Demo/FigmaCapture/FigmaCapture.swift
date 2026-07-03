@@ -114,26 +114,61 @@ private struct CapturePreferenceKey: PreferenceKey {
     }
 }
 
+// Resolves the real provider-backed font so the capture matches what the component renders,
+// instead of a hand-passed size/weight. Uses the demo's own provider (the library's `UIFont`
+// token accessors aren't public).
+extension PinTextStyle {
+    @MainActor var demoUIFont: UIFont {
+        let provider = DemoFontProvider()
+        switch self {
+        case .title: return provider.title
+        case .subtitle: return provider.subtitle
+        case .subtitleSemibold: return provider.subtitleSemibold
+        case .body: return provider.body
+        case .footnote: return provider.footnote
+        case .caption: return provider.caption
+        }
+    }
+}
+
+extension FigmaFont {
+    @MainActor init(_ style: PinTextStyle, color: PinColorToken) {
+        let font = style.demoUIFont
+        let traits = font.fontDescriptor.object(forKey: .traits) as? [UIFontDescriptor.TraitKey: Any]
+        let weight = (traits?[.weight] as? CGFloat) ?? 0
+        // The design uses SF Pro Rounded; the system font's internal family name isn't
+        // Figma-loadable, and the plugin falls back to Inter if the face is absent.
+        self.init(
+            family: "SF Pro Rounded", size: Double(font.pointSize),
+            weight: FigmaFont.cssWeight(weight),
+            color: RGBA(color.color), colorToken: color.rawValue
+        )
+    }
+
+    private static func cssWeight(_ weight: CGFloat) -> Int {
+        switch weight {
+        case ..<(-0.5): return 200
+        case ..<(-0.2): return 300
+        case ..<0.15: return 400
+        case ..<0.28: return 500
+        case ..<0.37: return 600
+        case ..<0.5: return 700
+        default: return 800
+        }
+    }
+}
+
 extension View {
-    // In the spike the composition site tags each component; productionizing moves
-    // this inside the `Pin*` views so they self-identify (no call-site tagging).
-    func figmaCapture(
+    @MainActor func figmaCapture(
         component: String,
         fillToken: PinColorToken? = nil,
         radius: Double? = nil,
         text: String? = nil,
         textColorToken: PinColorToken = .primaryText,
         centersText: Bool = false,
-        fontSize: Double? = nil,
-        fontWeight: Int = 400,
-        fontFamily: String = "SF Pro Rounded"
+        textStyle: PinTextStyle? = nil
     ) -> some View {
-        let font = fontSize.map {
-            FigmaFont(
-                family: fontFamily, size: $0, weight: fontWeight,
-                color: RGBA(textColorToken.color), colorToken: textColorToken.rawValue
-            )
-        }
+        let font = textStyle.map { FigmaFont($0, color: textColorToken) }
         return anchorPreference(key: CapturePreferenceKey.self, value: .bounds) { anchor in
             [CapturedComponent(
                 component: component,

@@ -16,8 +16,8 @@
           },
           "colorToken" : "primaryText",
           "family" : "SF Pro Rounded",
-          "size" : 28,
-          "weight" : 700
+          "size" : 23,
+          "weight" : 500
         },
         "h" : 27.666666666666657,
         "tag" : "component",
@@ -49,7 +49,7 @@
           "colorToken" : "secondaryText",
           "family" : "SF Pro Rounded",
           "size" : 17,
-          "weight" : 400
+          "weight" : 500
         },
         "h" : 20.333333333333343,
         "tag" : "component",
@@ -87,11 +87,11 @@
           },
           "colorToken" : "primaryBackground",
           "family" : "SF Pro Rounded",
-          "size" : 17,
+          "size" : 20,
           "weight" : 600
         },
         "h" : 48,
-        "radius" : 24,
+        "radius" : 12,
         "tag" : "component",
         "textAlign" : "center",
         "texts" : [
@@ -128,11 +128,11 @@
           },
           "colorToken" : "primaryText",
           "family" : "SF Pro Rounded",
-          "size" : 17,
+          "size" : 20,
           "weight" : 600
         },
         "h" : 48,
-        "radius" : 24,
+        "radius" : 12,
         "tag" : "component",
         "textAlign" : "center",
         "texts" : [
