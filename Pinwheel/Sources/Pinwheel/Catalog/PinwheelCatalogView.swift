@@ -256,8 +256,6 @@ private struct PinwheelIndexView: SwiftUI.View {
 
     private var filterBar: some SwiftUI.View {
         ScrollView(.horizontal, showsIndicators: false) {
-            // No "All" chip — no selection means all. Tapping the selected tag again
-            // clears it (back to all).
             HStack(spacing: .spacingS) {
                 ForEach(sectionTags, id: \.self) { tag in
                     pill(title: tag.rawValue, isSelected: selectedTag == tag) {
@@ -274,12 +272,6 @@ private struct PinwheelIndexView: SwiftUI.View {
     private func pill(title: String, isSelected: Bool, action: @escaping () -> Void) -> some SwiftUI.View {
         SwiftUI.Button(action: action) {
             PinLabel(title)
-                // No explicit .font — inherits PinLabel's default (.body), the same
-                // as the list rows, so pill and row text stay one size by construction.
-                // Selected: solid accent fill (the `actionText` token — `actionBackground`
-                // is a dark, muted variant), its border the same accent so none shows, and
-                // inverse-of-surface text for high contrast on the fill. Unselected: no
-                // fill, just a border.
                 .color(isSelected ? .custom(PinwheelTheme.Colors.primaryBackground) : .primary)
                 .padding(.horizontal, .spacingM)
                 .padding(.vertical, .spacingS)
