@@ -272,11 +272,15 @@ private struct PinwheelIndexView: SwiftUI.View {
         SwiftUI.Button(action: action) {
             PinLabel(title)
                 .font(.footnote)
-                .color(isSelected ? .action : .secondary)
-                .padding(.horizontal, .spacingS)
-                .padding(.vertical, .spacingXS)
+                // Selected: solid fill in the bright accent (the `actionText` token —
+                // `actionBackground` is a dark, muted variant) with inverse-of-surface
+                // text (no dedicated on-accent token; primaryBackground reads on the
+                // accent in both light and dark). Unselected: a muted secondary fill.
+                .color(isSelected ? .custom(PinwheelTheme.Colors.primaryBackground) : .primary)
+                .padding(.horizontal, .spacingM)
+                .padding(.vertical, .spacingS)
                 .background(
-                    isSelected ? AnyShapeStyle(.actionBackground.opacity(0.15)) : AnyShapeStyle(.secondaryBackground),
+                    isSelected ? AnyShapeStyle(.actionText) : AnyShapeStyle(.secondaryBackground),
                     in: Capsule()
                 )
         }
