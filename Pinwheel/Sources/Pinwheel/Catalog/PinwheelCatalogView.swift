@@ -220,7 +220,7 @@ private struct PinwheelIndexView: SwiftUI.View {
                                 .listRowBackground(PinwheelTheme.Colors.primaryBackground)
                             }
                         } header: {
-                            PinLabel(group.letter).font(.footnote).color(.secondary)
+                            PinLabel(group.letter).font(.body).color(.secondary)
                                 .textCase(nil)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
@@ -265,8 +265,8 @@ private struct PinwheelIndexView: SwiftUI.View {
                     }
                 }
             }
-            .padding(.horizontal, .spacingM)
-            .padding(.vertical, .spacingS)
+            .padding(.horizontal, .spacingXM)
+            .padding(.vertical, .spacingM)
         }
         .background(.primaryBackground)
     }
@@ -274,14 +274,14 @@ private struct PinwheelIndexView: SwiftUI.View {
     private func pill(title: String, isSelected: Bool, action: @escaping () -> Void) -> some SwiftUI.View {
         SwiftUI.Button(action: action) {
             PinLabel(title)
-                .font(.footnote)
+                .font(.body)
                 // Selected: solid accent fill (the `actionText` token — `actionBackground`
                 // is a dark, muted variant), its border the same accent so none shows, and
                 // inverse-of-surface text for high contrast on the fill. Unselected: no
                 // fill, just a border.
                 .color(isSelected ? .custom(PinwheelTheme.Colors.primaryBackground) : .primary)
                 .padding(.horizontal, .spacingM)
-                .padding(.vertical, .spacingXS)
+                .padding(.vertical, .spacingS)
                 .background {
                     if isSelected {
                         Capsule().fill(.actionText)
