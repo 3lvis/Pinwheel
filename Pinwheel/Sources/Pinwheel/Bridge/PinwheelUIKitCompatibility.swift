@@ -17,7 +17,6 @@ public struct PinwheelUIKitViewController: UIViewControllerRepresentable {
 }
 
 extension PinwheelTweak {
-    /// Returns nil for unknown `Tweak` kinds.
     init?(_ tweak: Tweak) {
         if let text = tweak as? TextTweak {
             self.init(text.title, description: text.description, action: text.action)

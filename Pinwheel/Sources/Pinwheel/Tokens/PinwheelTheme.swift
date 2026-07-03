@@ -1,8 +1,6 @@
 import SwiftUI
 import UIKit
 
-/// Parallels Apple's `Font.TextStyle`, but resolves provider-backed
-/// `PinwheelTheme.Typography` fonts instead of system styles.
 public enum PinTextStyle {
     case title
     case subtitle
@@ -23,8 +21,6 @@ public enum PinTextStyle {
     }
 }
 
-/// Wraps the provider-backed `UIFont`/`UIColor` tokens as SwiftUI `Font`/`Color`,
-/// so both worlds stay on the same design tokens.
 public enum PinwheelTheme {
     public enum Typography {
         public static var title: Font { Font(UIFont.title) }

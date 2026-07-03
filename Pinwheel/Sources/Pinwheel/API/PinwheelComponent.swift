@@ -1,10 +1,7 @@
 import SwiftUI
 import UIKit
 
-/// A `String`-backed enum whose `rawValue` is the display title. Define it in a
-/// module both the app *and* its UI-test target import: a UI-test target runs in
-/// a separate process and can't `@testable import` the app, so a shared module is
-/// the only way both sides resolve the same ids.
+/// A `String`-backed enum whose `rawValue` is the component's display title.
 public protocol PinwheelComponent: RawRepresentable where RawValue == String {}
 
 public extension PinwheelComponent {
