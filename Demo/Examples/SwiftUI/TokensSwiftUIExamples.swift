@@ -14,7 +14,7 @@ struct PinFontExample: SwiftUI.View {
     var body: some SwiftUI.View {
         List(styles, id: \.0) { title, style in
             PinLabel(title).font(style)
-                .listRowBackground(PinwheelTheme.Colors.primaryBackground)
+                .listRowBackground(Color.primaryBackground)
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)

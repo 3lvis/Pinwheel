@@ -49,8 +49,9 @@ public enum PinwheelTheme {
     }
 }
 
-/// `.red`-style shorthand for the themed colors. Can't reach `.listRowBackground(_:)`,
-/// whose parameter is a generic `View`, not a `ShapeStyle`.
+/// `.red`-style shorthand for the themed colors. The leading-dot form needs a
+/// `ShapeStyle`/`Color` context to resolve; at `.listRowBackground(_:)` (a generic
+/// `View` parameter) spell the type: `Color.primaryBackground`.
 public extension ShapeStyle where Self == Color {
     static var primaryText: Color { PinwheelTheme.Colors.primaryText }
     static var secondaryText: Color { PinwheelTheme.Colors.secondaryText }

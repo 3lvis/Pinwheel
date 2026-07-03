@@ -100,7 +100,7 @@ struct PinwheelCatalogView: SwiftUI.View {
                 .buttonStyle(.plain)
                 .foregroundStyle(isSelected ? .actionText : .primaryText)
                 .listRowSeparatorTint(.secondaryBackground)
-                .listRowBackground(PinwheelTheme.Colors.primaryBackground)
+                .listRowBackground(Color.primaryBackground)
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
@@ -188,6 +188,7 @@ private struct PinwheelIndexView: SwiftUI.View {
     let selectedItem: (PinwheelItem) -> Void
 
     @State private var selectedTag: PinTag?
+    @State private var scrolledDistance: CGFloat = 0
 
     var body: some SwiftUI.View {
         ScrollViewReader { proxy in
@@ -217,7 +218,7 @@ private struct PinwheelIndexView: SwiftUI.View {
                                 .buttonStyle(.plain)
                                 .accessibilityIdentifier(item.id)
                                 .listRowSeparator(.hidden)
-                                .listRowBackground(PinwheelTheme.Colors.primaryBackground)
+                                .listRowBackground(Color.primaryBackground)
                             }
                         } header: {
                             PinLabel(group.letter).font(.body).color(.secondary)
@@ -231,6 +232,11 @@ private struct PinwheelIndexView: SwiftUI.View {
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
                 .background(.primaryBackground)
+                .onScrollGeometryChange(for: CGFloat.self) { geometry in
+                    geometry.contentOffset.y + geometry.contentInsets.top
+                } action: { _, distance in
+                    scrolledDistance = distance
+                }
 
                 VStack(spacing: 2) {
                     ForEach(groupedItems, id: \.letter) { group in
@@ -248,42 +254,14 @@ private struct PinwheelIndexView: SwiftUI.View {
         }
         .safeAreaInset(edge: .top, spacing: 0) {
             if sectionTags.count > 1 {
-                filterBar
+                PinwheelFilterBar(
+                    tags: sectionTags,
+                    selectedTag: $selectedTag,
+                    scrolledDistance: scrolledDistance
+                )
             }
         }
         .onChange(of: section?.id) { selectedTag = nil }
-    }
-
-    private var filterBar: some SwiftUI.View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: .spacingS) {
-                ForEach(sectionTags, id: \.self) { tag in
-                    pill(title: tag.rawValue, isSelected: selectedTag == tag) {
-                        selectedTag = selectedTag == tag ? nil : tag
-                    }
-                }
-            }
-            .padding(.horizontal, .spacingXM)
-            .padding(.vertical, .spacingM)
-        }
-        .background(.primaryBackground)
-    }
-
-    private func pill(title: String, isSelected: Bool, action: @escaping () -> Void) -> some SwiftUI.View {
-        SwiftUI.Button(action: action) {
-            PinLabel(title)
-                .color(isSelected ? .custom(PinwheelTheme.Colors.primaryBackground) : .primary)
-                .padding(.horizontal, .spacingM)
-                .padding(.vertical, .spacingS)
-                .background {
-                    if isSelected {
-                        Capsule().fill(.actionText)
-                    } else {
-                        Capsule().strokeBorder(.secondaryText, lineWidth: 1)
-                    }
-                }
-        }
-        .buttonStyle(.plain)
     }
 
     private var sectionTags: [PinTag] {

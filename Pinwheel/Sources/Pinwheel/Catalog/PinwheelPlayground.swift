@@ -210,7 +210,7 @@ private struct PinwheelSettingsView: SwiftUI.View {
         List {
             ForEach(tweaks) { tweak in
                 tweakRow(tweak)
-                    .listRowBackground(PinwheelTheme.Colors.primaryBackground)
+                    .listRowBackground(Color.primaryBackground)
             }
         }
         .listStyle(.plain)
@@ -275,7 +275,7 @@ private struct PinwheelDeviceList: SwiftUI.View {
                 }
                 .buttonStyle(.plain)
                 .disabled(!device.isEnabled)
-                .listRowBackground(PinwheelTheme.Colors.primaryBackground)
+                .listRowBackground(Color.primaryBackground)
             }
         }
         .listStyle(.plain)
