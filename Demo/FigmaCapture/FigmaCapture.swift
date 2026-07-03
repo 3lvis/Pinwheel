@@ -14,6 +14,7 @@ struct FigmaDocument: Encodable {
     let height: Double
     let root: FigmaNode
     let tokens: [FigmaToken]
+    let textStyles: [FigmaTextStyle]
 }
 
 struct FigmaNode: Encodable {
@@ -45,6 +46,14 @@ struct FigmaFont: Encodable {
     let weight: Int
     let color: RGBA
     let colorToken: String?
+    let style: String?
+}
+
+struct FigmaTextStyle: Encodable {
+    let name: String
+    let family: String
+    let size: Double
+    let weight: Int
 }
 
 // The closed set of Pinwheel color tokens. A captured component names the token it uses, so
@@ -107,33 +116,57 @@ extension PinTextStyle {
         case .caption: return provider.caption
         }
     }
+
+    var captureName: String {
+        switch self {
+        case .title: return "title"
+        case .subtitle: return "subtitle"
+        case .subtitleSemibold: return "subtitleSemibold"
+        case .body: return "body"
+        case .footnote: return "footnote"
+        case .caption: return "caption"
+        }
+    }
+
+    // The design uses SF Pro Rounded; the system font's internal family name isn't
+    // Figma-loadable, and the plugin falls back to Inter if the face is absent.
+    @MainActor var captureMetrics: (family: String, size: Double, weight: Int) {
+        let font = demoUIFont
+        let traits = font.fontDescriptor.object(forKey: .traits) as? [UIFontDescriptor.TraitKey: Any]
+        let weight = (traits?[.weight] as? CGFloat) ?? 0
+        return ("SF Pro Rounded", Double(font.pointSize), figmaCssWeight(weight))
+    }
+
+    static let allCapturable: [PinTextStyle] = [.title, .subtitle, .subtitleSemibold, .body, .footnote, .caption]
+}
+
+private func figmaCssWeight(_ weight: CGFloat) -> Int {
+    switch weight {
+    case ..<(-0.5): return 200
+    case ..<(-0.2): return 300
+    case ..<0.15: return 400
+    case ..<0.28: return 500
+    case ..<0.37: return 600
+    case ..<0.5: return 700
+    default: return 800
+    }
 }
 
 extension FigmaFont {
-    @MainActor init(_ style: PinTextStyle, colorTokenName: String?) {
-        let font = style.demoUIFont
-        let traits = font.fontDescriptor.object(forKey: .traits) as? [UIFontDescriptor.TraitKey: Any]
-        let weight = (traits?[.weight] as? CGFloat) ?? 0
+    @MainActor init(_ textStyle: PinTextStyle, colorTokenName: String?) {
+        let metrics = textStyle.captureMetrics
         let color = colorTokenName.flatMap { PinColorToken(rawValue: $0)?.color } ?? .primary
-        // The design uses SF Pro Rounded; the system font's internal family name isn't
-        // Figma-loadable, and the plugin falls back to Inter if the face is absent.
         self.init(
-            family: "SF Pro Rounded", size: Double(font.pointSize),
-            weight: FigmaFont.cssWeight(weight),
-            color: RGBA(color), colorToken: colorTokenName
+            family: metrics.family, size: metrics.size, weight: metrics.weight,
+            color: RGBA(color), colorToken: colorTokenName, style: textStyle.captureName
         )
     }
+}
 
-    private static func cssWeight(_ weight: CGFloat) -> Int {
-        switch weight {
-        case ..<(-0.5): return 200
-        case ..<(-0.2): return 300
-        case ..<0.15: return 400
-        case ..<0.28: return 500
-        case ..<0.37: return 600
-        case ..<0.5: return 700
-        default: return 800
-        }
+extension FigmaTextStyle {
+    @MainActor init(_ style: PinTextStyle) {
+        let metrics = style.captureMetrics
+        self.init(name: style.captureName, family: metrics.family, size: metrics.size, weight: metrics.weight)
     }
 }
 
@@ -179,7 +212,10 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
             fillToken: PinColorToken.primaryBackground.rawValue,
             children: children
         )
-        return FigmaDocument(width: size.width, height: size.height, root: root, tokens: Self.tokens)
+        return FigmaDocument(
+            width: size.width, height: size.height, root: root,
+            tokens: Self.tokens, textStyles: PinTextStyle.allCapturable.map { FigmaTextStyle($0) }
+        )
     }
 
     private static var tokens: [FigmaToken] {
