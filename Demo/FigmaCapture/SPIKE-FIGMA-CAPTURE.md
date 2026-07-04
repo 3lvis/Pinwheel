@@ -58,6 +58,14 @@ public struct PinButton: View {
   hit the captured iOS text width, compensating for SF Pro Rounded's optical-spacing difference
   (labels + "Cancel" exact; "Pay now" within a sub-pixel).
 
+## North star
+
+Import a whole **flow**, not one screen: a designer tag-selects screens in the catalog and
+imports them as a laid-out board in Figma — the running app *is* the design, serialized.
+Small lift on the pieces here: (1) per-screen `.captured()` so each emits its JSON on render,
+(2) filter the `preview-all` sweep by `PinTag`, (3) the plugin offsets N `root` frames into a
+row. Unbuilt on purpose — waiting on a real flow to justify it.
+
 ## Plan / not yet done
 
 - **Harden `@Pinnable`** — diagnostics: a clear compile error when a required marker is missing
