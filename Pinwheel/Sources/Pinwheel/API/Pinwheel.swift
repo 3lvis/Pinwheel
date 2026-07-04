@@ -110,7 +110,9 @@ public struct PinwheelItem {
         return (tags.map(\.rawValue) + [title]).joined(separator: " ").pinwheelGeneratedID
     }
 
-    func swiftUIView() -> AnyView {
+    /// The item's rendered content, for a consumer that hosts it outside the catalog
+    /// (e.g. capturing each component in isolation for a design-tool export).
+    public func swiftUIView() -> AnyView {
         return makeSwiftUIView()
     }
 

@@ -74,6 +74,13 @@ public struct PinButton: View {
   at their true positions.
 - **The imported frame is named** by the captured screen (`FigmaCaptureHost(name:)` → root node
   `name`), so it reads "Checkout" in Figma, not "screen".
+- **The whole catalog sweeps into a plugin list** (first slice of the north star): `Scripts/capture-all.sh`
+  renders every catalog item in isolation (`-PinwheelCapture <id>`, hosting `PinwheelItem.swiftUIView()`)
+  and pushes each capture — keyed by id, with title/section/tags — to the serve's `POST /catalog`. The
+  serve accumulates `catalog-<id>.json` files; `GET /manifest.json` lists them and the plugin's "Load
+  catalog" button imports any one, no relaunch per component. Ids come from a `-PinwheelManifest` dump
+  of the registry, not source grepping. `@Pinnable` components carry full node trees (Button → 12
+  nodes, Label → 5); token/UIKit-only examples appear in the list but capture little until annotated.
 
 ## North star — a deployed design-catalog service
 
@@ -121,10 +128,14 @@ decision (where the service lives); parked until then.
   - Segmented → `Segmented control`, set `Segments` (count), `Selected` (index), `Label N` (titles).
   - Plugin matches prop keys by prefix (they carry `#id` suffixes: `State#6152:0`), robust across
     kit versions; `createInstance()` + `setProperties()`.
-- **Lazy scroll content** (`List`, `LazyVStack`, `UITableView`) only lays out visible rows, so
-  below-the-fold rows don't exist to capture. Eager `ScrollView`/`VStack` content already captures
-  in full; the lazy case needs model-driven node emission or scroll-and-stitch. Rasterized nodes
-  (native controls, images) still must be on screen when captured, so they belong above the fold.
+- **Lazy scroll content** (`List`, `LazyVStack`, `UITableView`) — *considered, not worth building.*
+  Only visible rows lay out, so below-the-fold rows can't be captured without scroll-and-stitch or
+  model-driven emission. But Pinwheel is a design system with **mocked** data: below the fold is just
+  repeated cell designs, so unrolling it into Figma is noise. The only lazy components are `PinList`
+  and `UIKitPinTableView`, and their value is the *distinct cell design as an editable component*
+  (annotate the cell — a Track-A job), not the row data. Eager `ScrollView`/`VStack` already captures
+  in full (the one legit tall-screen case). Rasterized nodes must be on screen when captured, so they
+  belong above the fold.
 - **Nested auto-layout** — emit `layout` for `HStack`/`VStack` containers; today every node is
   absolute under the root (the IR already supports both, so this degrades gracefully).
 - **The "Pay now" sub-pixel** — only if exactness is wanted: have `PinButton` emit its real

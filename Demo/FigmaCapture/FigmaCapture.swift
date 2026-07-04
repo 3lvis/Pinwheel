@@ -300,11 +300,33 @@ enum FigmaCaptureFile {
     // Best-effort push to the local capture serve so the plugin's "Import layers" is always the
     // latest render — no manual pull. Silently no-ops when the serve isn't running.
     private static func push(_ data: Data) {
-        guard let url = URL(string: "http://localhost:8787/capture.json") else { return }
+        post("http://localhost:8787/capture.json", data)
+    }
+
+    // Push one catalog item's capture (keyed by id, with its metadata) so the serve accumulates a
+    // manifest the plugin lists — the many-components counterpart of the single-screen push.
+    static func pushCatalog(id: String, title: String, section: String, tags: [String], document: FigmaDocument) {
+        let entry = CatalogEntry(id: id, title: title, section: section, tags: tags, document: document)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        guard let data = try? encoder.encode(entry) else { return }
+        post("http://localhost:8787/catalog", data)
+    }
+
+    private static func post(_ urlString: String, _ data: Data) {
+        guard let url = URL(string: urlString) else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = data
         URLSession.shared.dataTask(with: request).resume()
+    }
+
+    private struct CatalogEntry: Encodable {
+        let id: String
+        let title: String
+        let section: String
+        let tags: [String]
+        let document: FigmaDocument
     }
 }

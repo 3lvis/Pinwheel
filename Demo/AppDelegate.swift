@@ -17,11 +17,17 @@ struct DemoApp: App {
 
         Config.colorProvider = DemoColorProvider()
         Config.fontProvider = DemoFontProvider()
+
+        if FigmaCatalog.isManifestDump {
+            FigmaCatalog.dumpManifest()
+        }
     }
 
     var body: some Scene {
         WindowGroup {
-            if let previewID = PinwheelPreview.requestedID {
+            if let captureID = FigmaCatalog.requestedCaptureID {
+                FigmaCaptureSweepView(id: captureID)
+            } else if let previewID = PinwheelPreview.requestedID {
                 PinwheelPreview(previewID, sections: DemoPinwheelSections.all)
             } else {
                 PinwheelCatalog {
