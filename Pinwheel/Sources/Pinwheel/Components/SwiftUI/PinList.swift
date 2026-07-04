@@ -101,9 +101,11 @@ public extension PinList {
                     Toggle("", isOn: isOn)
                         .labelsHidden()
                         .disabled(!enabled)
-                        // The switch draws taller than its intrinsic frame, so the capture crop
-                        // clipped its rounded edges; a frame that contains the whole control fixes it.
-                        .frame(width: 56, height: 34)
+                        // The switch right-aligns in its frame and draws taller than it, so the crop
+                        // cut its right cap and top/bottom. Padding keeps the whole control inside the
+                        // captured bounds; the padding is background-coloured, so it's invisible in Figma.
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
                         .pinCapturedRasterized(name: "Switch")
                 }
             }
