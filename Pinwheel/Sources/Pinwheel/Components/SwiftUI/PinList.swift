@@ -101,6 +101,9 @@ public extension PinList {
                     Toggle("", isOn: isOn)
                         .labelsHidden()
                         .disabled(!enabled)
+                        // The switch draws taller than its intrinsic frame, so the capture crop
+                        // clipped its rounded edges; a frame that contains the whole control fixes it.
+                        .frame(width: 56, height: 34)
                         .pinCapturedRasterized(name: "Switch")
                 }
             }
