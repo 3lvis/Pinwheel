@@ -96,7 +96,7 @@ public extension PinList {
                 // labels stay structured while the host photographs the native switch.
                 HStack(spacing: .spacingS) {
                     labels(subtitle: subtitle, enabled: enabled)
-                        .pinCapturedContainer(name: "Labels", layout: PinCaptureLayout(axis: .column, spacing: .spacingXXS))
+                        .pinCapturedContainer(name: "Labels", layout: PinCaptureLayout(axis: .column, spacing: .spacingXXS, alignment: .leading))
                     Spacer()
                     Toggle("", isOn: isOn)
                         .labelsHidden()
@@ -125,7 +125,7 @@ public extension PinList {
         ) -> some SwiftUI.View {
             let content = HStack(spacing: .spacingS) {
                 labels(subtitle: subtitle, enabled: enabled)
-                    .pinCapturedContainer(name: "Labels", layout: PinCaptureLayout(axis: .column, spacing: .spacingXXS))
+                    .pinCapturedContainer(name: "Labels", layout: PinCaptureLayout(axis: .column, spacing: .spacingXXS, alignment: .leading))
                 Spacer()
                 if detail != nil || chevron {
                     HStack(spacing: .spacingS) {

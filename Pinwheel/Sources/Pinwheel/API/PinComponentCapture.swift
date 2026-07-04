@@ -76,18 +76,23 @@ public struct PinCapturedComponent {
 /// frame (`HStack` → row, `VStack` → column).
 public struct PinCaptureLayout {
     public enum Axis { case row, column }
+    // Cross-axis alignment, mirroring SwiftUI's stack alignment (an `HStack` centers by default,
+    // Pinwheel's label `VStack`s lead). Defaults to `.center` to match a bare stack.
+    public enum CrossAxis { case leading, center, trailing }
     public let axis: Axis
     public let spacing: CGFloat
     public let padding: EdgeInsets
     // Pushes the first and last child to the edges (a row's labels left, accessory right). The
     // container then fills its primary axis rather than hugging, so the split holds as it resizes.
     public let spaceBetween: Bool
+    public let alignment: CrossAxis
 
-    public init(axis: Axis, spacing: CGFloat, padding: EdgeInsets = EdgeInsets(), spaceBetween: Bool = false) {
+    public init(axis: Axis, spacing: CGFloat, padding: EdgeInsets = EdgeInsets(), spaceBetween: Bool = false, alignment: CrossAxis = .center) {
         self.axis = axis
         self.spacing = spacing
         self.padding = padding
         self.spaceBetween = spaceBetween
+        self.alignment = alignment
     }
 }
 

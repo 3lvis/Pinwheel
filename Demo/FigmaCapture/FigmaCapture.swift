@@ -54,7 +54,11 @@ struct FigmaLayout: Encodable {
         pad = [Double(layout.padding.top), Double(layout.padding.trailing),
                Double(layout.padding.bottom), Double(layout.padding.leading)]
         justify = layout.spaceBetween ? "space-between" : "flex-start"
-        align = "flex-start"
+        switch layout.alignment {
+        case .leading: align = "flex-start"
+        case .center: align = "center"
+        case .trailing: align = "flex-end"
+        }
         primarySizing = layout.spaceBetween ? "FIXED" : "AUTO"
         counterSizing = "AUTO"
     }
@@ -94,13 +98,13 @@ struct FigmaText: Encodable {
 struct FigmaToken: Encodable {
     let name: String
     let type: String
-    let value: RGBA
+    let value: RGBA       // light mode
+    let dark: RGBA? = nil // dark mode, for color tokens — the plugin binds both to a Figma variable's modes
 }
 
 extension RGBA {
-    // Resolve against light mode for the spike; a full capture would emit both modes.
-    init(_ color: Color) {
-        let resolved = UIColor(color).resolvedColor(with: UITraitCollection(userInterfaceStyle: .light))
+    init(_ color: Color, style: UIUserInterfaceStyle = .light) {
+        let resolved = UIColor(color).resolvedColor(with: UITraitCollection(userInterfaceStyle: style))
         var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
         resolved.getRed(&r, green: &g, blue: &b, alpha: &a)
         self.init(r: Double(r), g: Double(g), b: Double(b), a: Double(a))

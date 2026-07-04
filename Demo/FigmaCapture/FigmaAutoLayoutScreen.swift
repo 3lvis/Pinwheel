@@ -24,7 +24,8 @@ struct FigmaAutoLayoutScreen: SwiftUI.View {
             name: "Card",
             layout: PinCaptureLayout(
                 axis: .column, spacing: .spacingM,
-                padding: EdgeInsets(top: .spacingL, leading: .spacingL, bottom: .spacingL, trailing: .spacingL)
+                padding: EdgeInsets(top: .spacingL, leading: .spacingL, bottom: .spacingL, trailing: .spacingL),
+                alignment: .leading
             )
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
