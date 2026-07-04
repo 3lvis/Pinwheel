@@ -54,6 +54,11 @@ public struct PinButton: View {
 - **Fills** bind to token **variables** by name (`actionText`) and **fonts** bind to Figma
   **text styles** (`type/title`, `type/body`) on a single "Import layers" click.
 - Button labels center in their pill; plain labels stay leading.
+- **Non-structured views rasterize** — native controls (segmented, switch), SF Symbols, and
+  images that have no token descriptor are captured as PNG image nodes and rebuilt as Figma
+  image fills. `CapturedImageView` snapshots the *real on-screen window* and crops to the view's
+  frame (ImageRenderer draws a placeholder for UIKit-backed controls; a hosted off-screen copy
+  renders blank). Caveat: the view must be visible on screen when captured.
 - **Widths match the device**: the plugin measures its own render and adds letter-spacing to
   hit the captured iOS text width, compensating for SF Pro Rounded's optical-spacing difference
   (labels + "Cancel" exact; "Pay now" within a sub-pixel).
@@ -75,6 +80,10 @@ row. Unbuilt on purpose — waiting on a real flow to justify it.
   `PinLabel`/`PinButton` today).
 - **Light + dark capture** — RGBA currently resolves against light only; emit both modes so the
   imported design carries both.
+- **Vector assets (SVG/PDF)** rasterize like everything else — loses scalability; preserving
+  them as Figma vector paths is a real next step.
+- **SF Symbols** are pixels today; the better end state maps them to a Figma icon-library
+  component via Code Connect (a shared vocabulary, like the color tokens).
 - **Nested auto-layout** — emit `layout` for `HStack`/`VStack` containers; today every node is
   absolute under the root (the IR already supports both, so this degrades gracefully).
 - **The "Pay now" sub-pixel** — only if exactness is wanted: have `PinButton` emit its real

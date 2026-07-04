@@ -5,6 +5,7 @@ import Pinwheel
 // under -FigmaCapture writes Documents/figma-capture.json for the fonno plugin.
 struct FigmaCaptureScreen: SwiftUI.View {
     @State private var deliveryMode = 0
+    @State private var notify = true
 
     var body: some SwiftUI.View {
         FigmaCaptureHost(content: sample) { document in
@@ -35,6 +36,10 @@ struct FigmaCaptureScreen: SwiftUI.View {
                 Image(systemName: "cart.fill")
                     .font(.title)
                     .foregroundStyle(.actionText)
+            }
+
+            CapturedImageView("NotifySwitch") {
+                Toggle("", isOn: $notify).labelsHidden()
             }
 
             Spacer()

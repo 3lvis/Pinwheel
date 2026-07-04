@@ -236,10 +236,12 @@ struct CapturedImageView<Content: SwiftUI.View>: SwiftUI.View {
     var body: some SwiftUI.View {
         content
             .background(
-                Color.clear.onAppear {
-                    let renderer = ImageRenderer(content: content)
-                    renderer.scale = UIScreen.main.scale
-                    base64 = renderer.uiImage?.pngData()?.base64EncodedString()
+                GeometryReader { proxy in
+                    Color.clear.onAppear {
+                        let frame = proxy.frame(in: .global)
+                        // Defer so the on-screen content (native controls included) is fully drawn.
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { render(frame) }
+                    }
                 }
             )
             .anchorPreference(key: PinCaptureKey.self, value: .bounds) { anchor in
@@ -253,6 +255,25 @@ struct CapturedImageView<Content: SwiftUI.View>: SwiftUI.View {
                     image: base64
                 )]
             }
+    }
+
+    // Off-screen rasterization is unreliable for native controls (ImageRenderer draws a
+    // placeholder; a hosted copy renders blank). The content is already on-screen, so snapshot
+    // the real window and crop to its frame — the actual pixels, native controls included.
+    @MainActor private func render(_ frame: CGRect) {
+        guard frame.width > 1, frame.height > 1,
+              let window = UIApplication.shared.connectedScenes
+                .compactMap({ $0 as? UIWindowScene }).flatMap({ $0.windows })
+                .first(where: { $0.isKeyWindow }) else { return }
+        let full = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
+            window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+        }
+        guard let cgImage = full.cgImage else { return }
+        let scale = full.scale
+        let crop = CGRect(x: frame.minX * scale, y: frame.minY * scale,
+                          width: frame.width * scale, height: frame.height * scale)
+        guard let cropped = cgImage.cropping(to: crop) else { return }
+        base64 = UIImage(cgImage: cropped).pngData()?.base64EncodedString()
     }
 }
 
