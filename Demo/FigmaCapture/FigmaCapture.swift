@@ -255,12 +255,14 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
             )
         }
         if item.isContainer {
-            // A frame (no `component`), so repeated rows stay independent groups, not shared instances.
+            // A component keyed by the row's structural name: the plugin builds the first as a master
+            // and the rest as instances that override only their text — so repeated rows reuse one
+            // component, and the master's native bit (chevron/switch) is inherited, not re-captured.
             return FigmaNode(
-                tag: "group", x: rect.minX, y: rect.minY, w: rect.width, h: rect.height,
+                tag: "component", x: rect.minX, y: rect.minY, w: rect.width, h: rect.height,
                 fill: fillColor.map { RGBA($0) }, fillToken: style.fillTokenName,
                 radius: style.cornerRadius.map { Double($0) },
-                name: style.name, children: []
+                component: style.name, children: []
             )
         }
         let texts = style.text.map { string -> [FigmaText] in

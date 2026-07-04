@@ -58,9 +58,29 @@ public extension PinList {
         }
 
         public var body: some SwiftUI.View {
-            // Groups the row's captured children (its labels) into one Figma frame when the tree is
-            // captured; a no-op when nothing reads the preference, so ordinary rendering is unaffected.
-            rowContent.pinCapturedContainer(name: title)
+            // The capture name is the row's *structure*, not its data, so structurally-identical rows
+            // share one Figma component (master + instances) and only their text differs. A no-op when
+            // nothing reads the preference, so ordinary rendering is unaffected.
+            rowContent.pinCapturedContainer(name: captureTemplate)
+        }
+
+        // Groups rows by shape (which optional parts are present), so all "title + subtitle + detail +
+        // chevron" rows reuse one component and all "toggle" rows reuse another.
+        private var captureTemplate: String {
+            switch kind {
+            case let .text(subtitle, detail, chevron, _, _):
+                var parts = ["Row"]
+                if subtitle != nil { parts.append("subtitle") }
+                if detail != nil { parts.append("detail") }
+                if chevron { parts.append("chevron") }
+                return parts.joined(separator: "-")
+            case let .toggle(subtitle, _, isOn):
+                // The switch is a reused image, so on/off are different components.
+                var parts = ["Row", "toggle"]
+                if subtitle != nil { parts.append("subtitle") }
+                parts.append(isOn.wrappedValue ? "on" : "off")
+                return parts.joined(separator: "-")
+            }
         }
 
         @ViewBuilder

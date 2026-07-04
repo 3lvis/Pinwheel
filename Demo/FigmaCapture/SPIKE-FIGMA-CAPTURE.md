@@ -140,8 +140,15 @@ decision (where the service lives); parked until then.
   text, toggle/chevron). The grouping and structured labels work below the fold too; only the *rasterized*
   native bit needs the row on screen (the window-crop constraint), so below-fold rows group their labels
   without it. `.pinCapturedContainer` uses `transformAnchorPreference` (not `anchorPreference`, which
-  would drop the row's own descendants). Rows are frames, not shared component instances — repeated rows
-  stay independent (per-row content differs).
+  would drop the row's own descendants).
+- **Identical rows reuse one component (master + instances).** A row's capture name is its *structure*
+  (`Row-subtitle-detail-chevron`, `Row-toggle-subtitle-on`), not its data, so structurally-identical rows
+  share a Figma component: the first is the master, the rest are instances the plugin fills with only
+  their own text (`applyInstanceContent` overrides the instance's nested text by position, keeping each
+  label's inherited style). The payoff: the native bit (chevron/switch) is captured **once** on the master
+  and inherited by every instance — so below-the-fold *repeated* rows need no photo of their own, only the
+  master must be on screen. Toggle on/off are separate templates (the switch image differs). Verified: 10
+  rows → 3 templates (7+2+1).
 - **`PinList.Row` self-captures.** The grouping now lives in the component: `PinList.Row.body` applies
   `.pinCapturedContainer(name:)`, so a real `PinList` laid out eagerly captures its rows as grouped,
   editable frames with *no capture code at the call site* — verified with actual `.text` rows (18 groups,
