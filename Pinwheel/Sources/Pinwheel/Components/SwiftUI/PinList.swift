@@ -58,6 +58,13 @@ public extension PinList {
         }
 
         public var body: some SwiftUI.View {
+            // Groups the row's captured children (its labels) into one Figma frame when the tree is
+            // captured; a no-op when nothing reads the preference, so ordinary rendering is unaffected.
+            rowContent.pinCapturedContainer(name: title)
+        }
+
+        @ViewBuilder
+        private var rowContent: some SwiftUI.View {
             switch kind {
             case let .text(subtitle, detail, chevron, enabled, action):
                 textRow(subtitle: subtitle, detail: detail, chevron: chevron, enabled: enabled, action: action)

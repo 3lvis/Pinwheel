@@ -142,6 +142,13 @@ decision (where the service lives); parked until then.
   without it. `.pinCapturedContainer` uses `transformAnchorPreference` (not `anchorPreference`, which
   would drop the row's own descendants). Rows are frames, not shared component instances — repeated rows
   stay independent (per-row content differs).
+- **`PinList.Row` self-captures.** The grouping now lives in the component: `PinList.Row.body` applies
+  `.pinCapturedContainer(name:)`, so a real `PinList` laid out eagerly captures its rows as grouped,
+  editable frames with *no capture code at the call site* — verified with actual `.text` rows (18 groups,
+  each its title/subtitle/detail labels, round-tripped through Figma and inspected back). It's a no-op when
+  nothing reads the preference, so ordinary rendering is unaffected. The library row's native bits
+  (chevron/`Toggle`) still need host rasterization to capture — the demo's `CapturedImageView` path, not
+  yet wired to fire from inside an opaque library row (a host-rasterization-hook follow-up).
 - **Scroll-and-stitch is the rasterized fallback** for lazy content that can't lay out eagerly — chiefly
   `UIKitPinTableView` (a real `UITableView`). `ScrollStitch` pages the backing scroll view, window-crops
   each page, and emits one image node per page (each under Figma's 4096px cap). Proven on a 30-row list

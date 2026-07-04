@@ -1,12 +1,15 @@
 import SwiftUI
 import Pinwheel
 
-// Captures a list where each row is a grouped, editable component: structured `PinLabel`s plus the
-// row's native bits (a Toggle / chevron, rasterized) nested under a per-row container. Rows lay out
-// eagerly (finite data), so every row — below the fold included — resolves and captures; the
-// container groups each row's children into one Figma frame. (Hand-wired; macros come later.)
+// Proves the *real* component self-captures: these are actual `PinList.Row` values, and the capture
+// wiring lives in `PinList.Row` itself (`.pinCapturedContainer`), not this screen. Laying the finite
+// rows out eagerly (a `VStack`, not the lazy `List`) makes every row — below the fold included —
+// resolve and capture its grouped, editable labels. (The rows' native bits — chevron/`Toggle` — are
+// still rasterization, a host concern; structured labels + grouping come from the library.)
 struct FigmaListCaptureScreen: SwiftUI.View {
-    @State private var toggles = Array(repeating: true, count: 18)
+    private let rows: [PinList.Row] = (1...18).map { index in
+        .text("Row \(index)", subtitle: "Supporting text", detail: "$\(index * 3)")
+    }
 
     var body: some SwiftUI.View {
         FigmaCaptureHost(name: "List", content: content) { document in
@@ -17,35 +20,14 @@ struct FigmaListCaptureScreen: SwiftUI.View {
     private var content: some SwiftUI.View {
         ScrollView {
             VStack(spacing: 0) {
-                ForEach(0..<18, id: \.self) { index in
-                    row(index)
+                ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                    row
+                        .padding(.horizontal, .spacingM)
+                        .padding(.vertical, .spacingS)
                     Divider()
                 }
             }
         }
         .background(.primaryBackground)
-    }
-
-    @ViewBuilder
-    private func row(_ index: Int) -> some SwiftUI.View {
-        HStack(spacing: .spacingS) {
-            VStack(alignment: .leading, spacing: .spacingXXS) {
-                PinLabel("Row \(index + 1)").font(.body)
-                PinLabel("Supporting text").font(.caption).color(.secondary)
-            }
-            Spacer()
-            if index.isMultiple(of: 2) {
-                CapturedImageView("Toggle") {
-                    Toggle("", isOn: $toggles[index]).labelsHidden()
-                }
-            } else {
-                CapturedImageView("Chevron") {
-                    Image(systemName: "chevron.right").foregroundStyle(.secondaryText)
-                }
-            }
-        }
-        .padding(.horizontal, .spacingM)
-        .padding(.vertical, .spacingS)
-        .pinCapturedContainer(name: "Row \(index + 1)", fillTokenName: PinColorToken.primaryBackground.rawValue)
     }
 }
