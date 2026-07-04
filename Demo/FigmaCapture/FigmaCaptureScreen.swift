@@ -16,42 +16,48 @@ struct FigmaCaptureScreen: SwiftUI.View {
     // PinLabel/PinButton emit their own style via `@Pinnable`. The native segmented control and
     // the SF Symbol have no structured descriptor, so `CapturedImageView` rasterizes them.
     private var sample: some SwiftUI.View {
-        VStack(alignment: .leading, spacing: .spacingM) {
-            PinLabel("Checkout")
-                .font(.title)
-
-            PinLabel("2 items in your basket")
-                .font(.body)
-                .color(.secondary)
-
-            CapturedImageView("DeliveryMode") {
-                Picker("", selection: $deliveryMode) {
-                    Text("Delivery").tag(0)
-                    Text("Pickup").tag(1)
-                }
-                .pickerStyle(.segmented)
-            }
-
-            CapturedImageView("CartIcon") {
-                Image(systemName: "cart.fill")
+        ScrollView {
+            VStack(alignment: .leading, spacing: .spacingM) {
+                PinLabel("Checkout")
                     .font(.title)
-                    .foregroundStyle(.actionText)
+
+                PinLabel("Review your order")
+                    .font(.body)
+                    .color(.secondary)
+
+                CapturedImageView("DeliveryMode") {
+                    Picker("", selection: $deliveryMode) {
+                        Text("Delivery").tag(0)
+                        Text("Pickup").tag(1)
+                    }
+                    .pickerStyle(.segmented)
+                }
+
+                CapturedImageView("CartIcon") {
+                    Image(systemName: "cart.fill")
+                        .font(.title)
+                        .foregroundStyle(.actionText)
+                }
+
+                CapturedImageView("NotifySwitch") {
+                    Toggle("", isOn: $notify).labelsHidden()
+                }
+
+                ForEach(1...24, id: \.self) { line in
+                    PinLabel("Order line \(line)")
+                        .font(.body)
+                        .color(.secondary)
+                }
+
+                PinButton("Pay now") {}
+                    .style(.primary)
+
+                PinButton("Cancel") {}
+                    .style(.secondary)
             }
-
-            CapturedImageView("NotifySwitch") {
-                Toggle("", isOn: $notify).labelsHidden()
-            }
-
-            Spacer()
-
-            PinButton("Pay now") {}
-                .style(.primary)
-
-            PinButton("Cancel") {}
-                .style(.secondary)
+            .padding(.spacingL)
+            .frame(maxWidth: .infinity, alignment: .topLeading)
         }
-        .padding(.spacingL)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(.primaryBackground)
     }
 }

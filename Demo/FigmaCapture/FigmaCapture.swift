@@ -205,16 +205,21 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
                 children: []
             )
         }
+        // A ScrollView's proxy reports only the viewport; eager content lays out in full and its
+        // anchors carry real below-the-fold y, so size the frame to the content, not the viewport.
+        let contentTop = children.map(\.y).min() ?? 0
+        let contentBottom = children.map { $0.y + $0.h }.max() ?? size.height
+        let height = max(size.height, contentBottom + contentTop)
         let root = FigmaNode(
             tag: "screen",
-            x: 0, y: 0, w: size.width, h: size.height,
+            x: 0, y: 0, w: size.width, h: height,
             fill: RGBA(PinColorToken.primaryBackground.color),
             fillToken: PinColorToken.primaryBackground.rawValue,
             name: name,
             children: children
         )
         return FigmaDocument(
-            width: size.width, height: size.height, root: root,
+            width: size.width, height: height, root: root,
             tokens: Self.tokens, textStyles: PinTextStyle.allCapturable.map { FigmaTextStyle($0) }
         )
     }

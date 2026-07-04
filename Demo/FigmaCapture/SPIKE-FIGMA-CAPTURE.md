@@ -62,6 +62,13 @@ public struct PinButton: View {
 - **Widths match the device**: the plugin measures its own render and adds letter-spacing to
   hit the captured iOS text width, compensating for SF Pro Rounded's optical-spacing difference
   (labels + "Cancel" exact; "Pay now" within a sub-pixel).
+- **Below-the-fold content captures in full**: a `ScrollView` of eager content lays out entirely
+  in one pass, so every anchor carries its real content-space position; the frame is sized to the
+  whole content, not the visible viewport, and the screen imports "unrolled" as one tall Figma
+  frame. Verified with a 24-row checkout (1114pt tall) — rows and buttons past the 778pt fold land
+  at their true positions.
+- **The imported frame is named** by the captured screen (`FigmaCaptureHost(name:)` → root node
+  `name`), so it reads "Checkout" in Figma, not "screen".
 
 ## North star
 
@@ -93,6 +100,10 @@ row. Unbuilt on purpose — waiting on a real flow to justify it.
   - Segmented → `Segmented control`, set `Segments` (count), `Selected` (index), `Label N` (titles).
   - Plugin matches prop keys by prefix (they carry `#id` suffixes: `State#6152:0`), robust across
     kit versions; `createInstance()` + `setProperties()`.
+- **Lazy scroll content** (`List`, `LazyVStack`, `UITableView`) only lays out visible rows, so
+  below-the-fold rows don't exist to capture. Eager `ScrollView`/`VStack` content already captures
+  in full; the lazy case needs model-driven node emission or scroll-and-stitch. Rasterized nodes
+  (native controls, images) still must be on screen when captured, so they belong above the fold.
 - **Nested auto-layout** — emit `layout` for `HStack`/`VStack` containers; today every node is
   absolute under the root (the IR already supports both, so this degrades gracefully).
 - **The "Pay now" sub-pixel** — only if exactness is wanted: have `PinButton` emit its real
