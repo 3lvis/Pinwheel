@@ -111,10 +111,13 @@ public struct PinButton: View {
   each color variable's two values. Fills bind to the variable, so toggling the Figma mode reskins the whole
   design. Verified: `primaryText` #021622 → #ffffff, `primaryBackground` #ffffff → #1c2024, accent unchanged.
   A second variable mode needs a paid Figma plan; it degrades to light-only otherwise. For testing without
-  that, the plugin's **Dark version** toggle paints the captured dark values directly (no binding). Native
-  bits are captured in **both** appearances — a second pass forces the window dark (`overrideUserInterfaceStyle`)
-  and re-photographs the chevron/switch — so the Dark toggle shows dark native bits too (`imageDark`), not
-  light pixels on a dark canvas.
+  that, the plugin's **Dark version** toggle paints the captured dark values directly (no binding).
+- **Dark *native bits* are not reliable yet.** The two-pass approach (crop, flip the window with
+  `overrideUserInterfaceStyle = .dark`, re-crop into `imageDark`) works only intermittently: SwiftUI's
+  `WindowGroup` resets the window override, so the dark crop usually captures the still-light control and
+  `imageDark == image`. So today the chevron/switch render *light* in a dark import even though the colours
+  are correct. The durable fix is to force dark through SwiftUI (`.preferredColorScheme(.dark)` on the
+  captured content during the dark pass) rather than fighting the window's appearance — not yet done.
 - **Stack cross-axis alignment is captured** — a row centers its content (matching a SwiftUI `HStack`), a
   label `VStack` leads; `PinCaptureLayout.alignment` carries it, so an imported toggle row isn't top-aligned.
 
