@@ -25,7 +25,9 @@ struct DemoApp: App {
 
     var body: some Scene {
         WindowGroup {
-            if let captureID = FigmaCatalog.requestedCaptureID {
+            if ProcessInfo.processInfo.arguments.contains("-PinwheelTableCapture") {
+                FigmaTableCaptureScreen()
+            } else if let captureID = FigmaCatalog.requestedCaptureID {
                 FigmaCaptureSweepView(id: captureID)
             } else if let previewID = PinwheelPreview.requestedID {
                 PinwheelPreview(previewID, sections: DemoPinwheelSections.all)

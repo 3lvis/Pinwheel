@@ -128,14 +128,14 @@ decision (where the service lives); parked until then.
   - Segmented → `Segmented control`, set `Segments` (count), `Selected` (index), `Label N` (titles).
   - Plugin matches prop keys by prefix (they carry `#id` suffixes: `State#6152:0`), robust across
     kit versions; `createInstance()` + `setProperties()`.
-- **Lazy scroll content** (`List`, `LazyVStack`, `UITableView`) — *considered, not worth building.*
-  Only visible rows lay out, so below-the-fold rows can't be captured without scroll-and-stitch or
-  model-driven emission. But Pinwheel is a design system with **mocked** data: below the fold is just
-  repeated cell designs, so unrolling it into Figma is noise. The only lazy components are `PinList`
-  and `UIKitPinTableView`, and their value is the *distinct cell design as an editable component*
-  (annotate the cell — a Track-A job), not the row data. Eager `ScrollView`/`VStack` already captures
-  in full (the one legit tall-screen case). Rasterized nodes must be on screen when captured, so they
-  belong above the fold.
+- **Lazy lists capture in full via scroll-and-stitch.** A `List`/`UITableView` only lays out visible
+  rows, but the data source is finite: `ScrollStitch` finds the backing scroll view, pages it top to
+  bottom, window-crops each page, and stitches them into one image sized to `contentSize`. Proven on a
+  30-row `List` — 1560pt tall, every row, clean seams (`-PinwheelTableCapture`). It's scroll-view
+  agnostic, so it's also the answer for `UIKitPinTableView`, which captures nothing structurally.
+  Tradeoff: the result is a rasterized image, not editable rows — fine for showing the whole component;
+  editable rows would still need nested capture. (Eager `ScrollView`/`VStack` captures structurally in
+  full without this — the scroll-stitch path is only for lazy containers.)
 - **Nested auto-layout** — emit `layout` for `HStack`/`VStack` containers; today every node is
   absolute under the root (the IR already supports both, so this degrades gracefully).
 - **The "Pay now" sub-pixel** — only if exactness is wanted: have `PinButton` emit its real
