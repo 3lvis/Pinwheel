@@ -75,13 +75,29 @@ public struct PinButton: View {
 - **The imported frame is named** by the captured screen (`FigmaCaptureHost(name:)` → root node
   `name`), so it reads "Checkout" in Figma, not "screen".
 
-## North star
+## North star — a deployed design-catalog service
 
-Import a whole **flow**, not one screen: a designer tag-selects screens in the catalog and
-imports them as a laid-out board in Figma — the running app *is* the design, serialized.
-Small lift on the pieces here: (1) per-screen `.captured()` so each emits its JSON on render,
-(2) filter the `preview-all` sweep by `PinTag`, (3) the plugin offsets N `root` frames into a
-row. Unbuilt on purpose — waiting on a real flow to justify it.
+The running app *is* the design, published as a catalog a designer browses in Figma — no Xcode, no
+simulator in their hands. Generation is render-bound and consumption is static JSON, so the two
+decouple cleanly:
+
+- **Generate** (needs a render → a sim, so **CI post-merge**, not a pre-merge gate): one sweep runs
+  `Scripts/preview-all.sh` over every catalog id and emits a **manifest** — `{ sections, items:
+  [{id, title, section, tags, json}] }` — mirroring the Swift catalog (`DemoPinwheelSections` / the
+  `Catalog` enum).
+- **Publish**: POST the bundle to a **deployed ingest service** — `serve.mjs` with its
+  `POST /capture.json` is the prototype; promoting it is a base-URL swap plus auth, the plugin code
+  is unchanged. Two decisions the design must account for: **ingest auth** (only CI publishes, via a
+  token; reads open or gated to designers) and **versioning** (key each bundle by git SHA/release, so
+  designers pull a stable version and you get design *diffs across releases* nearly for free).
+- **Consume** (no app, no sim): the plugin fetches the manifest and shows a catalog-style list
+  (sections + SwiftUI/UIKit tag chips), importing a picked component, screen, or tag-selected
+  **flow** (N `root` frames laid out into a board).
+
+**Cheapest first step: the manifest sweep.** It's useful immediately against the local serve (the
+plugin gets a component list, no relaunch per component) and it's the *same* code the deployed
+service consumes later — bottom-up, nothing wasted. The rest is real work gated on one infra
+decision (where the service lives); parked until then.
 
 ## Plan / not yet done
 
