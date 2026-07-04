@@ -8,7 +8,7 @@ struct FigmaCaptureScreen: SwiftUI.View {
     @State private var notify = true
 
     var body: some SwiftUI.View {
-        FigmaCaptureHost(content: sample) { document in
+        FigmaCaptureHost(name: "Checkout", content: sample) { document in
             FigmaCaptureFile.write(document)
         }
     }

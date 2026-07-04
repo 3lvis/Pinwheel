@@ -27,6 +27,7 @@ struct FigmaNode: Encodable {
     var fillToken: String?
     var radius: Double?
     var component: String?
+    var name: String?
     var font: FigmaFont?
     var texts: [FigmaText]?
     var textAlign: String?
@@ -151,6 +152,7 @@ extension FigmaTextStyle {
 }
 
 struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
+    let name: String
     let content: Content
     let onCapture: (FigmaDocument) -> Void
 
@@ -208,6 +210,7 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
             x: 0, y: 0, w: size.width, h: size.height,
             fill: RGBA(PinColorToken.primaryBackground.color),
             fillToken: PinColorToken.primaryBackground.rawValue,
+            name: name,
             children: children
         )
         return FigmaDocument(
