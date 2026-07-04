@@ -20,7 +20,7 @@ struct FigmaTableCaptureScreen: SwiftUI.View {
         .background(.primaryBackground)
         .task {
             // Let the list lay out its first page before driving the scroll.
-            try? await Task.sleep(nanoseconds: 600_000_000)
+            try? await Task.sleep(nanoseconds: 500_000_000)
             await captureAndPush()
         }
     }
@@ -31,18 +31,20 @@ struct FigmaTableCaptureScreen: SwiftUI.View {
             .compactMap({ $0 as? UIWindowScene }).flatMap({ $0.windows })
             .first(where: { $0.isKeyWindow }),
               let scrollView = ScrollStitch.scrollView(in: window),
-              let result = await ScrollStitch.capture(scrollView, in: window),
-              let base64 = result.image.pngData()?.base64EncodedString() else { return }
+              let result = await ScrollStitch.capture(scrollView, in: window) else { return }
 
-        let image = FigmaNode(
-            tag: "image", x: 0, y: 0, w: result.size.width, h: result.size.height,
-            component: "TableRows", image: base64, children: []
-        )
+        let children = result.pages.compactMap { page -> FigmaNode? in
+            guard let base64 = page.image.pngData()?.base64EncodedString() else { return nil }
+            return FigmaNode(
+                tag: "image", x: 0, y: page.offset, w: result.size.width, h: page.height,
+                component: "TableRows", image: base64, children: []
+            )
+        }
         let root = FigmaNode(
             tag: "screen", x: 0, y: 0, w: result.size.width, h: result.size.height,
             fill: RGBA(PinColorToken.primaryBackground.color),
             fillToken: PinColorToken.primaryBackground.rawValue,
-            name: "Table", children: [image]
+            name: "Table", children: children
         )
         FigmaCaptureFile.write(FigmaDocument(
             width: result.size.width, height: result.size.height, root: root,

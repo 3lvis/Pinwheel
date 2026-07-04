@@ -23,8 +23,17 @@ enum ScrollStitch {
         return best
     }
 
+    struct Page {
+        let image: UIImage
+        let offset: CGFloat
+        let height: CGFloat
+    }
+
+    // Returns one image per viewport page (not a single stitched image): Figma's createImage caps
+    // at 4096px per side, and a long list stitched whole blows past it. A page is viewport-tall, so
+    // each stays well under the cap; placed at its offset the pages reproduce the full list.
     @MainActor
-    static func capture(_ scrollView: UIScrollView, in window: UIWindow) async -> (image: UIImage, size: CGSize)? {
+    static func capture(_ scrollView: UIScrollView, in window: UIWindow) async -> (pages: [Page], size: CGSize)? {
         let scale = window.screen.scale
         let frame = scrollView.convert(scrollView.bounds, to: window)
         let viewport = scrollView.bounds.height
@@ -32,13 +41,20 @@ enum ScrollStitch {
         guard frame.width > 1, viewport > 1 else { return nil }
 
         let restore = scrollView.contentOffset
-        var pages: [(image: UIImage, y: CGFloat, height: CGFloat)] = []
-        var offset: CGFloat = 0
-        while offset < total {
-            scrollView.setContentOffset(CGPoint(x: 0, y: offset), animated: false)
-            // Let the newly-revealed cells lay out and draw before snapshotting.
-            try? await Task.sleep(nanoseconds: 250_000_000)
-            let pageHeight = min(viewport, total - offset)
+        var pages: [Page] = []
+        var target: CGFloat = 0
+        var iterations = 0
+        while iterations < 200 {
+            iterations += 1
+            scrollView.setContentOffset(CGPoint(x: 0, y: target), animated: false)
+            // layoutIfNeeded forces the newly-revealed cells to lay out synchronously (a real hook,
+            // not a guess); a short settle then covers only their draw, which has no callback.
+            scrollView.layoutIfNeeded()
+            try? await Task.sleep(nanoseconds: 100_000_000)
+            // The scroll view clamps past its max offset, so read where it actually landed and
+            // place the page there — the last page overlaps the previous with identical pixels.
+            let actual = scrollView.contentOffset.y
+            let pageHeight = min(viewport, total - actual)
             let shot = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
                 window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
             }
@@ -46,19 +62,13 @@ enum ScrollStitch {
                 let crop = CGRect(x: frame.minX * scale, y: frame.minY * scale,
                                   width: frame.width * scale, height: pageHeight * scale)
                 if let cropped = cgImage.cropping(to: crop) {
-                    pages.append((UIImage(cgImage: cropped), offset, pageHeight))
+                    pages.append(Page(image: UIImage(cgImage: cropped), offset: actual, height: pageHeight))
                 }
             }
-            offset += viewport
+            if actual + viewport >= total { break }
+            target += viewport
         }
         scrollView.setContentOffset(restore, animated: false)
-
-        let size = CGSize(width: frame.width, height: total)
-        let stitched = UIGraphicsImageRenderer(size: size).image { _ in
-            for page in pages {
-                page.image.draw(in: CGRect(x: 0, y: page.y, width: frame.width, height: page.height))
-            }
-        }
-        return (stitched, size)
+        return (pages, CGSize(width: frame.width, height: total))
     }
 }
