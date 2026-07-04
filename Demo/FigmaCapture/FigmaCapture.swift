@@ -213,10 +213,6 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
 }
 
 enum FigmaCaptureFile {
-    static var requested: Bool {
-        ProcessInfo.processInfo.arguments.contains("-FigmaCapture")
-    }
-
     static func write(_ document: FigmaDocument) {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]

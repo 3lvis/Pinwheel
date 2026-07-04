@@ -7,15 +7,20 @@ unchanged. Source stays the design source of truth; Figma becomes the playground
 
 ## What it does
 
-`FigmaCaptureScreen` renders a Pinwheel screen inside `FigmaCaptureHost`, which reads the
-components' own `PinCaptureKey` descriptors, resolves each anchor to a frame in the screen's
-coordinate space, and writes fonno's IR to `Documents/figma-capture.json`. Reach it two ways:
-the **Screens** section of the catalog, or the `-FigmaCapture` launch arg.
+Capture is a side effect of *rendering* — a component wrapped in `FigmaCaptureHost` reads its
+own `PinCaptureKey` descriptors, resolves each anchor to a frame, and writes fonno's IR to
+`Documents/figma-capture.json` on appear. No special launch mode: just render it, via the
+**Screens** section of the catalog or an isolated preview deep-link.
 
 ```
-xcrun simctl launch <booted> com.nordser.pinwheel -FigmaCapture
+# render one component in isolation (headless) → writes its JSON
+xcrun simctl launch <booted> com.nordser.pinwheel -PinwheelPreview swiftui-figma-capture
 # then pull Documents/figma-capture.json → feed to the fonno plugin's "Import layers"
 ```
+
+It can't run at build time — the frames come from a real SwiftUI layout pass, so it needs a
+booted simulator — but it needs no manual navigation: `Scripts/preview-all.sh` already sweeps
+every catalog id via `-PinwheelPreview`, so one run emits every component's capture JSON.
 
 ## Authoring: the `@Pinnable` macro (no boilerplate)
 
