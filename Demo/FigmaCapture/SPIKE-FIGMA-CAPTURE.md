@@ -84,6 +84,15 @@ row. Unbuilt on purpose — waiting on a real flow to justify it.
   them as Figma vector paths is a real next step.
 - **SF Symbols** are pixels today; the better end state maps them to a Figma icon-library
   component via Code Connect (a shared vocabulary, like the color tokens).
+- **Link native controls to Apple's iOS UI Kit (opt-in premium tier).** Instead of rasterizing
+  a native control, instantiate Apple's official component so it's editable. Graceful: try to
+  find the component; fall back to the image if absent. Gated on the designer having the kit
+  (in-file, or enabled as a team library — the scalable form) — so parked until a consumer has
+  it. The variant mapping is already known:
+  - Switch → `Toggle - Switch`, set `State` = On/Off.
+  - Segmented → `Segmented control`, set `Segments` (count), `Selected` (index), `Label N` (titles).
+  - Plugin matches prop keys by prefix (they carry `#id` suffixes: `State#6152:0`), robust across
+    kit versions; `createInstance()` + `setProperties()`.
 - **Nested auto-layout** — emit `layout` for `HStack`/`VStack` containers; today every node is
   absolute under the root (the IR already supports both, so this degrades gracefully).
 - **The "Pay now" sub-pixel** — only if exactness is wanted: have `PinButton` emit its real
