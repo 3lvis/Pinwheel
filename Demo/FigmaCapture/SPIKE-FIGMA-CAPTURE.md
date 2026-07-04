@@ -110,8 +110,11 @@ public struct PinButton: View {
   (`RGBA(color, style:)`) and the plugin gives the token collection a **Light** and **Dark** mode, binding
   each color variable's two values. Fills bind to the variable, so toggling the Figma mode reskins the whole
   design. Verified: `primaryText` #021622 → #ffffff, `primaryBackground` #ffffff → #1c2024, accent unchanged.
-  A second variable mode needs a paid Figma plan; it degrades to light-only otherwise. Rasterized bits stay
-  at their capture-time appearance.
+  A second variable mode needs a paid Figma plan; it degrades to light-only otherwise. For testing without
+  that, the plugin's **Dark version** toggle paints the captured dark values directly (no binding). Native
+  bits are captured in **both** appearances — a second pass forces the window dark (`overrideUserInterfaceStyle`)
+  and re-photographs the chevron/switch — so the Dark toggle shows dark native bits too (`imageDark`), not
+  light pixels on a dark canvas.
 - **Stack cross-axis alignment is captured** — a row centers its content (matching a SwiftUI `HStack`), a
   label `VStack` leads; `PinCaptureLayout.alignment` carries it, so an imported toggle row isn't top-aligned.
 

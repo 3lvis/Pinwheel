@@ -32,6 +32,7 @@ struct FigmaNode: Encodable {
     var texts: [FigmaText]?
     var textAlign: String?
     var image: String?
+    var imageDark: String?   // dark-appearance capture of a rasterized bit; the plugin's Dark toggle uses it
     var layout: FigmaLayout?
     var children: [FigmaNode]
 }
@@ -203,17 +204,29 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
     // marker's on-screen frame (its anchor offset by the reader's global origin), then emit.
     private func capture(_ captured: [PinCapturedComponent], _ proxy: GeometryProxy) {
         guard captured.contains(where: { $0.needsRasterization }) else {
-            onCapture(document(from: captured, proxy: proxy, rasterImages: [:]))
+            onCapture(document(from: captured, proxy: proxy, rasterImages: [:], darkImages: [:]))
             return
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
             let origin = proxy.frame(in: .global).origin
-            var rasterImages: [Int: String] = [:]
+            var lightImages: [Int: String] = [:]
             for (index, item) in captured.enumerated() where item.needsRasterization {
                 let global = proxy[item.bounds].offsetBy(dx: origin.x, dy: origin.y)
-                if let base64 = ScreenCrop.base64(of: global) { rasterImages[index] = base64 }
+                if let base64 = ScreenCrop.base64(of: global) { lightImages[index] = base64 }
             }
-            onCapture(document(from: captured, proxy: proxy, rasterImages: rasterImages))
+            // Force the window dark and photograph the native bits again, so the dark import uses
+            // dark-captured chevrons/switches instead of the light pixels on a dark canvas.
+            let window = ScreenCrop.keyWindow()
+            window?.overrideUserInterfaceStyle = .dark
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                var darkImages: [Int: String] = [:]
+                for (index, item) in captured.enumerated() where item.needsRasterization {
+                    let global = proxy[item.bounds].offsetBy(dx: origin.x, dy: origin.y)
+                    if let base64 = ScreenCrop.base64(of: global) { darkImages[index] = base64 }
+                }
+                window?.overrideUserInterfaceStyle = .unspecified
+                onCapture(document(from: captured, proxy: proxy, rasterImages: lightImages, darkImages: darkImages))
+            }
         }
     }
 
@@ -221,7 +234,7 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
     // from the component (`PinCapturedComponent`), nothing re-specified here. Container nodes
     // (list rows) become parent frames; every other node nests under the smallest container whose
     // frame encloses it, so a row rebuilds as one Figma frame holding its labels/controls.
-    private func document(from captured: [PinCapturedComponent], proxy: GeometryProxy, rasterImages: [Int: String]) -> FigmaDocument {
+    private func document(from captured: [PinCapturedComponent], proxy: GeometryProxy, rasterImages: [Int: String], darkImages: [Int: String]) -> FigmaDocument {
         let size = proxy.size
         // Resolve each descriptor to a node; drop rasterization markers we couldn't photograph
         // (off-screen when captured) so they don't become empty placeholder nodes.
@@ -230,7 +243,7 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
             let resolvedImage = item.image ?? rasterImages[index]
             if item.needsRasterization && resolvedImage == nil { continue }
             let rect = proxy[item.bounds]
-            nodes.append((rect: rect, isContainer: item.isContainer, node: node(for: item, rect: rect, resolvedImage: resolvedImage)))
+            nodes.append((rect: rect, isContainer: item.isContainer, node: node(for: item, rect: rect, resolvedImage: resolvedImage, resolvedDarkImage: darkImages[index])))
         }
 
         // Innermost-first, so a node lands in the tightest container that encloses it.
@@ -273,14 +286,14 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
 
     // One IR node for a captured descriptor: a rasterized image, a group frame (a container, e.g.
     // a row — children nested by the caller), or a structured leaf (label/button).
-    private func node(for item: PinCapturedComponent, rect: CGRect, resolvedImage: String?) -> FigmaNode {
+    private func node(for item: PinCapturedComponent, rect: CGRect, resolvedImage: String?, resolvedDarkImage: String?) -> FigmaNode {
         let style = item.style
         let fillColor = style.fillTokenName.flatMap { PinColorToken(rawValue: $0)?.color }
 
         if let image = resolvedImage {
             return FigmaNode(
                 tag: "image", x: rect.minX, y: rect.minY, w: rect.width, h: rect.height,
-                component: style.name, image: image, children: []
+                component: style.name, image: image, imageDark: resolvedDarkImage, children: []
             )
         }
         if item.isContainer {
@@ -377,11 +390,14 @@ struct CapturedImageView<Content: SwiftUI.View>: SwiftUI.View {
 // blank), so snapshot the real on-screen window and crop — the actual pixels, native controls
 // included. Returns nil when the rect is off-screen (nothing to crop).
 enum ScreenCrop {
+    @MainActor static func keyWindow() -> UIWindow? {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }.flatMap { $0.windows }
+            .first { $0.isKeyWindow }
+    }
+
     @MainActor static func base64(of frame: CGRect) -> String? {
-        guard frame.width > 1, frame.height > 1,
-              let window = UIApplication.shared.connectedScenes
-                .compactMap({ $0 as? UIWindowScene }).flatMap({ $0.windows })
-                .first(where: { $0.isKeyWindow }) else { return nil }
+        guard frame.width > 1, frame.height > 1, let window = keyWindow() else { return nil }
         let full = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
             window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
         }
