@@ -25,7 +25,9 @@ struct DemoApp: App {
 
     var body: some Scene {
         WindowGroup {
-            if ProcessInfo.processInfo.arguments.contains("-PinwheelListCapture") {
+            if ProcessInfo.processInfo.arguments.contains("-PinwheelAutoLayoutCapture") {
+                FigmaAutoLayoutScreen()
+            } else if ProcessInfo.processInfo.arguments.contains("-PinwheelListCapture") {
                 FigmaListCaptureScreen()
             } else if ProcessInfo.processInfo.arguments.contains("-PinwheelTableCapture") {
                 FigmaTableCaptureScreen()

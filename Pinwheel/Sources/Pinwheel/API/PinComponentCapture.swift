@@ -55,16 +55,35 @@ public struct PinCapturedComponent {
     // photographs its on-screen frame. The marker is pure SwiftUI — the host owns the screenshot —
     // so the library ships no window-capture code.
     public let needsRasterization: Bool
+    // A stack layout the consumer can rebuild as a Figma auto-layout frame, so the imported design
+    // reflows (a longer label, an added row) instead of being a fixed snapshot. Set on a container.
+    public let layout: PinCaptureLayout?
 
     public init(
         style: PinComponentStyle, bounds: Anchor<CGRect>, image: String? = nil,
-        isContainer: Bool = false, needsRasterization: Bool = false
+        isContainer: Bool = false, needsRasterization: Bool = false, layout: PinCaptureLayout? = nil
     ) {
         self.style = style
         self.bounds = bounds
         self.image = image
         self.isContainer = isContainer
         self.needsRasterization = needsRasterization
+        self.layout = layout
+    }
+}
+
+/// A stack's axis, spacing, and padding, captured so a container rebuilds as a Figma auto-layout
+/// frame (`HStack` → row, `VStack` → column).
+public struct PinCaptureLayout {
+    public enum Axis { case row, column }
+    public let axis: Axis
+    public let spacing: CGFloat
+    public let padding: EdgeInsets
+
+    public init(axis: Axis, spacing: CGFloat, padding: EdgeInsets = EdgeInsets()) {
+        self.axis = axis
+        self.spacing = spacing
+        self.padding = padding
     }
 }
 
@@ -86,7 +105,7 @@ public extension View {
     /// under it, so it rebuilds as one Figma frame containing its children. Uses
     /// `transformAnchorPreference` to *append* the container — plain `anchorPreference` would
     /// replace the descendants' captured nodes (the row's own labels) with just this one.
-    func pinCapturedContainer(name: String, fillTokenName: String? = nil, cornerRadius: CGFloat? = nil) -> some View {
+    func pinCapturedContainer(name: String, fillTokenName: String? = nil, cornerRadius: CGFloat? = nil, layout: PinCaptureLayout? = nil) -> some View {
         transformAnchorPreference(key: PinCaptureKey.self, value: .bounds) { value, anchor in
             value.append(PinCapturedComponent(
                 style: PinComponentStyle(
@@ -94,7 +113,8 @@ public extension View {
                     fillTokenName: fillTokenName, cornerRadius: cornerRadius, centersText: false
                 ),
                 bounds: anchor,
-                isContainer: true
+                isContainer: true,
+                layout: layout
             ))
         }
     }

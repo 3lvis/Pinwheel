@@ -32,7 +32,30 @@ struct FigmaNode: Encodable {
     var texts: [FigmaText]?
     var textAlign: String?
     var image: String?
+    var layout: FigmaLayout?
     var children: [FigmaNode]
+}
+
+struct FigmaLayout: Encodable {
+    let mode: String       // "row" | "column"
+    let columnGap: Double
+    let rowGap: Double
+    let pad: [Double]      // [top, right, bottom, left]
+    let justify: String
+    let align: String
+    let hug: Bool          // primary axis hugs content, so the frame reflows with its children
+
+    @MainActor init(_ layout: PinCaptureLayout) {
+        let horizontal = layout.axis == .row
+        mode = horizontal ? "row" : "column"
+        columnGap = horizontal ? Double(layout.spacing) : 0
+        rowGap = horizontal ? 0 : Double(layout.spacing)
+        pad = [Double(layout.padding.top), Double(layout.padding.trailing),
+               Double(layout.padding.bottom), Double(layout.padding.leading)]
+        justify = "flex-start"
+        align = "flex-start"
+        hug = true
+    }
 }
 
 struct RGBA: Encodable {
@@ -262,7 +285,9 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
                 tag: "component", x: rect.minX, y: rect.minY, w: rect.width, h: rect.height,
                 fill: fillColor.map { RGBA($0) }, fillToken: style.fillTokenName,
                 radius: style.cornerRadius.map { Double($0) },
-                component: style.name, children: []
+                component: style.name,
+                layout: item.layout.map { FigmaLayout($0) },
+                children: []
             )
         }
         let texts = style.text.map { string -> [FigmaText] in

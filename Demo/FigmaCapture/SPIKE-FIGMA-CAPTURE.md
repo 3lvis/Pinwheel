@@ -137,11 +137,14 @@ The core round-trip and the lazy-list problem are covered every way we could fin
 
 ### The one real fidelity hole
 
-- **Auto-layout — the biggest gap.** Right now every node is captured at an *absolute* position. The
-  imported Figma file is a faithful *snapshot*, but it's not *editable-responsive*: a designer who lengthens
-  a label or deletes a row gets no reflow. The IR and plugin already support auto-layout (`layout`) — the
-  capture just never emits it. Detecting `HStack`/`VStack` axis + spacing and emitting auto-layout frames is
-  the thing that would make the output feel truly native to Figma. We haven't touched it.
+- **Auto-layout — mechanism proven, rollout remaining.** A container can now carry a `PinCaptureLayout`
+  (axis, spacing, padding); the host emits `layout` and the plugin builds a *hugging* Figma auto-layout
+  frame, so the imported design reflows instead of being a fixed snapshot. Proven on a column card
+  (`-PinwheelAutoLayoutCapture`): title/body/button stack, 12pt gaps, 16pt padding, `hug: true`. What's
+  left is rolling it through the *real* components — a `PinList.Row` needs its label `VStack` as a nested
+  column container inside a row (`HStack`) auto-layout with space-between for the trailing accessory — and
+  inferring axis/spacing geometrically where a component doesn't declare it, so annotation isn't required
+  everywhere.
 - **Light + dark.** Capture resolves colors against light only (`UITraitCollection(.light)`). A design-system
   deliverable usually needs both, and Figma variables support modes — emit both and the imported tokens carry
   light/dark.
