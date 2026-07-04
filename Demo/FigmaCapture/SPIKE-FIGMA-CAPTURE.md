@@ -128,14 +128,18 @@ decision (where the service lives); parked until then.
   - Segmented → `Segmented control`, set `Segments` (count), `Selected` (index), `Label N` (titles).
   - Plugin matches prop keys by prefix (they carry `#id` suffixes: `State#6152:0`), robust across
     kit versions; `createInstance()` + `setProperties()`.
-- **Lazy lists capture in full via scroll-and-stitch.** A `List`/`UITableView` only lays out visible
-  rows, but the data source is finite: `ScrollStitch` finds the backing scroll view, pages it top to
-  bottom, window-crops each page, and stitches them into one image sized to `contentSize`. Proven on a
-  30-row `List` — 1560pt tall, every row, clean seams (`-PinwheelTableCapture`). It's scroll-view
-  agnostic, so it's also the answer for `UIKitPinTableView`, which captures nothing structurally.
-  Tradeoff: the result is a rasterized image, not editable rows — fine for showing the whole component;
-  editable rows would still need nested capture. (Eager `ScrollView`/`VStack` captures structurally in
-  full without this — the scroll-stitch path is only for lazy containers.)
+- **Lazy lists capture structurally by laying out eagerly.** A lazy `List` only lays out visible rows,
+  but the data source is finite — so render the same `PinList.Row` values in an eager `VStack` and every
+  row resolves its frame and captures its `PinLabel`s as *editable* text, below the fold included. Proven
+  on a 30-row list — 60 label nodes, all rows, doc 1100pt tall (`-PinwheelListCapture`). This is the real
+  path: editable rows, no macros, no rasterization. (Grouping rows into row-*components* would still want
+  nested capture; the labels alone are already editable and positioned. Rows' native bits — a `Toggle`,
+  a chevron — don't capture structurally yet.)
+- **Scroll-and-stitch is the rasterized fallback** for lazy content that can't lay out eagerly — chiefly
+  `UIKitPinTableView` (a real `UITableView`). `ScrollStitch` pages the backing scroll view, window-crops
+  each page, and emits one image node per page (each under Figma's 4096px cap). Proven on a 30-row list
+  (`-PinwheelTableCapture`). Whole component as an image, not editable rows — use only when eager layout
+  isn't possible.
 - **Nested auto-layout** — emit `layout` for `HStack`/`VStack` containers; today every node is
   absolute under the root (the IR already supports both, so this degrades gracefully).
 - **The "Pay now" sub-pixel** — only if exactness is wanted: have `PinButton` emit its real
