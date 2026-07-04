@@ -51,12 +51,20 @@ public struct PinCapturedComponent {
     // A grouping node (e.g. a list row): the consumer nests other captured nodes whose frames fall
     // inside its bounds under it, so a row rebuilds as one Figma frame containing its labels.
     public let isContainer: Bool
+    // A native/opaque bit (a switch, a chevron) the library can't describe structurally: the host
+    // photographs its on-screen frame. The marker is pure SwiftUI — the host owns the screenshot —
+    // so the library ships no window-capture code.
+    public let needsRasterization: Bool
 
-    public init(style: PinComponentStyle, bounds: Anchor<CGRect>, image: String? = nil, isContainer: Bool = false) {
+    public init(
+        style: PinComponentStyle, bounds: Anchor<CGRect>, image: String? = nil,
+        isContainer: Bool = false, needsRasterization: Bool = false
+    ) {
         self.style = style
         self.bounds = bounds
         self.image = image
         self.isContainer = isContainer
+        self.needsRasterization = needsRasterization
     }
 }
 
@@ -87,6 +95,22 @@ public extension View {
                 ),
                 bounds: anchor,
                 isContainer: true
+            ))
+        }
+    }
+
+    /// Marks a native/opaque bit (a switch, a chevron) for the host to photograph — the library has
+    /// no structured description of it. Emits only a marker; the host does the window-crop, so no
+    /// screenshot code ships in the library. A no-op when nothing is capturing.
+    func pinCapturedRasterized(name: String) -> some View {
+        transformAnchorPreference(key: PinCaptureKey.self, value: .bounds) { value, anchor in
+            value.append(PinCapturedComponent(
+                style: PinComponentStyle(
+                    name: name, text: nil, textStyle: nil, textColorTokenName: nil,
+                    fillTokenName: nil, cornerRadius: nil, centersText: false
+                ),
+                bounds: anchor,
+                needsRasterization: true
             ))
         }
     }

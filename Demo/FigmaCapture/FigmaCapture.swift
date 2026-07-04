@@ -161,21 +161,48 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
             .backgroundPreferenceValue(PinCaptureKey.self) { captured in
                 GeometryReader { proxy in
                     Color.clear
-                        .onAppear { onCapture(document(from: captured, proxy: proxy)) }
-                        // Rasterized nodes (ImageRenderer) populate a frame later, adding to the
-                        // set; re-write when the count changes so the image nodes are included.
-                        .onChange(of: captured.count) { onCapture(document(from: captured, proxy: proxy)) }
+                        .onAppear { capture(captured, proxy) }
+                        // CapturedImageView fills its image later, changing the count; re-capture
+                        // so those image nodes are included.
+                        .onChange(of: captured.count) { capture(captured, proxy) }
                 }
             }
+    }
+
+    // Native-bit markers (a switch, a chevron) carry no image — the host photographs them here,
+    // keeping the window-capture out of the library. Defer so the window is drawn, crop each
+    // marker's on-screen frame (its anchor offset by the reader's global origin), then emit.
+    private func capture(_ captured: [PinCapturedComponent], _ proxy: GeometryProxy) {
+        guard captured.contains(where: { $0.needsRasterization }) else {
+            onCapture(document(from: captured, proxy: proxy, rasterImages: [:]))
+            return
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            let origin = proxy.frame(in: .global).origin
+            var rasterImages: [Int: String] = [:]
+            for (index, item) in captured.enumerated() where item.needsRasterization {
+                let global = proxy[item.bounds].offsetBy(dx: origin.x, dy: origin.y)
+                if let base64 = ScreenCrop.base64(of: global) { rasterImages[index] = base64 }
+            }
+            onCapture(document(from: captured, proxy: proxy, rasterImages: rasterImages))
+        }
     }
 
     // Maps the library's design-fact descriptors to fonno's Figma IR. All style comes
     // from the component (`PinCapturedComponent`), nothing re-specified here. Container nodes
     // (list rows) become parent frames; every other node nests under the smallest container whose
     // frame encloses it, so a row rebuilds as one Figma frame holding its labels/controls.
-    private func document(from captured: [PinCapturedComponent], proxy: GeometryProxy) -> FigmaDocument {
+    private func document(from captured: [PinCapturedComponent], proxy: GeometryProxy, rasterImages: [Int: String]) -> FigmaDocument {
         let size = proxy.size
-        var nodes = captured.map { (rect: proxy[$0.bounds], isContainer: $0.isContainer, node: node(for: $0, rect: proxy[$0.bounds])) }
+        // Resolve each descriptor to a node; drop rasterization markers we couldn't photograph
+        // (off-screen when captured) so they don't become empty placeholder nodes.
+        var nodes: [(rect: CGRect, isContainer: Bool, node: FigmaNode)] = []
+        for (index, item) in captured.enumerated() {
+            let resolvedImage = item.image ?? rasterImages[index]
+            if item.needsRasterization && resolvedImage == nil { continue }
+            let rect = proxy[item.bounds]
+            nodes.append((rect: rect, isContainer: item.isContainer, node: node(for: item, rect: rect, resolvedImage: resolvedImage)))
+        }
 
         // Innermost-first, so a node lands in the tightest container that encloses it.
         let containers = nodes.indices
@@ -217,11 +244,11 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
 
     // One IR node for a captured descriptor: a rasterized image, a group frame (a container, e.g.
     // a row — children nested by the caller), or a structured leaf (label/button).
-    private func node(for item: PinCapturedComponent, rect: CGRect) -> FigmaNode {
+    private func node(for item: PinCapturedComponent, rect: CGRect, resolvedImage: String?) -> FigmaNode {
         let style = item.style
         let fillColor = style.fillTokenName.flatMap { PinColorToken(rawValue: $0)?.color }
 
-        if let image = item.image {
+        if let image = resolvedImage {
             return FigmaNode(
                 tag: "image", x: rect.minX, y: rect.minY, w: rect.width, h: rect.height,
                 component: style.name, image: image, children: []
@@ -305,23 +332,30 @@ struct CapturedImageView<Content: SwiftUI.View>: SwiftUI.View {
             }
     }
 
-    // Off-screen rasterization is unreliable for native controls (ImageRenderer draws a
-    // placeholder; a hosted copy renders blank). The content is already on-screen, so snapshot
-    // the real window and crop to its frame — the actual pixels, native controls included.
     @MainActor private func render(_ frame: CGRect) {
+        base64 = ScreenCrop.base64(of: frame)
+    }
+}
+
+// Crops a global-coordinate rect out of the key window's rendered pixels. Off-screen rasterization
+// is unreliable for native controls (ImageRenderer draws a placeholder; a hosted copy renders
+// blank), so snapshot the real on-screen window and crop — the actual pixels, native controls
+// included. Returns nil when the rect is off-screen (nothing to crop).
+enum ScreenCrop {
+    @MainActor static func base64(of frame: CGRect) -> String? {
         guard frame.width > 1, frame.height > 1,
               let window = UIApplication.shared.connectedScenes
                 .compactMap({ $0 as? UIWindowScene }).flatMap({ $0.windows })
-                .first(where: { $0.isKeyWindow }) else { return }
+                .first(where: { $0.isKeyWindow }) else { return nil }
         let full = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
             window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
         }
-        guard let cgImage = full.cgImage else { return }
+        guard let cgImage = full.cgImage else { return nil }
         let scale = full.scale
         let crop = CGRect(x: frame.minX * scale, y: frame.minY * scale,
                           width: frame.width * scale, height: frame.height * scale)
-        guard let cropped = cgImage.cropping(to: crop) else { return }
-        base64 = UIImage(cgImage: cropped).pngData()?.base64EncodedString()
+        guard let cropped = cgImage.cropping(to: crop) else { return nil }
+        return UIImage(cgImage: cropped).pngData()?.base64EncodedString()
     }
 }
 

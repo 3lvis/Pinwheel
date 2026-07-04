@@ -7,8 +7,10 @@ import Pinwheel
 // resolve and capture its grouped, editable labels. (The rows' native bits — chevron/`Toggle` — are
 // still rasterization, a host concern; structured labels + grouping come from the library.)
 struct FigmaListCaptureScreen: SwiftUI.View {
-    private let rows: [PinList.Row] = (1...18).map { index in
-        .text("Row \(index)", subtitle: "Supporting text", detail: "$\(index * 3)")
+    private let rows: [PinList.Row] = (1...10).map { index in
+        index.isMultiple(of: 3)
+            ? .toggle("Row \(index)", subtitle: "Supporting text", isOn: .constant(index.isMultiple(of: 2)))
+            : .text("Row \(index)", subtitle: "Supporting text", detail: "$\(index * 3)", chevron: true)
     }
 
     var body: some SwiftUI.View {

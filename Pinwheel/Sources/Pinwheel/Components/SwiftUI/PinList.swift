@@ -69,8 +69,16 @@ public extension PinList {
             case let .text(subtitle, detail, chevron, enabled, action):
                 textRow(subtitle: subtitle, detail: detail, chevron: chevron, enabled: enabled, action: action)
             case let .toggle(subtitle, enabled, isOn):
-                Toggle(isOn: isOn) { labels(subtitle: subtitle, enabled: enabled) }
-                    .disabled(!enabled)
+                // Label left, switch right — the switch is a separate rasterization marker so the
+                // labels stay structured while the host photographs the native switch.
+                HStack(spacing: .spacingS) {
+                    labels(subtitle: subtitle, enabled: enabled)
+                    Spacer()
+                    Toggle("", isOn: isOn)
+                        .labelsHidden()
+                        .disabled(!enabled)
+                        .pinCapturedRasterized(name: "Switch")
+                }
             }
         }
 
@@ -100,6 +108,7 @@ public extension PinList {
                 if chevron {
                     Image(systemName: "chevron.right")
                         .foregroundStyle(.secondaryText)
+                        .pinCapturedRasterized(name: "Chevron")
                 }
             }
 
