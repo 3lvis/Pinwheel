@@ -37,13 +37,14 @@ struct FigmaNode: Encodable {
 }
 
 struct FigmaLayout: Encodable {
-    let mode: String       // "row" | "column"
+    let mode: String          // "row" | "column"
     let columnGap: Double
     let rowGap: Double
-    let pad: [Double]      // [top, right, bottom, left]
+    let pad: [Double]         // [top, right, bottom, left]
     let justify: String
     let align: String
-    let hug: Bool          // primary axis hugs content, so the frame reflows with its children
+    let primarySizing: String // AUTO (hug) | FIXED (fill) — space-between fills so the split holds
+    let counterSizing: String
 
     @MainActor init(_ layout: PinCaptureLayout) {
         let horizontal = layout.axis == .row
@@ -52,9 +53,10 @@ struct FigmaLayout: Encodable {
         rowGap = horizontal ? 0 : Double(layout.spacing)
         pad = [Double(layout.padding.top), Double(layout.padding.trailing),
                Double(layout.padding.bottom), Double(layout.padding.leading)]
-        justify = "flex-start"
+        justify = layout.spaceBetween ? "space-between" : "flex-start"
         align = "flex-start"
-        hug = true
+        primarySizing = layout.spaceBetween ? "FIXED" : "AUTO"
+        counterSizing = "AUTO"
     }
 }
 

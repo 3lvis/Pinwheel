@@ -79,11 +79,15 @@ public struct PinCaptureLayout {
     public let axis: Axis
     public let spacing: CGFloat
     public let padding: EdgeInsets
+    // Pushes the first and last child to the edges (a row's labels left, accessory right). The
+    // container then fills its primary axis rather than hugging, so the split holds as it resizes.
+    public let spaceBetween: Bool
 
-    public init(axis: Axis, spacing: CGFloat, padding: EdgeInsets = EdgeInsets()) {
+    public init(axis: Axis, spacing: CGFloat, padding: EdgeInsets = EdgeInsets(), spaceBetween: Bool = false) {
         self.axis = axis
         self.spacing = spacing
         self.padding = padding
+        self.spaceBetween = spaceBetween
     }
 }
 

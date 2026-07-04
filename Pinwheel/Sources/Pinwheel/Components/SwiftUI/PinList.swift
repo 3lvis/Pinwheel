@@ -61,7 +61,10 @@ public extension PinList {
             // The capture name is the row's *structure*, not its data, so structurally-identical rows
             // share one Figma component (master + instances) and only their text differs. A no-op when
             // nothing reads the preference, so ordinary rendering is unaffected.
-            rowContent.pinCapturedContainer(name: captureTemplate)
+            rowContent.pinCapturedContainer(
+                name: captureTemplate,
+                layout: PinCaptureLayout(axis: .row, spacing: .spacingS, spaceBetween: true)
+            )
         }
 
         // Groups rows by shape (which optional parts are present), so all "title + subtitle + detail +
@@ -93,6 +96,7 @@ public extension PinList {
                 // labels stay structured while the host photographs the native switch.
                 HStack(spacing: .spacingS) {
                     labels(subtitle: subtitle, enabled: enabled)
+                        .pinCapturedContainer(name: "Labels", layout: PinCaptureLayout(axis: .column, spacing: .spacingXXS))
                     Spacer()
                     Toggle("", isOn: isOn)
                         .labelsHidden()
@@ -121,14 +125,20 @@ public extension PinList {
         ) -> some SwiftUI.View {
             let content = HStack(spacing: .spacingS) {
                 labels(subtitle: subtitle, enabled: enabled)
+                    .pinCapturedContainer(name: "Labels", layout: PinCaptureLayout(axis: .column, spacing: .spacingXXS))
                 Spacer()
-                if let detail {
-                    PinLabel(detail).color(.secondary)
-                }
-                if chevron {
-                    Image(systemName: "chevron.right")
-                        .foregroundStyle(.secondaryText)
-                        .pinCapturedRasterized(name: "Chevron")
+                if detail != nil || chevron {
+                    HStack(spacing: .spacingS) {
+                        if let detail {
+                            PinLabel(detail).color(.secondary)
+                        }
+                        if chevron {
+                            Image(systemName: "chevron.right")
+                                .foregroundStyle(.secondaryText)
+                                .pinCapturedRasterized(name: "Chevron")
+                        }
+                    }
+                    .pinCapturedContainer(name: "Trailing", layout: PinCaptureLayout(axis: .row, spacing: .spacingS))
                 }
             }
 
