@@ -104,8 +104,8 @@ public extension PinList {
                         // The switch right-aligns in its frame and draws taller than it, so the crop
                         // cut its right cap and top/bottom. Padding keeps the whole control inside the
                         // captured bounds; the padding is background-coloured, so it's invisible in Figma.
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
+                        .padding(.horizontal, .spacingS)
+                        .padding(.vertical, .spacingXS)
                         .pinCapturedRasterized(name: "Switch")
                 }
             }
