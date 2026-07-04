@@ -30,6 +30,7 @@ struct FigmaNode: Encodable {
     var font: FigmaFont?
     var texts: [FigmaText]?
     var textAlign: String?
+    var image: String?
     var children: [FigmaNode]
 }
 
@@ -157,9 +158,11 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
         content
             .backgroundPreferenceValue(PinCaptureKey.self) { captured in
                 GeometryReader { proxy in
-                    Color.clear.onAppear {
-                        onCapture(document(from: captured, proxy: proxy))
-                    }
+                    Color.clear
+                        .onAppear { onCapture(document(from: captured, proxy: proxy)) }
+                        // Rasterized nodes (ImageRenderer) populate a frame later, adding to the
+                        // set; re-write when the count changes so the image nodes are included.
+                        .onChange(of: captured.count) { onCapture(document(from: captured, proxy: proxy)) }
                 }
             }
     }
@@ -171,6 +174,12 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
         let children = captured.map { item -> FigmaNode in
             let style = item.style
             let rect = proxy[item.bounds]
+            if let image = item.image {
+                return FigmaNode(
+                    tag: "image", x: rect.minX, y: rect.minY, w: rect.width, h: rect.height,
+                    component: style.name, image: image, children: []
+                )
+            }
             let fillColor = style.fillTokenName.flatMap { PinColorToken(rawValue: $0)?.color }
             let texts = style.text.map { string -> [FigmaText] in
                 // The calibration target is the text's own iOS width. For a label that's the
@@ -209,6 +218,41 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
 
     private static var tokens: [FigmaToken] {
         PinColorToken.allCases.map { FigmaToken(name: $0.rawValue, type: "color", value: RGBA($0.color)) }
+    }
+}
+
+// Rasterizes any view (native controls, images, SF Symbols) to a PNG and emits it through the
+// same `PinCaptureKey` as structured components, so the host places it at its real frame.
+struct CapturedImageView<Content: SwiftUI.View>: SwiftUI.View {
+    let name: String
+    let content: Content
+    @State private var base64: String?
+
+    init(_ name: String, @ViewBuilder content: () -> Content) {
+        self.name = name
+        self.content = content()
+    }
+
+    var body: some SwiftUI.View {
+        content
+            .background(
+                Color.clear.onAppear {
+                    let renderer = ImageRenderer(content: content)
+                    renderer.scale = UIScreen.main.scale
+                    base64 = renderer.uiImage?.pngData()?.base64EncodedString()
+                }
+            )
+            .anchorPreference(key: PinCaptureKey.self, value: .bounds) { anchor in
+                guard let base64 else { return [] }
+                return [PinCapturedComponent(
+                    style: PinComponentStyle(
+                        name: name, text: nil, textStyle: nil, textColorTokenName: nil,
+                        fillTokenName: nil, cornerRadius: nil, centersText: false
+                    ),
+                    bounds: anchor,
+                    image: base64
+                )]
+            }
     }
 }
 

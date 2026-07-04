@@ -45,6 +45,15 @@ public protocol PinTextColorToken {
 public struct PinCapturedComponent {
     public let style: PinComponentStyle
     public let bounds: Anchor<CGRect>
+    // Base64 PNG for rasterized nodes — native controls, images, SF Symbols — that have no
+    // structured descriptor. `nil` for `@Pinnable` components, which rebuild from `style`.
+    public let image: String?
+
+    public init(style: PinComponentStyle, bounds: Anchor<CGRect>, image: String? = nil) {
+        self.style = style
+        self.bounds = bounds
+        self.image = image
+    }
 }
 
 public struct PinCaptureKey: PreferenceKey {
