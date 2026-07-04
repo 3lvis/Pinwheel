@@ -98,8 +98,8 @@ struct FigmaText: Encodable {
 struct FigmaToken: Encodable {
     let name: String
     let type: String
-    let value: RGBA       // light mode
-    let dark: RGBA? = nil // dark mode, for color tokens — the plugin binds both to a Figma variable's modes
+    let value: RGBA   // light mode
+    let dark: RGBA?   // dark mode, for color tokens — the plugin binds both to a Figma variable's modes
 }
 
 extension RGBA {
@@ -325,7 +325,9 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
     }
 
     private static var tokens: [FigmaToken] {
-        PinColorToken.allCases.map { FigmaToken(name: $0.rawValue, type: "color", value: RGBA($0.color)) }
+        PinColorToken.allCases.map {
+            FigmaToken(name: $0.rawValue, type: "color", value: RGBA($0.color, style: .light), dark: RGBA($0.color, style: .dark))
+        }
     }
 }
 

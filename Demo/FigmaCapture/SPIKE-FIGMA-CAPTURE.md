@@ -106,6 +106,14 @@ public struct PinButton: View {
   `UIKitPinTableView` (a real `UITableView`). `ScrollStitch` pages the backing scroll view, window-crops
   each page, emits one image node per page (each under Figma's 4096px cap). Whole component as an image,
   not editable rows (`-PinwheelTableCapture`) — use only when eager layout isn't possible.
+- **Light + dark cross the bridge as variable modes.** Each color token is resolved in both appearances
+  (`RGBA(color, style:)`) and the plugin gives the token collection a **Light** and **Dark** mode, binding
+  each color variable's two values. Fills bind to the variable, so toggling the Figma mode reskins the whole
+  design. Verified: `primaryText` #021622 → #ffffff, `primaryBackground` #ffffff → #1c2024, accent unchanged.
+  A second variable mode needs a paid Figma plan; it degrades to light-only otherwise. Rasterized bits stay
+  at their capture-time appearance.
+- **Stack cross-axis alignment is captured** — a row centers its content (matching a SwiftUI `HStack`), a
+  label `VStack` leads; `PinCaptureLayout.alignment` carries it, so an imported toggle row isn't top-aligned.
 
 ## North star — a deployed design-catalog service
 
@@ -145,9 +153,6 @@ The core round-trip and the lazy-list problem are covered every way we could fin
   column container inside a row (`HStack`) auto-layout with space-between for the trailing accessory — and
   inferring axis/spacing geometrically where a component doesn't declare it, so annotation isn't required
   everywhere.
-- **Light + dark.** Capture resolves colors against light only (`UITraitCollection(.light)`). A design-system
-  deliverable usually needs both, and Figma variables support modes — emit both and the imported tokens carry
-  light/dark.
 
 ### Quick verifications (should work, untested)
 
