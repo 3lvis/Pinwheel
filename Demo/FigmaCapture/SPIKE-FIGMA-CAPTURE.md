@@ -8,15 +8,20 @@ unchanged. Source stays the design source of truth; Figma becomes the playground
 ## What it does
 
 Capture is a side effect of *rendering* — a component wrapped in `FigmaCaptureHost` reads its
-own `PinCaptureKey` descriptors, resolves each anchor to a frame, and writes fonno's IR to
-`Documents/figma-capture.json` on appear. No special launch mode: just render it, via the
-**Screens** section of the catalog or an isolated preview deep-link.
+own `PinCaptureKey` descriptors, resolves each anchor to a frame, writes fonno's IR to
+`Documents/figma-capture.json`, and pushes it to the local capture serve, on appear. No special
+launch mode: just render it, via the **Screens** section of the catalog or an isolated preview
+deep-link.
 
 ```
-# render one component in isolation (headless) → writes its JSON
+# render (with the serve running) → the app pushes its IR to the serve
 xcrun simctl launch <booted> com.nordser.pinwheel -PinwheelPreview swiftui-figma-capture
-# then pull Documents/figma-capture.json → feed to the fonno plugin's "Import layers"
+# then click "Import layers" in the plugin — always the latest render
 ```
+
+The push is best-effort over `http://localhost:8787` (loopback reaches the Mac from the sim; the
+Demo's `Info.plist` allows it via `NSAllowsLocalNetworking`). If the serve started *after* the
+render, `npm run figma:pull` copies the sim's file across as a fallback.
 
 It can't run at build time — the frames come from a real SwiftUI layout pass, so it needs a
 booted simulator — but it needs no manual navigation: `Scripts/preview-all.sh` already sweeps

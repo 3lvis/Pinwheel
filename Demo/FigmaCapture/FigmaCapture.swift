@@ -294,5 +294,17 @@ enum FigmaCaptureFile {
             return
         }
         try? data.write(to: directory.appendingPathComponent("figma-capture.json"))
+        push(data)
+    }
+
+    // Best-effort push to the local capture serve so the plugin's "Import layers" is always the
+    // latest render — no manual pull. Silently no-ops when the serve isn't running.
+    private static func push(_ data: Data) {
+        guard let url = URL(string: "http://localhost:8787/capture.json") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = data
+        URLSession.shared.dataTask(with: request).resume()
     }
 }
