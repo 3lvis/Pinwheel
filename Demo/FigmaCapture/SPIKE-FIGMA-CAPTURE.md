@@ -131,10 +131,17 @@ decision (where the service lives); parked until then.
 - **Lazy lists capture structurally by laying out eagerly.** A lazy `List` only lays out visible rows,
   but the data source is finite — so render the same `PinList.Row` values in an eager `VStack` and every
   row resolves its frame and captures its `PinLabel`s as *editable* text, below the fold included. Proven
-  on a 30-row list — 60 label nodes, all rows, doc 1100pt tall (`-PinwheelListCapture`). This is the real
-  path: editable rows, no macros, no rasterization. (Grouping rows into row-*components* would still want
-  nested capture; the labels alone are already editable and positioned. Rows' native bits — a `Toggle`,
-  a chevron — don't capture structurally yet.)
+  on a 30-row list — 60 label nodes, all rows, doc 1100pt tall (`-PinwheelListCapture`). Editable rows,
+  no macros, no rasterization.
+- **Rows group into frames, native bits and all.** `.pinCapturedContainer(name:)` marks a row a group;
+  the host nests every captured node whose frame falls inside it (by geometry, innermost wins), so each
+  row rebuilds as one Figma frame holding its labels *and* its native bits — a `Toggle`/chevron captured
+  as a rasterized image node. Verified on 18 rows: each a group with its children (title, supporting
+  text, toggle/chevron). The grouping and structured labels work below the fold too; only the *rasterized*
+  native bit needs the row on screen (the window-crop constraint), so below-fold rows group their labels
+  without it. `.pinCapturedContainer` uses `transformAnchorPreference` (not `anchorPreference`, which
+  would drop the row's own descendants). Rows are frames, not shared component instances — repeated rows
+  stay independent (per-row content differs).
 - **Scroll-and-stitch is the rasterized fallback** for lazy content that can't lay out eagerly — chiefly
   `UIKitPinTableView` (a real `UITableView`). `ScrollStitch` pages the backing scroll view, window-crops
   each page, and emits one image node per page (each under Figma's 4096px cap). Proven on a 30-row list

@@ -170,45 +170,36 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
     }
 
     // Maps the library's design-fact descriptors to fonno's Figma IR. All style comes
-    // from the component (`PinCapturedComponent`), nothing re-specified here.
+    // from the component (`PinCapturedComponent`), nothing re-specified here. Container nodes
+    // (list rows) become parent frames; every other node nests under the smallest container whose
+    // frame encloses it, so a row rebuilds as one Figma frame holding its labels/controls.
     private func document(from captured: [PinCapturedComponent], proxy: GeometryProxy) -> FigmaDocument {
         let size = proxy.size
-        let children = captured.map { item -> FigmaNode in
-            let style = item.style
-            let rect = proxy[item.bounds]
-            if let image = item.image {
-                return FigmaNode(
-                    tag: "image", x: rect.minX, y: rect.minY, w: rect.width, h: rect.height,
-                    component: style.name, image: image, children: []
-                )
-            }
-            let fillColor = style.fillTokenName.flatMap { PinColorToken(rawValue: $0)?.color }
-            let texts = style.text.map { string -> [FigmaText] in
-                // The calibration target is the text's own iOS width. For a label that's the
-                // node width; for a centered button the node is the padded pill, so measure
-                // the label text itself.
-                let textWidth = style.centersText
-                    ? Double((string as NSString).size(withAttributes: [.font: (style.textStyle ?? .body).demoUIFont]).width)
-                    : rect.width
-                return [FigmaText(text: string, x: rect.minX, y: rect.minY, w: textWidth, h: rect.height)]
-            }
-            return FigmaNode(
-                tag: "component",
-                x: rect.minX, y: rect.minY, w: rect.width, h: rect.height,
-                fill: fillColor.map { RGBA($0) },
-                fillToken: style.fillTokenName,
-                radius: style.cornerRadius.map { Double($0) },
-                component: style.name,
-                font: style.textStyle.map { FigmaFont($0, colorTokenName: style.textColorTokenName) },
-                texts: texts,
-                textAlign: style.centersText ? "center" : nil,
-                children: []
-            )
+        var nodes = captured.map { (rect: proxy[$0.bounds], isContainer: $0.isContainer, node: node(for: $0, rect: proxy[$0.bounds])) }
+
+        // Innermost-first, so a node lands in the tightest container that encloses it.
+        let containers = nodes.indices
+            .filter { nodes[$0].isContainer }
+            .sorted { nodes[$0].rect.width * nodes[$0].rect.height < nodes[$1].rect.width * nodes[$1].rect.height }
+        func parent(of index: Int) -> Int? {
+            containers.first { $0 != index && encloses(nodes[$0].rect, nodes[index].rect) }
         }
+
+        var childIndices: [Int: [Int]] = [:]
+        var topLevel: [Int] = []
+        for index in nodes.indices {
+            if let owner = parent(of: index) { childIndices[owner, default: []].append(index) }
+            else { topLevel.append(index) }
+        }
+        // Smallest-first: an inner container is populated before an outer one reads it as a child.
+        for owner in containers {
+            nodes[owner].node.children = (childIndices[owner] ?? []).map { nodes[$0].node }
+        }
+
         // A ScrollView's proxy reports only the viewport; eager content lays out in full and its
         // anchors carry real below-the-fold y, so size the frame to the content, not the viewport.
-        let contentTop = children.map(\.y).min() ?? 0
-        let contentBottom = children.map { $0.y + $0.h }.max() ?? size.height
+        let contentTop = nodes.map { $0.rect.minY }.min() ?? 0
+        let contentBottom = nodes.map { $0.rect.maxY }.max() ?? size.height
         let height = max(size.height, contentBottom + contentTop)
         let root = FigmaNode(
             tag: "screen",
@@ -216,12 +207,61 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
             fill: RGBA(PinColorToken.primaryBackground.color),
             fillToken: PinColorToken.primaryBackground.rawValue,
             name: name,
-            children: children
+            children: topLevel.map { nodes[$0].node }
         )
         return FigmaDocument(
             width: size.width, height: height, root: root,
             tokens: Self.tokens, textStyles: PinTextStyle.allCapturable.map { FigmaTextStyle($0) }
         )
+    }
+
+    // One IR node for a captured descriptor: a rasterized image, a group frame (a container, e.g.
+    // a row — children nested by the caller), or a structured leaf (label/button).
+    private func node(for item: PinCapturedComponent, rect: CGRect) -> FigmaNode {
+        let style = item.style
+        let fillColor = style.fillTokenName.flatMap { PinColorToken(rawValue: $0)?.color }
+
+        if let image = item.image {
+            return FigmaNode(
+                tag: "image", x: rect.minX, y: rect.minY, w: rect.width, h: rect.height,
+                component: style.name, image: image, children: []
+            )
+        }
+        if item.isContainer {
+            // A frame (no `component`), so repeated rows stay independent groups, not shared instances.
+            return FigmaNode(
+                tag: "group", x: rect.minX, y: rect.minY, w: rect.width, h: rect.height,
+                fill: fillColor.map { RGBA($0) }, fillToken: style.fillTokenName,
+                radius: style.cornerRadius.map { Double($0) },
+                name: style.name, children: []
+            )
+        }
+        let texts = style.text.map { string -> [FigmaText] in
+            // The calibration target is the text's own iOS width. For a label that's the node
+            // width; for a centered button the node is the padded pill, so measure the label itself.
+            let textWidth = style.centersText
+                ? Double((string as NSString).size(withAttributes: [.font: (style.textStyle ?? .body).demoUIFont]).width)
+                : rect.width
+            return [FigmaText(text: string, x: rect.minX, y: rect.minY, w: textWidth, h: rect.height)]
+        }
+        return FigmaNode(
+            tag: "component",
+            x: rect.minX, y: rect.minY, w: rect.width, h: rect.height,
+            fill: fillColor.map { RGBA($0) },
+            fillToken: style.fillTokenName,
+            radius: style.cornerRadius.map { Double($0) },
+            component: style.name,
+            font: style.textStyle.map { FigmaFont($0, colorTokenName: style.textColorTokenName) },
+            texts: texts,
+            textAlign: style.centersText ? "center" : nil,
+            children: []
+        )
+    }
+
+    private func encloses(_ outer: CGRect, _ inner: CGRect) -> Bool {
+        let tolerance = 0.5
+        return outer.minX - tolerance <= inner.minX && outer.minY - tolerance <= inner.minY
+            && outer.maxX + tolerance >= inner.maxX && outer.maxY + tolerance >= inner.maxY
     }
 
     private static var tokens: [FigmaToken] {

@@ -48,11 +48,15 @@ public struct PinCapturedComponent {
     // Base64 PNG for rasterized nodes — native controls, images, SF Symbols — that have no
     // structured descriptor. `nil` for `@Pinnable` components, which rebuild from `style`.
     public let image: String?
+    // A grouping node (e.g. a list row): the consumer nests other captured nodes whose frames fall
+    // inside its bounds under it, so a row rebuilds as one Figma frame containing its labels.
+    public let isContainer: Bool
 
-    public init(style: PinComponentStyle, bounds: Anchor<CGRect>, image: String? = nil) {
+    public init(style: PinComponentStyle, bounds: Anchor<CGRect>, image: String? = nil, isContainer: Bool = false) {
         self.style = style
         self.bounds = bounds
         self.image = image
+        self.isContainer = isContainer
     }
 }
 
@@ -67,6 +71,23 @@ public extension View {
     func pinCaptured(_ style: PinComponentStyle) -> some View {
         anchorPreference(key: PinCaptureKey.self, value: .bounds) { anchor in
             [PinCapturedComponent(style: style, bounds: anchor)]
+        }
+    }
+
+    /// Marks this view as a capture group (e.g. a list row): captured nodes inside its bounds nest
+    /// under it, so it rebuilds as one Figma frame containing its children. Uses
+    /// `transformAnchorPreference` to *append* the container — plain `anchorPreference` would
+    /// replace the descendants' captured nodes (the row's own labels) with just this one.
+    func pinCapturedContainer(name: String, fillTokenName: String? = nil, cornerRadius: CGFloat? = nil) -> some View {
+        transformAnchorPreference(key: PinCaptureKey.self, value: .bounds) { value, anchor in
+            value.append(PinCapturedComponent(
+                style: PinComponentStyle(
+                    name: name, text: nil, textStyle: nil, textColorTokenName: nil,
+                    fillTokenName: fillTokenName, cornerRadius: cornerRadius, centersText: false
+                ),
+                bounds: anchor,
+                isContainer: true
+            ))
         }
     }
 }
