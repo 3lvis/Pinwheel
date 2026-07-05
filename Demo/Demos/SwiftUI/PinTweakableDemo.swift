@@ -1,7 +1,7 @@
 import SwiftUI
 import Pinwheel
 
-struct PinTweakableExample: SwiftUI.View {
+struct PinTweakableDemo: SwiftUI.View {
     @SwiftUI.State private var selection = "Tap the settings button and choose an option."
     @SwiftUI.State private var isOn = false
 

@@ -1,7 +1,7 @@
 import SwiftUI
 import Pinwheel
 
-struct PinSpacingExample: SwiftUI.View {
+struct PinSpacingDemo: SwiftUI.View {
     private let spacings: [(String, CGFloat)] = [
         ("spacingXXS", .spacingXXS),
         ("spacingXS", .spacingXS),

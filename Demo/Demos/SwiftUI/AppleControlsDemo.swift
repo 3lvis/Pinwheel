@@ -1,7 +1,7 @@
 import SwiftUI
 import Pinwheel
 
-struct AppleControlsGallery: SwiftUI.View {
+struct AppleControlsDemo: SwiftUI.View {
     @SwiftUI.State private var on = true
     @SwiftUI.State private var mode = 0
     @SwiftUI.State private var amount = 0.6

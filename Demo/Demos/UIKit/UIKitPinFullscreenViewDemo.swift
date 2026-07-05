@@ -1,7 +1,7 @@
 import UIKit
 import Pinwheel
 
-class UIKitPinFullscreenViewExample: UIKitPinFullscreenView {
+class UIKitPinFullscreenViewDemo: UIKitPinFullscreenView {
     lazy var rightAnchoredLabel: UIKitPinLabel = {
         let label = UIKitPinLabel()
         label.text = "Right Label"
@@ -54,7 +54,7 @@ class UIKitPinFullscreenViewExample: UIKitPinFullscreenView {
     }
 }
 
-extension UIKitPinFullscreenViewExample: UITextViewDelegate {
+extension UIKitPinFullscreenViewDemo: UITextViewDelegate {
     func textViewShouldEndEditing(_ textView: UITextView) -> Bool {
         return true
     }

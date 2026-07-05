@@ -1,7 +1,7 @@
 import UIKit
 import Pinwheel
 
-class UIKitPinTableViewExample: UIKitPinView, Tweakable {
+class UIKitPinTableViewDemo: UIKitPinView, Tweakable {
     lazy var tweaks: [Tweak] = {
         return [
             TextTweak(title: "Loading") {
@@ -68,7 +68,7 @@ class UIKitPinTableViewExample: UIKitPinView, Tweakable {
     }
 }
 
-extension UIKitPinTableViewExample: UIKitPinTableViewDelegate {
+extension UIKitPinTableViewDemo: UIKitPinTableViewDelegate {
     func tableView(_ tableView: Pinwheel.UIKitPinTableView, didSwitchItem boolTableViewItem: Pinwheel.UIKitPinBoolTableViewItem, atIndex index: Int) {
         let title = "Changed \(boolTableViewItem.title) to \(boolTableViewItem.isOn ? "on" : "off")"
         print(title)

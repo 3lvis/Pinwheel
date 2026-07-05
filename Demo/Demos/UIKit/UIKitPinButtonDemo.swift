@@ -1,7 +1,7 @@
 import UIKit
 import Pinwheel
 
-class UIKitPinButtonExample: UIKitPinView {
+class UIKitPinButtonDemo: UIKitPinView {
     var primary: UIKitPinButton!
     var primaryDisabled: UIKitPinButton!
     var primaryLoading: UIKitPinButton!

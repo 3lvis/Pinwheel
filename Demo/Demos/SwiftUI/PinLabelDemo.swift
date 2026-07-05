@@ -1,7 +1,7 @@
 import SwiftUI
 import Pinwheel
 
-struct PinLabelExample: SwiftUI.View {
+struct PinLabelDemo: SwiftUI.View {
     var body: some SwiftUI.View {
         VStack(alignment: .leading, spacing: .spacingL) {
             PinLabel("Title").font(.title)

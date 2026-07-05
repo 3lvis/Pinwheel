@@ -1,7 +1,7 @@
 import SwiftUI
 import Pinwheel
 
-struct PinColorExample: SwiftUI.View {
+struct PinColorDemo: SwiftUI.View {
     private let colors: [(String, UIColor)] = [
         ("Primary Text", .primaryText),
         ("Secondary Text", .secondaryText),

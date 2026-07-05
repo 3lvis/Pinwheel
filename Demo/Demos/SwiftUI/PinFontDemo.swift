@@ -1,7 +1,7 @@
 import SwiftUI
 import Pinwheel
 
-struct PinFontExample: SwiftUI.View {
+struct PinFontDemo: SwiftUI.View {
     private let styles: [(String, PinTextStyle)] = [
         ("Title", .title),
         ("Subtitle", .subtitle),

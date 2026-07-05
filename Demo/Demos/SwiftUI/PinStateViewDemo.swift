@@ -1,7 +1,7 @@
 import SwiftUI
 import Pinwheel
 
-struct PinStateViewExample: SwiftUI.View {
+struct PinStateViewDemo: SwiftUI.View {
     @SwiftUI.State private var state: PinState = DemoStateFixture.empty
 
     var body: some SwiftUI.View {

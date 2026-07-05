@@ -1,7 +1,7 @@
 import UIKit
 import Pinwheel
 
-class UIKitPinViewControllerExample: UIViewController, Tweakable {
+class UIKitPinViewControllerDemo: UIViewController, Tweakable {
     lazy var tweaks: [Tweak] = {
         return [
             TextTweak(title: "Loading") {
@@ -33,7 +33,7 @@ class UIKitPinViewControllerExample: UIViewController, Tweakable {
     }
 }
 
-extension UIKitPinViewControllerExample: UIKitPinStateViewDelegate {
+extension UIKitPinViewControllerDemo: UIKitPinStateViewDelegate {
     func stateViewDidSelectAction(_ stateView: UIKitPinStateView) {
         stateView.state = .loading(title: DemoStateFixture.loadingTitle, subtitle: DemoStateFixture.loadingSubtitle)
     }

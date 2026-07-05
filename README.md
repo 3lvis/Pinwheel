@@ -126,7 +126,7 @@ PinwheelItem("Button", view: ButtonView.self).tags(.uiKit)   // id "uikit-button
 
 ```swift
 extension PinTag { static let figma = PinTag(rawValue: "Figma") }
-PinwheelItem("Apple Controls") { AppleControlsGallery() }.tags(.figma)   // id "figma-apple-controls"
+PinwheelItem("Apple Controls") { AppleControlsDemo() }.tags(.figma)   // id "figma-apple-controls"
 ```
 
 ## Typed component names

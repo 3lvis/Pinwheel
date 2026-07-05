@@ -1,7 +1,7 @@
 import SwiftUI
 import Pinwheel
 
-struct PinButtonExample: SwiftUI.View {
+struct PinButtonDemo: SwiftUI.View {
     @SwiftUI.State private var isLoading = false
     @SwiftUI.State private var isDisabled = false
 

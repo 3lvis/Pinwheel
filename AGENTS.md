@@ -63,7 +63,7 @@ These stay UIKit because no SwiftUI primitive matches their ergonomics/perf:
 ### Project layout
 
 - **Sources organized by domain, not access level.** `API/` (public surface), `Tokens/` (tokens, both worlds, incl. SwiftUI `PinwheelTheme`), `Components/SwiftUI` + `Components/UIKit` (split by world; `TableView/` under UIKit), `Catalog/` (the one, pure-SwiftUI catalog + FAB + device/state), `Bridge/` (SwiftUI↔UIKit), `Extensions/`.
-- **Demo mirrors the split** — `Demo/Examples/SwiftUI` + `Demo/Examples/UIKit`. Every catalog demo screen lives here (the Figma-capture demos included); `Demo/FigmaCapture/` holds only the capture *engine* (host/IR, scroll-stitch, the sweep harness), never a browsable screen.
+- **Demo mirrors the split** — `Demo/Demos/SwiftUI` + `Demo/Demos/UIKit`. Every catalog demo screen lives here (the Figma-capture demos included); `Demo/FigmaCapture/` holds only the capture *engine* (host/IR, scroll-stitch, the sweep harness), never a browsable screen.
 - **Both targets are file-system-synchronized groups**, so the folder layout *is* the project structure — moving/adding files needs no `project.pbxproj` edits. (The Demo app target's synced group excludes `Info.plist` so it isn't double-copied as a resource.)
 - **Distribution nesting left as-is (deliberate):** the package lives in `Pinwheel/` (the Demo references it locally); a second root `Package.swift` re-exposes it for external `.package(url:)` consumers. Awkward (`Pinwheel/Sources/Pinwheel/`, two manifests) but changing it touches external import paths — not worth it now.
 

@@ -1,7 +1,7 @@
 import UIKit
 import Pinwheel
 
-class UIKitPinDataSourceTableViewExample: UIKitPinView, Tweakable {
+class UIKitPinDataSourceTableViewDemo: UIKitPinView, Tweakable {
     private var rowCount = 6
 
     lazy var tweaks: [Tweak] = {
@@ -29,7 +29,7 @@ class UIKitPinDataSourceTableViewExample: UIKitPinView, Tweakable {
     }
 }
 
-extension UIKitPinDataSourceTableViewExample: UIKitPinTableViewDataSource {
+extension UIKitPinDataSourceTableViewDemo: UIKitPinTableViewDataSource {
     func tableViewNumberOfItems(_ tableView: UIKitPinTableView) -> Int {
         return rowCount
     }
@@ -39,7 +39,7 @@ extension UIKitPinDataSourceTableViewExample: UIKitPinTableViewDataSource {
     }
 }
 
-extension UIKitPinDataSourceTableViewExample: UIKitPinTableViewDelegate {
+extension UIKitPinDataSourceTableViewDemo: UIKitPinTableViewDelegate {
     func tableView(_ tableView: UIKitPinTableView, didSelectItemAtIndex index: Int) {
         print("Selected row \(index + 1)")
     }

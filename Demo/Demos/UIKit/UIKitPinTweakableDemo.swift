@@ -1,7 +1,7 @@
 import UIKit
 import Pinwheel
 
-class UIKitPinTweakableExample: UIKitPinView, Tweakable {
+class UIKitPinTweakableDemo: UIKitPinView, Tweakable {
     lazy var tweaks: [Tweak] = {
         var options = [Tweak]()
 
