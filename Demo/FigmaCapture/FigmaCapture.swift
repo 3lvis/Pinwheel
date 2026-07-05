@@ -418,23 +418,8 @@ enum ScreenCrop {
     }
 }
 
+// Best-effort, fire-and-forget pushes to the local serve: no-op if it isn't running.
 enum FigmaCaptureFile {
-    static func write(_ document: FigmaDocument) {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        guard let data = try? encoder.encode(document),
-              let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
-            return
-        }
-        try? data.write(to: directory.appendingPathComponent("figma-capture.json"))
-        push(data)
-    }
-
-    // Best-effort, fire-and-forget: no-ops if the serve isn't running.
-    private static func push(_ data: Data) {
-        post("http://localhost:8787/capture.json", data)
-    }
-
     static func pushCatalog(id: String, title: String, section: String, tags: [String], document: FigmaDocument) {
         let entry = CatalogEntry(id: id, title: title, section: section, tags: tags, document: document)
         let encoder = JSONEncoder()
