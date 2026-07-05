@@ -41,6 +41,7 @@ struct FigmaLayout: Encodable {
     let align: String
     let primarySizing: String
     let counterSizing: String
+    let minWidth: Double?
 
     @MainActor init(_ layout: PinCaptureLayout) {
         let horizontal = layout.axis == .row
@@ -57,6 +58,7 @@ struct FigmaLayout: Encodable {
         }
         primarySizing = layout.spaceBetween ? "FIXED" : "AUTO"
         counterSizing = "AUTO"
+        minWidth = layout.minWidth.map(Double.init)
     }
 }
 

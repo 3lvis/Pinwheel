@@ -59,6 +59,9 @@ public struct PinButton: SwiftUI.View {
         }
     }
 
+    // A titled pill never narrows below this, so short labels keep a tappable, consistent width.
+    static let minTitledWidth: CGFloat = 100
+
     private let title: String?
     private let systemImage: String?
     private let action: () -> Void
@@ -117,7 +120,7 @@ public struct PinButton: SwiftUI.View {
             layout: PinCaptureLayout(
                 axis: .row, spacing: .spacingS,
                 padding: EdgeInsets(top: .spacingM, leading: .spacingL, bottom: .spacingM, trailing: .spacingL),
-                alignment: .center
+                alignment: .center, minWidth: title != nil ? Self.minTitledWidth : nil
             )
         )
     }
@@ -232,7 +235,7 @@ private struct PinButtonStyle: SwiftUI.ButtonStyle {
                 .tint(foreground)
                 .padding(.vertical, .spacingM)
                 .padding(.horizontal, .spacingL)
-                .frame(minWidth: hasTitle ? 100 : nil)
+                .frame(minWidth: hasTitle ? PinButton.minTitledWidth : nil)
                 .background {
                     if let background {
                         RoundedRectangle(cornerRadius: .spacingM, style: .continuous)
