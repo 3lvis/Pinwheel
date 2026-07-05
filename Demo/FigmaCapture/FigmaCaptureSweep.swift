@@ -65,17 +65,19 @@ enum FigmaCatalog {
 
 struct FigmaCaptureSweepView: SwiftUI.View {
     let id: String
+    @SwiftUI.State private var pushed = false
 
     var body: some SwiftUI.View {
-        if let entry = FigmaCatalog.entry(id: id) {
-            FigmaCaptureHost(name: entry.title, content: entry.item.swiftUIView()) { document in
-                FigmaCaptureFile.pushCatalog(
-                    id: entry.id, title: entry.title, section: entry.section, tags: entry.tags,
-                    document: document
-                )
-            }
-        } else {
-            Color.clear
+        Color.clear.onAppear {
+            guard !pushed, let entry = FigmaCatalog.entry(id: id) else { return }
+            pushed = true
+            // Read the rendered DisplayList off a hosted copy — no markers in the view.
+            guard let document = PinDisplayListCapture.document(
+                entry.item.swiftUIView(), name: entry.title, size: CGSize(width: 402, height: 1600)
+            ) else { return }
+            FigmaCaptureFile.pushCatalog(
+                id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, document: document
+            )
         }
     }
 }

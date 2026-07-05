@@ -9,7 +9,7 @@ import Pinwheel
 
 indirect enum ReflectedNode {
     case container(ReflectedContainer, [ReflectedNode])
-    case leaf
+    case leaf(text: String?)
     case spacer
 }
 
@@ -36,7 +36,7 @@ enum PinViewReflector {
         // Exact match (allowing a generic parameter) — a prefix would misread PinButtonLayoutDemo,
         // a custom composite, as a PinButton leaf and stop there.
         if isLeaf(typeName) {
-            return .leaf
+            return .leaf(text: leafText(value))
         }
         if typeName.hasPrefix("Spacer") {
             return .spacer
@@ -73,6 +73,19 @@ enum PinViewReflector {
     private static let leafTypes = ["PinButton", "PinLabel", "PinList", "PinStateView"]
     private static func isLeaf(_ typeName: String) -> Bool {
         leafTypes.contains { typeName == $0 || typeName.hasPrefix($0 + "<") }
+    }
+
+    // The leaf's identifying text (PinButton.title / PinLabel.text) so a consumer can match it to the
+    // rendered element by content rather than by position (2D grids scramble a positional zip).
+    private static func leafText(_ value: Any) -> String? {
+        let mirror = Mirror(reflecting: value)
+        for label in ["title", "text"] {
+            if let child = mirror.children.first(where: { $0.label == label })?.value {
+                if let string = child as? String { return string }
+                if let string = Mirror(reflecting: child).children.first?.value as? String { return string }
+            }
+        }
+        return nil
     }
 
     // Raw SwiftUI primitives — no descriptor, and their `body` traps, so skip rather than recurse.

@@ -41,15 +41,15 @@ struct FigmaNode: Encodable {
 }
 
 struct FigmaLayout: Encodable {
-    let mode: String
-    let columnGap: Double
-    let rowGap: Double
-    let pad: [Double]
-    let justify: String
-    let align: String
-    let primarySizing: String
-    let counterSizing: String
-    let minWidth: Double?
+    var mode: String
+    var columnGap: Double
+    var rowGap: Double
+    var pad: [Double]
+    var justify: String
+    var align: String
+    var primarySizing: String
+    var counterSizing: String
+    var minWidth: Double?
 
     @MainActor init(_ layout: PinCaptureLayout) {
         let horizontal = layout.axis == .row
@@ -113,6 +113,12 @@ struct FigmaToken: Encodable {
 }
 
 extension RGBA {
+    init(_ uiColor: UIColor) {
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        uiColor.getRed(&r, green: &g, blue: &b, alpha: &a)
+        self.init(r: Double(r), g: Double(g), b: Double(b), a: Double(a))
+    }
+
     init(_ color: Color, style: UIUserInterfaceStyle = .light) {
         let resolved = UIColor(color).resolvedColor(with: UITraitCollection(userInterfaceStyle: style))
         var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0

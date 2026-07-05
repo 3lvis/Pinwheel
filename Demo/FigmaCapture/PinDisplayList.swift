@@ -12,6 +12,7 @@ struct DisplayLeaf {
         case roundedRect(radius: CGFloat, color: UIColor?)
         case rasterizable          // a complex shape (SF Symbol) or platform view — render to a PNG
         case color(UIColor)
+        case transparent           // a synthesized group (a fill-less button: label + icon)
         case unknown(String)
     }
     let frame: CGRect
@@ -30,9 +31,7 @@ enum PinDisplayList {
         return withExtendedLifetime((window, controller)) {
             hostView.layoutIfNeeded()
             guard let list = displayList(of: hostView) else { return nil }
-            var leaves: [DisplayLeaf] = []
-            walk(list, origin: .zero, into: &leaves)
-            return (leaves, hostView)
+            return (walk(list, origin: .zero), hostView)
         }
     }
 
@@ -44,8 +43,9 @@ enum PinDisplayList {
         return child(updater, "lastList")
     }
 
-    private static func walk(_ list: Any, origin: CGPoint, into leaves: inout [DisplayLeaf]) {
-        guard let items = child(list, "items") else { return }
+    private static func walk(_ list: Any, origin: CGPoint) -> [DisplayLeaf] {
+        guard let items = child(list, "items") else { return [] }
+        var leaves: [DisplayLeaf] = []
         for item in Mirror(reflecting: items).children.map(\.value) {
             guard let localFrame = child(item, "frame") as? CGRect,
                   let value = child(item, "value"), let (name, payload) = enumCase(value) else { continue }
@@ -54,9 +54,22 @@ enum PinDisplayList {
                 let inner = child(payload, "value") ?? payload
                 if let kind = contentKind(inner) { leaves.append(DisplayLeaf(frame: frame, kind: kind)) }
             } else {
-                for nested in nestedLists(in: payload) { walk(nested, origin: frame.origin, into: &leaves) }
+                let children = nestedLists(in: payload).flatMap { walk($0, origin: frame.origin) }
+                // A small, text-free group is an icon or the spinner (rotated capsules that lose their
+                // transformed frames) — collapse it to one rasterizable unit at the group's own frame.
+                if isRasterUnit(frame, children) {
+                    leaves.append(DisplayLeaf(frame: frame, kind: .rasterizable))
+                } else {
+                    leaves.append(contentsOf: children)
+                }
             }
         }
+        return leaves
+    }
+
+    private static func isRasterUnit(_ frame: CGRect, _ children: [DisplayLeaf]) -> Bool {
+        guard frame.width <= 40, frame.height <= 40, !children.isEmpty else { return false }
+        return children.allSatisfy { if case .text = $0.kind { return false } else { return true } }
     }
 
     private static func contentKind(_ value: Any) -> DisplayLeaf.Kind? {
