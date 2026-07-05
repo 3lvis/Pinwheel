@@ -32,10 +32,12 @@ enum FigmaCatalog {
     // The capture-on-view sink: the catalog hands us the displayed component; we build its IR and
     // push it to the serve — so running the app and looking at a component refreshes it, no script.
     static func autoPush(id: String, captured: [PinCapturedComponent], proxy: GeometryProxy) {
-        guard let entry = entry(id: id) else { return }
-        FigmaCaptureEngine.capture(name: entry.title, captured: captured, proxy: proxy) { document in
-            FigmaCaptureFile.pushCatalog(id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, document: document)
-        }
+        // Ignore the marker descriptors — read the DisplayList off a fresh hosted copy so viewing a
+        // component in the app pushes the same marker-free IR as the -PinwheelCapture path.
+        guard let entry = entry(id: id),
+              let document = PinDisplayListCapture.document(entry.item.swiftUIView(), name: entry.title, size: CGSize(width: 402, height: 1600))
+        else { return }
+        FigmaCaptureFile.pushCatalog(id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, document: document)
     }
 
     static var requestedCaptureID: String? {
