@@ -22,61 +22,19 @@ struct DisplayLeaf {
 
 @MainActor
 enum PinDisplayList {
-    // Hosts the view on-screen as a child of the app's key window (a detached/scene-less window never
-    // composites, so its pixels are blank) and captures after a runloop so it has actually drawn —
-    // the same deferral the crop path always needed. `body` runs while the host is still mounted, then
-    // it's torn down.
-    static func read<Content: SwiftUI.View>(_ view: Content, size: CGSize, body: @escaping ([DisplayLeaf], [RenderedImage]) -> FigmaDocument?, completion: @escaping (FigmaDocument?) -> Void) {
-        // Collect the crisp transparent icon/spinner PNGs that `.pinCapturedRendered` already produces
-        // via ImageRenderer (headless, reliable), keyed by their resolved frame — the DisplayList's
-        // rasterizable leaves borrow these instead of a fragile screen crop.
-        var rendered: [RenderedImage] = []
-        let collector = CaptureCollector(content: AnyView(view)) { captured, proxy in
-            rendered = captured.compactMap { component in
-                component.image.map { RenderedImage(frame: proxy[component.bounds], base64: $0) }
-            }
-        }
-        let controller = UIHostingController(rootView: collector.environment(\.pinCapturing, true))
-        controller.view.frame = CGRect(origin: .zero, size: size)
-        controller.view.backgroundColor = .clear
-        guard let keyWindow = keyWindow(), let rootController = keyWindow.rootViewController else { completion(nil); return }
-        rootController.addChild(controller)
-        keyWindow.addSubview(controller.view)
-        controller.didMove(toParent: rootController)
-        controller.view.layoutIfNeeded()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-            defer {
-                controller.willMove(toParent: nil)
-                controller.view.removeFromSuperview()
-                controller.removeFromParent()
-            }
-            guard let list = displayList(of: controller.view) else { completion(nil); return }
-            completion(body(walk(list, origin: .zero), rendered))
-        }
-    }
-
-    struct RenderedImage {
-        let frame: CGRect
-        let base64: String
-    }
-
-    private struct CaptureCollector: SwiftUI.View {
-        let content: AnyView
-        let onCaptured: ([PinCapturedComponent], GeometryProxy) -> Void
-        var body: some SwiftUI.View {
-            content.backgroundPreferenceValue(PinCaptureKey.self) { captured in
-                GeometryReader { proxy in
-                    Color.clear
-                        .onAppear { onCaptured(captured, proxy) }
-                        .onChange(of: captured.count) { onCaptured(captured, proxy) }
-                }
-            }
-        }
-    }
-
-    static func keyWindow() -> UIWindow? {
-        let windows = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.flatMap(\.windows)
-        return windows.first { $0.isKeyWindow } ?? windows.first
+    // Reads the rendered DisplayList off a hosted copy. Synchronous — the display list is populated by
+    // layoutIfNeeded, and it captures every demo reliably (the async on-screen variant only existed for
+    // an icon crop that never worked). The window is returned so the caller keeps it alive.
+    static func read<Content: SwiftUI.View>(_ view: Content, size: CGSize) -> (leaves: [DisplayLeaf], host: UIView, window: UIWindow)? {
+        let controller = UIHostingController(rootView: view.environment(\.pinCapturing, true))
+        let hostView: UIView = controller.view
+        hostView.frame = CGRect(origin: .zero, size: size)
+        let window = UIWindow(frame: hostView.frame)
+        window.rootViewController = controller
+        window.isHidden = false
+        hostView.layoutIfNeeded()
+        guard let list = displayList(of: hostView) else { return nil }
+        return (walk(list, origin: .zero), hostView, window)
     }
 
     private static func displayList(of hostingView: Any) -> Any? {
