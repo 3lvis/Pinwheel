@@ -120,7 +120,8 @@ public struct PinButton: SwiftUI.View {
             layout: PinCaptureLayout(
                 axis: .row, spacing: .spacingS,
                 padding: EdgeInsets(top: .spacingM, leading: .spacingL, bottom: .spacingM, trailing: .spacingL),
-                alignment: .center, minWidth: title != nil ? Self.minTitledWidth : nil
+                alignment: .center, mainAxisAlignment: .center,
+                minWidth: title != nil ? Self.minTitledWidth : nil
             )
         )
     }

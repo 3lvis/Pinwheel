@@ -50,12 +50,15 @@ struct FigmaLayout: Encodable {
         rowGap = horizontal ? 0 : Double(layout.spacing)
         pad = [Double(layout.padding.top), Double(layout.padding.trailing),
                Double(layout.padding.bottom), Double(layout.padding.leading)]
-        justify = layout.spaceBetween ? "space-between" : "flex-start"
-        switch layout.alignment {
-        case .leading: align = "flex-start"
-        case .center: align = "center"
-        case .trailing: align = "flex-end"
+        func css(_ crossAxis: PinCaptureLayout.CrossAxis) -> String {
+            switch crossAxis {
+            case .leading: return "flex-start"
+            case .center: return "center"
+            case .trailing: return "flex-end"
+            }
         }
+        justify = layout.spaceBetween ? "space-between" : css(layout.mainAxisAlignment)
+        align = css(layout.alignment)
         primarySizing = layout.spaceBetween ? "FIXED" : "AUTO"
         counterSizing = "AUTO"
         minWidth = layout.minWidth.map(Double.init)

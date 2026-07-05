@@ -110,16 +110,20 @@ public struct PinCaptureLayout {
     public let padding: EdgeInsets
     public let spaceBetween: Bool
     public let alignment: CrossAxis
+    // Main-axis distribution — `.center` keeps content centered when a `minWidth` floor makes the
+    // container wider than its content (a short-label pill), matching the real centered control.
+    public let mainAxisAlignment: CrossAxis
     // A floor a hugging container keeps, so a short-content instance doesn't reflow below the real
     // control's minimum (a `PinButton`'s 100pt titled width).
     public let minWidth: CGFloat?
 
-    public init(axis: Axis, spacing: CGFloat, padding: EdgeInsets = EdgeInsets(), spaceBetween: Bool = false, alignment: CrossAxis = .center, minWidth: CGFloat? = nil) {
+    public init(axis: Axis, spacing: CGFloat, padding: EdgeInsets = EdgeInsets(), spaceBetween: Bool = false, alignment: CrossAxis = .center, mainAxisAlignment: CrossAxis = .leading, minWidth: CGFloat? = nil) {
         self.axis = axis
         self.spacing = spacing
         self.padding = padding
         self.spaceBetween = spaceBetween
         self.alignment = alignment
+        self.mainAxisAlignment = mainAxisAlignment
         self.minWidth = minWidth
     }
 }
