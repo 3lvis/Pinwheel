@@ -112,12 +112,14 @@ public struct PinButton: View {
   design. Verified: `primaryText` #021622 → #ffffff, `primaryBackground` #ffffff → #1c2024, accent unchanged.
   A second variable mode needs a paid Figma plan; it degrades to light-only otherwise. For testing without
   that, the plugin's **Dark version** toggle paints the captured dark values directly (no binding).
-- **Dark *native bits* are not reliable yet.** The two-pass approach (crop, flip the window with
-  `overrideUserInterfaceStyle = .dark`, re-crop into `imageDark`) works only intermittently: SwiftUI's
-  `WindowGroup` resets the window override, so the dark crop usually captures the still-light control and
-  `imageDark == image`. So today the chevron/switch render *light* in a dark import even though the colours
-  are correct. The durable fix is to force dark through SwiftUI (`.preferredColorScheme(.dark)` on the
-  captured content during the dark pass) rather than fighting the window's appearance — not yet done.
+- **Dark native bits come from the simulator's appearance**, not an in-app flip. The old two-pass
+  (`overrideUserInterfaceStyle = .dark` on the window, re-crop) was unreliable — SwiftUI's `WindowGroup`
+  resets the override, so the dark crop came back light. Instead, set the sim dark
+  (`xcrun simctl ui <device> appearance dark`) and the app renders dark natively; the crop then captures a
+  real dark control (verified: a full dark switch). So a dark import is: **sim dark** (dark native bits) +
+  the plugin's **Dark toggle** (dark colours). Getting *both* appearances into one JSON so the toggle
+  switches the images too would be a two-run merge (capture in a light sim and a dark sim, combine) — not
+  built; single-appearance per capture today.
 - **Stack cross-axis alignment is captured** — a row centers its content (matching a SwiftUI `HStack`), a
   label `VStack` leads; `PinCaptureLayout.alignment` carries it, so an imported toggle row isn't top-aligned.
 
