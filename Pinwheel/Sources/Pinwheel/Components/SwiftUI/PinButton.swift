@@ -68,6 +68,7 @@ public struct PinButton: SwiftUI.View {
 
     @SwiftUI.State private var tapCount = 0
     @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.pinCapturing) private var pinCapturing
 
     public init(
         _ title: String? = nil,
@@ -121,7 +122,7 @@ public struct PinButton: SwiftUI.View {
         )
     }
 
-    var labelStyle: PinComponentStyle {
+    private var labelStyle: PinComponentStyle {
         PinComponentStyle(
             name: "Label", text: title, textStyle: typography,
             textColorTokenName: style.captureTextColorToken, fillTokenName: nil,
@@ -132,7 +133,7 @@ public struct PinButton: SwiftUI.View {
 
     // Each visual variant gets its own capture name so distinct buttons don't collapse onto one
     // Figma master; only buttons that truly match (same variant, differing text) become instances.
-    var captureName: String {
+    private var captureName: String {
         var name = "PinButton-\(style.captureVariant)"
         if systemImage != nil { name += "-icon" }
         if title == nil { name += "-symbol" }
@@ -161,11 +162,38 @@ public struct PinButton: SwiftUI.View {
             }
 
             if isLoading {
-                ProgressView()
-                    .controlSize(.small)
-                    .pinCapturedRasterized(name: "Spinner")
+                // A live ProgressView photographs as a faint, half-lit frame (its spokes animate);
+                // during capture show a static all-solid spinner so the crop is crisp. The app still
+                // animates the real one.
+                Group {
+                    if pinCapturing {
+                        CaptureSpinner()
+                    } else {
+                        ProgressView().controlSize(.small)
+                    }
+                }
+                .pinCapturedRasterized(name: "Spinner")
             }
         }
+    }
+}
+
+// A static stand-in for `ProgressView`'s spinner, drawn so every spoke is solid — the live one
+// animates opacity, so a snapshot of it is faint. Inherits the button's foreground colour.
+private struct CaptureSpinner: SwiftUI.View {
+    private let spokes = 8
+
+    var body: some SwiftUI.View {
+        ZStack {
+            ForEach(0..<spokes, id: \.self) { index in
+                Capsule()
+                    .frame(width: 2, height: 5)
+                    .offset(y: -4.5)
+                    .rotationEffect(.degrees(Double(index) / Double(spokes) * 360))
+                    .opacity(Double(index + 1) / Double(spokes))
+            }
+        }
+        .frame(width: 15, height: 15)
     }
 }
 
