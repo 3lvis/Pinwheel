@@ -122,6 +122,13 @@ public struct PinButton: SwiftUI.View {
         )
     }
 
+    // The spinner tints like the label; disabled dimming rides the container's opacity, so this is
+    // always the enabled color.
+    private var captureSpinnerColor: SwiftUI.Color {
+        if case let .custom(text, _) = style { return text }
+        return style.textColorToken?.color ?? .primaryText
+    }
+
     private var labelStyle: PinComponentStyle {
         PinComponentStyle(
             name: "Label", text: title, textStyle: typography,
@@ -162,17 +169,16 @@ public struct PinButton: SwiftUI.View {
             }
 
             if isLoading {
-                // A live ProgressView photographs as a faint, half-lit frame (its spokes animate);
-                // during capture show a static all-solid spinner so the crop is crisp. The app still
-                // animates the real one.
-                Group {
-                    if pinCapturing {
-                        CaptureSpinner()
-                    } else {
-                        ProgressView().controlSize(.small)
-                    }
+                // The live ProgressView is UIKit-backed, so capture rasterizes it by cropping the
+                // window — which races layout and blanks a thin spinner. During capture render a
+                // static all-solid spinner off-screen instead; the app still animates the real one.
+                if pinCapturing {
+                    CaptureSpinner()
+                        .foregroundStyle(captureSpinnerColor)
+                        .pinCapturedRendered(name: "Spinner")
+                } else {
+                    ProgressView().controlSize(.small)
                 }
-                .pinCapturedRasterized(name: "Spinner")
             }
         }
     }
