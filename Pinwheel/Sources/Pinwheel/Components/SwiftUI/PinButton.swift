@@ -122,9 +122,9 @@ public struct PinButton: SwiftUI.View {
         )
     }
 
-    // The spinner tints like the label; disabled dimming rides the container's opacity, so this is
-    // always the enabled color.
-    private var captureSpinnerColor: SwiftUI.Color {
+    // The symbol and spinner tint like the label; disabled dimming rides the container's opacity,
+    // so this is always the enabled color.
+    private var captureForegroundColor: SwiftUI.Color {
         if case let .custom(text, _) = style { return text }
         return style.textColorToken?.color ?? .primaryText
     }
@@ -163,9 +163,17 @@ public struct PinButton: SwiftUI.View {
             }
 
             if let systemImage {
-                Image(systemName: systemImage)
-                    .font(typography.font)
-                    .pinCapturedRasterized(name: "Icon")
+                // Rasterize the symbol off-screen during capture; cropping it from the live window
+                // races layout and captures a blank/mismatched square.
+                if pinCapturing {
+                    Image(systemName: systemImage)
+                        .font(typography.font)
+                        .foregroundStyle(captureForegroundColor)
+                        .pinCapturedRendered(name: "Icon")
+                } else {
+                    Image(systemName: systemImage)
+                        .font(typography.font)
+                }
             }
 
             if isLoading {
@@ -174,7 +182,7 @@ public struct PinButton: SwiftUI.View {
                 // static all-solid spinner off-screen instead; the app still animates the real one.
                 if pinCapturing {
                     CaptureSpinner()
-                        .foregroundStyle(captureSpinnerColor)
+                        .foregroundStyle(captureForegroundColor)
                         .pinCapturedRendered(name: "Spinner")
                 } else {
                     ProgressView().controlSize(.small)
