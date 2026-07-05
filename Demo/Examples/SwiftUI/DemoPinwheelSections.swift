@@ -4,7 +4,7 @@ import SwiftUI
 @MainActor
 enum DemoPinwheelSections {
     static var all: [PinwheelSection] {
-        [tokens, components, screens, figmaPlugin]
+        [tokens, components, screens]
     }
 
     static var tokens: PinwheelSection {
@@ -38,15 +38,10 @@ enum DemoPinwheelSections {
         PinwheelSection(CatalogSection.screens) {
             PinwheelItem(Catalog.fullscreenView, view: UIKitPinFullscreenViewExample.self).tags(.uiKit)
             PinwheelItem(Catalog.viewController, viewController: { UIKitPinViewControllerExample() }).tags(.uiKit)
-        }
-    }
-
-    static var figmaPlugin: PinwheelSection {
-        PinwheelSection(CatalogSection.figmaPlugin) {
-            PinwheelItem(Catalog.figmaCheckout) { FigmaCaptureScreen() }.presentation(.fullscreen).tags(.swiftUI)
-            PinwheelItem(Catalog.figmaAutoLayout) { FigmaAutoLayoutScreen() }.presentation(.fullscreen).tags(.swiftUI)
-            PinwheelItem(Catalog.figmaList) { FigmaListCaptureScreen() }.presentation(.fullscreen).tags(.swiftUI)
-            PinwheelItem(Catalog.figmaTable) { FigmaTableCaptureScreen() }.presentation(.fullscreen).tags(.swiftUI)
+            PinwheelItem(Catalog.figmaCheckout) { FigmaCaptureScreen() }.presentation(.fullscreen).tags(.figma)
+            PinwheelItem(Catalog.figmaAutoLayout) { FigmaAutoLayoutScreen() }.presentation(.fullscreen).tags(.figma)
+            PinwheelItem(Catalog.figmaList) { FigmaListCaptureScreen() }.presentation(.fullscreen).tags(.figma)
+            PinwheelItem(Catalog.figmaTable) { FigmaTableCaptureScreen() }.presentation(.fullscreen).tags(.figma)
         }
     }
 }

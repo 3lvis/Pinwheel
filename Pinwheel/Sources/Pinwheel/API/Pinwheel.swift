@@ -13,11 +13,16 @@ public enum PinwheelPresentation {
     case fullscreen
 }
 
-/// A world tag on a concept-grouped item, so SwiftUI/UIKit is a filter rather
-/// than its own section. `rawValue` is the chip text.
-public enum PinTag: String, Hashable, Sendable {
-    case swiftUI = "SwiftUI"
-    case uiKit = "UIKit"
+/// A tag on a concept-grouped item, so an axis like SwiftUI/UIKit is a filter rather than its own
+/// section. `rawValue` is the chip text. Consumers add their own axes with a static extension.
+public struct PinTag: RawRepresentable, Hashable, Sendable {
+    public let rawValue: String
+    public nonisolated init(rawValue: String) { self.rawValue = rawValue }
+}
+
+public extension PinTag {
+    nonisolated static let swiftUI = PinTag(rawValue: "SwiftUI")
+    nonisolated static let uiKit = PinTag(rawValue: "UIKit")
 }
 
 @resultBuilder

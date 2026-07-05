@@ -34,7 +34,6 @@ struct DemoApp: App {
                     DemoPinwheelSections.tokens
                     DemoPinwheelSections.components
                     DemoPinwheelSections.screens
-                    DemoPinwheelSections.figmaPlugin
                 }
             }
         }

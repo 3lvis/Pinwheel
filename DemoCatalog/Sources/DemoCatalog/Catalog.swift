@@ -22,5 +22,8 @@ public enum CatalogSection: String {
     case tokens = "Tokens"
     case components = "Components"
     case screens = "Screens"
-    case figmaPlugin = "Figma Plugin"
+}
+
+public extension PinTag {
+    nonisolated static let figma = PinTag(rawValue: "Figma")
 }

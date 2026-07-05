@@ -10,12 +10,12 @@ unchanged. Source stays the design source of truth; Figma becomes the playground
 Capture is a side effect of *rendering* — a component wrapped in `FigmaCaptureHost` reads its
 own `PinCaptureKey` descriptors, resolves each anchor to a frame, writes fonno's IR to
 `Documents/figma-capture.json`, and pushes it to the local capture serve, on appear. No special
-launch mode: just render it, via the **Figma Plugin** section of the catalog or an isolated preview
+launch mode: just render it, via the **Screens** section of the catalog or an isolated preview
 deep-link.
 
 ```
 # render (with the serve running) → the app pushes its IR to the serve
-xcrun simctl launch <booted> com.nordser.pinwheel -PinwheelPreview swiftui-checkout
+xcrun simctl launch <booted> com.nordser.pinwheel -PinwheelPreview figma-checkout
 # then click "Import layers" in the plugin — always the latest render
 ```
 
@@ -84,7 +84,7 @@ public struct PinButton: View {
 - **Lazy lists capture structurally by laying out eagerly.** A lazy `List` only lays out visible rows,
   but the data source is finite — so render the same `PinList.Row` values in an eager `VStack` and every
   row resolves its frame and captures its `PinLabel`s as *editable* text, below the fold included. Proven
-  on a 30-row list — 60 label nodes, all rows (`-PinwheelPreview swiftui-list`). No macros, no rasterization.
+  on a 30-row list — 60 label nodes, all rows (`-PinwheelPreview figma-list`). No macros, no rasterization.
 - **`PinList.Row` self-captures, grouped.** `PinList.Row.body` applies `.pinCapturedContainer(name:)`
   (via `transformAnchorPreference`, which appends rather than replacing the row's own labels), so a real
   `PinList` laid out eagerly captures each row as one grouped Figma frame with *no capture code at the
@@ -105,7 +105,7 @@ public struct PinButton: View {
 - **Scroll-and-stitch is the rasterized fallback** for lazy content that can't lay out eagerly — chiefly
   `UIKitPinTableView` (a real `UITableView`). `ScrollStitch` pages the backing scroll view, window-crops
   each page, emits one image node per page (each under Figma's 4096px cap). Whole component as an image,
-  not editable rows (`-PinwheelPreview swiftui-table`) — use only when eager layout isn't possible.
+  not editable rows (`-PinwheelPreview figma-table`) — use only when eager layout isn't possible.
 - **Light + dark cross the bridge as variable modes.** Each color token is resolved in both appearances
   (`RGBA(color, style:)`) and the plugin gives the token collection a **Light** and **Dark** mode, binding
   each color variable's two values. Fills bind to the variable, so toggling the Figma mode reskins the whole
@@ -156,7 +156,7 @@ The core round-trip and the lazy-list problem are covered every way we could fin
 - **Auto-layout — mechanism proven, rollout remaining.** A container can now carry a `PinCaptureLayout`
   (axis, spacing, padding); the host emits `layout` and the plugin builds a *hugging* Figma auto-layout
   frame, so the imported design reflows instead of being a fixed snapshot. Proven on a column card
-  (`-PinwheelPreview swiftui-auto-layout`): title/body/button stack, 12pt gaps, 16pt padding, `hug: true`. What's
+  (`-PinwheelPreview figma-auto-layout`): title/body/button stack, 12pt gaps, 16pt padding, `hug: true`. What's
   left is rolling it through the *real* components — a `PinList.Row` needs its label `VStack` as a nested
   column container inside a row (`HStack`) auto-layout with space-between for the trailing accessory — and
   inferring axis/spacing geometrically where a component doesn't declare it, so annotation isn't required
