@@ -8,12 +8,12 @@ import Pinwheel
 @MainActor
 enum PinDisplayListCapture {
     static func document<Content: SwiftUI.View>(_ view: Content, name: String, size: CGSize, completion: @escaping (FigmaDocument?) -> Void) {
-        PinDisplayList.read(view, size: size, body: { leaves, host in
-            build(view, leaves: leaves, host: host, size: size)
+        PinDisplayList.read(view, size: size, body: { leaves, rendered in
+            build(view, leaves: leaves, rendered: rendered, size: size)
         }, completion: completion)
     }
 
-    private static func build<Content: SwiftUI.View>(_ view: Content, leaves: [DisplayLeaf], host: UIView, size: CGSize) -> FigmaDocument? {
+    private static func build<Content: SwiftUI.View>(_ view: Content, leaves: [DisplayLeaf], rendered: [PinDisplayList.RenderedImage], size: CGSize) -> FigmaDocument? {
         // The screen fill spans the full hosting height; trim it to the content so the root frame
         // (and its bottom padding) match the real screen, not the oversized host.
         let contentBottom = (leaves.map { $0.frame.maxY }.filter { $0 < size.height - 1 }.max() ?? size.height)
@@ -32,7 +32,7 @@ enum PinDisplayListCapture {
         // the counts disagree (reflection couldn't cleanly account for the rendered leaves).
         if let structure = PinViewReflector.reflect(view), leafCount(structure) == components.count {
             var pool = components
-            let content = emitStructure(structure, host: host) { text in
+            let content = emitStructure(structure, rendered: rendered) { text in
                 // Match by content, not position — a 2D grid scrambles a positional zip. Duplicate
                 // texts resolve by order (first unconsumed); fall back to order if no text matches.
                 let matched = pool.firstIndex { componentText($0) == text } ?? (pool.isEmpty ? nil : 0)
@@ -44,7 +44,7 @@ enum PinDisplayListCapture {
             }
         }
 
-        let rootNode = emit(root, host: host)
+        let rootNode = emit(root, rendered: rendered)
         return FigmaDocument(width: size.width, height: rootNode.h, root: rootNode, tokens: colorTokens, textStyles: [])
     }
 
@@ -109,14 +109,14 @@ enum PinDisplayListCapture {
         return overlapY && gap < 24
     }
 
-    private static func emitStructure(_ node: ReflectedNode, host: UIView, next: (String?) -> Box?) -> FigmaNode? {
+    private static func emitStructure(_ node: ReflectedNode, rendered: [PinDisplayList.RenderedImage], next: (String?) -> Box?) -> FigmaNode? {
         switch node {
         case .leaf(let text):
-            return next(text).map { componentNode($0, host: host) }
+            return next(text).map { componentNode($0, rendered: rendered) }
         case .spacer:
             return FigmaNode(tag: "spacer", x: 0, y: 0, w: 0, h: 0, grow: true, children: [])
         case .container(let container, let children):
-            let childNodes = children.compactMap { emitStructure($0, host: host, next: next) }
+            let childNodes = children.compactMap { emitStructure($0, rendered: rendered, next: next) }
             guard childNodes.contains(where: { $0.grow != true }) else { return nil }
             let layout = PinCaptureLayout(
                 axis: container.axis, spacing: container.spacing ?? 8,
@@ -132,7 +132,7 @@ enum PinDisplayListCapture {
 
     // A rendered component (from containment) → its Figma node: a pill is a filled auto-layout row of
     // its label/icon; a bare text or image is a leaf.
-    private static func componentNode(_ box: Box, host: UIView) -> FigmaNode {
+    private static func componentNode(_ box: Box, rendered: [PinDisplayList.RenderedImage]) -> FigmaNode {
         let frame = box.leaf.frame
         if box.children.isEmpty {
             switch box.leaf.kind {
@@ -144,13 +144,13 @@ enum PinDisplayListCapture {
                     children: []
                 )
             case .rasterizable:
-                return FigmaNode(tag: "image", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height, image: rasterize(host, frame), children: [])
+                return FigmaNode(tag: "image", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height, image: matchedImage(frame, rendered), children: [])
             default:
                 return filledRect(frame, radius: cornerRadius(box.leaf.kind), color: fillColor(box.leaf.kind))
             }
         }
         let ordered = orderedForLayout(box.children)
-        let childNodes = ordered.map { componentNode($0, host: host) }
+        let childNodes = ordered.map { componentNode($0, rendered: rendered) }
         let fill = fillColor(box.leaf.kind)
         var layout = inferLayout(ordered.map(\.leaf.frame), in: frame)
         // Keep the pill's rendered width (padding + min-width) so the hugging frame doesn't shrink.
@@ -210,7 +210,7 @@ enum PinDisplayListCapture {
             && outer.maxX + tolerance >= inner.maxX && outer.maxY + tolerance >= inner.maxY
     }
 
-    private static func emit(_ box: Box, host: UIView) -> FigmaNode {
+    private static func emit(_ box: Box, rendered: [PinDisplayList.RenderedImage]) -> FigmaNode {
         let frame = box.leaf.frame
         if box.children.isEmpty {
             switch box.leaf.kind {
@@ -224,7 +224,7 @@ enum PinDisplayListCapture {
             case .rasterizable:
                 return FigmaNode(
                     tag: "image", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
-                    image: rasterize(host, frame), children: []
+                    image: matchedImage(frame, rendered), children: []
                 )
             case .roundedRect(let radius, let color):
                 return filledRect(frame, radius: radius, color: color)
@@ -236,7 +236,7 @@ enum PinDisplayListCapture {
         }
         // A container: its own fill/radius (a pill or card) plus its children laid out.
         let orderedChildren = orderedForLayout(box.children)
-        let childNodes = orderedChildren.map { emit($0, host: host) }
+        let childNodes = orderedChildren.map { emit($0, rendered: rendered) }
         let layout = inferLayout(orderedChildren.map(\.leaf.frame), in: frame)
         let fill = fillColor(box.leaf.kind)
         let token = fill.flatMap(tokenName(for:))
@@ -364,18 +364,14 @@ enum PinDisplayListCapture {
 
     // MARK: rasterization
 
-    private static func rasterize(_ host: UIView, _ frame: CGRect) -> String? {
-        // Snapshot the on-screen key window (host is mounted at its origin, so a leaf frame is already
-        // in window coordinates) — the same crop the marker path used. afterScreenUpdates:false takes
-        // the already-drawn pixels; true would trigger a re-render that comes back blank here.
-        guard let window = PinDisplayList.keyWindow() else { return nil }
-        let full = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
-            window.drawHierarchy(in: window.bounds, afterScreenUpdates: false)
+    // The icon/spinner PNG that `.pinCapturedRendered` already produced (crisp + transparent), matched
+    // to this leaf by frame center — reliable, unlike cropping the headless host.
+    private static func matchedImage(_ frame: CGRect, _ rendered: [PinDisplayList.RenderedImage]) -> String? {
+        let center = CGPoint(x: frame.midX, y: frame.midY)
+        return rendered.min {
+            hypot($0.frame.midX - center.x, $0.frame.midY - center.y) < hypot($1.frame.midX - center.x, $1.frame.midY - center.y)
+        }.flatMap { candidate in
+            candidate.frame.insetBy(dx: -6, dy: -6).contains(center) ? candidate.base64 : nil
         }
-        guard let cgImage = full.cgImage else { return nil }
-        let scale = full.scale
-        let crop = CGRect(x: frame.minX * scale, y: frame.minY * scale, width: frame.width * scale, height: frame.height * scale)
-        guard let cropped = cgImage.cropping(to: crop) else { return nil }
-        return UIImage(cgImage: cropped).pngData()?.base64EncodedString()
     }
 }

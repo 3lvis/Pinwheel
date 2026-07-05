@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import Pinwheel
 
 // Reads SwiftUI's private DisplayList off a hosted view — the exact frames and rendered content
 // SwiftUI itself produced, with no anchors or capture markers in the view. All undocumented
@@ -25,8 +26,17 @@ enum PinDisplayList {
     // composites, so its pixels are blank) and captures after a runloop so it has actually drawn —
     // the same deferral the crop path always needed. `body` runs while the host is still mounted, then
     // it's torn down.
-    static func read<Content: SwiftUI.View>(_ view: Content, size: CGSize, body: @escaping ([DisplayLeaf], UIView) -> FigmaDocument?, completion: @escaping (FigmaDocument?) -> Void) {
-        let controller = UIHostingController(rootView: view.environment(\.pinCapturing, true))
+    static func read<Content: SwiftUI.View>(_ view: Content, size: CGSize, body: @escaping ([DisplayLeaf], [RenderedImage]) -> FigmaDocument?, completion: @escaping (FigmaDocument?) -> Void) {
+        // Collect the crisp transparent icon/spinner PNGs that `.pinCapturedRendered` already produces
+        // via ImageRenderer (headless, reliable), keyed by their resolved frame — the DisplayList's
+        // rasterizable leaves borrow these instead of a fragile screen crop.
+        var rendered: [RenderedImage] = []
+        let collector = CaptureCollector(content: AnyView(view)) { captured, proxy in
+            rendered = captured.compactMap { component in
+                component.image.map { RenderedImage(frame: proxy[component.bounds], base64: $0) }
+            }
+        }
+        let controller = UIHostingController(rootView: collector.environment(\.pinCapturing, true))
         controller.view.frame = CGRect(origin: .zero, size: size)
         controller.view.backgroundColor = .clear
         guard let keyWindow = keyWindow(), let rootController = keyWindow.rootViewController else { completion(nil); return }
@@ -41,7 +51,26 @@ enum PinDisplayList {
                 controller.removeFromParent()
             }
             guard let list = displayList(of: controller.view) else { completion(nil); return }
-            completion(body(walk(list, origin: .zero), controller.view))
+            completion(body(walk(list, origin: .zero), rendered))
+        }
+    }
+
+    struct RenderedImage {
+        let frame: CGRect
+        let base64: String
+    }
+
+    private struct CaptureCollector: SwiftUI.View {
+        let content: AnyView
+        let onCaptured: ([PinCapturedComponent], GeometryProxy) -> Void
+        var body: some SwiftUI.View {
+            content.backgroundPreferenceValue(PinCaptureKey.self) { captured in
+                GeometryReader { proxy in
+                    Color.clear
+                        .onAppear { onCaptured(captured, proxy) }
+                        .onChange(of: captured.count) { onCaptured(captured, proxy) }
+                }
+            }
         }
     }
 
