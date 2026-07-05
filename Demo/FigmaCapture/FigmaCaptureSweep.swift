@@ -1,11 +1,8 @@
 import SwiftUI
 import Pinwheel
 
-// The catalog half of the capture system: render one catalog item in isolation, wrapped in a
-// capture host, and push its IR to the local serve keyed by item id. A sweep launches the app
-// once per id (`-PinwheelCapture <id>`); the serve accumulates the per-item captures into a
-// manifest the plugin lists. `-PinwheelManifest` dumps the catalog skeleton so the sweep script
-// can enumerate ids from the registry itself, not by grepping source.
+// Renders one catalog item and pushes its capture to the serve, keyed by id — the per-item half of
+// the catalog sweep (`Scripts/capture-all.sh`).
 
 struct FigmaCatalogEntry {
     let id: String
@@ -32,7 +29,6 @@ enum FigmaCatalog {
         entries.first { $0.id == id }
     }
 
-    // The id requested for a capture-sweep launch (`-PinwheelCapture <id>`), else nil.
     static var requestedCaptureID: String? {
         UserDefaults.standard.string(forKey: "PinwheelCapture").flatMap { $0.isEmpty ? nil : $0 }
     }
@@ -41,7 +37,6 @@ enum FigmaCatalog {
         ProcessInfo.processInfo.arguments.contains("-PinwheelManifest")
     }
 
-    // Writes the catalog skeleton to Documents so the sweep script reads ids from the registry.
     static func dumpManifest() {
         let skeleton = entries.map { ManifestItem(id: $0.id, title: $0.title, section: $0.section, tags: $0.tags) }
         guard let data = try? JSONEncoder().encode(skeleton),

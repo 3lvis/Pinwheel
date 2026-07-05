@@ -48,15 +48,11 @@ public struct PinCapturedComponent {
     // Base64 PNG for rasterized nodes — native controls, images, SF Symbols — that have no
     // structured descriptor. `nil` for `@Pinnable` components, which rebuild from `style`.
     public let image: String?
-    // A grouping node (e.g. a list row): the consumer nests other captured nodes whose frames fall
-    // inside its bounds under it, so a row rebuilds as one Figma frame containing its labels.
+    // A grouping node (a list row): the consumer nests captured nodes inside its bounds under it.
     public let isContainer: Bool
-    // A native/opaque bit (a switch, a chevron) the library can't describe structurally: the host
-    // photographs its on-screen frame. The marker is pure SwiftUI — the host owns the screenshot —
-    // so the library ships no window-capture code.
+    // A native/opaque bit for the host to photograph — a pure-SwiftUI marker, so the library ships
+    // no window-capture code.
     public let needsRasterization: Bool
-    // A stack layout the consumer can rebuild as a Figma auto-layout frame, so the imported design
-    // reflows (a longer label, an added row) instead of being a fixed snapshot. Set on a container.
     public let layout: PinCaptureLayout?
 
     public init(
@@ -72,18 +68,13 @@ public struct PinCapturedComponent {
     }
 }
 
-/// A stack's axis, spacing, and padding, captured so a container rebuilds as a Figma auto-layout
-/// frame (`HStack` → row, `VStack` → column).
 public struct PinCaptureLayout {
     public enum Axis { case row, column }
-    // Cross-axis alignment, mirroring SwiftUI's stack alignment (an `HStack` centers by default,
-    // Pinwheel's label `VStack`s lead). Defaults to `.center` to match a bare stack.
     public enum CrossAxis { case leading, center, trailing }
     public let axis: Axis
     public let spacing: CGFloat
     public let padding: EdgeInsets
-    // Pushes the first and last child to the edges (a row's labels left, accessory right). The
-    // container then fills its primary axis rather than hugging, so the split holds as it resizes.
+    // space-between distribution; the container then fills its primary axis (not hugs) so the split holds.
     public let spaceBetween: Bool
     public let alignment: CrossAxis
 
@@ -110,10 +101,9 @@ public extension View {
         }
     }
 
-    /// Marks this view as a capture group (e.g. a list row): captured nodes inside its bounds nest
-    /// under it, so it rebuilds as one Figma frame containing its children. Uses
-    /// `transformAnchorPreference` to *append* the container — plain `anchorPreference` would
-    /// replace the descendants' captured nodes (the row's own labels) with just this one.
+    /// Marks this view a capture group (a list row) that nests the captured nodes inside its bounds.
+    /// `transformAnchorPreference` *appends* the container; plain `anchorPreference` would replace the
+    /// descendants' captured nodes (the row's own labels) with just this one.
     func pinCapturedContainer(name: String, fillTokenName: String? = nil, cornerRadius: CGFloat? = nil, layout: PinCaptureLayout? = nil) -> some View {
         transformAnchorPreference(key: PinCaptureKey.self, value: .bounds) { value, anchor in
             value.append(PinCapturedComponent(
@@ -128,9 +118,6 @@ public extension View {
         }
     }
 
-    /// Marks a native/opaque bit (a switch, a chevron) for the host to photograph — the library has
-    /// no structured description of it. Emits only a marker; the host does the window-crop, so no
-    /// screenshot code ships in the library. A no-op when nothing is capturing.
     func pinCapturedRasterized(name: String) -> some View {
         transformAnchorPreference(key: PinCaptureKey.self, value: .bounds) { value, anchor in
             value.append(PinCapturedComponent(

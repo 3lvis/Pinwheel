@@ -58,17 +58,14 @@ public extension PinList {
         }
 
         public var body: some SwiftUI.View {
-            // The capture name is the row's *structure*, not its data, so structurally-identical rows
-            // share one Figma component (master + instances) and only their text differs. A no-op when
-            // nothing reads the preference, so ordinary rendering is unaffected.
+            // Capture name is the row's *structure*, so identical rows reuse one Figma component; a
+            // no-op when nothing reads the preference, so ordinary rendering is unaffected.
             rowContent.pinCapturedContainer(
                 name: captureTemplate,
                 layout: PinCaptureLayout(axis: .row, spacing: .spacingS, spaceBetween: true)
             )
         }
 
-        // Groups rows by shape (which optional parts are present), so all "title + subtitle + detail +
-        // chevron" rows reuse one component and all "toggle" rows reuse another.
         private var captureTemplate: String {
             switch kind {
             case let .text(subtitle, detail, chevron, _, _):
@@ -92,8 +89,6 @@ public extension PinList {
             case let .text(subtitle, detail, chevron, enabled, action):
                 textRow(subtitle: subtitle, detail: detail, chevron: chevron, enabled: enabled, action: action)
             case let .toggle(subtitle, enabled, isOn):
-                // Label left, switch right — the switch is a separate rasterization marker so the
-                // labels stay structured while the host photographs the native switch.
                 HStack(spacing: .spacingS) {
                     labels(subtitle: subtitle, enabled: enabled)
                         .pinCapturedContainer(name: "Labels", layout: PinCaptureLayout(axis: .column, spacing: .spacingXXS, alignment: .leading))

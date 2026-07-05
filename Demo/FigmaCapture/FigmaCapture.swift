@@ -2,12 +2,7 @@ import SwiftUI
 import UIKit
 import Pinwheel
 
-// SPIKE — proves SwiftUI → fonno's Figma-import JSON. Emits the same schema
-// `capture.json` that fonno/frontend/tools/figma-capture/plugin/code.ts rebuilds
-// into Figma component instances, so that plugin is reused unchanged.
-// See SPIKE-FIGMA-CAPTURE.md for what's proven vs. what productionizing needs.
-
-// MARK: - fonno IR (mirrors the JSON tree capture.mjs emits)
+// SwiftUI → the JSON IR the fonno Figma plugin imports. See SPIKE-FIGMA-CAPTURE.md.
 
 struct FigmaDocument: Encodable {
     let width: Double
@@ -37,13 +32,13 @@ struct FigmaNode: Encodable {
 }
 
 struct FigmaLayout: Encodable {
-    let mode: String          // "row" | "column"
+    let mode: String
     let columnGap: Double
     let rowGap: Double
     let pad: [Double]         // [top, right, bottom, left]
     let justify: String
     let align: String
-    let primarySizing: String // AUTO (hug) | FIXED (fill) — space-between fills so the split holds
+    let primarySizing: String
     let counterSizing: String
 
     @MainActor init(_ layout: PinCaptureLayout) {
@@ -98,8 +93,8 @@ struct FigmaText: Encodable {
 struct FigmaToken: Encodable {
     let name: String
     let type: String
-    let value: RGBA   // light mode
-    let dark: RGBA?   // dark mode, for color tokens — the plugin binds both to a Figma variable's modes
+    let value: RGBA
+    let dark: RGBA?
 }
 
 extension RGBA {
@@ -111,9 +106,7 @@ extension RGBA {
     }
 }
 
-// Resolves the real provider-backed font so the capture matches what the component renders,
-// instead of a hand-passed size/weight. Uses the demo's own provider (the library's `UIFont`
-// token accessors aren't public).
+// Uses the demo's own provider — the library's UIFont token accessors aren't public.
 extension PinTextStyle {
     @MainActor var demoUIFont: UIFont {
         let provider = DemoFontProvider()
@@ -138,8 +131,7 @@ extension PinTextStyle {
         }
     }
 
-    // The design uses SF Pro Rounded; the system font's internal family name isn't
-    // Figma-loadable, and the plugin falls back to Inter if the face is absent.
+    // The system font's internal family name isn't Figma-loadable, so name the design face explicitly.
     @MainActor var captureMetrics: (family: String, size: Double, weight: Int) {
         let font = demoUIFont
         let traits = font.fontDescriptor.object(forKey: .traits) as? [UIFontDescriptor.TraitKey: Any]
@@ -191,24 +183,20 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
                 GeometryReader { proxy in
                     Color.clear
                         .onAppear { capture(captured, proxy) }
-                        // CapturedImageView fills its image later, changing the count; re-capture
-                        // so those image nodes are included.
+                        // CapturedImageView fills its image later (changing the count); re-capture to include it.
                         .onChange(of: captured.count) { capture(captured, proxy) }
                 }
             }
     }
 
-    // Native-bit markers (a switch, a chevron) carry no image — the host photographs them here,
-    // keeping the window-capture out of the library. Each marker's on-screen frame is its anchor
-    // offset by the reader's global origin.
     private func capture(_ captured: [PinCapturedComponent], _ proxy: GeometryProxy) {
         guard captured.contains(where: { $0.needsRasterization }) else {
             onCapture(document(from: captured, proxy: proxy, rasterImages: [:]))
             return
         }
-        // Native bits are photographed in whatever appearance the simulator is set to (light or dark
-        // via `simctl ui <device> appearance …`), so dark comes from a real dark render — no in-app
-        // window flip (SwiftUI's WindowGroup resets it) and no flip settle.
+        // Native bits are photographed in the simulator's current appearance (set via `simctl ui …
+        // appearance dark`); an in-app window flip doesn't work — SwiftUI's WindowGroup resets
+        // overrideUserInterfaceStyle. A marker's frame is its anchor offset by the reader's origin.
         DispatchQueue.main.async {
             let origin = proxy.frame(in: .global).origin
             var images: [Int: String] = [:]
@@ -220,18 +208,12 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
         }
     }
 
-    // Maps the library's design-fact descriptors to fonno's Figma IR. All style comes
-    // from the component (`PinCapturedComponent`), nothing re-specified here. Container nodes
-    // (list rows) become parent frames; every other node nests under the smallest container whose
-    // frame encloses it, so a row rebuilds as one Figma frame holding its labels/controls.
     private func document(from captured: [PinCapturedComponent], proxy: GeometryProxy, rasterImages: [Int: String]) -> FigmaDocument {
         let size = proxy.size
-        // Resolve each descriptor to a node; drop rasterization markers we couldn't photograph
-        // (off-screen when captured) so they don't become empty placeholder nodes.
         var nodes: [(rect: CGRect, isContainer: Bool, node: FigmaNode)] = []
         for (index, item) in captured.enumerated() {
             let resolvedImage = item.image ?? rasterImages[index]
-            if item.needsRasterization && resolvedImage == nil { continue }
+            if item.needsRasterization && resolvedImage == nil { continue }   // off-screen: nothing to photograph
             let rect = proxy[item.bounds]
             nodes.append((rect: rect, isContainer: item.isContainer, node: node(for: item, rect: rect, resolvedImage: resolvedImage)))
         }
@@ -274,8 +256,6 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
         )
     }
 
-    // One IR node for a captured descriptor: a rasterized image, a group frame (a container, e.g.
-    // a row — children nested by the caller), or a structured leaf (label/button).
     private func node(for item: PinCapturedComponent, rect: CGRect, resolvedImage: String?) -> FigmaNode {
         let style = item.style
         let fillColor = style.fillTokenName.flatMap { PinColorToken(rawValue: $0)?.color }
@@ -287,9 +267,8 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
             )
         }
         if item.isContainer {
-            // A component keyed by the row's structural name: the plugin builds the first as a master
-            // and the rest as instances that override only their text — so repeated rows reuse one
-            // component, and the master's native bit (chevron/switch) is inherited, not re-captured.
+            // A `component` (not a frame) keyed by the row's structure, so the plugin reuses one
+            // master + instances for structurally-identical rows.
             return FigmaNode(
                 tag: "component", x: rect.minX, y: rect.minY, w: rect.width, h: rect.height,
                 fill: fillColor.map { RGBA($0) }, fillToken: style.fillTokenName,
@@ -334,8 +313,6 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
     }
 }
 
-// Rasterizes any view (native controls, images, SF Symbols) to a PNG and emits it through the
-// same `PinCaptureKey` as structured components, so the host places it at its real frame.
 struct CapturedImageView<Content: SwiftUI.View>: SwiftUI.View {
     let name: String
     let content: Content
@@ -376,10 +353,8 @@ struct CapturedImageView<Content: SwiftUI.View>: SwiftUI.View {
     }
 }
 
-// Crops a global-coordinate rect out of the key window's rendered pixels. Off-screen rasterization
-// is unreliable for native controls (ImageRenderer draws a placeholder; a hosted copy renders
-// blank), so snapshot the real on-screen window and crop — the actual pixels, native controls
-// included. Returns nil when the rect is off-screen (nothing to crop).
+// ImageRenderer draws a placeholder for native controls and an off-screen host renders blank, so
+// snapshot the real on-screen window and crop the marker's rect out of it.
 enum ScreenCrop {
     @MainActor static func keyWindow() -> UIWindow? {
         UIApplication.shared.connectedScenes
@@ -413,14 +388,11 @@ enum FigmaCaptureFile {
         push(data)
     }
 
-    // Best-effort push to the local capture serve so the plugin's "Import layers" is always the
-    // latest render — no manual pull. Silently no-ops when the serve isn't running.
+    // Best-effort, fire-and-forget: no-ops if the serve isn't running.
     private static func push(_ data: Data) {
         post("http://localhost:8787/capture.json", data)
     }
 
-    // Push one catalog item's capture (keyed by id, with its metadata) so the serve accumulates a
-    // manifest the plugin lists — the many-components counterpart of the single-screen push.
     static func pushCatalog(id: String, title: String, section: String, tags: [String], document: FigmaDocument) {
         let entry = CatalogEntry(id: id, title: title, section: section, tags: tags, document: document)
         let encoder = JSONEncoder()

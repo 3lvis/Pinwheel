@@ -1,13 +1,8 @@
 import UIKit
 
-// Captures a lazy scroll view (List / UITableView) in full by scrolling it top-to-bottom and
-// stitching each page's on-screen pixels into one tall image. Lazy rows don't exist until scrolled
-// into view, but the data source is finite, so paging over contentSize terminates and reaches every
-// row. Ugly by necessity — it drives real scrolling and reads the rendered window — but it's the
-// only way to get below-the-fold lazy content, which no layout-anchor pass can see.
+// Captures a lazy scroll view in full by paging it and stitching each page: lazy rows don't exist
+// until scrolled into view, and the finite data source makes the paging terminate.
 enum ScrollStitch {
-    // Deepest-first search for the scroll view backing the list (a SwiftUI List is a
-    // UICollectionView; UIKitPinTableView wraps a UITableView), preferring the tallest content.
     static func scrollView(in root: UIView) -> UIScrollView? {
         var best: UIScrollView?
         func walk(_ view: UIView) {
@@ -29,9 +24,8 @@ enum ScrollStitch {
         let height: CGFloat
     }
 
-    // Returns one image per viewport page (not a single stitched image): Figma's createImage caps
-    // at 4096px per side, and a long list stitched whole blows past it. A page is viewport-tall, so
-    // each stays well under the cap; placed at its offset the pages reproduce the full list.
+    // One image per viewport page, not one stitched image: Figma's createImage caps at 4096px/side,
+    // which a long list would exceed.
     @MainActor
     static func capture(_ scrollView: UIScrollView, in window: UIWindow) async -> (pages: [Page], size: CGSize)? {
         let scale = window.screen.scale

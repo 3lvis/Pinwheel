@@ -1,9 +1,6 @@
 import SwiftUI
 import Pinwheel
 
-// Proves auto-layout emission: a `VStack` captured as a Figma auto-layout frame (column, hugging),
-// so the imported design reflows — lengthen a label or add a row in Figma and the stack adjusts,
-// instead of the fixed-position snapshot every other capture produces.
 struct FigmaAutoLayoutScreen: SwiftUI.View {
     var body: some SwiftUI.View {
         FigmaCaptureHost(name: "AutoLayout", content: content) { document in

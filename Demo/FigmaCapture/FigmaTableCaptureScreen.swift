@@ -2,9 +2,6 @@ import SwiftUI
 import UIKit
 import Pinwheel
 
-// Proves lazy-list capture: a finite SwiftUI `List` (lazy — rows below the fold don't exist until
-// scrolled into view) captured in full by scroll-and-stitch, emitted as one tall image node. The
-// data source is fixed, so paging the scroll view reaches every row.
 struct FigmaTableCaptureScreen: SwiftUI.View {
     var body: some SwiftUI.View {
         List(0..<30, id: \.self) { index in
@@ -19,8 +16,8 @@ struct FigmaTableCaptureScreen: SwiftUI.View {
         .scrollContentBackground(.hidden)
         .background(.primaryBackground)
         .task {
-            // Poll until the List has built its scroll view with content — the signal we actually
-            // need — instead of guessing a fixed delay. Each yield lets the runloop lay the List out.
+            // Poll until the List's scroll view exists (the real signal), not a fixed delay; each
+            // yield lets the runloop lay it out.
             var attempts = 0
             while readyScrollView() == nil && attempts < 600 {
                 attempts += 1

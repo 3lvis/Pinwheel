@@ -1,8 +1,6 @@
 import SwiftUI
 import Pinwheel
 
-// A screen built from Pinwheel components, each tagged for capture. Hosting it
-// under -FigmaCapture writes Documents/figma-capture.json for the fonno plugin.
 struct FigmaCaptureScreen: SwiftUI.View {
     @State private var deliveryMode = 0
     @State private var notify = true
@@ -13,8 +11,6 @@ struct FigmaCaptureScreen: SwiftUI.View {
         }
     }
 
-    // PinLabel/PinButton emit their own style via `@Pinnable`. The native segmented control and
-    // the SF Symbol have no structured descriptor, so `CapturedImageView` rasterizes them.
     private var sample: some SwiftUI.View {
         ScrollView {
             VStack(alignment: .leading, spacing: .spacingM) {
