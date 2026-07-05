@@ -32,7 +32,6 @@ struct FigmaNode: Encodable {
     var texts: [FigmaText]?
     var textAlign: String?
     var image: String?
-    var imageDark: String?   // dark-appearance capture of a rasterized bit; the plugin's Dark toggle uses it
     var layout: FigmaLayout?
     var children: [FigmaNode]
 }
@@ -204,29 +203,20 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
     // marker's on-screen frame (its anchor offset by the reader's global origin), then emit.
     private func capture(_ captured: [PinCapturedComponent], _ proxy: GeometryProxy) {
         guard captured.contains(where: { $0.needsRasterization }) else {
-            onCapture(document(from: captured, proxy: proxy, rasterImages: [:], darkImages: [:]))
+            onCapture(document(from: captured, proxy: proxy, rasterImages: [:]))
             return
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+        // Native bits are photographed in whatever appearance the simulator is set to (light or dark
+        // via `simctl ui <device> appearance …`), so dark comes from a real dark render — no in-app
+        // window flip (SwiftUI's WindowGroup resets it) and no flip settle.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             let origin = proxy.frame(in: .global).origin
-            var lightImages: [Int: String] = [:]
+            var images: [Int: String] = [:]
             for (index, item) in captured.enumerated() where item.needsRasterization {
                 let global = proxy[item.bounds].offsetBy(dx: origin.x, dy: origin.y)
-                if let base64 = ScreenCrop.base64(of: global) { lightImages[index] = base64 }
+                if let base64 = ScreenCrop.base64(of: global) { images[index] = base64 }
             }
-            // Force the window dark and photograph the native bits again, so the dark import uses
-            // dark-captured chevrons/switches instead of the light pixels on a dark canvas.
-            let window = ScreenCrop.keyWindow()
-            window?.overrideUserInterfaceStyle = .dark
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                var darkImages: [Int: String] = [:]
-                for (index, item) in captured.enumerated() where item.needsRasterization {
-                    let global = proxy[item.bounds].offsetBy(dx: origin.x, dy: origin.y)
-                    if let base64 = ScreenCrop.base64(of: global) { darkImages[index] = base64 }
-                }
-                window?.overrideUserInterfaceStyle = .unspecified
-                onCapture(document(from: captured, proxy: proxy, rasterImages: lightImages, darkImages: darkImages))
-            }
+            onCapture(document(from: captured, proxy: proxy, rasterImages: images))
         }
     }
 
@@ -234,7 +224,7 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
     // from the component (`PinCapturedComponent`), nothing re-specified here. Container nodes
     // (list rows) become parent frames; every other node nests under the smallest container whose
     // frame encloses it, so a row rebuilds as one Figma frame holding its labels/controls.
-    private func document(from captured: [PinCapturedComponent], proxy: GeometryProxy, rasterImages: [Int: String], darkImages: [Int: String]) -> FigmaDocument {
+    private func document(from captured: [PinCapturedComponent], proxy: GeometryProxy, rasterImages: [Int: String]) -> FigmaDocument {
         let size = proxy.size
         // Resolve each descriptor to a node; drop rasterization markers we couldn't photograph
         // (off-screen when captured) so they don't become empty placeholder nodes.
@@ -243,7 +233,7 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
             let resolvedImage = item.image ?? rasterImages[index]
             if item.needsRasterization && resolvedImage == nil { continue }
             let rect = proxy[item.bounds]
-            nodes.append((rect: rect, isContainer: item.isContainer, node: node(for: item, rect: rect, resolvedImage: resolvedImage, resolvedDarkImage: darkImages[index])))
+            nodes.append((rect: rect, isContainer: item.isContainer, node: node(for: item, rect: rect, resolvedImage: resolvedImage)))
         }
 
         // Innermost-first, so a node lands in the tightest container that encloses it.
@@ -286,14 +276,14 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
 
     // One IR node for a captured descriptor: a rasterized image, a group frame (a container, e.g.
     // a row — children nested by the caller), or a structured leaf (label/button).
-    private func node(for item: PinCapturedComponent, rect: CGRect, resolvedImage: String?, resolvedDarkImage: String?) -> FigmaNode {
+    private func node(for item: PinCapturedComponent, rect: CGRect, resolvedImage: String?) -> FigmaNode {
         let style = item.style
         let fillColor = style.fillTokenName.flatMap { PinColorToken(rawValue: $0)?.color }
 
         if let image = resolvedImage {
             return FigmaNode(
                 tag: "image", x: rect.minX, y: rect.minY, w: rect.width, h: rect.height,
-                component: style.name, image: image, imageDark: resolvedDarkImage, children: []
+                component: style.name, image: image, children: []
             )
         }
         if item.isContainer {
