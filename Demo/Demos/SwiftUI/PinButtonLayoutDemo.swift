@@ -29,17 +29,25 @@ struct PinButtonLayoutDemo: SwiftUI.View {
                         PinButton("Cash") {}.style(.secondary)
                         PinButton("Points") {}.style(.secondary)
                     }
+                    // The capture can't see native stacks, so mark the inner HStack too — else its
+                    // three buttons flatten into the card's column and stack vertically.
+                    .pinCapturedContainer(
+                        name: "MethodRow",
+                        layout: PinCaptureLayout(axis: .row, spacing: .spacingS, alignment: .center)
+                    )
                 }
                 .padding(.spacingL)
                 .background(.secondaryBackground)
                 .clipShape(RoundedRectangle(cornerRadius: .spacingM))
-                // A decorative background isn't an auto-layout container — capturing it with a layout
-                // would flatten the inner HStack and reflow everything into one column. Capture just
-                // its fill/radius; the children keep their real (absolute) positions.
                 .pinCapturedContainer(
                     name: "PaymentCard",
                     fillTokenName: PinColorToken.secondaryBackground.rawValue,
-                    cornerRadius: .spacingM
+                    cornerRadius: .spacingM,
+                    layout: PinCaptureLayout(
+                        axis: .column, spacing: .spacingM,
+                        padding: EdgeInsets(top: .spacingL, leading: .spacingL, bottom: .spacingL, trailing: .spacingL),
+                        alignment: .leading
+                    )
                 )
 
                 HStack(alignment: .top, spacing: .spacingL) {
