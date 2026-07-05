@@ -110,7 +110,14 @@ public struct PinButton: SwiftUI.View {
         // rasterize as image children — so a button round-trips with its icon and loading state.
         .pinCapturedContainer(
             name: captureName, fillTokenName: style.captureFillToken, fillColor: style.captureFillColor,
-            cornerRadius: .spacingM, enabled: isEnabled
+            cornerRadius: .spacingM, enabled: isEnabled,
+            // Auto-layout (hug + centered) so a reused master re-flows to each instance's own text
+            // instead of inheriting the master's fixed label frame.
+            layout: PinCaptureLayout(
+                axis: .row, spacing: .spacingS,
+                padding: EdgeInsets(top: .spacingM, leading: .spacingL, bottom: .spacingM, trailing: .spacingL),
+                alignment: .center
+            )
         )
     }
 
@@ -129,6 +136,10 @@ public struct PinButton: SwiftUI.View {
         var name = "PinButton-\(style.captureVariant)"
         if systemImage != nil { name += "-icon" }
         if title == nil { name += "-symbol" }
+        // Loading/disabled change the structure (spinner child) and appearance (dim), so they must
+        // be part of the identity — else they collapse onto a master that has neither.
+        if isLoading { name += "-loading" }
+        if !isEnabled { name += "-disabled" }
         return name
     }
 
