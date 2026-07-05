@@ -121,7 +121,7 @@ public struct PinButton: SwiftUI.View {
         )
     }
 
-    private var labelStyle: PinComponentStyle {
+    var labelStyle: PinComponentStyle {
         PinComponentStyle(
             name: "Label", text: title, textStyle: typography,
             textColorTokenName: style.captureTextColorToken, fillTokenName: nil,
@@ -132,7 +132,7 @@ public struct PinButton: SwiftUI.View {
 
     // Each visual variant gets its own capture name so distinct buttons don't collapse onto one
     // Figma master; only buttons that truly match (same variant, differing text) become instances.
-    private var captureName: String {
+    var captureName: String {
         var name = "PinButton-\(style.captureVariant)"
         if systemImage != nil { name += "-icon" }
         if title == nil { name += "-symbol" }
