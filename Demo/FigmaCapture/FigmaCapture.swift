@@ -179,6 +179,7 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
 
     var body: some SwiftUI.View {
         content
+            .environment(\.pinCapturing, true)
             .backgroundPreferenceValue(PinCaptureKey.self) { captured in
                 GeometryReader { proxy in
                     Color.clear

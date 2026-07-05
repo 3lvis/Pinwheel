@@ -83,6 +83,12 @@ public struct PinCaptureLayout {
     }
 }
 
+public extension EnvironmentValues {
+    /// Set by a capture host so lazy containers (`PinList`) lay out every row eagerly; off-screen
+    /// rows emit no capture descriptors otherwise.
+    @Entry var pinCapturing: Bool = false
+}
+
 public struct PinCaptureKey: PreferenceKey {
     public static let defaultValue: [PinCapturedComponent] = []
     public nonisolated static func reduce(value: inout [PinCapturedComponent], nextValue: () -> [PinCapturedComponent]) {

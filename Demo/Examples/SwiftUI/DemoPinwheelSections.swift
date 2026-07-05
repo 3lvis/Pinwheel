@@ -40,7 +40,6 @@ enum DemoPinwheelSections {
             PinwheelItem(Catalog.viewController, viewController: { UIKitPinViewControllerExample() }).tags(.uiKit)
             PinwheelItem(Catalog.figmaCheckout) { FigmaCaptureScreen() }.presentation(.fullscreen).tags(.figma)
             PinwheelItem(Catalog.figmaAutoLayout) { FigmaAutoLayoutScreen() }.presentation(.fullscreen).tags(.figma)
-            PinwheelItem(Catalog.figmaList) { FigmaListCaptureScreen() }.presentation(.fullscreen).tags(.figma)
             PinwheelItem(Catalog.figmaTable) { FigmaTableCaptureScreen() }.presentation(.fullscreen).tags(.figma)
         }
     }

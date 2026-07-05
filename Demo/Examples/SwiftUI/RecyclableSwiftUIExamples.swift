@@ -8,15 +8,17 @@ struct PinTableViewExample: SwiftUI.View {
 
     var body: some SwiftUI.View {
         PinList(state: state, rows: [
-            .text("Only title"),
-            .text("Title and subtitle", subtitle: "subtitle"),
-            .text("Title, subtitle and detail", subtitle: "subtitle", detail: "Detail text"),
-            .text("Title and detail", detail: "Detail text"),
-            .text("Is disabled", enabled: false),
-            .text("Has chevron", chevron: true) {},
-            .toggle("Off", isOn: $off),
-            .toggle("On", isOn: $on),
-            .toggle("Disabled", enabled: false, isOn: $on),
+            .text("Account", subtitle: "Signed in", chevron: true) {},
+            .text("Notifications", chevron: true) {},
+            .text("Privacy & Security", chevron: true) {},
+            .text("General", chevron: true) {},
+            .text("Wi-Fi", detail: "Home", chevron: true) {},
+            .text("Bluetooth", detail: "On", chevron: true) {},
+            .toggle("Airplane Mode", isOn: $off),
+            .toggle("Low Power Mode", isOn: $off),
+            .toggle("Dark Appearance", isOn: $on),
+            .text("About", subtitle: "Version 1.0", chevron: true) {},
+            .text("Sign out", enabled: false),
         ], onRetry: { state = .loaded })
         .pinwheelTweaks {
             PinwheelTweak("Loading") { state = DemoStateFixture.loading }

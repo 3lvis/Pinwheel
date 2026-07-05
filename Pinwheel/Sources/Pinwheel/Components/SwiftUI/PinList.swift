@@ -4,6 +4,7 @@ public struct PinList: SwiftUI.View {
     private let state: PinState
     private let rows: [Row]
     private let onRetry: () -> Void
+    @Environment(\.pinCapturing) private var pinCapturing
 
     public init(state: PinState = .loaded, rows: [Row], onRetry: @escaping () -> Void = {}) {
         self.state = state
@@ -14,16 +15,34 @@ public struct PinList: SwiftUI.View {
     public var body: some SwiftUI.View {
         switch state {
         case .loaded:
-            // No per-row id to key on; positional identity is stable because rows are a fixed value array per render.
-            List(Array(rows.enumerated()), id: \.offset) { _, row in
-                row.listRowBackground(Color.primaryBackground)
+            if pinCapturing {
+                eagerRows
+            } else {
+                // No per-row id to key on; positional identity is stable because rows are a fixed value array per render.
+                List(Array(rows.enumerated()), id: \.offset) { _, row in
+                    row.listRowBackground(Color.primaryBackground)
+                }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+                .background(.primaryBackground)
             }
-            .listStyle(.plain)
-            .scrollContentBackground(.hidden)
-            .background(.primaryBackground)
         default:
             PinStateView(state, onAction: onRetry)
         }
+    }
+
+    private var eagerRows: some SwiftUI.View {
+        ScrollView {
+            VStack(spacing: 0) {
+                ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                    row
+                        .padding(.horizontal, .spacingM)
+                        .padding(.vertical, .spacingS)
+                    Divider()
+                }
+            }
+        }
+        .background(.primaryBackground)
     }
 }
 

@@ -14,7 +14,6 @@ public enum Catalog: String, PinwheelComponent {
     case viewController = "ViewController"
     case figmaCheckout = "Checkout"
     case figmaAutoLayout = "Auto-layout"
-    case figmaList = "List"
     case figmaTable = "Table"
 }
 

@@ -81,14 +81,15 @@ public struct PinButton: View {
   catalog" button imports any one, no relaunch per component. Ids come from a `-PinwheelManifest` dump
   of the registry, not source grepping. `@Pinnable` components carry full node trees (Button → 12
   nodes, Label → 5); token/UIKit-only examples appear in the list but capture little until annotated.
-- **Lazy lists capture structurally by laying out eagerly.** A lazy `List` only lays out visible rows,
-  but the data source is finite — so render the same `PinList.Row` values in an eager `VStack` and every
-  row resolves its frame and captures its `PinLabel`s as *editable* text, below the fold included. Proven
-  on a 30-row list — 60 label nodes, all rows (`-PinwheelPreview figma-list`). No macros, no rasterization.
+- **`PinList` captures itself by laying out eagerly.** A lazy `List` only lays out visible rows, but the
+  data source is finite — so under the `pinCapturing` environment (set by the capture host) `PinList`
+  swaps its `List` for an eager `VStack`, and every row resolves its frame and captures its `PinLabel`s as
+  *editable* text, below the fold included. It's the **real** `PinList` demo (the `TableView` catalog item,
+  `swiftui-tableview`) that captures — no separate screen. No macros, no rasterization for the text.
 - **`PinList.Row` self-captures, grouped.** `PinList.Row.body` applies `.pinCapturedContainer(name:)`
-  (via `transformAnchorPreference`, which appends rather than replacing the row's own labels), so a real
-  `PinList` laid out eagerly captures each row as one grouped Figma frame with *no capture code at the
-  call site*. A no-op when nothing reads the preference, so ordinary rendering is unaffected.
+  (via `transformAnchorPreference`, which appends rather than replacing the row's own labels), so each row
+  captures as one grouped Figma frame with *no capture code at the call site*. A no-op when nothing reads
+  the preference, so ordinary rendering is unaffected.
 - **Native bits capture via a host-rasterization hook.** The row's chevron/switch have no structured
   description, so the library marks them with `.pinCapturedRasterized(name:)` — a *pure-SwiftUI marker*,
   no window-capture in the library — and the host photographs each marker's on-screen frame (`ScreenCrop`).
