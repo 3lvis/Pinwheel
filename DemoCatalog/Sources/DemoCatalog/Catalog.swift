@@ -6,6 +6,7 @@ public enum Catalog: String, PinwheelComponent {
     case spacing = "Spacing"
     case label = "Label"
     case button = "Button"
+    case buttonLayout = "Button Layout"
     case tweakable = "Tweakable"
     case stateView = "StateView"
     case tableView = "TableView"
