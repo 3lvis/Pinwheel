@@ -8,15 +8,15 @@ struct PinTableViewExample: SwiftUI.View {
 
     var body: some SwiftUI.View {
         PinList(state: state, rows: [
-            .text("Account", icon: "person.crop.circle.fill", subtitle: "Signed in", chevron: true) {},
-            .text("Notifications", icon: "bell.badge.fill", chevron: true) {},
-            .text("Privacy & Security", icon: "lock.fill", chevron: true) {},
-            .text("General", icon: "gearshape.fill", chevron: true) {},
-            .text("Wi-Fi", icon: "wifi", detail: "Home", chevron: true) {},
-            .text("Bluetooth", icon: "wave.3.right", detail: "On", chevron: true) {},
-            .toggle("Airplane Mode", icon: "airplane", isOn: $off),
-            .toggle("Low Power Mode", icon: "battery.25percent", isOn: $off),
-            .toggle("Dark Appearance", icon: "moon.fill", isOn: $on),
+            .text("Account", subtitle: "Signed in", chevron: true) {}.leading { icon("person.crop.circle.fill") },
+            .text("Notifications", chevron: true) {}.leading { icon("bell.badge.fill") },
+            .text("Privacy & Security", chevron: true) {}.leading { icon("lock.fill") },
+            .text("General", chevron: true) {}.leading { icon("gearshape.fill") },
+            .text("Wi-Fi", detail: "Home", chevron: true) {}.leading { icon("wifi") },
+            .text("Bluetooth", detail: "On", chevron: true) {}.leading { icon("wave.3.right") },
+            .toggle("Airplane Mode", isOn: $off).leading { icon("airplane") },
+            .toggle("Low Power Mode", isOn: $off).leading { icon("battery.25percent") },
+            .toggle("Dark Appearance", isOn: $on).leading { icon("moon.fill") },
             .text("About", subtitle: "Version 1.0", chevron: true) {},
             .text("Sign out", enabled: false),
         ], onRetry: { state = .loaded })
@@ -26,5 +26,9 @@ struct PinTableViewExample: SwiftUI.View {
             PinwheelTweak("Empty") { state = DemoStateFixture.empty }
             PinwheelTweak("Failed") { state = DemoStateFixture.failed }
         }
+    }
+
+    private func icon(_ name: String) -> some SwiftUI.View {
+        Image(systemName: name).foregroundStyle(.actionText)
     }
 }

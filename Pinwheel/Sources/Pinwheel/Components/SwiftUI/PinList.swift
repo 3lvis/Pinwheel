@@ -54,29 +54,34 @@ public extension PinList {
         }
 
         private let title: String
-        private let icon: String?
+        private let leading: AnyView?
         private let kind: Kind
 
-        private init(title: String, icon: String?, kind: Kind) {
+        private init(title: String, leading: AnyView?, kind: Kind) {
             self.title = title
-            self.icon = icon
+            self.leading = leading
             self.kind = kind
         }
 
         public static func text(
             _ title: String,
-            icon: String? = nil,
             subtitle: String? = nil,
             detail: String? = nil,
             chevron: Bool = false,
             enabled: Bool = true,
             action: (() -> Void)? = nil
         ) -> Row {
-            Row(title: title, icon: icon, kind: .text(subtitle: subtitle, detail: detail, chevron: chevron, enabled: enabled, action: action))
+            Row(title: title, leading: nil, kind: .text(subtitle: subtitle, detail: detail, chevron: chevron, enabled: enabled, action: action))
         }
 
-        public static func toggle(_ title: String, icon: String? = nil, subtitle: String? = nil, enabled: Bool = true, isOn: Binding<Bool>) -> Row {
-            Row(title: title, icon: icon, kind: .toggle(subtitle: subtitle, enabled: enabled, isOn: isOn))
+        public static func toggle(_ title: String, subtitle: String? = nil, enabled: Bool = true, isOn: Binding<Bool>) -> Row {
+            Row(title: title, leading: nil, kind: .toggle(subtitle: subtitle, enabled: enabled, isOn: isOn))
+        }
+
+        /// A leading accessory (any view — an SF Symbol you tint, your own asset `Image`, an avatar).
+        /// The caller owns its color and content; the row frames it to a consistent width.
+        public func leading(@ViewBuilder _ view: () -> some SwiftUI.View) -> Row {
+            Row(title: title, leading: AnyView(view()), kind: kind)
         }
 
         public var body: some SwiftUI.View {
@@ -92,7 +97,7 @@ public extension PinList {
             switch kind {
             case let .text(subtitle, detail, chevron, _, _):
                 var parts = ["Row"]
-                if icon != nil { parts.append("icon") }
+                if leading != nil { parts.append("icon") }
                 if subtitle != nil { parts.append("subtitle") }
                 if detail != nil { parts.append("detail") }
                 if chevron { parts.append("chevron") }
@@ -100,7 +105,7 @@ public extension PinList {
             case let .toggle(subtitle, _, isOn):
                 // The switch is a reused image, so on/off are different components.
                 var parts = ["Row", "toggle"]
-                if icon != nil { parts.append("icon") }
+                if leading != nil { parts.append("icon") }
                 if subtitle != nil { parts.append("subtitle") }
                 parts.append(isOn.wrappedValue ? "on" : "off")
                 return parts.joined(separator: "-")
@@ -114,7 +119,7 @@ public extension PinList {
                 textRow(subtitle: subtitle, detail: detail, chevron: chevron, enabled: enabled, action: action)
             case let .toggle(subtitle, enabled, isOn):
                 HStack(spacing: .spacingS) {
-                    if let icon { leadingIcon(icon, enabled: enabled) }
+                    if let leading { leadingView(leading) }
                     labels(subtitle: subtitle, enabled: enabled)
                         .pinCapturedContainer(name: "Labels", layout: PinCaptureLayout(axis: .column, spacing: .spacingXXS, alignment: .leading))
                     Spacer()
@@ -131,9 +136,8 @@ public extension PinList {
             }
         }
 
-        private func leadingIcon(_ name: String, enabled: Bool) -> some SwiftUI.View {
-            Image(systemName: name)
-                .foregroundStyle(enabled ? PinwheelTheme.Colors.actionText : PinwheelTheme.Colors.secondaryText)
+        private func leadingView(_ view: AnyView) -> some SwiftUI.View {
+            view
                 .frame(width: .spacingXL)
                 .pinCapturedRasterized(name: "Icon")
         }
@@ -156,7 +160,7 @@ public extension PinList {
             action: (() -> Void)?
         ) -> some SwiftUI.View {
             let content = HStack(spacing: .spacingS) {
-                if let icon { leadingIcon(icon, enabled: enabled) }
+                if let leading { leadingView(leading) }
                 labels(subtitle: subtitle, enabled: enabled)
                     .pinCapturedContainer(name: "Labels", layout: PinCaptureLayout(axis: .column, spacing: .spacingXXS, alignment: .leading))
                 Spacer()
