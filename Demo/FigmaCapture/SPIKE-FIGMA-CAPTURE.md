@@ -15,7 +15,7 @@ deep-link.
 
 ```
 # render (with the serve running) → the app pushes its IR to the serve
-xcrun simctl launch <booted> com.nordser.pinwheel -PinwheelPreview figma-checkout
+xcrun simctl launch <booted> com.nordser.pinwheel -PinwheelPreview swiftui-tableview
 # then click "Import layers" in the plugin — always the latest render
 ```
 
@@ -70,10 +70,10 @@ public struct PinButton: View {
 - **Below-the-fold content captures in full**: a `ScrollView` of eager content lays out entirely
   in one pass, so every anchor carries its real content-space position; the frame is sized to the
   whole content, not the visible viewport, and the screen imports "unrolled" as one tall Figma
-  frame. Verified with a 24-row checkout (1114pt tall) — rows and buttons past the 778pt fold land
-  at their true positions.
+  frame. The eager `PinList` capture rides this: a list longer than the viewport still lands every
+  row at its true content-space position.
 - **The imported frame is named** by the captured screen (`FigmaCaptureHost(name:)` → root node
-  `name`), so it reads "Checkout" in Figma, not "screen".
+  `name`), so it reads e.g. "TableView" in Figma, not "screen".
 - **The whole catalog sweeps into a plugin list** (first slice of the north star): `Scripts/capture-all.sh`
   renders every catalog item in isolation (`-PinwheelCapture <id>`, hosting `PinwheelItem.swiftUIView()`)
   and pushes each capture — keyed by id, with title/section/tags — to the serve's `POST /catalog`. The
@@ -104,9 +104,10 @@ public struct PinButton: View {
   as plain frames (Figma forbids a component inside a component). Verified via inspect: 10 rows → 3 masters
   + 7 instances, each its own text.
 - **Scroll-and-stitch is the rasterized fallback** for lazy content that can't lay out eagerly — chiefly
-  `UIKitPinTableView` (a real `UITableView`). `ScrollStitch` pages the backing scroll view, window-crops
-  each page, emits one image node per page (each under Figma's 4096px cap). Whole component as an image,
-  not editable rows (`-PinwheelPreview figma-table`) — use only when eager layout isn't possible.
+  the real `UIKitPinTableView` demo (`uikit-tableview`, a genuine recycling `UITableView`). When a captured
+  view emits no structured descriptors, the host finds the overflowing scroll view and `ScrollStitch` pages
+  it, window-cropping each page into one image node (each under Figma's 4096px cap). Whole component as an
+  image, not editable rows — the honest fallback for what eager layout can't reach.
 - **Light + dark cross the bridge as variable modes.** Each color token is resolved in both appearances
   (`RGBA(color, style:)`) and the plugin gives the token collection a **Light** and **Dark** mode, binding
   each color variable's two values. Fills bind to the variable, so toggling the Figma mode reskins the whole
@@ -154,14 +155,12 @@ The core round-trip and the lazy-list problem are covered every way we could fin
 
 ### The one real fidelity hole
 
-- **Auto-layout — mechanism proven, rollout remaining.** A container can now carry a `PinCaptureLayout`
-  (axis, spacing, padding); the host emits `layout` and the plugin builds a *hugging* Figma auto-layout
-  frame, so the imported design reflows instead of being a fixed snapshot. Proven on a column card
-  (`-PinwheelPreview figma-auto-layout`): title/body/button stack, 12pt gaps, 16pt padding, `hug: true`. What's
-  left is rolling it through the *real* components — a `PinList.Row` needs its label `VStack` as a nested
-  column container inside a row (`HStack`) auto-layout with space-between for the trailing accessory — and
-  inferring axis/spacing geometrically where a component doesn't declare it, so annotation isn't required
-  everywhere.
+- **Auto-layout — carried by real components, inference remaining.** A container carries a
+  `PinCaptureLayout` (axis, spacing, padding); the host emits `layout` and the plugin builds a *hugging*
+  Figma auto-layout frame, so the imported design reflows instead of being a fixed snapshot. `PinList.Row`
+  emits it for real — its label `VStack` is a nested column container inside the row `HStack` with
+  space-between for the trailing accessory. What's left is inferring axis/spacing geometrically where a
+  component doesn't declare it, so annotation isn't required everywhere.
 
 ### Quick verifications (should work, untested)
 

@@ -190,9 +190,53 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
             }
     }
 
+    // A structured capture with no content nodes means UIKit-hosted lazy content (a real
+    // `UIKitPinTableView`) that emits no descriptors — page its scroll view and stitch instead.
+    private func deliver(_ document: FigmaDocument) {
+        if document.root.children.isEmpty {
+            Task { await scrollStitchFallback() }
+        } else {
+            onCapture(document)
+        }
+    }
+
+    @MainActor
+    private func scrollStitchFallback() async {
+        var attempts = 0
+        while attempts < 600 {
+            attempts += 1
+            if let window = ScreenCrop.keyWindow(),
+               let scroll = ScrollStitch.scrollView(in: window),
+               scroll.bounds.height > 1, scroll.contentSize.height > scroll.bounds.height + 1 {
+                if let result = await ScrollStitch.capture(scroll, in: window) {
+                    onCapture(stitchedDocument(result))
+                }
+                return
+            }
+            await Task.yield()
+        }
+    }
+
+    private func stitchedDocument(_ result: (pages: [ScrollStitch.Page], size: CGSize)) -> FigmaDocument {
+        let children = result.pages.compactMap { page -> FigmaNode? in
+            guard let base64 = page.image.pngData()?.base64EncodedString() else { return nil }
+            return FigmaNode(
+                tag: "image", x: 0, y: page.offset, w: result.size.width, h: page.height,
+                component: "\(name)Rows", image: base64, children: []
+            )
+        }
+        let root = FigmaNode(
+            tag: "screen", x: 0, y: 0, w: result.size.width, h: result.size.height,
+            fill: RGBA(PinColorToken.primaryBackground.color),
+            fillToken: PinColorToken.primaryBackground.rawValue,
+            name: name, children: children
+        )
+        return FigmaDocument(width: result.size.width, height: result.size.height, root: root, tokens: [], textStyles: [])
+    }
+
     private func capture(_ captured: [PinCapturedComponent], _ proxy: GeometryProxy) {
         guard captured.contains(where: { $0.needsRasterization }) else {
-            onCapture(document(from: captured, proxy: proxy, rasterImages: [:]))
+            deliver(document(from: captured, proxy: proxy, rasterImages: [:]))
             return
         }
         // Native bits are photographed in the simulator's current appearance (set via `simctl ui …
@@ -205,7 +249,7 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
                 let global = proxy[item.bounds].offsetBy(dx: origin.x, dy: origin.y)
                 if let base64 = ScreenCrop.base64(of: global) { images[index] = base64 }
             }
-            onCapture(document(from: captured, proxy: proxy, rasterImages: images))
+            deliver(document(from: captured, proxy: proxy, rasterImages: images))
         }
     }
 

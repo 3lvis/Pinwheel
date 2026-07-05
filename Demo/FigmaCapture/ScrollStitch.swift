@@ -31,11 +31,11 @@ enum ScrollStitch {
         let scale = window.screen.scale
         let frame = scrollView.convert(scrollView.bounds, to: window)
         let viewport = scrollView.bounds.height
-        let total = max(scrollView.contentSize.height, viewport)
         guard frame.width > 1, viewport > 1 else { return nil }
 
         let restore = scrollView.contentOffset
         var pages: [Page] = []
+        var total = max(scrollView.contentSize.height, viewport)
         var target: CGFloat = 0
         var iterations = 0
         while iterations < 200 {
@@ -44,18 +44,23 @@ enum ScrollStitch {
             // layoutIfNeeded lays out the newly-revealed cells synchronously; the page crop's
             // drawHierarchy(afterScreenUpdates: true) then flushes their draw — no timed settle.
             scrollView.layoutIfNeeded()
+            // A lazy table's contentSize grows as cells load, so re-read it each page or the last
+            // page's height goes negative against a stale total.
+            total = max(total, scrollView.contentSize.height)
             // The scroll view clamps past its max offset, so read where it actually landed and
             // place the page there — the last page overlaps the previous with identical pixels.
             let actual = scrollView.contentOffset.y
-            let pageHeight = min(viewport, total - actual)
-            let shot = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
-                window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
-            }
-            if let cgImage = shot.cgImage {
-                let crop = CGRect(x: frame.minX * scale, y: frame.minY * scale,
-                                  width: frame.width * scale, height: pageHeight * scale)
-                if let cropped = cgImage.cropping(to: crop) {
-                    pages.append(Page(image: UIImage(cgImage: cropped), offset: actual, height: pageHeight))
+            let pageHeight = max(0, min(viewport, total - actual))
+            if pageHeight > 0 {
+                let shot = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
+                    window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+                }
+                if let cgImage = shot.cgImage {
+                    let crop = CGRect(x: frame.minX * scale, y: frame.minY * scale,
+                                      width: frame.width * scale, height: pageHeight * scale)
+                    if let cropped = cgImage.cropping(to: crop) {
+                        pages.append(Page(image: UIImage(cgImage: cropped), offset: actual, height: pageHeight))
+                    }
                 }
             }
             if actual + viewport >= total { break }

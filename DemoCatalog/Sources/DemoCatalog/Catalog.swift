@@ -13,7 +13,6 @@ public enum Catalog: String, PinwheelComponent {
     case fullscreenView = "FullscreenView"
     case viewController = "ViewController"
     case appleControls = "Apple Controls"
-    case figmaTable = "Table"
 }
 
 public enum CatalogSection: String {
