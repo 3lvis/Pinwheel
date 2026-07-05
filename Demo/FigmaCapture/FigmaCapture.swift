@@ -35,7 +35,7 @@ struct FigmaLayout: Encodable {
     let mode: String
     let columnGap: Double
     let rowGap: Double
-    let pad: [Double]         // [top, right, bottom, left]
+    let pad: [Double]
     let justify: String
     let align: String
     let primarySizing: String
@@ -213,27 +213,26 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
         var nodes: [(rect: CGRect, isContainer: Bool, node: FigmaNode)] = []
         for (index, item) in captured.enumerated() {
             let resolvedImage = item.image ?? rasterImages[index]
-            if item.needsRasterization && resolvedImage == nil { continue }   // off-screen: nothing to photograph
+            let nothingToPhotograph = item.needsRasterization && resolvedImage == nil
+            if nothingToPhotograph { continue }
             let rect = proxy[item.bounds]
             nodes.append((rect: rect, isContainer: item.isContainer, node: node(for: item, rect: rect, resolvedImage: resolvedImage)))
         }
 
-        // Innermost-first, so a node lands in the tightest container that encloses it.
-        let containers = nodes.indices
+        let containersInnermostFirst = nodes.indices
             .filter { nodes[$0].isContainer }
             .sorted { nodes[$0].rect.width * nodes[$0].rect.height < nodes[$1].rect.width * nodes[$1].rect.height }
-        func parent(of index: Int) -> Int? {
-            containers.first { $0 != index && encloses(nodes[$0].rect, nodes[index].rect) }
+        func innermostContainer(enclosing index: Int) -> Int? {
+            containersInnermostFirst.first { $0 != index && encloses(nodes[$0].rect, nodes[index].rect) }
         }
 
         var childIndices: [Int: [Int]] = [:]
         var topLevel: [Int] = []
         for index in nodes.indices {
-            if let owner = parent(of: index) { childIndices[owner, default: []].append(index) }
+            if let owner = innermostContainer(enclosing: index) { childIndices[owner, default: []].append(index) }
             else { topLevel.append(index) }
         }
-        // Smallest-first: an inner container is populated before an outer one reads it as a child.
-        for owner in containers {
+        for owner in containersInnermostFirst {
             nodes[owner].node.children = (childIndices[owner] ?? []).map { nodes[$0].node }
         }
 
@@ -267,8 +266,6 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
             )
         }
         if item.isContainer {
-            // A `component` (not a frame) keyed by the row's structure, so the plugin reuses one
-            // master + instances for structurally-identical rows.
             return FigmaNode(
                 tag: "component", x: rect.minX, y: rect.minY, w: rect.width, h: rect.height,
                 fill: fillColor.map { RGBA($0) }, fillToken: style.fillTokenName,

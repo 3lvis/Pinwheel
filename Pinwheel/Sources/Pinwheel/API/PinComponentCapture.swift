@@ -48,10 +48,7 @@ public struct PinCapturedComponent {
     // Base64 PNG for rasterized nodes — native controls, images, SF Symbols — that have no
     // structured descriptor. `nil` for `@Pinnable` components, which rebuild from `style`.
     public let image: String?
-    // A grouping node (a list row): the consumer nests captured nodes inside its bounds under it.
     public let isContainer: Bool
-    // A native/opaque bit for the host to photograph — a pure-SwiftUI marker, so the library ships
-    // no window-capture code.
     public let needsRasterization: Bool
     public let layout: PinCaptureLayout?
 
@@ -74,7 +71,6 @@ public struct PinCaptureLayout {
     public let axis: Axis
     public let spacing: CGFloat
     public let padding: EdgeInsets
-    // space-between distribution; the container then fills its primary axis (not hugs) so the split holds.
     public let spaceBetween: Bool
     public let alignment: CrossAxis
 
