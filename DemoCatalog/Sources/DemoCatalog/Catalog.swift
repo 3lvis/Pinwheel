@@ -12,8 +12,7 @@ public enum Catalog: String, PinwheelComponent {
     case dataSourceTableView = "DataSource TableView"
     case fullscreenView = "FullscreenView"
     case viewController = "ViewController"
-    case figmaCheckout = "Checkout"
-    case figmaAutoLayout = "Auto-layout"
+    case appleControls = "Apple Controls"
     case figmaTable = "Table"
 }
 

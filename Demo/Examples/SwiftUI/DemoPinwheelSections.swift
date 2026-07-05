@@ -38,8 +38,7 @@ enum DemoPinwheelSections {
         PinwheelSection(CatalogSection.screens) {
             PinwheelItem(Catalog.fullscreenView, view: UIKitPinFullscreenViewExample.self).tags(.uiKit)
             PinwheelItem(Catalog.viewController, viewController: { UIKitPinViewControllerExample() }).tags(.uiKit)
-            PinwheelItem(Catalog.figmaCheckout) { FigmaCaptureScreen() }.presentation(.fullscreen).tags(.figma)
-            PinwheelItem(Catalog.figmaAutoLayout) { FigmaAutoLayoutScreen() }.presentation(.fullscreen).tags(.figma)
+            PinwheelItem(Catalog.appleControls) { AppleControlsGallery() }.presentation(.fullscreen).tags(.figma)
             PinwheelItem(Catalog.figmaTable) { FigmaTableCaptureScreen() }.presentation(.fullscreen).tags(.figma)
         }
     }
