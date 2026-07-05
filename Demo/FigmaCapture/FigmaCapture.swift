@@ -352,8 +352,9 @@ struct CapturedImageView<Content: SwiftUI.View>: SwiftUI.View {
                 GeometryReader { proxy in
                     Color.clear.onAppear {
                         let frame = proxy.frame(in: .global)
-                        // Defer so the on-screen content (native controls included) is fully drawn.
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { render(frame) }
+                        // Next runloop: drawHierarchy(afterScreenUpdates: true) in render() flushes the
+                        // control's draw before snapshotting, so no wall-clock settle is needed.
+                        DispatchQueue.main.async { render(frame) }
                     }
                 }
             )

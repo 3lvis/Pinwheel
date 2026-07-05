@@ -47,10 +47,9 @@ enum ScrollStitch {
         while iterations < 200 {
             iterations += 1
             scrollView.setContentOffset(CGPoint(x: 0, y: target), animated: false)
-            // layoutIfNeeded forces the newly-revealed cells to lay out synchronously (a real hook,
-            // not a guess); a short settle then covers only their draw, which has no callback.
+            // layoutIfNeeded lays out the newly-revealed cells synchronously; the page crop's
+            // drawHierarchy(afterScreenUpdates: true) then flushes their draw — no timed settle.
             scrollView.layoutIfNeeded()
-            try? await Task.sleep(nanoseconds: 100_000_000)
             // The scroll view clamps past its max offset, so read where it actually landed and
             // place the page there — the last page overlaps the previous with identical pixels.
             let actual = scrollView.contentOffset.y

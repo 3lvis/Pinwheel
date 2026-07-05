@@ -19,10 +19,24 @@ struct FigmaTableCaptureScreen: SwiftUI.View {
         .scrollContentBackground(.hidden)
         .background(.primaryBackground)
         .task {
-            // Let the list lay out its first page before driving the scroll.
-            try? await Task.sleep(nanoseconds: 500_000_000)
+            // Poll until the List has built its scroll view with content — the signal we actually
+            // need — instead of guessing a fixed delay. Each yield lets the runloop lay the List out.
+            var attempts = 0
+            while readyScrollView() == nil && attempts < 600 {
+                attempts += 1
+                await Task.yield()
+            }
             await captureAndPush()
         }
+    }
+
+    @MainActor
+    private func readyScrollView() -> UIScrollView? {
+        guard let window = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene }).flatMap({ $0.windows })
+            .first(where: { $0.isKeyWindow }),
+              let scroll = ScrollStitch.scrollView(in: window), scroll.contentSize.height > 0 else { return nil }
+        return scroll
     }
 
     @MainActor
