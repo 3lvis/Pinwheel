@@ -1,11 +1,9 @@
 import SwiftUI
-import PinwheelMacros
 
 /// SwiftUI's built-in `.body` / `.title` are Apple's system text styles that share
 /// names with the design system but silently bypass it; `PinLabel` resolves the
 /// provider-backed font, and taking a `PinTextStyle` (not a raw `Font`) makes the
 /// system-font path unrepresentable.
-@Pinnable
 public struct PinLabel: SwiftUI.View {
     public enum TextColor: PinTextColorToken {
         case primary
@@ -34,12 +32,20 @@ public struct PinLabel: SwiftUI.View {
         public var captureTextColorToken: String? { token?.rawValue }
     }
 
-    @PinText private let text: String
-    @PinTypography private var typography: PinTextStyle = .body
-    @PinColor private var color: TextColor = .primary
+    private let text: String
+    private var typography: PinTextStyle = .body
+    private var color: TextColor = .primary
 
     public init(_ text: String) {
         self.text = text
+    }
+
+    private var pinnedStyle: PinComponentStyle {
+        PinComponentStyle(
+            name: "PinLabel", text: text, textStyle: typography,
+            textColorTokenName: color.captureTextColorToken, fillTokenName: nil,
+            textColor: color.captureTextColor, cornerRadius: nil, centersText: false
+        )
     }
 
     public func font(_ font: PinTextStyle) -> PinLabel {

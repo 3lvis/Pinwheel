@@ -14,15 +14,9 @@ let package = Package(
             name: "Pinwheel",
             targets: ["Pinwheel"]),
     ],
-    dependencies: [
-        .package(path: "../PinwheelMacros"),
-    ],
     targets: [
         .target(
             name: "Pinwheel",
-            dependencies: [
-                .product(name: "PinwheelMacros", package: "PinwheelMacros"),
-            ],
             swiftSettings: [
                 .swiftLanguageMode(.v6),
                 .defaultIsolation(MainActor.self),
