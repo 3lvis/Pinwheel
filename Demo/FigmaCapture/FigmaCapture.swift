@@ -199,8 +199,8 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
     }
 
     // Native-bit markers (a switch, a chevron) carry no image — the host photographs them here,
-    // keeping the window-capture out of the library. Defer so the window is drawn, crop each
-    // marker's on-screen frame (its anchor offset by the reader's global origin), then emit.
+    // keeping the window-capture out of the library. Each marker's on-screen frame is its anchor
+    // offset by the reader's global origin.
     private func capture(_ captured: [PinCapturedComponent], _ proxy: GeometryProxy) {
         guard captured.contains(where: { $0.needsRasterization }) else {
             onCapture(document(from: captured, proxy: proxy, rasterImages: [:]))
