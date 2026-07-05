@@ -25,13 +25,7 @@ struct DemoApp: App {
 
     var body: some Scene {
         WindowGroup {
-            if ProcessInfo.processInfo.arguments.contains("-PinwheelAutoLayoutCapture") {
-                FigmaAutoLayoutScreen()
-            } else if ProcessInfo.processInfo.arguments.contains("-PinwheelListCapture") {
-                FigmaListCaptureScreen()
-            } else if ProcessInfo.processInfo.arguments.contains("-PinwheelTableCapture") {
-                FigmaTableCaptureScreen()
-            } else if let captureID = FigmaCatalog.requestedCaptureID {
+            if let captureID = FigmaCatalog.requestedCaptureID {
                 FigmaCaptureSweepView(id: captureID)
             } else if let previewID = PinwheelPreview.requestedID {
                 PinwheelPreview(previewID, sections: DemoPinwheelSections.all)
@@ -40,6 +34,7 @@ struct DemoApp: App {
                     DemoPinwheelSections.tokens
                     DemoPinwheelSections.components
                     DemoPinwheelSections.screens
+                    DemoPinwheelSections.figmaPlugin
                 }
             }
         }

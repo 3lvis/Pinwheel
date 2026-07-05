@@ -12,11 +12,15 @@ public enum Catalog: String, PinwheelComponent {
     case dataSourceTableView = "DataSource TableView"
     case fullscreenView = "FullscreenView"
     case viewController = "ViewController"
-    case figmaCapture = "Figma Capture"
+    case figmaCheckout = "Checkout"
+    case figmaAutoLayout = "Auto-layout"
+    case figmaList = "List"
+    case figmaTable = "Table"
 }
 
 public enum CatalogSection: String {
     case tokens = "Tokens"
     case components = "Components"
     case screens = "Screens"
+    case figmaPlugin = "Figma Plugin"
 }
