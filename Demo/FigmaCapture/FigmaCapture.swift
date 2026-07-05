@@ -35,6 +35,8 @@ struct FigmaNode: Encodable {
     var opacity: Double?
     var image: String?
     var layout: FigmaLayout?
+    var grow: Bool?
+    var ordered: Bool?
     var children: [FigmaNode]
 }
 
@@ -196,11 +198,18 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
             .backgroundPreferenceValue(PinCaptureKey.self) { captured in
                 GeometryReader { proxy in
                     Color.clear
-                        .onAppear { FigmaCaptureEngine.capture(name: name, captured: captured, proxy: proxy, push: onCapture) }
+                        .onAppear { capture(captured, proxy) }
                         // CapturedImageView fills its image later (changing the count); re-capture to include it.
-                        .onChange(of: captured.count) { FigmaCaptureEngine.capture(name: name, captured: captured, proxy: proxy, push: onCapture) }
+                        .onChange(of: captured.count) { capture(captured, proxy) }
                 }
             }
+    }
+
+    private func capture(_ captured: [PinCapturedComponent], _ proxy: GeometryProxy) {
+        FigmaCaptureEngine.capture(
+            name: name, captured: captured, proxy: proxy,
+            structure: PinViewReflector.reflect(content), push: onCapture
+        )
     }
 }
 
@@ -208,9 +217,9 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
 // sink build the same IR from `(name, captured descriptors, layout proxy)`.
 @MainActor
 enum FigmaCaptureEngine {
-    static func capture(name: String, captured: [PinCapturedComponent], proxy: GeometryProxy, push: @escaping (FigmaDocument) -> Void) {
+    static func capture(name: String, captured: [PinCapturedComponent], proxy: GeometryProxy, structure: ReflectedNode? = nil, push: @escaping (FigmaDocument) -> Void) {
         guard captured.contains(where: { $0.needsRasterization }) else {
-            deliver(document(name: name, from: captured, proxy: proxy, rasterImages: [:]), name: name, push: push)
+            deliver(document(name: name, from: captured, proxy: proxy, rasterImages: [:], structure: structure), name: name, push: push)
             return
         }
         // Native bits are photographed in the simulator's current appearance (set via `simctl ui …
@@ -223,7 +232,7 @@ enum FigmaCaptureEngine {
                 let global = proxy[item.bounds].offsetBy(dx: origin.x, dy: origin.y)
                 if let base64 = ScreenCrop.base64(of: global) { images[index] = base64 }
             }
-            deliver(document(name: name, from: captured, proxy: proxy, rasterImages: images), name: name, push: push)
+            deliver(document(name: name, from: captured, proxy: proxy, rasterImages: images, structure: structure), name: name, push: push)
         }
     }
 
@@ -270,7 +279,7 @@ enum FigmaCaptureEngine {
         return FigmaDocument(width: result.size.width, height: result.size.height, root: root, tokens: [], textStyles: [])
     }
 
-    private static func document(name: String, from captured: [PinCapturedComponent], proxy: GeometryProxy, rasterImages: [Int: String]) -> FigmaDocument {
+    private static func document(name: String, from captured: [PinCapturedComponent], proxy: GeometryProxy, rasterImages: [Int: String], structure: ReflectedNode? = nil) -> FigmaDocument {
         let size = proxy.size
         var nodes: [(rect: CGRect, isContainer: Bool, node: FigmaNode)] = []
         for (index, item) in captured.enumerated() {
@@ -303,13 +312,17 @@ enum FigmaCaptureEngine {
         let contentTop = nodes.map { $0.rect.minY }.min() ?? 0
         let contentBottom = nodes.map { $0.rect.maxY }.max() ?? size.height
         let height = max(size.height, contentBottom + contentTop)
+        // Reflection recovers the SwiftUI stack hierarchy; nest the ordered top-level nodes into it so
+        // native VStack/HStack become auto-layout frames without any markers. Falls back to flat.
+        let topLevelNodes = topLevel.map { nodes[$0].node }
+        let rootChildren = structure.map { nestByReflection($0, leaves: topLevelNodes) } ?? topLevelNodes
         let root = FigmaNode(
             tag: "screen",
             x: 0, y: 0, w: size.width, h: height,
             fill: RGBA(PinColorToken.primaryBackground.color),
             fillToken: PinColorToken.primaryBackground.rawValue,
             name: name,
-            children: topLevel.map { nodes[$0].node }
+            children: rootChildren
         )
         return FigmaDocument(
             width: size.width, height: height, root: root,
@@ -358,6 +371,73 @@ enum FigmaCaptureEngine {
             textAlign: style.centersText ? "center" : nil,
             children: []
         )
+    }
+
+    // Fold the ordered top-level nodes into the reflected stack tree: each reflected leaf consumes the
+    // next node (both are in view-declaration order, so the zip holds), each stack becomes a
+    // synthesized auto-layout frame, and a Spacer becomes a growing child.
+    private static func nestByReflection(_ tree: ReflectedNode, leaves: [FigmaNode]) -> [FigmaNode] {
+        // The zip is positional, so it's only sound when reflection's leaves exactly account for the
+        // captured top-level nodes. A mismatch (a component that emits several descriptors from one
+        // view, or reflection missing a view) falls back to flat rather than nesting things wrongly.
+        guard leafCount(tree) == leaves.count else { return leaves }
+        var index = 0
+        func build(_ node: ReflectedNode) -> FigmaNode? {
+            switch node {
+            case .leaf:
+                guard index < leaves.count else { return nil }
+                defer { index += 1 }
+                return leaves[index]
+            case .spacer:
+                return FigmaNode(tag: "spacer", x: 0, y: 0, w: 0, h: 0, grow: true, children: [])
+            case .container(let container, let children):
+                let built = children.compactMap { build($0) }
+                guard built.contains(where: { $0.grow != true }) else { return nil }
+                return synthesizedContainer(container, children: built)
+            }
+        }
+        guard let rootNode = build(tree) else { return leaves }
+        var result = [rootNode]
+        // Any leaves reflection didn't place (shape drift) still ship, flat, rather than vanish.
+        while index < leaves.count { result.append(leaves[index]); index += 1 }
+        return result
+    }
+
+    private static func leafCount(_ node: ReflectedNode) -> Int {
+        switch node {
+        case .leaf: return 1
+        case .spacer: return 0
+        case .container(_, let children): return children.reduce(0) { $0 + leafCount($1) }
+        }
+    }
+
+    private static func synthesizedContainer(_ container: ReflectedContainer, children: [FigmaNode]) -> FigmaNode {
+        let real = children.filter { $0.grow != true }
+        let minX = real.map { $0.x }.min() ?? 0
+        let minY = real.map { $0.y }.min() ?? 0
+        let maxX = real.map { $0.x + $0.w }.max() ?? 0
+        let maxY = real.map { $0.y + $0.h }.max() ?? 0
+        let layout = PinCaptureLayout(
+            axis: container.axis, spacing: itemSpacing(container, real: real), alignment: container.alignment
+        )
+        return FigmaNode(
+            tag: "component", x: minX, y: minY, w: maxX - minX, h: maxY - minY,
+            name: container.axis == .row ? "HStack" : "VStack",
+            layout: FigmaLayout(layout), ordered: true, children: children
+        )
+    }
+
+    // The author's explicit spacing when set; otherwise the smallest real gap between children (which
+    // is the fixed spacing even when a Spacer opens a large gap elsewhere), defaulting to SwiftUI's 8.
+    private static func itemSpacing(_ container: ReflectedContainer, real: [FigmaNode]) -> CGFloat {
+        if let spacing = container.spacing { return spacing }
+        guard real.count >= 2 else { return 8 }
+        let sorted = real.sorted { container.axis == .row ? $0.x < $1.x : $0.y < $1.y }
+        let gaps = (1..<sorted.count).map { index -> Double in
+            let previous = sorted[index - 1], current = sorted[index]
+            return container.axis == .row ? current.x - (previous.x + previous.w) : current.y - (previous.y + previous.h)
+        }
+        return CGFloat(gaps.filter { $0 >= 0 }.min() ?? 8)
     }
 
     private static func encloses(_ outer: CGRect, _ inner: CGRect) -> Bool {
