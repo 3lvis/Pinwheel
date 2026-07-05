@@ -21,18 +21,33 @@ struct DisplayLeaf {
 
 @MainActor
 enum PinDisplayList {
-    static func read<Content: SwiftUI.View>(_ view: Content, size: CGSize) -> (leaves: [DisplayLeaf], host: UIView)? {
+    // Hosts the view on-screen as a child of the app's key window (a detached/scene-less window never
+    // composites, so its pixels are blank) and captures after a runloop so it has actually drawn —
+    // the same deferral the crop path always needed. `body` runs while the host is still mounted, then
+    // it's torn down.
+    static func read<Content: SwiftUI.View>(_ view: Content, size: CGSize, body: @escaping ([DisplayLeaf], UIView) -> FigmaDocument?, completion: @escaping (FigmaDocument?) -> Void) {
         let controller = UIHostingController(rootView: view.environment(\.pinCapturing, true))
-        let hostView: UIView = controller.view
-        hostView.frame = CGRect(origin: .zero, size: size)
-        let window = UIWindow(frame: hostView.frame)
-        window.rootViewController = controller
-        window.isHidden = false
-        return withExtendedLifetime((window, controller)) {
-            hostView.layoutIfNeeded()
-            guard let list = displayList(of: hostView) else { return nil }
-            return (walk(list, origin: .zero), hostView)
+        controller.view.frame = CGRect(origin: .zero, size: size)
+        controller.view.backgroundColor = .clear
+        guard let keyWindow = keyWindow(), let rootController = keyWindow.rootViewController else { completion(nil); return }
+        rootController.addChild(controller)
+        keyWindow.addSubview(controller.view)
+        controller.didMove(toParent: rootController)
+        controller.view.layoutIfNeeded()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            defer {
+                controller.willMove(toParent: nil)
+                controller.view.removeFromSuperview()
+                controller.removeFromParent()
+            }
+            guard let list = displayList(of: controller.view) else { completion(nil); return }
+            completion(body(walk(list, origin: .zero), controller.view))
         }
+    }
+
+    static func keyWindow() -> UIWindow? {
+        let windows = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.flatMap(\.windows)
+        return windows.first { $0.isKeyWindow } ?? windows.first
     }
 
     private static func displayList(of hostingView: Any) -> Any? {

@@ -7,8 +7,13 @@ import Pinwheel
 // its buttons); axis/spacing/alignment are inferred from the frames SwiftUI already computed.
 @MainActor
 enum PinDisplayListCapture {
-    static func document<Content: SwiftUI.View>(_ view: Content, name: String, size: CGSize) -> FigmaDocument? {
-        guard let (leaves, host) = PinDisplayList.read(view, size: size) else { return nil }
+    static func document<Content: SwiftUI.View>(_ view: Content, name: String, size: CGSize, completion: @escaping (FigmaDocument?) -> Void) {
+        PinDisplayList.read(view, size: size, body: { leaves, host in
+            build(view, leaves: leaves, host: host, size: size)
+        }, completion: completion)
+    }
+
+    private static func build<Content: SwiftUI.View>(_ view: Content, leaves: [DisplayLeaf], host: UIView, size: CGSize) -> FigmaDocument? {
         // The screen fill spans the full hosting height; trim it to the content so the root frame
         // (and its bottom padding) match the real screen, not the oversized host.
         let contentBottom = (leaves.map { $0.frame.maxY }.filter { $0 < size.height - 1 }.max() ?? size.height)
@@ -360,8 +365,12 @@ enum PinDisplayListCapture {
     // MARK: rasterization
 
     private static func rasterize(_ host: UIView, _ frame: CGRect) -> String? {
-        let full = UIGraphicsImageRenderer(bounds: host.bounds).image { _ in
-            host.drawHierarchy(in: host.bounds, afterScreenUpdates: true)
+        // Snapshot the on-screen key window (host is mounted at its origin, so a leaf frame is already
+        // in window coordinates) — the same crop the marker path used. afterScreenUpdates:false takes
+        // the already-drawn pixels; true would trigger a re-render that comes back blank here.
+        guard let window = PinDisplayList.keyWindow() else { return nil }
+        let full = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in
+            window.drawHierarchy(in: window.bounds, afterScreenUpdates: false)
         }
         guard let cgImage = full.cgImage else { return nil }
         let scale = full.scale

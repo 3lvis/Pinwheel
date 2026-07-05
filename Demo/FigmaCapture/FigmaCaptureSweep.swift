@@ -71,13 +71,15 @@ struct FigmaCaptureSweepView: SwiftUI.View {
         Color.clear.onAppear {
             guard !pushed, let entry = FigmaCatalog.entry(id: id) else { return }
             pushed = true
-            // Read the rendered DisplayList off a hosted copy — no markers in the view.
-            guard let document = PinDisplayListCapture.document(
+            // Read the rendered DisplayList off an on-screen hosted copy — no markers in the view.
+            PinDisplayListCapture.document(
                 entry.item.swiftUIView(), name: entry.title, size: CGSize(width: 402, height: 1600)
-            ) else { return }
-            FigmaCaptureFile.pushCatalog(
-                id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, document: document
-            )
+            ) { document in
+                guard let document else { return }
+                FigmaCaptureFile.pushCatalog(
+                    id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, document: document
+                )
+            }
         }
     }
 }
