@@ -209,7 +209,7 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
         // Native bits are photographed in whatever appearance the simulator is set to (light or dark
         // via `simctl ui <device> appearance …`), so dark comes from a real dark render — no in-app
         // window flip (SwiftUI's WindowGroup resets it) and no flip settle.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        DispatchQueue.main.async {
             let origin = proxy.frame(in: .global).origin
             var images: [Int: String] = [:]
             for (index, item) in captured.enumerated() where item.needsRasterization {
