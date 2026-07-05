@@ -26,6 +26,7 @@ struct FigmaNode: Encodable {
     var font: FigmaFont?
     var texts: [FigmaText]?
     var textAlign: String?
+    var opacity: Double?
     var image: String?
     var layout: FigmaLayout?
     var children: [FigmaNode]
@@ -73,6 +74,7 @@ struct FigmaFont: Encodable {
     let color: RGBA
     let colorToken: String?
     let style: String?
+    let underline: Bool
 }
 
 struct FigmaTextStyle: Encodable {
@@ -155,12 +157,12 @@ private func figmaCssWeight(_ weight: CGFloat) -> Int {
 }
 
 extension FigmaFont {
-    @MainActor init(_ textStyle: PinTextStyle, colorTokenName: String?, rawColor: Color? = nil) {
+    @MainActor init(_ textStyle: PinTextStyle, colorTokenName: String?, rawColor: Color? = nil, underline: Bool = false) {
         let metrics = textStyle.captureMetrics
         let color = colorTokenName.flatMap { PinColorToken(rawValue: $0)?.color } ?? rawColor ?? .primary
         self.init(
             family: metrics.family, size: metrics.size, weight: metrics.weight,
-            color: RGBA(color), colorToken: colorTokenName, style: textStyle.captureName
+            color: RGBA(color), colorToken: colorTokenName, style: textStyle.captureName, underline: underline
         )
     }
 }
@@ -320,6 +322,7 @@ enum FigmaCaptureEngine {
                 fill: fillColor.map { RGBA($0) }, fillToken: style.fillTokenName,
                 radius: style.cornerRadius.map { Double($0) },
                 component: style.name,
+                opacity: style.enabled ? nil : 0.35,
                 layout: item.layout.map { FigmaLayout($0) },
                 children: []
             )
@@ -339,7 +342,7 @@ enum FigmaCaptureEngine {
             fillToken: style.fillTokenName,
             radius: style.cornerRadius.map { Double($0) },
             component: style.name,
-            font: style.textStyle.map { FigmaFont($0, colorTokenName: style.textColorTokenName, rawColor: style.textColor) },
+            font: style.textStyle.map { FigmaFont($0, colorTokenName: style.textColorTokenName, rawColor: style.textColor, underline: style.underline) },
             texts: texts,
             textAlign: style.centersText ? "center" : nil,
             children: []

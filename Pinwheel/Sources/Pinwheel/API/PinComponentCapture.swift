@@ -16,6 +16,9 @@ public struct PinComponentStyle {
     public let fillColor: Color?
     public let cornerRadius: CGFloat?
     public let centersText: Bool
+    public let underline: Bool
+    // `false` dims the captured node, matching a disabled control.
+    public let enabled: Bool
 
     public init(
         name: String,
@@ -26,7 +29,9 @@ public struct PinComponentStyle {
         textColor: Color? = nil,
         fillColor: Color? = nil,
         cornerRadius: CGFloat?,
-        centersText: Bool
+        centersText: Bool,
+        underline: Bool = false,
+        enabled: Bool = true
     ) {
         self.name = name
         self.text = text
@@ -37,6 +42,8 @@ public struct PinComponentStyle {
         self.fillColor = fillColor
         self.cornerRadius = cornerRadius
         self.centersText = centersText
+        self.underline = underline
+        self.enabled = enabled
     }
 
     /// A copy under a different capture name. Components use it to give each visual variant its own
@@ -45,7 +52,7 @@ public struct PinComponentStyle {
         PinComponentStyle(
             name: name, text: text, textStyle: textStyle, textColorTokenName: textColorTokenName,
             fillTokenName: fillTokenName, textColor: textColor, fillColor: fillColor,
-            cornerRadius: cornerRadius, centersText: centersText
+            cornerRadius: cornerRadius, centersText: centersText, underline: underline, enabled: enabled
         )
     }
 }
@@ -139,12 +146,13 @@ public extension View {
     /// Marks this view a capture group (a list row) that nests the captured nodes inside its bounds.
     /// `transformAnchorPreference` *appends* the container; plain `anchorPreference` would replace the
     /// descendants' captured nodes (the row's own labels) with just this one.
-    func pinCapturedContainer(name: String, fillTokenName: String? = nil, cornerRadius: CGFloat? = nil, layout: PinCaptureLayout? = nil) -> some View {
+    func pinCapturedContainer(name: String, fillTokenName: String? = nil, fillColor: Color? = nil, cornerRadius: CGFloat? = nil, enabled: Bool = true, layout: PinCaptureLayout? = nil) -> some View {
         transformAnchorPreference(key: PinCaptureKey.self, value: .bounds) { value, anchor in
             value.append(PinCapturedComponent(
                 style: PinComponentStyle(
                     name: name, text: nil, textStyle: nil, textColorTokenName: nil,
-                    fillTokenName: fillTokenName, cornerRadius: cornerRadius, centersText: false
+                    fillTokenName: fillTokenName, fillColor: fillColor, cornerRadius: cornerRadius,
+                    centersText: false, enabled: enabled
                 ),
                 bounds: anchor,
                 isContainer: true,

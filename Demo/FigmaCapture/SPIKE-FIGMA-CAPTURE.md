@@ -27,26 +27,33 @@ It can't run at build time — the frames come from a real SwiftUI layout pass, 
 booted simulator — but it needs no manual navigation: `Scripts/sweep.sh --preview` already sweeps
 every catalog id via `-PinwheelPreview`, so one run emits every component's capture JSON.
 
-## Authoring: the `@Pinnable` macro (no boilerplate)
+## Authoring: `@Pinnable` for flat components, containers for rich ones
 
-Components don't hand-write capture wiring. `@Pinnable` (a SwiftSync-style macro in the
-`PinwheelMacros` package) generates the style descriptor from annotations:
+A **flat, single-node** component (a themed `Text`) uses the `@Pinnable` macro (a SwiftSync-style
+macro in `PinwheelMacros`): annotate and go, no hand-written wiring.
 
 ```swift
-@Pinnable(cornerRadius: .spacingM, centersText: true)
-public struct PinButton: View {
-    @PinText       private let title: String?
-    @PinFill @PinColor private var style: Style = .primary
-    @PinTypography private var typography: PinTextStyle = .subtitleSemibold
-    var body: some View { … .pinCaptured(pinnedStyle) }   // one line
+@Pinnable
+public struct PinLabel: View {
+    @PinText  private let text: String?
+    @PinColor private var color: TextColor = .primary
+    @PinTypography private var style: PinTextStyle = .body
+    var body: some View { Text(text).pinCaptured(pinnedStyle) }   // one line
 }
 ```
 
-- The component **name is the type's own name** (`PinButton`) — compiler-unique, so two
-  components can't silently collide the way a free-text string could.
-- The `Style → token` and `TextColor → token` name maps live **once** on the token enums
-  (`PinFillToken`/`PinTextColorToken`), reused across components, not copied per component.
-- Adding a component is annotate-and-go; the switch maps and argument assembly are synthesized.
+- The component **name is the type's own name** — compiler-unique, so two components can't silently
+  collide the way a free-text string could.
+- The `TextColor → token` name map lives **once** on the token enum (`PinTextColorToken`), reused
+  across components.
+
+A **variant-rich** component (`PinButton`: fills, icon, spinner, underline, disabled, custom colors)
+outgrows the flat descriptor — those can't all be one node. It hand-writes a **container** capture
+instead, the same shape `PinList.Row` uses: the pill is a `.pinCapturedContainer` (fill/radius, a
+variant-encoded name so `-primary`/`-custom`/`-icon` don't collapse onto one master), the label text
+is a structured `.pinCaptured` child (color + underline), and the SF Symbol / `ProgressView`
+rasterize as `.pinCapturedRasterized` image children. The macro is for the easy case; the container
+model is the general one.
 
 ## What's proven (round-trip verified via the Figma REST API)
 
@@ -79,8 +86,9 @@ public struct PinButton: View {
   and pushes each capture — keyed by id, with title/section/tags — to the serve's `POST /catalog`. The
   serve accumulates `catalog-<id>.json` files; `GET /manifest.json` lists them and the plugin's "Load
   catalog" button imports any one, no relaunch per component. Ids come from a `-PinwheelManifest` dump
-  of the registry, not source grepping. `@Pinnable` components carry full node trees (Button → 12
-  nodes, Label → 5); token/UIKit-only examples appear in the list but capture little until annotated.
+  of the registry, not source grepping. Structured components carry full node trees (Button → a master
+  per variant, each a pill with text + icon/spinner children; Label → 5); token/UIKit-only examples
+  appear in the list but capture little until annotated.
 - **`PinList` captures itself by laying out eagerly.** A lazy `List` only lays out visible rows, but the
   data source is finite — so under the `pinCapturing` environment (set by the capture host) `PinList`
   swaps its `List` for an eager `VStack`, and every row resolves its frame and captures its `PinLabel`s as
@@ -182,7 +190,7 @@ The core round-trip and the lazy-list problem are covered every way we could fin
 
 - **Harden `@Pinnable`** — a clear compile diagnostic when a required marker is missing or a marked property's
   type doesn't conform, instead of a confusing downstream failure.
-- **Extend `@Pinnable`** to the rest of the `Pin*` components as screens need them (`PinLabel`/`PinButton` today).
+- **Extend capture** to the rest of the `Pin*` components as screens need them — `@Pinnable` for flat ones (`PinLabel` today), the container model for rich ones (`PinButton` today).
 - **Vector assets (SVG/PDF)** rasterize like everything else — preserving them as Figma vector paths keeps scalability.
 - **SF Symbols** are pixels today; better to map them to a Figma icon-library component via Code Connect.
 - **Button variants** as Figma variant properties (one component with a `Style` prop) rather than separate masters.

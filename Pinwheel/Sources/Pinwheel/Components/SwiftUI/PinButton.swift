@@ -1,7 +1,5 @@
 import SwiftUI
-import PinwheelMacros
 
-@Pinnable(cornerRadius: .spacingM, centersText: true)
 public struct PinButton: SwiftUI.View {
     public enum Style: Equatable, PinFillToken, PinTextColorToken {
         case primary
@@ -61,14 +59,15 @@ public struct PinButton: SwiftUI.View {
         }
     }
 
-    @PinText private let title: String?
+    private let title: String?
     private let systemImage: String?
     private let action: () -> Void
-    @PinFill @PinColor private var style: Style = .primary
-    @PinTypography private var typography: PinTextStyle = .subtitleSemibold
+    private var style: Style = .primary
+    private var typography: PinTextStyle = .subtitleSemibold
     private var isLoading: Bool = false
 
     @SwiftUI.State private var tapCount = 0
+    @Environment(\.isEnabled) private var isEnabled
 
     public init(
         _ title: String? = nil,
@@ -107,7 +106,21 @@ public struct PinButton: SwiftUI.View {
         }
         .buttonStyle(PinButtonStyle(style: style, hasTitle: title != nil))
         .sensoryFeedback(.impact(weight: style.isPrimary ? .medium : .light), trigger: tapCount)
-        .pinCaptured(pinnedStyle.named(captureName))
+        // The pill is a container; its label text captures as editable text and the symbol/spinner
+        // rasterize as image children — so a button round-trips with its icon and loading state.
+        .pinCapturedContainer(
+            name: captureName, fillTokenName: style.captureFillToken, fillColor: style.captureFillColor,
+            cornerRadius: .spacingM, enabled: isEnabled
+        )
+    }
+
+    private var labelStyle: PinComponentStyle {
+        PinComponentStyle(
+            name: "Label", text: title, textStyle: typography,
+            textColorTokenName: style.captureTextColorToken, fillTokenName: nil,
+            textColor: style.captureTextColor, cornerRadius: nil, centersText: false,
+            underline: style.isTertiary
+        )
     }
 
     // Each visual variant gets its own capture name so distinct buttons don't collapse onto one
@@ -127,16 +140,19 @@ public struct PinButton: SwiftUI.View {
                     .font(typography.font)
                     .underline(style.isTertiary)
                     .lineLimit(1)
+                    .pinCaptured(labelStyle)
             }
 
             if let systemImage {
                 Image(systemName: systemImage)
                     .font(typography.font)
+                    .pinCapturedRasterized(name: "Icon")
             }
 
             if isLoading {
                 ProgressView()
                     .controlSize(.small)
+                    .pinCapturedRasterized(name: "Spinner")
             }
         }
     }
