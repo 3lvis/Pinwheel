@@ -54,26 +54,29 @@ public extension PinList {
         }
 
         private let title: String
+        private let icon: String?
         private let kind: Kind
 
-        private init(title: String, kind: Kind) {
+        private init(title: String, icon: String?, kind: Kind) {
             self.title = title
+            self.icon = icon
             self.kind = kind
         }
 
         public static func text(
             _ title: String,
+            icon: String? = nil,
             subtitle: String? = nil,
             detail: String? = nil,
             chevron: Bool = false,
             enabled: Bool = true,
             action: (() -> Void)? = nil
         ) -> Row {
-            Row(title: title, kind: .text(subtitle: subtitle, detail: detail, chevron: chevron, enabled: enabled, action: action))
+            Row(title: title, icon: icon, kind: .text(subtitle: subtitle, detail: detail, chevron: chevron, enabled: enabled, action: action))
         }
 
-        public static func toggle(_ title: String, subtitle: String? = nil, enabled: Bool = true, isOn: Binding<Bool>) -> Row {
-            Row(title: title, kind: .toggle(subtitle: subtitle, enabled: enabled, isOn: isOn))
+        public static func toggle(_ title: String, icon: String? = nil, subtitle: String? = nil, enabled: Bool = true, isOn: Binding<Bool>) -> Row {
+            Row(title: title, icon: icon, kind: .toggle(subtitle: subtitle, enabled: enabled, isOn: isOn))
         }
 
         public var body: some SwiftUI.View {
@@ -89,6 +92,7 @@ public extension PinList {
             switch kind {
             case let .text(subtitle, detail, chevron, _, _):
                 var parts = ["Row"]
+                if icon != nil { parts.append("icon") }
                 if subtitle != nil { parts.append("subtitle") }
                 if detail != nil { parts.append("detail") }
                 if chevron { parts.append("chevron") }
@@ -96,6 +100,7 @@ public extension PinList {
             case let .toggle(subtitle, _, isOn):
                 // The switch is a reused image, so on/off are different components.
                 var parts = ["Row", "toggle"]
+                if icon != nil { parts.append("icon") }
                 if subtitle != nil { parts.append("subtitle") }
                 parts.append(isOn.wrappedValue ? "on" : "off")
                 return parts.joined(separator: "-")
@@ -109,6 +114,7 @@ public extension PinList {
                 textRow(subtitle: subtitle, detail: detail, chevron: chevron, enabled: enabled, action: action)
             case let .toggle(subtitle, enabled, isOn):
                 HStack(spacing: .spacingS) {
+                    if let icon { leadingIcon(icon, enabled: enabled) }
                     labels(subtitle: subtitle, enabled: enabled)
                         .pinCapturedContainer(name: "Labels", layout: PinCaptureLayout(axis: .column, spacing: .spacingXXS, alignment: .leading))
                     Spacer()
@@ -123,6 +129,13 @@ public extension PinList {
                         .pinCapturedRasterized(name: "Switch")
                 }
             }
+        }
+
+        private func leadingIcon(_ name: String, enabled: Bool) -> some SwiftUI.View {
+            Image(systemName: name)
+                .foregroundStyle(enabled ? PinwheelTheme.Colors.actionText : PinwheelTheme.Colors.secondaryText)
+                .frame(width: .spacingXL)
+                .pinCapturedRasterized(name: "Icon")
         }
 
         private func labels(subtitle: String?, enabled: Bool) -> some SwiftUI.View {
@@ -143,6 +156,7 @@ public extension PinList {
             action: (() -> Void)?
         ) -> some SwiftUI.View {
             let content = HStack(spacing: .spacingS) {
+                if let icon { leadingIcon(icon, enabled: enabled) }
                 labels(subtitle: subtitle, enabled: enabled)
                     .pinCapturedContainer(name: "Labels", layout: PinCaptureLayout(axis: .column, spacing: .spacingXXS, alignment: .leading))
                 Spacer()

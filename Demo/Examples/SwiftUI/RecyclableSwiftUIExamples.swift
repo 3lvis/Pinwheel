@@ -8,15 +8,15 @@ struct PinTableViewExample: SwiftUI.View {
 
     var body: some SwiftUI.View {
         PinList(state: state, rows: [
-            .text("Account", subtitle: "Signed in", chevron: true) {},
-            .text("Notifications", chevron: true) {},
-            .text("Privacy & Security", chevron: true) {},
-            .text("General", chevron: true) {},
-            .text("Wi-Fi", detail: "Home", chevron: true) {},
-            .text("Bluetooth", detail: "On", chevron: true) {},
-            .toggle("Airplane Mode", isOn: $off),
-            .toggle("Low Power Mode", isOn: $off),
-            .toggle("Dark Appearance", isOn: $on),
+            .text("Account", icon: "person.crop.circle.fill", subtitle: "Signed in", chevron: true) {},
+            .text("Notifications", icon: "bell.badge.fill", chevron: true) {},
+            .text("Privacy & Security", icon: "lock.fill", chevron: true) {},
+            .text("General", icon: "gearshape.fill", chevron: true) {},
+            .text("Wi-Fi", icon: "wifi", detail: "Home", chevron: true) {},
+            .text("Bluetooth", icon: "wave.3.right", detail: "On", chevron: true) {},
+            .toggle("Airplane Mode", icon: "airplane", isOn: $off),
+            .toggle("Low Power Mode", icon: "battery.25percent", isOn: $off),
+            .toggle("Dark Appearance", icon: "moon.fill", isOn: $on),
             .text("About", subtitle: "Version 1.0", chevron: true) {},
             .text("Sign out", enabled: false),
         ], onRetry: { state = .loaded })
