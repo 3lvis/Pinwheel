@@ -35,6 +35,7 @@ struct DemoApp: App {
                     DemoPinwheelSections.components
                     DemoPinwheelSections.screens
                 }
+                .environment(\.pinCaptureSink, FigmaCatalog.autoPush)
             }
         }
     }

@@ -168,14 +168,31 @@ private struct PinwheelDevicePill: SwiftUI.View {
 // Builds the item's view once (in `@State`) so playground re-renders don't
 // recreate it and reset its emitted tweak preference to empty.
 private struct PinwheelHostedItem: SwiftUI.View {
+    private let id: String
     @SwiftUI.State private var view: AnyView
+    @Environment(\.pinCaptureSink) private var captureSink
 
     init(item: PinwheelItem) {
+        id = item.id
         _view = SwiftUI.State(initialValue: item.swiftUIView())
     }
 
     var body: some SwiftUI.View {
-        view
+        if let captureSink {
+            // Capture-on-view: whatever component the catalog shows is captured and handed to the
+            // sink (a consumer pushes it), so there's no button/script — just viewing refreshes it.
+            view
+                .environment(\.pinCapturing, true)
+                .backgroundPreferenceValue(PinCaptureKey.self) { captured in
+                    GeometryReader { proxy in
+                        Color.clear
+                            .onAppear { captureSink(id, captured, proxy) }
+                            .onChange(of: captured.count) { captureSink(id, captured, proxy) }
+                    }
+                }
+        } else {
+            view
+        }
     }
 }
 

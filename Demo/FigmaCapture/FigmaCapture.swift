@@ -183,25 +183,48 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
             .backgroundPreferenceValue(PinCaptureKey.self) { captured in
                 GeometryReader { proxy in
                     Color.clear
-                        .onAppear { capture(captured, proxy) }
+                        .onAppear { FigmaCaptureEngine.capture(name: name, captured: captured, proxy: proxy, push: onCapture) }
                         // CapturedImageView fills its image later (changing the count); re-capture to include it.
-                        .onChange(of: captured.count) { capture(captured, proxy) }
+                        .onChange(of: captured.count) { FigmaCaptureEngine.capture(name: name, captured: captured, proxy: proxy, push: onCapture) }
                 }
             }
+    }
+}
+
+// The capture pipeline, standalone so both `FigmaCaptureHost` and the catalog's auto-push-on-view
+// sink build the same IR from `(name, captured descriptors, layout proxy)`.
+@MainActor
+enum FigmaCaptureEngine {
+    static func capture(name: String, captured: [PinCapturedComponent], proxy: GeometryProxy, push: @escaping (FigmaDocument) -> Void) {
+        guard captured.contains(where: { $0.needsRasterization }) else {
+            deliver(document(name: name, from: captured, proxy: proxy, rasterImages: [:]), name: name, push: push)
+            return
+        }
+        // Native bits are photographed in the simulator's current appearance (set via `simctl ui …
+        // appearance dark`); an in-app window flip doesn't work — SwiftUI's WindowGroup resets
+        // overrideUserInterfaceStyle. A marker's frame is its anchor offset by the reader's origin.
+        DispatchQueue.main.async {
+            let origin = proxy.frame(in: .global).origin
+            var images: [Int: String] = [:]
+            for (index, item) in captured.enumerated() where item.needsRasterization {
+                let global = proxy[item.bounds].offsetBy(dx: origin.x, dy: origin.y)
+                if let base64 = ScreenCrop.base64(of: global) { images[index] = base64 }
+            }
+            deliver(document(name: name, from: captured, proxy: proxy, rasterImages: images), name: name, push: push)
+        }
     }
 
     // A structured capture with no content nodes means UIKit-hosted lazy content (a real
     // `UIKitPinTableView`) that emits no descriptors — page its scroll view and stitch instead.
-    private func deliver(_ document: FigmaDocument) {
+    private static func deliver(_ document: FigmaDocument, name: String, push: @escaping (FigmaDocument) -> Void) {
         if document.root.children.isEmpty {
-            Task { await scrollStitchFallback() }
+            Task { await scrollStitchFallback(name: name, push: push) }
         } else {
-            onCapture(document)
+            push(document)
         }
     }
 
-    @MainActor
-    private func scrollStitchFallback() async {
+    private static func scrollStitchFallback(name: String, push: @escaping (FigmaDocument) -> Void) async {
         var attempts = 0
         while attempts < 600 {
             attempts += 1
@@ -209,7 +232,7 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
                let scroll = ScrollStitch.scrollView(in: window),
                scroll.bounds.height > 1, scroll.contentSize.height > scroll.bounds.height + 1 {
                 if let result = await ScrollStitch.capture(scroll, in: window) {
-                    onCapture(stitchedDocument(result))
+                    push(stitchedDocument(result, name: name))
                 }
                 return
             }
@@ -217,7 +240,7 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
         }
     }
 
-    private func stitchedDocument(_ result: (pages: [ScrollStitch.Page], size: CGSize)) -> FigmaDocument {
+    private static func stitchedDocument(_ result: (pages: [ScrollStitch.Page], size: CGSize), name: String) -> FigmaDocument {
         let children = result.pages.compactMap { page -> FigmaNode? in
             guard let base64 = page.image.pngData()?.base64EncodedString() else { return nil }
             return FigmaNode(
@@ -234,26 +257,7 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
         return FigmaDocument(width: result.size.width, height: result.size.height, root: root, tokens: [], textStyles: [])
     }
 
-    private func capture(_ captured: [PinCapturedComponent], _ proxy: GeometryProxy) {
-        guard captured.contains(where: { $0.needsRasterization }) else {
-            deliver(document(from: captured, proxy: proxy, rasterImages: [:]))
-            return
-        }
-        // Native bits are photographed in the simulator's current appearance (set via `simctl ui …
-        // appearance dark`); an in-app window flip doesn't work — SwiftUI's WindowGroup resets
-        // overrideUserInterfaceStyle. A marker's frame is its anchor offset by the reader's origin.
-        DispatchQueue.main.async {
-            let origin = proxy.frame(in: .global).origin
-            var images: [Int: String] = [:]
-            for (index, item) in captured.enumerated() where item.needsRasterization {
-                let global = proxy[item.bounds].offsetBy(dx: origin.x, dy: origin.y)
-                if let base64 = ScreenCrop.base64(of: global) { images[index] = base64 }
-            }
-            deliver(document(from: captured, proxy: proxy, rasterImages: images))
-        }
-    }
-
-    private func document(from captured: [PinCapturedComponent], proxy: GeometryProxy, rasterImages: [Int: String]) -> FigmaDocument {
+    private static func document(name: String, from captured: [PinCapturedComponent], proxy: GeometryProxy, rasterImages: [Int: String]) -> FigmaDocument {
         let size = proxy.size
         var nodes: [(rect: CGRect, isContainer: Bool, node: FigmaNode)] = []
         for (index, item) in captured.enumerated() {
@@ -296,11 +300,11 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
         )
         return FigmaDocument(
             width: size.width, height: height, root: root,
-            tokens: Self.tokens, textStyles: PinTextStyle.allCapturable.map { FigmaTextStyle($0) }
+            tokens: tokens, textStyles: PinTextStyle.allCapturable.map { FigmaTextStyle($0) }
         )
     }
 
-    private func node(for item: PinCapturedComponent, rect: CGRect, resolvedImage: String?) -> FigmaNode {
+    private static func node(for item: PinCapturedComponent, rect: CGRect, resolvedImage: String?) -> FigmaNode {
         let style = item.style
         let fillColor = style.fillTokenName.flatMap { PinColorToken(rawValue: $0)?.color } ?? style.fillColor
 
@@ -342,7 +346,7 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
         )
     }
 
-    private func encloses(_ outer: CGRect, _ inner: CGRect) -> Bool {
+    private static func encloses(_ outer: CGRect, _ inner: CGRect) -> Bool {
         let tolerance = 0.5
         return outer.minX - tolerance <= inner.minX && outer.minY - tolerance <= inner.minY
             && outer.maxX + tolerance >= inner.maxX && outer.maxY + tolerance >= inner.maxY

@@ -29,6 +29,15 @@ enum FigmaCatalog {
         entries.first { $0.id == id }
     }
 
+    // The capture-on-view sink: the catalog hands us the displayed component; we build its IR and
+    // push it to the serve — so running the app and looking at a component refreshes it, no script.
+    static func autoPush(id: String, captured: [PinCapturedComponent], proxy: GeometryProxy) {
+        guard let entry = entry(id: id) else { return }
+        FigmaCaptureEngine.capture(name: entry.title, captured: captured, proxy: proxy) { document in
+            FigmaCaptureFile.pushCatalog(id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, document: document)
+        }
+    }
+
     static var requestedCaptureID: String? {
         UserDefaults.standard.string(forKey: "PinwheelCapture").flatMap { $0.isEmpty ? nil : $0 }
     }

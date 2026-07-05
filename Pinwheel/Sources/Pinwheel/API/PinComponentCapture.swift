@@ -116,6 +116,10 @@ public extension EnvironmentValues {
     /// Set by a capture host so lazy containers (`PinList`) lay out every row eagerly; off-screen
     /// rows emit no capture descriptors otherwise.
     @Entry var pinCapturing: Bool = false
+
+    /// A sink the catalog calls with a displayed component's id, its captured descriptors, and the
+    /// layout proxy — so a consumer can capture-on-view (e.g. push to a Figma serve) with no button.
+    @Entry var pinCaptureSink: (@MainActor (String, [PinCapturedComponent], GeometryProxy) -> Void)? = nil
 }
 
 public struct PinCaptureKey: PreferenceKey {
