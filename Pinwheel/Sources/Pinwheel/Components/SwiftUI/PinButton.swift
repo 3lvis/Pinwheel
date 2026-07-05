@@ -146,7 +146,10 @@ public struct PinButton: SwiftUI.View {
     // Figma master; only buttons that truly match (same variant, differing text) become instances.
     private var captureName: String {
         var name = "PinButton-\(style.captureVariant)"
-        if systemImage != nil { name += "-icon" }
+        // Encode the specific symbol, not just "-icon": two same-variant buttons with different
+        // symbols (arrow vs checkmark) must not collapse onto one master, or the instance inherits
+        // the master's icon and the symbol is lost.
+        if let systemImage { name += "-icon-\(systemImage)" }
         if title == nil { name += "-symbol" }
         // Loading/disabled change the structure (spinner child) and appearance (dim), so they must
         // be part of the identity — else they collapse onto a master that has neither.

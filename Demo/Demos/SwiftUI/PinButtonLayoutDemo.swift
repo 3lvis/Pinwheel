@@ -33,6 +33,18 @@ struct PinButtonLayoutDemo: SwiftUI.View {
                 .padding(.spacingL)
                 .background(.secondaryBackground)
                 .clipShape(RoundedRectangle(cornerRadius: .spacingM))
+                // A decorative card isn't a Pin* component, so opt it into capture explicitly —
+                // its fill/radius and column layout become an editable Figma frame around the buttons.
+                .pinCapturedContainer(
+                    name: "PaymentCard",
+                    fillTokenName: PinColorToken.secondaryBackground.rawValue,
+                    cornerRadius: .spacingM,
+                    layout: PinCaptureLayout(
+                        axis: .column, spacing: .spacingM,
+                        padding: EdgeInsets(top: .spacingL, leading: .spacingL, bottom: .spacingL, trailing: .spacingL),
+                        alignment: .leading
+                    )
+                )
 
                 HStack(alignment: .top, spacing: .spacingL) {
                     VStack(alignment: .leading, spacing: .spacingS) {
