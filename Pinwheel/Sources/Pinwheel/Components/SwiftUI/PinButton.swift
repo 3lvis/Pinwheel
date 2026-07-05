@@ -40,6 +40,25 @@ public struct PinButton: SwiftUI.View {
 
         public var captureFillToken: String? { fillToken?.rawValue }
         public var captureTextColorToken: String? { textColorToken?.rawValue }
+
+        // `.custom` has no token, so hand capture the raw colors instead of dropping the fill/text.
+        public var captureFillColor: SwiftUI.Color? {
+            if case let .custom(_, background) = self { return background }
+            return nil
+        }
+        public var captureTextColor: SwiftUI.Color? {
+            if case let .custom(text, _) = self { return text }
+            return nil
+        }
+
+        var captureVariant: String {
+            switch self {
+            case .primary: return "primary"
+            case .secondary: return "secondary"
+            case .tertiary: return "tertiary"
+            case .custom: return "custom"
+            }
+        }
     }
 
     @PinText private let title: String?
@@ -88,7 +107,16 @@ public struct PinButton: SwiftUI.View {
         }
         .buttonStyle(PinButtonStyle(style: style, hasTitle: title != nil))
         .sensoryFeedback(.impact(weight: style.isPrimary ? .medium : .light), trigger: tapCount)
-        .pinCaptured(pinnedStyle)
+        .pinCaptured(pinnedStyle.named(captureName))
+    }
+
+    // Each visual variant gets its own capture name so distinct buttons don't collapse onto one
+    // Figma master; only buttons that truly match (same variant, differing text) become instances.
+    private var captureName: String {
+        var name = "PinButton-\(style.captureVariant)"
+        if systemImage != nil { name += "-icon" }
+        if title == nil { name += "-symbol" }
+        return name
     }
 
     @ViewBuilder

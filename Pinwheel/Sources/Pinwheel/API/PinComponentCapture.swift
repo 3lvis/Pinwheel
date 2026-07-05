@@ -10,6 +10,10 @@ public struct PinComponentStyle {
     public let textStyle: PinTextStyle?
     public let textColorTokenName: String?
     public let fillTokenName: String?
+    // Resolved colors used when there's no token (a `.custom(text:background:)` style); the
+    // capture emits them raw so the fill/text aren't dropped to nothing.
+    public let textColor: Color?
+    public let fillColor: Color?
     public let cornerRadius: CGFloat?
     public let centersText: Bool
 
@@ -19,6 +23,8 @@ public struct PinComponentStyle {
         textStyle: PinTextStyle?,
         textColorTokenName: String?,
         fillTokenName: String?,
+        textColor: Color? = nil,
+        fillColor: Color? = nil,
         cornerRadius: CGFloat?,
         centersText: Bool
     ) {
@@ -27,8 +33,20 @@ public struct PinComponentStyle {
         self.textStyle = textStyle
         self.textColorTokenName = textColorTokenName
         self.fillTokenName = fillTokenName
+        self.textColor = textColor
+        self.fillColor = fillColor
         self.cornerRadius = cornerRadius
         self.centersText = centersText
+    }
+
+    /// A copy under a different capture name. Components use it to give each visual variant its own
+    /// name so distinct-looking instances don't collapse onto one Figma master.
+    public func named(_ name: String) -> PinComponentStyle {
+        PinComponentStyle(
+            name: name, text: text, textStyle: textStyle, textColorTokenName: textColorTokenName,
+            fillTokenName: fillTokenName, textColor: textColor, fillColor: fillColor,
+            cornerRadius: cornerRadius, centersText: centersText
+        )
     }
 }
 
@@ -36,10 +54,21 @@ public struct PinComponentStyle {
 /// rather than in every component. `@PinFill`/`@PinColor` read these.
 public protocol PinFillToken {
     var captureFillToken: String? { get }
+    // The raw fill when the style resolves to no token (e.g. `.custom`); `nil` when a token covers it.
+    var captureFillColor: Color? { get }
 }
 
 public protocol PinTextColorToken {
     var captureTextColorToken: String? { get }
+    var captureTextColor: Color? { get }
+}
+
+public extension PinFillToken {
+    var captureFillColor: Color? { nil }
+}
+
+public extension PinTextColorToken {
+    var captureTextColor: Color? { nil }
 }
 
 public struct PinCapturedComponent {

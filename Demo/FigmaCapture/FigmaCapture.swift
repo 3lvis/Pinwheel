@@ -155,9 +155,9 @@ private func figmaCssWeight(_ weight: CGFloat) -> Int {
 }
 
 extension FigmaFont {
-    @MainActor init(_ textStyle: PinTextStyle, colorTokenName: String?) {
+    @MainActor init(_ textStyle: PinTextStyle, colorTokenName: String?, rawColor: Color? = nil) {
         let metrics = textStyle.captureMetrics
-        let color = colorTokenName.flatMap { PinColorToken(rawValue: $0)?.color } ?? .primary
+        let color = colorTokenName.flatMap { PinColorToken(rawValue: $0)?.color } ?? rawColor ?? .primary
         self.init(
             family: metrics.family, size: metrics.size, weight: metrics.weight,
             color: RGBA(color), colorToken: colorTokenName, style: textStyle.captureName
@@ -302,7 +302,7 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
 
     private func node(for item: PinCapturedComponent, rect: CGRect, resolvedImage: String?) -> FigmaNode {
         let style = item.style
-        let fillColor = style.fillTokenName.flatMap { PinColorToken(rawValue: $0)?.color }
+        let fillColor = style.fillTokenName.flatMap { PinColorToken(rawValue: $0)?.color } ?? style.fillColor
 
         if let image = resolvedImage {
             return FigmaNode(
@@ -335,7 +335,7 @@ struct FigmaCaptureHost<Content: SwiftUI.View>: SwiftUI.View {
             fillToken: style.fillTokenName,
             radius: style.cornerRadius.map { Double($0) },
             component: style.name,
-            font: style.textStyle.map { FigmaFont($0, colorTokenName: style.textColorTokenName) },
+            font: style.textStyle.map { FigmaFont($0, colorTokenName: style.textColorTokenName, rawColor: style.textColor) },
             texts: texts,
             textAlign: style.centersText ? "center" : nil,
             children: []

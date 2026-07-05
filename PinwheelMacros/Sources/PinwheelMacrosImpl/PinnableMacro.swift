@@ -32,7 +32,9 @@ public struct PinnableMacro: MemberMacro {
         var text = "nil"
         var textStyle = "nil"
         var textColorTokenName = "nil"
+        var textColor = "nil"
         var fillTokenName = "nil"
+        var fillColor = "nil"
         for member in declaration.memberBlock.members {
             guard let variable = member.decl.as(VariableDeclSyntax.self),
                   let pattern = variable.bindings.first?.pattern.as(IdentifierPatternSyntax.self) else { continue }
@@ -41,8 +43,12 @@ public struct PinnableMacro: MemberMacro {
                 switch marker {
                 case "PinText": text = property
                 case "PinTypography": textStyle = property
-                case "PinColor": textColorTokenName = "\(property).captureTextColorToken"
-                case "PinFill": fillTokenName = "\(property).captureFillToken"
+                case "PinColor":
+                    textColorTokenName = "\(property).captureTextColorToken"
+                    textColor = "\(property).captureTextColor"
+                case "PinFill":
+                    fillTokenName = "\(property).captureFillToken"
+                    fillColor = "\(property).captureFillColor"
                 default: break
                 }
             }
@@ -56,6 +62,8 @@ public struct PinnableMacro: MemberMacro {
                     textStyle: \(raw: textStyle),
                     textColorTokenName: \(raw: textColorTokenName),
                     fillTokenName: \(raw: fillTokenName),
+                    textColor: \(raw: textColor),
+                    fillColor: \(raw: fillColor),
                     cornerRadius: \(raw: cornerRadius),
                     centersText: \(raw: centersText)
                 )
