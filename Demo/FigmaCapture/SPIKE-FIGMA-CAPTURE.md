@@ -24,7 +24,7 @@ Demo's `Info.plist` allows it via `NSAllowsLocalNetworking`). If the serve start
 render, `npm run figma:pull` copies the sim's file across as a fallback.
 
 It can't run at build time — the frames come from a real SwiftUI layout pass, so it needs a
-booted simulator — but it needs no manual navigation: `Scripts/preview-all.sh` already sweeps
+booted simulator — but it needs no manual navigation: `Scripts/sweep.sh --preview` already sweeps
 every catalog id via `-PinwheelPreview`, so one run emits every component's capture JSON.
 
 ## Authoring: the `@Pinnable` macro (no boilerplate)
@@ -74,7 +74,7 @@ public struct PinButton: View {
   row at its true content-space position.
 - **The imported frame is named** by the captured screen (`FigmaCaptureHost(name:)` → root node
   `name`), so it reads e.g. "TableView" in Figma, not "screen".
-- **The whole catalog sweeps into a plugin list** (first slice of the north star): `Scripts/capture-all.sh`
+- **The whole catalog sweeps into a plugin list** (first slice of the north star): `Scripts/sweep.sh --capture`
   renders every catalog item in isolation (`-PinwheelCapture <id>`, hosting `PinwheelItem.swiftUIView()`)
   and pushes each capture — keyed by id, with title/section/tags — to the serve's `POST /catalog`. The
   serve accumulates `catalog-<id>.json` files; `GET /manifest.json` lists them and the plugin's "Load
@@ -132,7 +132,7 @@ simulator in their hands. Generation is render-bound and consumption is static J
 decouple cleanly:
 
 - **Generate** (needs a render → a sim, so **CI post-merge**, not a pre-merge gate): one sweep runs
-  `Scripts/preview-all.sh` over every catalog id and emits a **manifest** — `{ sections, items:
+  `Scripts/sweep.sh --capture` over every catalog id and emits a **manifest** — `{ sections, items:
   [{id, title, section, tags, json}] }` — mirroring the Swift catalog (`DemoPinwheelSections` / the
   `Catalog` enum).
 - **Publish**: POST the bundle to a **deployed ingest service** — `serve.mjs` with its

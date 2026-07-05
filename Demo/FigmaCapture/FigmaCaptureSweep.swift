@@ -2,7 +2,7 @@ import SwiftUI
 import Pinwheel
 
 // Renders one catalog item and pushes its capture to the serve, keyed by id — the per-item half of
-// the catalog sweep (`Scripts/capture-all.sh`).
+// the catalog sweep (`Scripts/sweep.sh --capture`).
 
 struct FigmaCatalogEntry {
     let id: String

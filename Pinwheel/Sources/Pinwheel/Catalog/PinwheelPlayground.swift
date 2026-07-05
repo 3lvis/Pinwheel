@@ -97,7 +97,7 @@ struct PinwheelPlayground: SwiftUI.View {
     }
 
     // Writes tweak titles (one per line) to Documents/pinwheel-preview-tweaks.txt;
-    // `Scripts/preview-all.sh` reads that file to enumerate a component's variants.
+    // `Scripts/sweep.sh --preview` reads that file to enumerate a component's variants.
     private func writePreviewTweakTitles(_ titles: [String]) {
         guard let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
             return

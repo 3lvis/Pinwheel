@@ -15,7 +15,7 @@ Pinwheel-specific guidance: how we work here, testing, and the decisions log. Th
 - **Verify visually — the how** (applying the cross-project "verify before claiming done"):
   - Render the permanent `#Preview` in the catalog registry (`DemoPinwheelSections.swift`) — set `previewComponentID` and `RenderPreview` it (pass its current project-relative path; `XcodeGlob` finds it if it moved). No throwaway `#Preview` needed.
   - Or deep-link a booted sim: `simctl launch <bundle> -PinwheelPreview <id> [-PinwheelPreviewTweak <title>]`.
-  - `Scripts/preview-all.sh` snapshots every component + tweak variant (light in `$OUT`, dark in `$OUT/dark`) for a full sweep.
+  - `Scripts/sweep.sh --preview` snapshots every component + tweak variant (light in `$OUT`, dark in `$OUT/dark`) for a full sweep.
   - When matching SwiftUI to UIKit, the UIKit example (or `main`) is the parity source of truth.
 - **Build/verify via the Xcode MCP** — `BuildProject` after every change, `RenderPreview` to look, `RunSomeTests` for the regression tests (`tabIdentifier: "windowtab1"`). Setup + the session-restart gotcha live in the `xcode-mcp` skill; `xcodebuild`/`simctl` are the fallback.
 - **Keep the decisions log current** as components change, and name build-contract dirs freely (`Scripts/`, `DemoUITests`); the canonical folder map is in Decisions › Project layout.
