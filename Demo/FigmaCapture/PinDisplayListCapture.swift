@@ -143,7 +143,7 @@ enum PinDisplayListCapture {
                     children: []
                 )
             case .rasterizable:
-                return FigmaNode(tag: "image", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height, image: rasterize(host, frame), children: [])
+                return FigmaNode(tag: "image", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height, image: box.leaf.image, children: [])
             default:
                 return filledRect(frame, radius: cornerRadius(box.leaf.kind), color: fillColor(box.leaf.kind))
             }
@@ -223,7 +223,7 @@ enum PinDisplayListCapture {
             case .rasterizable:
                 return FigmaNode(
                     tag: "image", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
-                    image: rasterize(host, frame), children: []
+                    image: box.leaf.image, children: []
                 )
             case .roundedRect(let radius, let color):
                 return filledRect(frame, radius: radius, color: color)
@@ -361,18 +361,4 @@ enum PinDisplayListCapture {
         return nil
     }
 
-    // MARK: rasterization
-
-    // Crops the icon/spinner region from the host. Off-screen it returns blank pixels — icon glyphs
-    // are the known-open piece; structure/text/shapes/tokens are what this backend delivers.
-    private static func rasterize(_ host: UIView, _ frame: CGRect) -> String? {
-        let full = UIGraphicsImageRenderer(bounds: host.bounds).image { _ in
-            host.drawHierarchy(in: host.bounds, afterScreenUpdates: true)
-        }
-        guard let cgImage = full.cgImage else { return nil }
-        let scale = full.scale
-        let crop = CGRect(x: frame.minX * scale, y: frame.minY * scale, width: frame.width * scale, height: frame.height * scale)
-        guard let cropped = cgImage.cropping(to: crop) else { return nil }
-        return UIImage(cgImage: cropped).pngData()?.base64EncodedString()
-    }
 }

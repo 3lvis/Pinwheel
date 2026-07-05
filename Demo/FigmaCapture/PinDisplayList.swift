@@ -18,6 +18,9 @@ struct DisplayLeaf {
     }
     let frame: CGRect
     let kind: Kind
+    // A pre-rendered PNG for a rasterizable unit — the symbol/spinner shapes drawn headless via
+    // CoreGraphics (the DisplayList hands us the vector Path, so no screen crop is needed).
+    var image: String? = nil
 }
 
 @MainActor
@@ -57,10 +60,10 @@ enum PinDisplayList {
                 if let kind = contentKind(inner) { leaves.append(DisplayLeaf(frame: frame, kind: kind)) }
             } else {
                 let children = nestedLists(in: payload).flatMap { walk($0, origin: frame.origin) }
-                // A small, text-free group is an icon or the spinner (rotated capsules that lose their
-                // transformed frames) — collapse it to one rasterizable unit at the group's own frame.
+                // A small, text-free group is an icon or the spinner — render its vector shapes headless
+                // into one rasterizable unit (the DisplayList gives us the Path, so no screen crop).
                 if isRasterUnit(frame, children) {
-                    leaves.append(DisplayLeaf(frame: frame, kind: .rasterizable))
+                    leaves.append(DisplayLeaf(frame: frame, kind: .rasterizable, image: renderShapes(in: payload, unitSize: frame.size)))
                 } else {
                     leaves.append(contentsOf: children)
                 }
@@ -72,6 +75,46 @@ enum PinDisplayList {
     private static func isRasterUnit(_ frame: CGRect, _ children: [DisplayLeaf]) -> Bool {
         guard frame.width <= 40, frame.height <= 40, !children.isEmpty else { return false }
         return children.allSatisfy { if case .text = $0.kind { return false } else { return true } }
+    }
+
+    // Render every shape in an icon/spinner subtree via CoreGraphics — headless, so no screen crop.
+    // The DisplayList hands us the SwiftUI Path per shape; fill each at its position in the unit.
+    private static func renderShapes(in effectPayload: Any, unitSize: CGSize) -> String? {
+        var shapes: [(path: SwiftUI.Path, color: UIColor?, origin: CGPoint)] = []
+        func collect(_ payload: Any, _ origin: CGPoint) {
+            for nested in nestedLists(in: payload) {
+                guard let items = child(nested, "items") else { continue }
+                for item in Mirror(reflecting: items).children.map(\.value) {
+                    guard let localFrame = child(item, "frame") as? CGRect,
+                          let value = child(item, "value"), let (name, payload) = enumCase(value) else { continue }
+                    let childOrigin = CGPoint(x: origin.x + localFrame.minX, y: origin.y + localFrame.minY)
+                    if name == "content" {
+                        let inner = child(payload, "value") ?? payload
+                        if let (kind, data) = enumCase(inner), kind == "shape",
+                           let path = Mirror(reflecting: data).children.first?.value as? SwiftUI.Path {
+                            shapes.append((path, deepColor(data), childOrigin))
+                        }
+                    } else {
+                        collect(payload, childOrigin)
+                    }
+                }
+            }
+        }
+        collect(effectPayload, .zero)
+        guard !shapes.isEmpty else { return nil }
+        let size = CGSize(width: max(unitSize.width, 1), height: max(unitSize.height, 1))
+        let image = UIGraphicsImageRenderer(size: size).image { context in
+            for shape in shapes {
+                let bounds = shape.path.boundingRect
+                context.cgContext.saveGState()
+                context.cgContext.translateBy(x: shape.origin.x - bounds.minX, y: shape.origin.y - bounds.minY)
+                context.cgContext.addPath(shape.path.cgPath)
+                context.cgContext.setFillColor((shape.color ?? .label).cgColor)
+                context.cgContext.fillPath()
+                context.cgContext.restoreGState()
+            }
+        }
+        return image.pngData()?.base64EncodedString()
     }
 
     private static func contentKind(_ value: Any) -> DisplayLeaf.Kind? {
