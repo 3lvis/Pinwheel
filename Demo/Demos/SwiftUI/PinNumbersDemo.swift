@@ -45,6 +45,7 @@ struct PinNumbersDemo: SwiftUI.View {
                 ForEach(concentricInsets, id: \.self) { inset in
                     concentricExample(inset: inset)
                 }
+                concentricStack()
             }
             .padding(.spacingL)
             .padding(.top, .spacingXXL)
@@ -70,6 +71,33 @@ struct PinNumbersDemo: SwiftUI.View {
                     Color.clear
                         .pinConcentricBackground(.primaryBackground, inset: inset)
                         .padding(inset)
+                }
+                .background(.tertiaryText, in: .rect(cornerRadius: concentricOuter))
+                .pinConcentricContainer(cornerRadius: concentricOuter)
+        }
+    }
+
+    // Nesting three deep: each layer re-declares itself as the container for the next, so every inset
+    // steps the radius down by the gap (24 → 16 → 8) and all three curves stay concentric.
+    private func concentricStack() -> some SwiftUI.View {
+        let gap: CGFloat = .spacingS
+        let middle = concentricRadius(outer: concentricOuter, inset: gap)
+        let inner = concentricRadius(outer: middle, inset: gap)
+        return VStack(alignment: .leading, spacing: .spacingS) {
+            PinLabel("3 layers · gap \(Int(gap)) → \(Int(concentricOuter)) / \(Int(middle)) / \(Int(inner))")
+                .font(.caption).color(.secondary)
+            Color.clear
+                .frame(height: 140)
+                .overlay {
+                    Color.clear
+                        .pinConcentricBackground(.primaryBackground, inset: gap)
+                        .overlay {
+                            Color.clear
+                                .pinConcentricBackground(.tertiaryText, inset: gap)
+                                .padding(gap)
+                                .pinConcentricContainer(cornerRadius: middle)
+                        }
+                        .padding(gap)
                 }
                 .background(.tertiaryText, in: .rect(cornerRadius: concentricOuter))
                 .pinConcentricContainer(cornerRadius: concentricOuter)
