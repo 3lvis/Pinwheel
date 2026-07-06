@@ -84,6 +84,8 @@ enum PinDisplayList {
     private static func keyWindowControlCrops() -> [String] {
         guard let window = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene })
             .flatMap({ $0.windows }).first(where: { $0.isKeyWindow }) else { return [] }
+        // Settle layout so control frames are final — mid-layout frames sort wrong and misassign crops.
+        window.layoutIfNeeded()
         var controls: [UIView] = []
         func scan(_ view: UIView) {
             if view is UISwitch || view is UISegmentedControl || view is UISlider || view is UIStepper
