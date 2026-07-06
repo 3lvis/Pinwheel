@@ -105,6 +105,25 @@ final class CaptureFidelityTests: XCTestCase {
                        "a settings list must capture as a vertical column of rows, not one horizontal row")
     }
 
+    // A list row's icon/chevron must capture its pixels. SwiftUI's renderer returns a blank placeholder
+    // for UIKit-hosted content (a List is UITableView-backed), so these came through as empty image
+    // nodes — recovered by rendering the host layer and cropping.
+    func testListRowIconsCaptureTheirPixels() throws {
+        let list = PinList(state: .loaded, rows: [
+            .text("Wi-Fi", icon: Image(systemName: "wifi"), detail: "Home", chevron: true) {},
+        ], onRetry: {})
+        let document = try XCTUnwrap(PinDisplayListCapture.document(list, name: "List", size: CGSize(width: 402, height: 1600), screenHeight: 778),
+                                     "the list should capture into a document")
+        let images = imageNodes(in: document.root)
+        XCTAssertFalse(images.isEmpty, "a list row with an icon and chevron should capture image leaves")
+        XCTAssertTrue(images.allSatisfy { $0.image != nil },
+                      "every captured icon/chevron must carry pixel data, not a blank placeholder")
+    }
+
+    private func imageNodes(in node: FigmaNode) -> [FigmaNode] {
+        (node.tag == "image" ? [node] : []) + node.children.flatMap { imageNodes(in: $0) }
+    }
+
     // A full-screen component (fills the height, content centered — an empty state) must capture as one
     // screen with the content centered, not float in the oversized render canvas. Regressed to the full
     // 1600pt canvas when a hugging/centered component was captured naively.

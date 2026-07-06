@@ -37,7 +37,28 @@ enum PinDisplayList {
         window.isHidden = false
         hostView.layoutIfNeeded()
         guard let list = displayList(of: hostView) else { return nil }
-        return (walk(list, origin: .zero), hostView, window)
+        return (fillRasterCrops(walk(list, origin: .zero), host: hostView), hostView, window)
+    }
+
+    // A rasterizable leaf the DisplayList gave us no vector Path for — a UITableView-hosted List cell's
+    // icon/toggle/chevron lives in the UIKit layer tree, and SwiftUI's renderer returns a blank
+    // placeholder for platform-backed content. Recover its pixels by rendering the host layer once and
+    // cropping each blank region (the UIKit-layer render captures what SwiftUI's renderer can't).
+    private static func fillRasterCrops(_ leaves: [DisplayLeaf], host: UIView) -> [DisplayLeaf] {
+        let needsCrop = leaves.contains { if case .rasterizable = $0.kind, $0.image == nil { return true }; return false }
+        guard needsCrop else { return leaves }
+        let full = UIGraphicsImageRenderer(bounds: host.bounds).image { context in host.layer.render(in: context.cgContext) }
+        guard let cgImage = full.cgImage else { return leaves }
+        let scale = full.scale
+        return leaves.map { leaf in
+            guard case .rasterizable = leaf.kind, leaf.image == nil else { return leaf }
+            let rect = CGRect(x: leaf.frame.minX * scale, y: leaf.frame.minY * scale,
+                              width: leaf.frame.width * scale, height: leaf.frame.height * scale)
+            guard rect.width >= 1, rect.height >= 1, let crop = cgImage.cropping(to: rect) else { return leaf }
+            var filled = leaf
+            filled.image = UIImage(cgImage: crop).pngData()?.base64EncodedString()
+            return filled
+        }
     }
 
     private static func displayList(of hostingView: Any) -> Any? {
