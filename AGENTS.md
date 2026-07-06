@@ -22,7 +22,8 @@ Pinwheel-specific guidance: how we work here, testing, and the decisions log. Th
 
 ## Pinwheel — testing
 
-`DemoUITests` apply the cross-project testing rule: they are **regression tests**, not a coverage goal. Add a UI test when a real bug/regression surfaces in an interactive path (e.g. a tap that stopped firing) — write the test that would have caught it. Don't add speculative UI tests for paths that haven't broken.
+- **Bugs get full red-first TDD — write the failing test *before* the fix, no exceptions.** The order is: write/adjust the test, run it and show it RED for the right reason, only then touch the source, re-run to green. Never write the fix first and add a test after; never revert a finished fix to "show red" (retroactive theatre). This is the iOS domain `AGENTS.md` red-first rule, made a hard gate here.
+- `DemoUITests` apply the cross-project testing rule: they are **regression tests**, not a coverage goal. Add a UI test when a real bug/regression surfaces in an interactive path (e.g. a tap that stopped firing) — write the test that would have caught it. Don't add speculative UI tests for paths that haven't broken. Prefer a `PinwheelTests` unit test (fast, no simulator) over a UI test whenever the failure can be reproduced at the unit layer.
 
 ## Pinwheel — decisions
 
