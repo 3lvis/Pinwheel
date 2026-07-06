@@ -79,16 +79,22 @@ struct FigmaCaptureSweepView: SwiftUI.View {
     @SwiftUI.State private var pushed = false
 
     var body: some SwiftUI.View {
-        Color.clear.onAppear {
+        Group {
+            if let entry = FigmaCatalog.entry(id: id) { entry.item.swiftUIView() } else { Color.clear }
+        }
+        .onAppear {
             guard !pushed, let entry = FigmaCatalog.entry(id: id) else { return }
             pushed = true
-            // Read the rendered DisplayList off a hosted copy — no markers in the view.
-            guard let document = PinDisplayListCapture.document(
-                entry.item.swiftUIView(), name: entry.title, size: FigmaCatalog.captureCanvas, screenHeight: FigmaCatalog.oneScreen
-            ) else { return }
-            FigmaCaptureFile.pushCatalog(
-                id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, document: document
-            )
+            // Capture after the component paints on-screen: UIKit controls (a UISwitch's real state/knob)
+            // only render on the live window, which the capture crops for those leaves.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                guard let document = PinDisplayListCapture.document(
+                    entry.item.swiftUIView(), name: entry.title, size: FigmaCatalog.captureCanvas, screenHeight: FigmaCatalog.oneScreen
+                ) else { return }
+                FigmaCaptureFile.pushCatalog(
+                    id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, document: document
+                )
+            }
         }
     }
 }
