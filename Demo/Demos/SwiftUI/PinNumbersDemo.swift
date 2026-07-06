@@ -59,19 +59,29 @@ struct PinNumbersDemo: SwiftUI.View {
         max(outer - inset, 0)
     }
 
+    @ViewBuilder
     private func concentricExample(inset: CGFloat) -> some SwiftUI.View {
         let inner = concentricRadius(outer: concentricOuter, inset: inset)
-        return VStack(alignment: .leading, spacing: .spacingS) {
+        VStack(alignment: .leading, spacing: .spacingS) {
             PinLabel("outer \(Int(concentricOuter)) · inset \(Int(inset)) → inner \(Int(inner))")
                 .font(.caption).color(.secondary)
-            RoundedRectangle(cornerRadius: concentricOuter)
-                .fill(.tertiaryText)
-                .frame(height: 96)
-                .overlay {
-                    RoundedRectangle(cornerRadius: inner)
-                        .fill(.primaryBackground)
-                        .padding(inset)
+            if #available(iOS 26, *) {
+                ZStack {
+                    ConcentricRectangle().fill(.tertiaryText)
+                    ConcentricRectangle().fill(.primaryBackground).padding(inset)
                 }
+                .frame(height: 96)
+                .containerShape(.rect(cornerRadius: concentricOuter))
+            } else {
+                RoundedRectangle(cornerRadius: concentricOuter)
+                    .fill(.tertiaryText)
+                    .frame(height: 96)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: inner)
+                            .fill(.primaryBackground)
+                            .padding(inset)
+                    }
+            }
         }
     }
 }
