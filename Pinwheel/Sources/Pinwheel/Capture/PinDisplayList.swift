@@ -54,20 +54,21 @@ enum PinDisplayList {
         // content below it. Read the crop from frame + inset so the icon lands on its own row, not the
         // empty strip above (a UITableView-hosted List sits inside the safe area).
         let inset = host.safeAreaInsets
-        // A UISwitch paints its real state/knob only on the live screen (off-screen it's a flat blob), so
-        // crop switches from the on-screen key window and assign them to the wide rasterizable leaves in
-        // vertical order; icons/chevrons crop the off-screen host fine.
-        let switchCrops = keyWindowSwitchCrops()
+        // A UIKit control (switch, segmented, slider, stepper, progress, date picker) paints its real
+        // appearance/state only on the live screen (off-screen it's a flat blob), so crop those from the
+        // on-screen key window and assign them to the wide rasterizable leaves in vertical order;
+        // icons/chevrons crop the off-screen host fine.
+        let controlCrops = keyWindowControlCrops()
         let wideLeaves = leaves.indices
             .filter { if case .rasterizable = leaves[$0].kind, leaves[$0].image == nil, leaves[$0].frame.width > 40 { return true }; return false }
             .sorted { leaves[$0].frame.minY < leaves[$1].frame.minY }
-        var switchByLeaf: [Int: String] = [:]
-        if wideLeaves.count == switchCrops.count {
-            for (order, index) in wideLeaves.enumerated() { switchByLeaf[index] = switchCrops[order] }
+        var controlByLeaf: [Int: String] = [:]
+        if wideLeaves.count == controlCrops.count {
+            for (order, index) in wideLeaves.enumerated() { controlByLeaf[index] = controlCrops[order] }
         }
         return leaves.enumerated().map { index, leaf in
             guard case .rasterizable = leaf.kind, leaf.image == nil else { return leaf }
-            if let image = switchByLeaf[index] { var filled = leaf; filled.image = image; return filled }
+            if let image = controlByLeaf[index] { var filled = leaf; filled.image = image; return filled }
             let rect = CGRect(x: (leaf.frame.minX + inset.left) * scale, y: (leaf.frame.minY + inset.top) * scale,
                               width: leaf.frame.width * scale, height: leaf.frame.height * scale)
             guard rect.width >= 1, rect.height >= 1, let crop = cgImage.cropping(to: rect) else { return leaf }
@@ -77,21 +78,29 @@ enum PinDisplayList {
         }
     }
 
-    // Real switch pixels: find each UISwitch in the on-screen key window and crop it from a live-window
-    // render (drawHierarchy paints the actual control — state, knob, tint — that an off-screen render can't).
-    private static func keyWindowSwitchCrops() -> [String] {
+    // Real control pixels: find each top-level UIKit control in the on-screen key window and crop it from
+    // a live-window render (drawHierarchy paints the actual control — state, knob, tint — that an
+    // off-screen render can't). Don't recurse into a control (a stepper's ± are inner buttons).
+    private static func keyWindowControlCrops() -> [String] {
         guard let window = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene })
             .flatMap({ $0.windows }).first(where: { $0.isKeyWindow }) else { return [] }
-        var switches: [UISwitch] = []
-        func scan(_ view: UIView) { if let toggle = view as? UISwitch { switches.append(toggle) }; view.subviews.forEach(scan) }
+        var controls: [UIView] = []
+        func scan(_ view: UIView) {
+            if view is UISwitch || view is UISegmentedControl || view is UISlider || view is UIStepper
+                || view is UIProgressView || view is UIDatePicker {
+                controls.append(view)
+                return
+            }
+            view.subviews.forEach(scan)
+        }
         scan(window)
-        guard !switches.isEmpty else { return [] }
-        switches.sort { $0.convert($0.bounds, to: window).minY < $1.convert($1.bounds, to: window).minY }
+        guard !controls.isEmpty else { return [] }
+        controls.sort { $0.convert($0.bounds, to: window).minY < $1.convert($1.bounds, to: window).minY }
         let full = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in window.drawHierarchy(in: window.bounds, afterScreenUpdates: true) }
         guard let cgImage = full.cgImage else { return [] }
         let scale = full.scale
-        return switches.compactMap { toggle in
-            let frame = toggle.convert(toggle.bounds, to: window)
+        return controls.compactMap { control in
+            let frame = control.convert(control.bounds, to: window)
             let rect = CGRect(x: frame.minX * scale, y: frame.minY * scale, width: frame.width * scale, height: frame.height * scale)
             guard let crop = cgImage.cropping(to: rect) else { return nil }
             return UIImage(cgImage: crop).pngData()?.base64EncodedString()
