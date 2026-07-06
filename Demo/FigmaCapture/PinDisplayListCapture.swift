@@ -31,7 +31,8 @@ enum PinDisplayListCapture {
         // the counts disagree (reflection couldn't cleanly account for the rendered leaves).
         if let structure = PinViewReflector.reflect(view), leafCount(structure) == components.count {
             var pool = components
-            let content = emitStructure(structure, host: host) { text in
+            let backgrounds = collectBackgrounds(root)
+            let content = emitStructure(structure, host: host, backgrounds: backgrounds) { text in
                 // Match by content, not position — a 2D grid scrambles a positional zip. Duplicate
                 // texts resolve by order (first unconsumed); fall back to order if no text matches.
                 let matched = pool.firstIndex { componentText($0) == text } ?? (pool.isEmpty ? nil : 0)
@@ -108,25 +109,67 @@ enum PinDisplayListCapture {
         return overlapY && gap < 24
     }
 
-    private static func emitStructure(_ node: ReflectedNode, host: UIView, next: (String?) -> Box?) -> FigmaNode? {
+    private static func emitStructure(_ node: ReflectedNode, host: UIView, backgrounds: [Background], next: (String?) -> Box?) -> FigmaNode? {
         switch node {
         case .leaf(let text):
             return next(text).map { componentNode($0, host: host) }
         case .spacer:
             return FigmaNode(tag: "spacer", x: 0, y: 0, w: 0, h: 0, grow: true, children: [])
         case .container(let container, let children):
-            let childNodes = children.compactMap { emitStructure($0, host: host, next: next) }
+            let childNodes = children.compactMap { emitStructure($0, host: host, backgrounds: backgrounds, next: next) }
             guard childNodes.contains(where: { $0.grow != true }) else { return nil }
-            let layout = PinCaptureLayout(
+            // A decorative background (a card) is a filled shape reflection sees as a transparent
+            // container — re-attach its fill/radius/padding by matching the text set it wraps.
+            let texts = childNodes.reduce(into: Set<String>()) { $0.formUnion(nodeTexts($1)) }
+            let background = backgrounds.first { $0.texts == texts }
+            var layout = PinCaptureLayout(
                 axis: container.axis, spacing: container.spacing ?? 8,
-                alignment: container.alignment, mainAxisAlignment: .leading
+                padding: background?.padding ?? EdgeInsets(), alignment: container.alignment, mainAxisAlignment: .leading
             )
             return FigmaNode(
                 tag: "frame", x: 0, y: 0, w: 0, h: 0,
+                fill: background?.fill.map(RGBA.init), fillToken: background?.fill.flatMap(tokenName(for:)),
+                radius: background?.radius.map(Double.init),
                 name: container.axis == .row ? "HStack" : "VStack",
                 layout: FigmaLayout(layout), ordered: true, children: childNodes
             )
         }
+    }
+
+    // A filled shape that groups other components (a card) — reflection treats it as a transparent
+    // container, so remember its fill/radius/padding keyed by the text set it wraps.
+    private struct Background { let texts: Set<String>; let fill: UIColor?; let radius: CGFloat?; let padding: EdgeInsets }
+
+    private static func collectBackgrounds(_ box: Box) -> [Background] {
+        var result: [Background] = []
+        func visit(_ box: Box) {
+            let groupsOthers = box.children.contains { !$0.children.isEmpty }
+            if groupsOthers, let fill = fillColor(box.leaf.kind) {
+                let texts = box.children.reduce(into: Set<String>()) { $0.formUnion(boxTexts($1)) }
+                let union = box.children.map(\.leaf.frame).reduce(nil, unite) ?? box.leaf.frame
+                result.append(Background(
+                    texts: texts, fill: fill, radius: cornerRadius(box.leaf.kind),
+                    padding: EdgeInsets(top: max(union.minY - box.leaf.frame.minY, 0), leading: max(union.minX - box.leaf.frame.minX, 0),
+                                        bottom: max(box.leaf.frame.maxY - union.maxY, 0), trailing: max(box.leaf.frame.maxX - union.maxX, 0))
+                ))
+            }
+            box.children.forEach(visit)
+        }
+        visit(box)
+        return result
+    }
+
+    private static func boxTexts(_ box: Box) -> Set<String> {
+        var texts = Set<String>()
+        if case .text(let string, _, _, _) = box.leaf.kind { texts.insert(string) }
+        box.children.forEach { texts.formUnion(boxTexts($0)) }
+        return texts
+    }
+
+    private static func nodeTexts(_ node: FigmaNode) -> Set<String> {
+        var texts = Set(node.texts?.map(\.text) ?? [])
+        node.children.forEach { texts.formUnion(nodeTexts($0)) }
+        return texts
     }
 
     // A rendered component (from containment) → its Figma node: a pill is a filled auto-layout row of
