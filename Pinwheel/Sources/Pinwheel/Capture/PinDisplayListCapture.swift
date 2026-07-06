@@ -9,10 +9,10 @@ import Pinwheel
 public enum PinDisplayListCapture {
     public static func document<Content: SwiftUI.View>(_ view: Content, name: String, size: CGSize, screenHeight: CGFloat) -> FigmaDocument? {
         guard let (leaves, host, window) = PinDisplayList.read(view, size: size) else { return nil }
-        return withExtendedLifetime(window) { build(view, leaves: leaves, host: host, size: size, screenHeight: screenHeight) }
+        return withExtendedLifetime(window) { build(view, name: name, leaves: leaves, host: host, size: size, screenHeight: screenHeight) }
     }
 
-    private static func build<Content: SwiftUI.View>(_ view: Content, leaves: [DisplayLeaf], host: UIView, size: CGSize, screenHeight: CGFloat) -> FigmaDocument? {
+    private static func build<Content: SwiftUI.View>(_ view: Content, name: String, leaves: [DisplayLeaf], host: UIView, size: CGSize, screenHeight: CGFloat) -> FigmaDocument? {
         // The screen fill spans the full hosting height; trim it to the content so the root frame
         // (and its bottom padding) match the real screen, not the oversized host.
         let contentBottom = (leaves.map { $0.frame.maxY }.filter { $0 < size.height - 1 }.max() ?? size.height)
@@ -39,12 +39,14 @@ public enum PinDisplayListCapture {
                 return matched.map { pool.remove(at: $0) }
             }
             if let content {
-                let rootNode = screen(content, width: size.width, fill: screenFill, components: components, canvasHeight: size.height, oneScreen: screenHeight)
+                var rootNode = screen(content, width: size.width, fill: screenFill, components: components, canvasHeight: size.height, oneScreen: screenHeight)
+                rootNode.name = name
                 return FigmaDocument(width: size.width, height: rootNode.h, root: rootNode, tokens: colorTokens, textStyles: [])
             }
         }
 
-        let rootNode = emit(root, host: host)
+        var rootNode = emit(root, host: host)
+        rootNode.name = name
         return FigmaDocument(width: size.width, height: rootNode.h, root: rootNode, tokens: colorTokens, textStyles: [])
     }
 
@@ -57,9 +59,14 @@ public enum PinDisplayListCapture {
     }
 
     // Flatten the containment forest to leaf-level components in render order: a pill/label/image is a
-    // component; a shape that groups other components (a card background) is recursed through.
+    // component; a shape that groups other components (a card background) is recursed through. The root is
+    // the screen container, never itself a component, so flatten its children — otherwise a flat screen
+    // (every child a bare leaf, e.g. label-over-control rows) collapses to the single root component and
+    // desyncs the reflected leaf count into the containment fallback. A childless root (a lone full-screen
+    // label) is itself the sole component.
     private static func orderedComponents(_ box: Box) -> [Box] {
-        groupOrphanIcons(flatten(box))
+        let leaves = box.children.isEmpty ? [box] : orderedForLayout(box.children).flatMap(flatten)
+        return groupOrphanIcons(leaves)
     }
 
     private static func flatten(_ box: Box) -> [Box] {

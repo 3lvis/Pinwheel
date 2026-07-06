@@ -198,7 +198,11 @@ enum PinDisplayList {
             default: return false
             }
         }
-        return hasText
+        guard hasText else { return false }
+        // A button's box pads its label (or hits the control min-width); a multi-line wrapping label
+        // fills its frame edge to edge. Only the padded case is a button — else it's just tall text.
+        let content = children.map(\.frame).reduce(children[0].frame) { $0.union($1) }
+        return (frame.width - content.width) / 2 > 4
     }
 
     // Fill one vector Path into a transparent PNG of the leaf's size — headless, no screen.

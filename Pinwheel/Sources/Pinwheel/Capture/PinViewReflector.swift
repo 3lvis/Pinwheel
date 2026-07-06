@@ -48,10 +48,14 @@ enum PinViewReflector {
             return unwrapAnyView(value).flatMap(walk)
         }
         if typeName.hasPrefix("ModifiedContent") {
+            let modifier = property(value, "modifier")
+            // `pinCapturedRasterized` marks its content as one rendered leaf — a raster crop of a SwiftUI
+            // primitive (Toggle/Slider/DatePicker…) the walk would otherwise skip, desyncing the count.
+            if isCaptureMarker(modifier) { return .leaf(text: nil, isButton: false, fillWidth: false) }
             // The modifier (padding/background) is layout we don't model — walk the content. But a
             // `.frame(maxWidth: .infinity)` is meaningful: flag the leaf to fill its parent's width.
             let node = property(value, "content").flatMap(walk)
-            if isFillWidthFrame(property(value, "modifier")), case .leaf(let text, let isButton, _) = node {
+            if isFillWidthFrame(modifier), case .leaf(let text, let isButton, _) = node {
                 return .leaf(text: text, isButton: isButton, fillWidth: true)
             }
             return node
@@ -90,6 +94,13 @@ enum PinViewReflector {
     private static let leafTypes = ["PinButton", "PinLabel", "PinList", "PinStateView"]
     private static func isLeaf(_ typeName: String) -> Bool {
         leafTypes.contains { typeName == $0 || typeName.hasPrefix($0 + "<") }
+    }
+
+    // The anchor-preference transform `pinCapturedRasterized`/`pinCapturedContainer` attach on
+    // PinCaptureKey — the marked view is one captured element, counted as a leaf.
+    private static func isCaptureMarker(_ modifier: Any?) -> Bool {
+        guard let modifier else { return false }
+        return String(describing: type(of: modifier)).contains("PinCaptureKey")
     }
 
     // A `.frame(maxWidth: .infinity)` modifier (a _FlexFrameLayout with an infinite max width).

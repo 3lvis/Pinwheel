@@ -89,6 +89,84 @@ final class CaptureFidelityTests: XCTestCase {
         XCTAssertNil(PinViewReflector.reflect(Picker("choice", selection: .constant(0)) { Text("A").tag(0) }))
     }
 
+    // A rasterized Apple control (Toggle/Slider/DatePicker via `pinCapturedRasterized`) wraps a SwiftUI
+    // primitive the reflector otherwise skips. It must still count as one leaf, or the reflected count
+    // won't match the rendered components and the whole screen falls back to containment — which misread
+    // the Apple-controls VStack as an absolute "List" (mangled layout, wrong frame name).
+    func testReflectorCountsARasterizedControlAsALeaf() {
+        struct Fixture: SwiftUI.View {
+            var body: some SwiftUI.View {
+                VStack(alignment: .leading, spacing: .spacingXS) {
+                    PinLabel("Toggle").font(.caption).color(.secondary)
+                    Toggle("", isOn: .constant(true)).labelsHidden().pinCapturedRasterized(name: "Toggle")
+                }
+            }
+        }
+        XCTAssertEqual(leafCount(PinViewReflector.reflect(Fixture())), 2,
+                       "the rasterized control must count as a leaf, alongside its label")
+    }
+
+    // A flat screen — a column of grouped rows where every leaf is a direct child of the root and none
+    // nests another (the Apple-controls layout: each control rasterizes to one leaf, a platform view) —
+    // must capture via the semantic reflection path, keeping each row grouped. `orderedComponents` used to
+    // collapse such a root to a single component, desyncing the reflected count into the containment
+    // fallback, which flattens the rows (and, when they overlap in Y, misreads the screen as a "List").
+    // Bare text rows stand in for the controls so the leaves are deterministic and never nest off-screen.
+    func testFlatGroupedScreenKeepsItsRowGrouping() throws {
+        struct Fixture: SwiftUI.View {
+            var body: some SwiftUI.View {
+                VStack(alignment: .leading, spacing: .spacingL) {
+                    PinLabel("Apple controls").font(.title)
+                    VStack(alignment: .leading, spacing: .spacingXS) {
+                        PinLabel("Toggle").font(.caption).color(.secondary)
+                        PinLabel("On").font(.body)
+                    }
+                    VStack(alignment: .leading, spacing: .spacingXS) {
+                        PinLabel("Slider").font(.caption).color(.secondary)
+                        PinLabel("60%").font(.body)
+                    }
+                }
+                .padding(.spacingL)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .background(.primaryBackground)
+            }
+        }
+        let root = try XCTUnwrap(PinDisplayListCapture.document(Fixture(), name: "Apple controls", size: CGSize(width: 402, height: 1600), screenHeight: 778),
+                                 "the fixture should capture into a document").root
+        XCTAssertNotNil(root.layout,
+                        "a flat grouped screen must capture via the semantic column path, not the absolute List fallback")
+        XCTAssertTrue(hasGroup(root, "Toggle", "On"),
+                      "each row must stay grouped (label + value) — the reflection path preserves it; the collapsed fallback flattens every row into loose siblings")
+    }
+
+    // A frame whose children are exactly the two texts — a tight grouped row the reflection path
+    // preserves. The collapsed containment fallback emits every row's texts as loose siblings of the
+    // root, so only the root (holding every text) would contain both — never a two-child group.
+    private func hasGroup(_ node: FigmaNode, _ first: String, _ second: String) -> Bool {
+        let texts = Set(node.children.compactMap { text(of: $0) })
+        if node.tag == "frame", texts == Set([first, second]) { return true }
+        return node.children.contains { hasGroup($0, first, second) }
+    }
+
+    private func leafCount(_ node: ReflectedNode?) -> Int {
+        guard let node else { return 0 }
+        switch node {
+        case .leaf: return 1
+        case .spacer: return 0
+        case .container(_, let children): return children.reduce(0) { $0 + leafCount($1) }
+        }
+    }
+
+    // The captured screen takes the given name so the Figma frame reads the component title, not its
+    // structural root name (the Apple-controls capture showed "List" — its misinferred root — as the
+    // frame name, since `name` was accepted but dropped).
+    func testCapturedRootTakesTheGivenScreenName() throws {
+        let root = try XCTUnwrap(PinDisplayListCapture.document(Fixture(), name: "Checkout", size: CGSize(width: 402, height: 900), screenHeight: 778),
+                                 "the fixture should capture into a document").root
+        XCTAssertEqual(root.name, "Checkout",
+                       "the captured screen must take the given name, not its structural root name")
+    }
+
     // A settings list (PinList) is UITableView-backed; its rows fall back to containment and overlap in
     // Y (icon beside title). It must capture with absolute positions — each row where it rendered — not
     // as a reflowable auto-layout frame (the plugin reflowed it and misplaced icons/toggles onto the
