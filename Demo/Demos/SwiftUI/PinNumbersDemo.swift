@@ -17,6 +17,10 @@ struct PinNumbersDemo: SwiftUI.View {
         ("radiusM", .radiusM)
     ]
 
+    // Set the outer radius; each inset derives its own inner radius from the gap.
+    private let concentricOuter: CGFloat = 24
+    private let concentricInsets: [CGFloat] = [.spacingXS, .spacingM, .spacingL]
+
     var body: some SwiftUI.View {
         ScrollView {
             VStack(alignment: .leading, spacing: .spacingXXL) {
@@ -36,10 +40,38 @@ struct PinNumbersDemo: SwiftUI.View {
                         .padding(.vertical, .spacingL)
                         .background(.tertiaryText, in: RoundedRectangle(cornerRadius: radius))
                 }
+
+                PinLabel("Concentric radius").font(.title)
+                ForEach(concentricInsets, id: \.self) { inset in
+                    concentricExample(inset: inset)
+                }
             }
             .padding(.spacingL)
             .padding(.top, .spacingXXL)
         }
         .background(.primaryBackground)
+    }
+
+    // An inner box inset from a rounded outer box keeps its corners parallel — the
+    // two share a corner center — when its radius is the outer radius minus the
+    // inset, clamped at 0 once the inset swallows the radius.
+    private func concentricRadius(outer: CGFloat, inset: CGFloat) -> CGFloat {
+        max(outer - inset, 0)
+    }
+
+    private func concentricExample(inset: CGFloat) -> some SwiftUI.View {
+        let inner = concentricRadius(outer: concentricOuter, inset: inset)
+        return VStack(alignment: .leading, spacing: .spacingS) {
+            PinLabel("outer \(Int(concentricOuter)) · inset \(Int(inset)) → inner \(Int(inner))")
+                .font(.caption).color(.secondary)
+            RoundedRectangle(cornerRadius: concentricOuter)
+                .fill(.tertiaryText)
+                .frame(height: 96)
+                .overlay {
+                    RoundedRectangle(cornerRadius: inner)
+                        .fill(.primaryBackground)
+                        .padding(inset)
+                }
+        }
     }
 }
