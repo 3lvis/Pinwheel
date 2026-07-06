@@ -27,9 +27,6 @@ public struct PinwheelPreview: SwiftUI.View {
                 previewMode: true,
                 autoApplyTweak: Self.requestedTweak
             )
-            .overlay(alignment: .top) {
-                PinwheelPreviewCaption(id: match.item.id, variant: Self.requestedTweak)
-            }
             .environment(chrome)
             .background(
                 PinwheelFloatingControlsHost(
@@ -67,21 +64,6 @@ public struct PinwheelPreview: SwiftUI.View {
         }
 
         return nil
-    }
-}
-
-private struct PinwheelPreviewCaption: SwiftUI.View {
-    let id: String
-    let variant: String?
-
-    var body: some SwiftUI.View {
-        PinLabel(variant.map { "\(id) · \($0)" } ?? id).font(.caption).color(.secondary)
-            .padding(.horizontal, .spacingS)
-            .padding(.vertical, .spacingXXS)
-            .background(
-                Capsule().fill(.secondaryBackground)
-            )
-            .padding(.top, .spacingXS)
     }
 }
 

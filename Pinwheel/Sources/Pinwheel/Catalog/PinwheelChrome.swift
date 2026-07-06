@@ -14,6 +14,8 @@ final class PinwheelChrome {
     // The displayed component, so the top pill can name it and show its capture version.
     var componentName: String?
     var componentID: String?
+    // The preview variant (applied tweak), shown in the pill so a sweep snapshot names which one it is.
+    var componentVariant: String?
 
     var tweakCount: Int { tweaks.count }
 

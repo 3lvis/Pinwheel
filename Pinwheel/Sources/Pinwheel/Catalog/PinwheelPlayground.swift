@@ -43,6 +43,7 @@ struct PinwheelPlayground: SwiftUI.View {
                 chrome.isPresentingItem = true
                 chrome.componentName = item.title
                 chrome.componentID = selection.itemID
+                chrome.componentVariant = autoApplyTweak
             }
             .onChange(of: chrome.selectedDeviceIndex) { _, newValue in
                 guard !previewMode else { return }
@@ -56,6 +57,7 @@ struct PinwheelPlayground: SwiftUI.View {
                 chrome.onClose = nil
                 chrome.componentName = nil
                 chrome.componentID = nil
+                chrome.componentVariant = nil
             }
             .sheet(isPresented: $chrome.showsSettings) {
                 PinwheelSettingsView(
@@ -153,6 +155,9 @@ private struct PinwheelDevicePill: SwiftUI.View {
     private func pill(name: String) -> some SwiftUI.View {
         HStack(spacing: .spacingS) {
             PinLabel(name).font(.caption)
+            if let variant = chrome.componentVariant {
+                PinLabel("· \(variant)").font(.caption).color(.secondary)
+            }
             if let id = chrome.componentID, let version = PinCaptureVersions.shared.version(for: id) {
                 PinLabel("v\(version)").font(.caption).color(.secondary)
             }
