@@ -111,12 +111,13 @@ enum PinDisplayListCapture {
 
     private static func emitStructure(_ node: ReflectedNode, host: UIView, backgrounds: [Background], next: (String?) -> Box?) -> FigmaNode? {
         switch node {
-        case .leaf(let text, let isButton):
+        case .leaf(let text, let isButton, let fillWidth):
             guard let box = next(text) else { return nil }
-            let node = componentNode(box, host: host)
+            var node = componentNode(box, host: host)
             // A fill-less button whose frame SwiftUI dropped comes back as bare text — rebuild its
             // padded, min-width, centered box so it reads as a button, not a loose label.
-            if isButton, node.tag != "frame" { return bareButtonContainer(node) }
+            if isButton, node.tag != "frame" { node = bareButtonContainer(node) }
+            if fillWidth { node.fillWidth = true }
             return node
         case .spacer:
             return FigmaNode(tag: "spacer", x: 0, y: 0, w: 0, h: 0, grow: true, children: [])

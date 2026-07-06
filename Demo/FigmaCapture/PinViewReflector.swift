@@ -9,7 +9,7 @@ import Pinwheel
 
 indirect enum ReflectedNode {
     case container(ReflectedContainer, [ReflectedNode])
-    case leaf(text: String?, isButton: Bool)
+    case leaf(text: String?, isButton: Bool, fillWidth: Bool)
     case spacer
 }
 
@@ -36,7 +36,7 @@ enum PinViewReflector {
         // Exact match (allowing a generic parameter) — a prefix would misread PinButtonLayoutDemo,
         // a custom composite, as a PinButton leaf and stop there.
         if isLeaf(typeName) {
-            return .leaf(text: leafText(value), isButton: typeName == "PinButton" || typeName.hasPrefix("PinButton<"))
+            return .leaf(text: leafText(value), isButton: typeName == "PinButton" || typeName.hasPrefix("PinButton<"), fillWidth: false)
         }
         if typeName.hasPrefix("Spacer") {
             return .spacer
@@ -48,8 +48,13 @@ enum PinViewReflector {
             return unwrapAnyView(value).flatMap(walk)
         }
         if typeName.hasPrefix("ModifiedContent") {
-            // The modifier (padding/background/frame) is layout we don't model here; walk the content.
-            return property(value, "content").flatMap(walk)
+            // The modifier (padding/background) is layout we don't model — walk the content. But a
+            // `.frame(maxWidth: .infinity)` is meaningful: flag the leaf to fill its parent's width.
+            let node = property(value, "content").flatMap(walk)
+            if isFillWidthFrame(property(value, "modifier")), case .leaf(let text, let isButton, _) = node {
+                return .leaf(text: text, isButton: isButton, fillWidth: true)
+            }
+            return node
         }
         if typeName.hasPrefix("TupleView") || typeName.hasPrefix("Group") || typeName.hasPrefix("Optional")
             || typeName.hasPrefix("_ConditionalContent") {
@@ -73,6 +78,12 @@ enum PinViewReflector {
     private static let leafTypes = ["PinButton", "PinLabel", "PinList", "PinStateView"]
     private static func isLeaf(_ typeName: String) -> Bool {
         leafTypes.contains { typeName == $0 || typeName.hasPrefix($0 + "<") }
+    }
+
+    // A `.frame(maxWidth: .infinity)` modifier (a _FlexFrameLayout with an infinite max width).
+    private static func isFillWidthFrame(_ modifier: Any?) -> Bool {
+        guard let modifier, String(describing: type(of: modifier)).contains("FlexFrame") else { return false }
+        return (Mirror(reflecting: modifier).children.first { $0.label == "maxWidth" }?.value as? CGFloat) == .infinity
     }
 
     // The leaf's identifying text (PinButton.title / PinLabel.text) so a consumer can match it to the
