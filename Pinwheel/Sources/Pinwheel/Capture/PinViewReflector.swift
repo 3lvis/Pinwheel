@@ -70,9 +70,17 @@ enum PinViewReflector {
         // A raw SwiftUI primitive emits no capture descriptor, so it's not a leaf (counting it would
         // desync the leaf-to-descriptor zip) and its `body` traps — skip it.
         if isPrimitive(typeName) { return nil }
-        // Any other view is a custom composite: recurse into its body. `any View` lets us reach
-        // `.body` on a value we only hold as `Any`.
-        if let view = value as? any SwiftUI.View { return walk(view.body) }
+        // A UIKit bridge (UIViewRepresentable / UIViewControllerRepresentable — e.g. the catalog's
+        // UIKit host) has no reflectable body; `.body` traps. Skip so capture falls back to containment
+        // (the platform view rasterizes as one leaf) instead of crashing the app.
+        if value is any UIViewRepresentable || value is any UIViewControllerRepresentable { return nil }
+        // Any remaining SwiftUI-module view is a primitive we don't model (Picker, Stepper, DatePicker,
+        // …); its `.body` traps, so skip — containment captures its geometry. Only recurse into a custom
+        // composite's body (a user/library type, never `SwiftUI.*`). `any View` reaches `.body` on `Any`.
+        if let view = value as? any SwiftUI.View {
+            if String(reflecting: type(of: value)).hasPrefix("SwiftUI.") { return nil }
+            return walk(view.body)
+        }
         return nil
     }
 

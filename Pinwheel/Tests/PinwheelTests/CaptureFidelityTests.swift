@@ -1,5 +1,6 @@
 import XCTest
 import SwiftUI
+import UIKit
 @testable import Pinwheel
 
 // Pins the *shape* of the captured IR, not just "it didn't crash": a silent drift in the card's
@@ -71,5 +72,20 @@ final class CaptureFidelityTests: XCTestCase {
         }, "the trailing column should be captured")
         XCTAssertEqual(column.layout?.align, "flex-end",
                        "a .trailing VStack must capture as flex-end cross-axis alignment")
+    }
+
+    // The reflector must skip views whose `.body` traps — a UIKit bridge and any SwiftUI-module
+    // primitive — returning nil (containment then captures their geometry) rather than calling `.body`.
+    // Trapping there crashed the app while capturing UIKit / Apple-controls demos.
+    func testReflectorSkipsUIKitBridge() {
+        struct Bridge: UIViewControllerRepresentable {
+            func makeUIViewController(context: Context) -> UIViewController { UIViewController() }
+            func updateUIViewController(_ controller: UIViewController, context: Context) {}
+        }
+        XCTAssertNil(PinViewReflector.reflect(Bridge()))
+    }
+
+    func testReflectorSkipsSwiftUIPrimitive() {
+        XCTAssertNil(PinViewReflector.reflect(Picker("choice", selection: .constant(0)) { Text("A").tag(0) }))
     }
 }
