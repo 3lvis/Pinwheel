@@ -57,7 +57,14 @@ enum PinDisplayList {
             let frame = localFrame.offsetBy(dx: origin.x, dy: origin.y)
             if name == "content" {
                 let inner = child(payload, "value") ?? payload
-                if let kind = contentKind(inner) { leaves.append(DisplayLeaf(frame: frame, kind: kind)) }
+                if let (kind, data) = enumCase(inner), kind == "shape",
+                   let path = Mirror(reflecting: data).children.first?.value as? SwiftUI.Path, roundedRectRadius(path) == nil {
+                    // A complex (non rounded-rect) shape — an SF Symbol or the single-path spinner —
+                    // render its vector headless rather than leaving it a blank rasterizable.
+                    leaves.append(DisplayLeaf(frame: frame, kind: .rasterizable, image: renderPath(path, color: deepColor(data), unitSize: frame.size)))
+                } else if let kind = contentKind(inner) {
+                    leaves.append(DisplayLeaf(frame: frame, kind: kind))
+                }
             } else {
                 let children = nestedLists(in: payload).flatMap { walk($0, origin: frame.origin) }
                 // A small, text-free group is an icon or the spinner — render its vector shapes headless
@@ -75,6 +82,19 @@ enum PinDisplayList {
     private static func isRasterUnit(_ frame: CGRect, _ children: [DisplayLeaf]) -> Bool {
         guard frame.width <= 40, frame.height <= 40, !children.isEmpty else { return false }
         return children.allSatisfy { if case .text = $0.kind { return false } else { return true } }
+    }
+
+    // Fill one vector Path into a transparent PNG of the leaf's size — headless, no screen.
+    private static func renderPath(_ path: SwiftUI.Path, color: UIColor?, unitSize: CGSize) -> String? {
+        let bounds = path.boundingRect
+        let size = CGSize(width: max(unitSize.width, 1), height: max(unitSize.height, 1))
+        let image = UIGraphicsImageRenderer(size: size).image { context in
+            context.cgContext.translateBy(x: -bounds.minX, y: -bounds.minY)
+            context.cgContext.addPath(path.cgPath)
+            context.cgContext.setFillColor((color ?? .label).cgColor)
+            context.cgContext.fillPath()
+        }
+        return image.pngData()?.base64EncodedString()
     }
 
     // Render every shape in an icon/spinner subtree via CoreGraphics — headless, so no screen crop.

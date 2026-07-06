@@ -199,22 +199,27 @@ public struct PinButton: SwiftUI.View {
     }
 }
 
-// A static stand-in for `ProgressView`'s spinner, drawn so every spoke is solid — the live one
-// animates opacity, so a snapshot of it is faint. Inherits the button's foreground colour.
+// A static stand-in for `ProgressView`'s spinner. Drawn as a single `Shape` — all spokes in one
+// `Path` — so capture sees one vector it can render whole; a `.rotationEffect` per spoke loses its
+// rotation in the captured frame and collapses to a single bar.
 private struct CaptureSpinner: SwiftUI.View {
+    var body: some SwiftUI.View {
+        SpinnerShape().frame(width: 15, height: 15)
+    }
+}
+
+private struct SpinnerShape: Shape {
     private let spokes = 8
 
-    var body: some SwiftUI.View {
-        ZStack {
-            ForEach(0..<spokes, id: \.self) { index in
-                Capsule()
-                    .frame(width: 2, height: 5)
-                    .offset(y: -4.5)
-                    .rotationEffect(.degrees(Double(index) / Double(spokes) * 360))
-                    .opacity(Double(index + 1) / Double(spokes))
-            }
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        for index in 0..<spokes {
+            let spoke = Path(roundedRect: CGRect(x: -1, y: -rect.height / 2, width: 2, height: rect.height / 2.8), cornerRadius: 1)
+            let rotate = CGAffineTransform(rotationAngle: Double(index) / Double(spokes) * 2 * .pi)
+            path.addPath(spoke.applying(rotate).applying(CGAffineTransform(translationX: center.x, y: center.y)))
         }
-        .frame(width: 15, height: 15)
+        return path
     }
 }
 
