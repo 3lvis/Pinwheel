@@ -24,13 +24,13 @@ final class CatalogCaptureUITests: XCTestCase {
     }
 
     @MainActor
-    func testOpeningTheDimensionsDemoRunsCaptureWithoutCrashing() {
+    func testOpeningTheNumbersDemoRunsCaptureWithoutCrashing() {
         app.launch()
-        openCatalogItem(.dimensions, .swiftUI, in: .tokens)
+        openCatalogItem(.numbers, .swiftUI, in: .tokens)
         // The demo renders — so the catalog opened it and the auto-push capture ran
         // without the reflector trapping and taking the app down.
         XCTAssertTrue(app.staticTexts["spacingXXS 2"].waitForExistence(timeout: defaultTimeout),
-                      "Dimensions demo should render after the catalog opens it and runs capture")
+                      "Numbers demo should render after the catalog opens it and runs capture")
     }
 
     // Matches items by stable id, not title, and scrolls the lazy list into range.

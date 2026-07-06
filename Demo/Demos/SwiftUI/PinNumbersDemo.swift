@@ -1,7 +1,7 @@
 import SwiftUI
 import Pinwheel
 
-struct PinDimensionsDemo: SwiftUI.View {
+struct PinNumbersDemo: SwiftUI.View {
     private let spacings: [(String, CGFloat)] = [
         ("spacingXXS", .spacingXXS),
         ("spacingXS", .spacingXS),

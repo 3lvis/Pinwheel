@@ -11,10 +11,10 @@ enum DemoPinwheelSections {
         PinwheelSection(CatalogSection.tokens) {
             PinwheelItem(Catalog.font) { PinFontDemo() }.tags(.swiftUI)
             PinwheelItem(Catalog.color) { PinColorDemo() }.tags(.swiftUI)
-            PinwheelItem(Catalog.dimensions) { PinDimensionsDemo() }.tags(.swiftUI)
+            PinwheelItem(Catalog.numbers) { PinNumbersDemo() }.tags(.swiftUI)
             PinwheelItem(Catalog.font, view: UIKitPinFontDemo.self).tags(.uiKit)
             PinwheelItem(Catalog.color, view: UIKitPinColorDemo.self).tags(.uiKit)
-            PinwheelItem(Catalog.dimensions, view: UIKitPinDimensionsDemo.self).tags(.uiKit)
+            PinwheelItem(Catalog.numbers, view: UIKitPinNumbersDemo.self).tags(.uiKit)
         }
     }
 
@@ -47,7 +47,7 @@ enum DemoPinwheelSections {
 #if DEBUG
 // Change to any catalog id and render the preview below; an unknown id renders a
 // list of every available id.
-private let previewComponentID = Catalog.dimensions.id(.swiftUI)
+private let previewComponentID = Catalog.numbers.id(.swiftUI)
 
 #Preview("Pinwheel Component") {
     PinwheelPreview(previewComponentID, sections: DemoPinwheelSections.all)
