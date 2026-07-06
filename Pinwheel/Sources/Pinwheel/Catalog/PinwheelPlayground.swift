@@ -26,7 +26,10 @@ struct PinwheelPlayground: SwiftUI.View {
             // recurses SwiftUI's layout into a stack overflow (crashes on every
             // device pick). The pill rides the playground, not the FAB window, so
             // its transition scales in place instead of collapsing.
-            .overlay(alignment: .top) {
+            // A top safe-area inset seats the pill just under the status bar / Dynamic Island (the
+            // highest an app can go — the island itself is system-reserved) and pushes the component
+            // down, so the pill never overlaps its content.
+            .safeAreaInset(edge: .top, spacing: 0) {
                 PinwheelDevicePill()
                     .padding(.top, .spacingS)
             }
