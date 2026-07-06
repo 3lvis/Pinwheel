@@ -39,7 +39,6 @@ enum DemoPinwheelSections {
             PinwheelItem(Catalog.fullscreenView, view: UIKitPinFullscreenViewDemo.self).tags(.uiKit)
             PinwheelItem(Catalog.viewController, viewController: { UIKitPinViewControllerDemo() }).tags(.uiKit)
             PinwheelItem(Catalog.appleControls) { AppleControlsDemo() }.presentation(.fullscreen).tags(.figma)
-            PinwheelItem(Catalog.buttonLayout) { PinButtonLayoutDemo() }.tags(.figma)
         }
     }
 }

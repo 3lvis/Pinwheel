@@ -33,8 +33,8 @@ enum PinViewReflector {
             let children = content.map { flatten($0).compactMap(walk) } ?? []
             return .container(ReflectedContainer(axis: axis, spacing: spacing, alignment: alignment), children)
         }
-        // Exact match (allowing a generic parameter) — a prefix would misread PinButtonLayoutDemo,
-        // a custom composite, as a PinButton leaf and stop there.
+        // Exact match (allowing a generic parameter) — a prefix would misread a custom composite like
+        // PinButtonDemo as a PinButton leaf and stop there.
         if isLeaf(typeName) {
             return .leaf(text: leafText(value), isButton: typeName == "PinButton" || typeName.hasPrefix("PinButton<"), fillWidth: false)
         }
