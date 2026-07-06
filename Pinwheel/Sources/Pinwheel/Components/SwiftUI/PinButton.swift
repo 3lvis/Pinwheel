@@ -114,7 +114,7 @@ public struct PinButton: SwiftUI.View {
         // rasterize as image children — so a button round-trips with its icon and loading state.
         .pinCapturedContainer(
             name: captureName, fillTokenName: style.captureFillToken, fillColor: style.captureFillColor,
-            cornerRadius: .spacingM, enabled: isEnabled,
+            cornerRadius: .radiusM, enabled: isEnabled,
             // Auto-layout (hug + centered) so a reused master re-flows to each instance's own text
             // instead of inheriting the master's fixed label frame.
             layout: PinCaptureLayout(
@@ -247,11 +247,11 @@ private struct PinButtonStyle: SwiftUI.ButtonStyle {
                 .frame(minWidth: hasTitle ? PinButton.minTitledWidth : nil)
                 .background {
                     if let background {
-                        RoundedRectangle(cornerRadius: .spacingM, style: .continuous)
+                        RoundedRectangle(cornerRadius: .radiusM, style: .continuous)
                             .fill(background)
                     }
                 }
-                .contentShape(RoundedRectangle(cornerRadius: .spacingM, style: .continuous))
+                .contentShape(RoundedRectangle(cornerRadius: .radiusM, style: .continuous))
                 .scaleEffect(configuration.isPressed ? 0.95 : 1)
                 .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
         }

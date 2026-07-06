@@ -1,7 +1,7 @@
 import UIKit
 import Pinwheel
 
-class UIKitPinSpacingDemo: UIKitPinView {
+class UIKitPinDimensionsDemo: UIKitPinView {
     func makeLabel(text: String) -> UIKitPinLabel {
         let label = UIKitPinLabel(font: .body)
         label.text = text
@@ -37,6 +37,11 @@ class UIKitPinSpacingDemo: UIKitPinView {
         let spacingXXLView = makeLabel(text: "👈        spacingXXL \(CGFloat.spacingXXL)    👉")
         addSubview(spacingXXLView)
 
+        let radiusMView = makeLabel(text: "radiusM \(CGFloat.radiusM)")
+        radiusMView.layer.cornerRadius = .radiusM
+        radiusMView.layer.masksToBounds = true
+        addSubview(radiusMView)
+
         NSLayoutConstraint.activate([
             spacingXXSView.topAnchor.constraint(equalTo: topAnchor, constant: .spacingXXL),
             spacingXXSView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingXXS),
@@ -68,7 +73,11 @@ class UIKitPinSpacingDemo: UIKitPinView {
 
             spacingXXLView.topAnchor.constraint(equalTo: spacingXLView.bottomAnchor, constant: .spacingXXL),
             spacingXXLView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingXXL),
-            spacingXXLView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingXXL)
+            spacingXXLView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingXXL),
+
+            radiusMView.topAnchor.constraint(equalTo: spacingXXLView.bottomAnchor, constant: .spacingXXL),
+            radiusMView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingL),
+            radiusMView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingL)
         ])
     }
 }

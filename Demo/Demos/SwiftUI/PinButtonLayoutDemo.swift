@@ -32,7 +32,7 @@ struct PinButtonLayoutDemo: SwiftUI.View {
                 }
                 .padding(.spacingL)
                 .background(.secondaryBackground)
-                .clipShape(RoundedRectangle(cornerRadius: .spacingM))
+                .clipShape(RoundedRectangle(cornerRadius: .radiusM))
 
                 HStack(alignment: .top, spacing: .spacingL) {
                     VStack(alignment: .leading, spacing: .spacingS) {

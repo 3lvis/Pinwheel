@@ -1,7 +1,7 @@
 import SwiftUI
 import Pinwheel
 
-struct PinSpacingDemo: SwiftUI.View {
+struct PinDimensionsDemo: SwiftUI.View {
     private let spacings: [(String, CGFloat)] = [
         ("spacingXXS", .spacingXXS),
         ("spacingXS", .spacingXS),
@@ -13,9 +13,14 @@ struct PinSpacingDemo: SwiftUI.View {
         ("spacingXXL", .spacingXXL)
     ]
 
+    private let radii: [(String, CGFloat)] = [
+        ("radiusM", .radiusM)
+    ]
+
     var body: some SwiftUI.View {
         ScrollView {
-            VStack(spacing: .spacingXXL) {
+            VStack(alignment: .leading, spacing: .spacingXXL) {
+                PinLabel("Spacing").font(.title)
                 ForEach(spacings, id: \.0) { title, spacing in
                     PinLabel("\(title) \(Int(spacing))")
                         .frame(maxWidth: .infinity)
@@ -23,7 +28,16 @@ struct PinSpacingDemo: SwiftUI.View {
                         .background(.tertiaryText)
                         .padding(.horizontal, spacing)
                 }
+
+                PinLabel("Radius").font(.title)
+                ForEach(radii, id: \.0) { title, radius in
+                    PinLabel("\(title) \(Int(radius))")
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, .spacingL)
+                        .background(.tertiaryText, in: RoundedRectangle(cornerRadius: radius))
+                }
             }
+            .padding(.spacingL)
             .padding(.top, .spacingXXL)
         }
         .background(.primaryBackground)

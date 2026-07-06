@@ -3,7 +3,7 @@
 public enum Catalog: String, PinwheelComponent {
     case font = "Font"
     case color = "Color"
-    case spacing = "Spacing"
+    case dimensions = "Dimensions"
     case label = "Label"
     case button = "Button"
     case buttonLayout = "Button Layout"
