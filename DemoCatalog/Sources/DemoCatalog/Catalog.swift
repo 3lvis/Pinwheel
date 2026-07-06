@@ -1,7 +1,7 @@
 @_exported import Pinwheel
 
 public enum Catalog: String, PinwheelComponent {
-    case font = "Font"
+    case typography = "Typography"
     case color = "Color"
     case numbers = "Numbers"
     case label = "Label"

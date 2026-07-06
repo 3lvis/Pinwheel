@@ -9,10 +9,10 @@ enum DemoPinwheelSections {
 
     static var tokens: PinwheelSection {
         PinwheelSection(CatalogSection.tokens) {
-            PinwheelItem(Catalog.font) { PinFontDemo() }.tags(.swiftUI)
+            PinwheelItem(Catalog.typography) { PinTypographyDemo() }.tags(.swiftUI)
             PinwheelItem(Catalog.color) { PinColorDemo() }.tags(.swiftUI)
             PinwheelItem(Catalog.numbers) { PinNumbersDemo() }.tags(.swiftUI)
-            PinwheelItem(Catalog.font, view: UIKitPinFontDemo.self).tags(.uiKit)
+            PinwheelItem(Catalog.typography, view: UIKitPinTypographyDemo.self).tags(.uiKit)
             PinwheelItem(Catalog.color, view: UIKitPinColorDemo.self).tags(.uiKit)
             PinwheelItem(Catalog.numbers, view: UIKitPinNumbersDemo.self).tags(.uiKit)
         }

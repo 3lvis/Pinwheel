@@ -6,7 +6,7 @@ struct FontItem {
     let title: String
 }
 
-class UIKitPinFontDemo: UIKitPinView {
+class UIKitPinTypographyDemo: UIKitPinView {
     lazy var tableView: UITableView = {
         let view = UITableView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -46,7 +46,7 @@ class UIKitPinFontDemo: UIKitPinView {
     }
 }
 
-extension UIKitPinFontDemo: UITableViewDataSource {
+extension UIKitPinTypographyDemo: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return items.count
     }
