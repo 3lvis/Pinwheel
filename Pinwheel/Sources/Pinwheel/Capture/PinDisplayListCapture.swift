@@ -7,12 +7,12 @@ import Pinwheel
 // its buttons); axis/spacing/alignment are inferred from the frames SwiftUI already computed.
 @MainActor
 public enum PinDisplayListCapture {
-    public static func document<Content: SwiftUI.View>(_ view: Content, name: String, size: CGSize) -> FigmaDocument? {
+    public static func document<Content: SwiftUI.View>(_ view: Content, name: String, size: CGSize, screenHeight: CGFloat) -> FigmaDocument? {
         guard let (leaves, host, window) = PinDisplayList.read(view, size: size) else { return nil }
-        return withExtendedLifetime(window) { build(view, leaves: leaves, host: host, size: size) }
+        return withExtendedLifetime(window) { build(view, leaves: leaves, host: host, size: size, screenHeight: screenHeight) }
     }
 
-    private static func build<Content: SwiftUI.View>(_ view: Content, leaves: [DisplayLeaf], host: UIView, size: CGSize) -> FigmaDocument? {
+    private static func build<Content: SwiftUI.View>(_ view: Content, leaves: [DisplayLeaf], host: UIView, size: CGSize, screenHeight: CGFloat) -> FigmaDocument? {
         // The screen fill spans the full hosting height; trim it to the content so the root frame
         // (and its bottom padding) match the real screen, not the oversized host.
         let contentBottom = (leaves.map { $0.frame.maxY }.filter { $0 < size.height - 1 }.max() ?? size.height)
@@ -39,7 +39,7 @@ public enum PinDisplayListCapture {
                 return matched.map { pool.remove(at: $0) }
             }
             if let content {
-                let rootNode = screen(content, width: size.width, fill: screenFill, components: components)
+                let rootNode = screen(content, width: size.width, fill: screenFill, components: components, canvasHeight: size.height, oneScreen: screenHeight)
                 return FigmaDocument(width: size.width, height: rootNode.h, root: rootNode, tokens: colorTokens, textStyles: [])
             }
         }
@@ -238,20 +238,27 @@ public enum PinDisplayListCapture {
 
     // The outer container becomes the screen: fixed to the device width (so centered content spans it)
     // and padded to where the content actually sits, with the screen fill behind.
-    private static func screen(_ content: FigmaNode, width: CGFloat, fill: UIColor?, components: [Box]) -> FigmaNode {
+    private static func screen(_ content: FigmaNode, width: CGFloat, fill: UIColor?, components: [Box], canvasHeight: CGFloat, oneScreen: CGFloat) -> FigmaNode {
         let minY = components.map { $0.leaf.frame.minY }.min() ?? 0
         let maxY = components.map { $0.leaf.frame.maxY }.max() ?? 0
         let minX = components.map { $0.leaf.frame.minX }.min() ?? 0
+        let maxX = components.map { $0.leaf.frame.maxX }.max() ?? 0
+        // Content the hosting controller centered in the tall capture canvas (a hugging or fill-centered
+        // component sits symmetrically) is a full-screen component — re-center it in one screen so it
+        // matches the device, instead of floating in the oversized canvas. Otherwise it's top-anchored:
+        // the screen height is the content plus its symmetric top/bottom inset (maxY + minY).
+        let centeredInCanvas = abs((minY + maxY) / 2 - canvasHeight / 2) < oneScreen / 4 && (maxY - minY) < oneScreen
+        let verticalPad = centeredInCanvas ? (oneScreen - (maxY - minY)) / 2 : minY
         var screenNode = content
         screenNode.tag = "screen"
         screenNode.x = 0
         screenNode.y = 0
         screenNode.w = Double(width)
-        screenNode.h = Double(maxY + minY)
+        screenNode.h = Double(centeredInCanvas ? oneScreen : maxY + minY)
         screenNode.fill = fill.map(RGBA.init)
         screenNode.fillToken = fill.flatMap(tokenName(for:))
         if var layout = screenNode.layout {
-            layout.pad = [Double(minY), Double(width) - Double(minX) - Double(components.map { $0.leaf.frame.maxX }.max() ?? 0) + Double(minX), Double(minY), Double(minX)]
+            layout.pad = [Double(verticalPad), Double(width) - Double(maxX), Double(verticalPad), Double(minX)]
             layout.primarySizing = "FIXED"
             layout.counterSizing = "FIXED"
             screenNode.layout = layout

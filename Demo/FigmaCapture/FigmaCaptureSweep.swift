@@ -14,6 +14,12 @@ struct FigmaCatalogEntry {
 
 @MainActor
 enum FigmaCatalog {
+    // A tall render canvas so scrolling demos lay out fully, plus the one-screen height a full-screen
+    // component centers into: the iPhone 17 content area between the plugin's 62pt status bar and 34pt
+    // home indicator (874 − 62 − 34).
+    static let captureCanvas = CGSize(width: 402, height: 1600)
+    static let oneScreen: CGFloat = 778
+
     static var entries: [FigmaCatalogEntry] {
         DemoPinwheelSections.all.flatMap { section in
             // UIKit-hosted views capture only as an opaque platform-view snapshot, not editable Figma
@@ -38,7 +44,7 @@ enum FigmaCatalog {
         // Ignore the marker descriptors — read the DisplayList off a fresh hosted copy so viewing a
         // component in the app pushes the same marker-free IR as the -PinwheelCapture path.
         guard let entry = entry(id: id),
-              let document = PinDisplayListCapture.document(entry.item.swiftUIView(), name: entry.title, size: CGSize(width: 402, height: 1600))
+              let document = PinDisplayListCapture.document(entry.item.swiftUIView(), name: entry.title, size: FigmaCatalog.captureCanvas, screenHeight: FigmaCatalog.oneScreen)
         else { return }
         FigmaCaptureFile.pushCatalog(id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, document: document)
     }
@@ -78,7 +84,7 @@ struct FigmaCaptureSweepView: SwiftUI.View {
             pushed = true
             // Read the rendered DisplayList off a hosted copy — no markers in the view.
             guard let document = PinDisplayListCapture.document(
-                entry.item.swiftUIView(), name: entry.title, size: CGSize(width: 402, height: 1600)
+                entry.item.swiftUIView(), name: entry.title, size: FigmaCatalog.captureCanvas, screenHeight: FigmaCatalog.oneScreen
             ) else { return }
             FigmaCaptureFile.pushCatalog(
                 id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, document: document

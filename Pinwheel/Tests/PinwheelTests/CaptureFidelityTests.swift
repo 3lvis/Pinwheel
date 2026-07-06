@@ -35,7 +35,7 @@ final class CaptureFidelityTests: XCTestCase {
     }
 
     private func captureRoot() throws -> FigmaNode {
-        let document = PinDisplayListCapture.document(Fixture(), name: "Fixture", size: CGSize(width: 402, height: 900))
+        let document = PinDisplayListCapture.document(Fixture(), name: "Fixture", size: CGSize(width: 402, height: 900), screenHeight: 778)
         return try XCTUnwrap(document, "the fixture should capture into a document").root
     }
 
@@ -87,5 +87,14 @@ final class CaptureFidelityTests: XCTestCase {
 
     func testReflectorSkipsSwiftUIPrimitive() {
         XCTAssertNil(PinViewReflector.reflect(Picker("choice", selection: .constant(0)) { Text("A").tag(0) }))
+    }
+
+    // A full-screen component (fills the height, content centered — an empty state) must capture as one
+    // screen with the content centered, not float in the oversized render canvas. Regressed to the full
+    // 1600pt canvas when a hugging/centered component was captured naively.
+    func testFullScreenComponentCentersInOneScreen() throws {
+        let document = PinDisplayListCapture.document(PinLabel("Nothing here yet"), name: "FullScreen", size: CGSize(width: 402, height: 1600), screenHeight: 778)
+        let root = try XCTUnwrap(document, "the full-screen component should capture into a document").root
+        XCTAssertEqual(root.h, 778, accuracy: 1, "a centered full-screen component must capture as one screen, not the tall canvas")
     }
 }
