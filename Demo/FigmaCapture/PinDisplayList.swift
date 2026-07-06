@@ -66,11 +66,21 @@ enum PinDisplayList {
                     leaves.append(DisplayLeaf(frame: frame, kind: kind))
                 }
             } else {
-                let children = nestedLists(in: payload).flatMap { walk($0, origin: frame.origin) }
+                var children = nestedLists(in: payload).flatMap { walk($0, origin: frame.origin) }
+                // A clipShape(RoundedRectangle) rides a clip effect, not the fill — round the fill it
+                // wraps (a card's background) by its corner radius so the corners match.
+                if let radius = clipCornerRadius(payload) {
+                    children = children.map { rounded($0, by: radius, matching: frame) }
+                }
                 // A small, text-free group is an icon or the spinner — render its vector shapes headless
                 // into one rasterizable unit (the DisplayList gives us the Path, so no screen crop).
                 if isRasterUnit(frame, children) {
                     leaves.append(DisplayLeaf(frame: frame, kind: .rasterizable, image: renderShapes(in: payload, unitSize: frame.size)))
+                } else if isBareButton(frame, children) {
+                    // A fill-less button (tertiary) has no shape, but its frame carries the real padded,
+                    // min-width box — emit a transparent container so the label centers in it, not bare.
+                    leaves.append(DisplayLeaf(frame: frame, kind: .transparent))
+                    leaves.append(contentsOf: children)
                 } else {
                     leaves.append(contentsOf: children)
                 }
@@ -82,6 +92,44 @@ enum PinDisplayList {
     private static func isRasterUnit(_ frame: CGRect, _ children: [DisplayLeaf]) -> Bool {
         guard frame.width <= 40, frame.height <= 40, !children.isEmpty else { return false }
         return children.allSatisfy { if case .text = $0.kind { return false } else { return true } }
+    }
+
+    // The corner radius of a clipShape(RoundedRectangle) effect — its FixedRoundedRect lives in the
+    // effect payload (not the nested content), so search there without descending into child lists.
+    private static func clipCornerRadius(_ payload: Any, _ depth: Int = 0) -> CGFloat? {
+        if depth > 8 { return nil }
+        if String(describing: type(of: payload)).contains("FixedRoundedRect"), let size = child(payload, "cornerSize") as? CGSize {
+            return size.width
+        }
+        for field in Mirror(reflecting: payload).children where !isDisplayList(field.value) {
+            if let radius = clipCornerRadius(field.value, depth + 1) { return radius }
+        }
+        return nil
+    }
+
+    // Round a fill leaf (a color/rect background) that the clip wraps — matched by frame.
+    private static func rounded(_ leaf: DisplayLeaf, by radius: CGFloat, matching frame: CGRect) -> DisplayLeaf {
+        guard abs(leaf.frame.width - frame.width) < 2, abs(leaf.frame.height - frame.height) < 2 else { return leaf }
+        switch leaf.kind {
+        case .color(let color): return DisplayLeaf(frame: leaf.frame, kind: .roundedRect(radius: radius, color: color))
+        case .roundedRect(_, let color): return DisplayLeaf(frame: leaf.frame, kind: .roundedRect(radius: radius, color: color))
+        default: return leaf
+        }
+    }
+
+    // A fill-less button: a control-height group (taller than a label) wrapping only text/icon — its
+    // frame is the real padded, min-width box, so keep it as a transparent container.
+    private static func isBareButton(_ frame: CGRect, _ children: [DisplayLeaf]) -> Bool {
+        guard frame.height >= 30, !children.isEmpty else { return false }
+        var hasText = false
+        for child in children {
+            switch child.kind {
+            case .text: hasText = true
+            case .rasterizable: break
+            default: return false
+            }
+        }
+        return hasText
     }
 
     // Fill one vector Path into a transparent PNG of the leaf's size — headless, no screen.

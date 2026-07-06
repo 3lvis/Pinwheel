@@ -48,7 +48,7 @@ struct PinButtonLayoutDemo: SwiftUI.View {
                 }
 
                 PinButton("Place order", systemImage: "checkmark") {}
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity) 
             }
             .padding(.spacingL)
             .frame(maxWidth: .infinity, alignment: .leading)
