@@ -117,7 +117,7 @@ enum PinDisplayListCapture {
             // A fill-less button whose frame SwiftUI dropped comes back as bare text — rebuild its
             // padded, min-width, centered box so it reads as a button, not a loose label.
             if isButton, node.tag != "frame" { node = bareButtonContainer(node) }
-            if fillWidth { node.fillWidth = true }
+            if fillWidth { node = fillWidthCentered(node) }
             return node
         case .spacer:
             return FigmaNode(tag: "spacer", x: 0, y: 0, w: 0, h: 0, grow: true, children: [])
@@ -156,6 +156,15 @@ enum PinDisplayListCapture {
             h: content.h + 2 * Double(CGFloat.spacingM),
             name: "Pill", layout: FigmaLayout(layout), ordered: true, children: [content]
         )
+    }
+
+    // A `.frame(maxWidth: .infinity)` keeps the button's own width and centers it in the freed width —
+    // so wrap it in a parent-filling frame that centers, rather than stretching the button itself.
+    private static func fillWidthCentered(_ content: FigmaNode) -> FigmaNode {
+        let layout = PinCaptureLayout(axis: .column, spacing: 0, padding: EdgeInsets(), alignment: .center, mainAxisAlignment: .center)
+        var wrapper = FigmaNode(tag: "frame", x: content.x, y: content.y, w: 0, h: content.h, name: "Center", layout: FigmaLayout(layout), ordered: true, children: [content])
+        wrapper.fillWidth = true
+        return wrapper
     }
 
     // A filled shape that groups other components (a card) — reflection treats it as a transparent
