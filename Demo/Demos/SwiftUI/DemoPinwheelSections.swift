@@ -24,7 +24,7 @@ enum DemoPinwheelSections {
             PinwheelItem(Catalog.tweakable) { PinTweakableDemo() }.tags(.swiftUI)
             PinwheelItem(Catalog.button) { PinButtonDemo() }.tags(.swiftUI)
             PinwheelItem(Catalog.stateView) { PinStateViewDemo() }.tags(.swiftUI)
-            PinwheelItem(Catalog.tableView) { PinTableViewDemo() }.presentation(.medium).tags(.swiftUI)
+            PinwheelItem(Catalog.tableView) { PinTableViewDemo() }.tags(.swiftUI)
             PinwheelItem(Catalog.label, view: UIKitPinLabelDemo.self).tags(.uiKit)
             PinwheelItem(Catalog.tweakable, view: UIKitPinTweakableDemo.self).tags(.uiKit)
             PinwheelItem(Catalog.button, view: UIKitPinButtonDemo.self).tags(.uiKit)
