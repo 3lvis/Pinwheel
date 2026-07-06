@@ -6,8 +6,8 @@ import Pinwheel
 // markers in the view. Containment groups leaves (a pill encloses its label/icon; a card encloses
 // its buttons); axis/spacing/alignment are inferred from the frames SwiftUI already computed.
 @MainActor
-enum PinDisplayListCapture {
-    static func document<Content: SwiftUI.View>(_ view: Content, name: String, size: CGSize) -> FigmaDocument? {
+public enum PinDisplayListCapture {
+    public static func document<Content: SwiftUI.View>(_ view: Content, name: String, size: CGSize) -> FigmaDocument? {
         guard let (leaves, host, window) = PinDisplayList.read(view, size: size) else { return nil }
         return withExtendedLifetime(window) { build(view, leaves: leaves, host: host, size: size) }
     }

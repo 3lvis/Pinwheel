@@ -9,7 +9,7 @@ enum FigmaCaptureFormat {
     static let version = 1
 }
 
-struct FigmaDocument: Encodable {
+public struct FigmaDocument: Encodable {
     let version = FigmaCaptureFormat.version
     let width: Double
     let height: Double
@@ -128,17 +128,15 @@ extension RGBA {
     }
 }
 
-// Uses the demo's own provider — the library's UIFont token accessors aren't public.
 extension PinTextStyle {
-    @MainActor var demoUIFont: UIFont {
-        let provider = DemoFontProvider()
+    @MainActor var captureUIFont: UIFont {
         switch self {
-        case .title: return provider.title
-        case .subtitle: return provider.subtitle
-        case .subtitleSemibold: return provider.subtitleSemibold
-        case .body: return provider.body
-        case .footnote: return provider.footnote
-        case .caption: return provider.caption
+        case .title: return .title
+        case .subtitle: return .subtitle
+        case .subtitleSemibold: return .subtitleSemibold
+        case .body: return .body
+        case .footnote: return .footnote
+        case .caption: return .caption
         }
     }
 
@@ -155,7 +153,7 @@ extension PinTextStyle {
 
     // The system font's internal family name isn't Figma-loadable, so name the design face explicitly.
     @MainActor var captureMetrics: (family: String, size: Double, weight: Int) {
-        let font = demoUIFont
+        let font = captureUIFont
         let traits = font.fontDescriptor.object(forKey: .traits) as? [UIFontDescriptor.TraitKey: Any]
         let weight = (traits?[.weight] as? CGFloat) ?? 0
         return ("SF Pro Rounded", Double(font.pointSize), figmaCssWeight(weight))
@@ -195,8 +193,8 @@ extension FigmaTextStyle {
 }
 
 // Best-effort, fire-and-forget pushes to the local serve: no-op if it isn't running.
-enum FigmaCaptureFile {
-    static func pushCatalog(id: String, title: String, section: String, tags: [String], document: FigmaDocument) {
+public enum FigmaCaptureFile {
+    public static func pushCatalog(id: String, title: String, section: String, tags: [String], document: FigmaDocument) {
         let entry = CatalogEntry(id: id, title: title, section: section, tags: tags, document: document)
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
