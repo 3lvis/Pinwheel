@@ -63,6 +63,10 @@ enum PinViewReflector {
             let children = flatten(value).compactMap(walk)
             return children.count == 1 ? children.first : (children.isEmpty ? nil : .container(ReflectedContainer(axis: .column, spacing: nil, alignment: .leading), children))
         }
+        // A dynamic/structural container (ForEach, List, Section) generates its children through a
+        // closure the value tree doesn't expose, and its `body` traps. Skip it so the leaf count won't
+        // match and capture falls back to containment, which recovers the geometry from the DisplayList.
+        if isStructuralContainer(typeName) { return nil }
         // A raw SwiftUI primitive emits no capture descriptor, so it's not a leaf (counting it would
         // desync the leaf-to-descriptor zip) and its `body` traps — skip it.
         if isPrimitive(typeName) { return nil }
@@ -105,6 +109,11 @@ enum PinViewReflector {
                                          "Toggle", "Slider", "Label", "Link"]
     private static func isPrimitive(_ typeName: String) -> Bool {
         primitiveTypes.contains { typeName == $0 || typeName.hasPrefix($0 + "<") }
+    }
+
+    private static let structuralContainerTypes = ["ForEach", "List", "Section", "LazyVStack", "LazyHStack"]
+    private static func isStructuralContainer(_ typeName: String) -> Bool {
+        structuralContainerTypes.contains { typeName == $0 || typeName.hasPrefix($0 + "<") }
     }
 
     // A stack's children live behind _VariadicView.Tree { root: _VStackLayout, content: TupleView }.
