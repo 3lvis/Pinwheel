@@ -38,6 +38,8 @@ struct PinwheelPlayground: SwiftUI.View {
                 }
                 chrome.onClose = onClose
                 chrome.isPresentingItem = true
+                chrome.componentName = item.title
+                chrome.componentID = selection.itemID
             }
             .onChange(of: chrome.selectedDeviceIndex) { _, newValue in
                 guard !previewMode else { return }
@@ -49,6 +51,8 @@ struct PinwheelPlayground: SwiftUI.View {
                 chrome.selectedDeviceIndex = nil
                 chrome.tweaks = []
                 chrome.onClose = nil
+                chrome.componentName = nil
+                chrome.componentID = nil
             }
             .sheet(isPresented: $chrome.showsSettings) {
                 PinwheelSettingsView(
@@ -128,31 +132,38 @@ struct PinwheelPlayground: SwiftUI.View {
     }
 }
 
+// The component's name and capture version, shown as a pill on top of the playground so it reads the
+// same number the Figma plugin lists. When a device is simulated it also shows that, with a reset.
 private struct PinwheelDevicePill: SwiftUI.View {
     @Environment(PinwheelChrome.self) private var chrome
 
     var body: some SwiftUI.View {
         ZStack {
-            if chrome.isDevicePillVisible, let device = chrome.simulatedDevice {
-                pill(for: device)
+            if chrome.isPresentingItem, let name = chrome.componentName {
+                pill(name: name)
                     .transition(.scale.combined(with: .opacity))
             }
         }
-        .animation(.easeOut(duration: 0.22), value: chrome.isDevicePillVisible)
+        .animation(.easeOut(duration: 0.22), value: chrome.isPresentingItem)
     }
 
-    private func pill(for device: Device) -> some SwiftUI.View {
+    private func pill(name: String) -> some SwiftUI.View {
         HStack(spacing: .spacingS) {
-            Image(systemName: "iphone.gen3")
-            PinLabel(device.title).font(.caption)
-
-            SwiftUI.Button {
-                chrome.selectedDeviceIndex = nil
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundStyle(.secondaryText)
+            PinLabel(name).font(.caption)
+            if let id = chrome.componentID, let version = PinCaptureVersions.shared.version(for: id) {
+                PinLabel("v\(version)").font(.caption).color(.secondary)
             }
-            .buttonStyle(.plain)
+            if chrome.isDevicePillVisible, let device = chrome.simulatedDevice {
+                Image(systemName: "iphone.gen3")
+                PinLabel(device.title).font(.caption)
+                SwiftUI.Button {
+                    chrome.selectedDeviceIndex = nil
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondaryText)
+                }
+                .buttonStyle(.plain)
+            }
         }
         .foregroundStyle(.primaryText)
         .padding(.horizontal, .spacingM)

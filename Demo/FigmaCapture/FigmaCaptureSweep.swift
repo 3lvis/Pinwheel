@@ -47,7 +47,8 @@ enum FigmaCatalog {
         guard let entry = entry(id: id),
               let document = PinDisplayListCapture.document(entry.item.swiftUIView(), name: entry.title, size: FigmaCatalog.captureCanvas, screenHeight: FigmaCatalog.oneScreen)
         else { return }
-        FigmaCaptureFile.pushCatalog(app: FigmaCatalog.appName, id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, document: document)
+        let version = PinCaptureVersions.shared.record(id: entry.id, document: document)
+        FigmaCaptureFile.pushCatalog(app: FigmaCatalog.appName, id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, version: version, document: document)
     }
 
     static var requestedCaptureID: String? {
@@ -92,8 +93,9 @@ struct FigmaCaptureSweepView: SwiftUI.View {
                 guard let document = PinDisplayListCapture.document(
                     entry.item.swiftUIView(), name: entry.title, size: FigmaCatalog.captureCanvas, screenHeight: FigmaCatalog.oneScreen
                 ) else { return }
+                let version = PinCaptureVersions.shared.record(id: entry.id, document: document)
                 FigmaCaptureFile.pushCatalog(
-                    app: FigmaCatalog.appName, id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, document: document
+                    app: FigmaCatalog.appName, id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, version: version, document: document
                 )
             }
         }

@@ -11,6 +11,9 @@ final class PinwheelChrome {
     var showsSettings: Bool = false
     var selectedDeviceIndex: Int?
     var onClose: (() -> Void)?
+    // The displayed component, so the top pill can name it and show its capture version.
+    var componentName: String?
+    var componentID: String?
 
     var tweakCount: Int { tweaks.count }
 

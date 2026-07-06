@@ -194,8 +194,8 @@ extension FigmaTextStyle {
 
 // Best-effort, fire-and-forget pushes to the local serve: no-op if it isn't running.
 public enum FigmaCaptureFile {
-    public static func pushCatalog(app: String, id: String, title: String, section: String, tags: [String], document: FigmaDocument) {
-        let entry = CatalogEntry(app: app, id: id, title: title, section: section, tags: tags, document: document)
+    public static func pushCatalog(app: String, id: String, title: String, section: String, tags: [String], version: Int, document: FigmaDocument) {
+        let entry = CatalogEntry(app: app, id: id, title: title, section: section, tags: tags, version: version, document: document)
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         guard let data = try? encoder.encode(entry) else { return }
@@ -217,6 +217,7 @@ public enum FigmaCaptureFile {
         let title: String
         let section: String
         let tags: [String]
+        let version: Int
         let document: FigmaDocument
     }
 }
