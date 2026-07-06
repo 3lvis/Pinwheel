@@ -111,8 +111,13 @@ enum PinDisplayListCapture {
 
     private static func emitStructure(_ node: ReflectedNode, host: UIView, backgrounds: [Background], next: (String?) -> Box?) -> FigmaNode? {
         switch node {
-        case .leaf(let text):
-            return next(text).map { componentNode($0, host: host) }
+        case .leaf(let text, let isButton):
+            guard let box = next(text) else { return nil }
+            let node = componentNode(box, host: host)
+            // A fill-less button whose frame SwiftUI dropped comes back as bare text — rebuild its
+            // padded, min-width, centered box so it reads as a button, not a loose label.
+            if isButton, node.tag != "frame" { return bareButtonContainer(node) }
+            return node
         case .spacer:
             return FigmaNode(tag: "spacer", x: 0, y: 0, w: 0, h: 0, grow: true, children: [])
         case .container(let container, let children):
@@ -134,6 +139,22 @@ enum PinDisplayListCapture {
                 layout: FigmaLayout(layout), ordered: true, children: childNodes
             )
         }
+    }
+
+    // Wrap a lone label/icon in the pill box SwiftUI optimized away for a fill-less button: the
+    // control's min-width and standard padding, content centered. Transparent (tertiary has no fill).
+    private static func bareButtonContainer(_ content: FigmaNode) -> FigmaNode {
+        let layout = PinCaptureLayout(
+            axis: .row, spacing: .spacingS,
+            padding: EdgeInsets(top: .spacingM, leading: .spacingL, bottom: .spacingM, trailing: .spacingL),
+            alignment: .center, mainAxisAlignment: .center, minWidth: PinButton.minTitledWidth
+        )
+        return FigmaNode(
+            tag: "frame", x: content.x, y: content.y,
+            w: max(content.w + 2 * Double(CGFloat.spacingL), Double(PinButton.minTitledWidth)),
+            h: content.h + 2 * Double(CGFloat.spacingM),
+            name: "Pill", layout: FigmaLayout(layout), ordered: true, children: [content]
+        )
     }
 
     // A filled shape that groups other components (a card) — reflection treats it as a transparent

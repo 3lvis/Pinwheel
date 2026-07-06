@@ -60,7 +60,7 @@ public struct PinButton: SwiftUI.View {
     }
 
     // A titled pill never narrows below this, so short labels keep a tappable, consistent width.
-    static let minTitledWidth: CGFloat = 100
+    public static let minTitledWidth: CGFloat = 100
 
     private let title: String?
     private let systemImage: String?

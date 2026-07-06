@@ -9,7 +9,7 @@ import Pinwheel
 
 indirect enum ReflectedNode {
     case container(ReflectedContainer, [ReflectedNode])
-    case leaf(text: String?)
+    case leaf(text: String?, isButton: Bool)
     case spacer
 }
 
@@ -36,7 +36,7 @@ enum PinViewReflector {
         // Exact match (allowing a generic parameter) — a prefix would misread PinButtonLayoutDemo,
         // a custom composite, as a PinButton leaf and stop there.
         if isLeaf(typeName) {
-            return .leaf(text: leafText(value))
+            return .leaf(text: leafText(value), isButton: typeName == "PinButton" || typeName.hasPrefix("PinButton<"))
         }
         if typeName.hasPrefix("Spacer") {
             return .spacer
