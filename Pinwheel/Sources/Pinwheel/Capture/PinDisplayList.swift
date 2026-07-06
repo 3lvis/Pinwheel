@@ -50,9 +50,13 @@ enum PinDisplayList {
         let full = UIGraphicsImageRenderer(bounds: host.bounds).image { context in host.layer.render(in: context.cgContext) }
         guard let cgImage = full.cgImage else { return leaves }
         let scale = full.scale
+        // The layer render includes the safe-area inset; the DisplayList frames are relative to the
+        // content below it. Read the crop from frame + inset so the icon lands on its own row, not the
+        // empty strip above (a UITableView-hosted List sits inside the safe area).
+        let inset = host.safeAreaInsets
         return leaves.map { leaf in
             guard case .rasterizable = leaf.kind, leaf.image == nil else { return leaf }
-            let rect = CGRect(x: leaf.frame.minX * scale, y: leaf.frame.minY * scale,
+            let rect = CGRect(x: (leaf.frame.minX + inset.left) * scale, y: (leaf.frame.minY + inset.top) * scale,
                               width: leaf.frame.width * scale, height: leaf.frame.height * scale)
             guard rect.width >= 1, rect.height >= 1, let crop = cgImage.cropping(to: rect) else { return leaf }
             var filled = leaf

@@ -147,4 +147,35 @@ final class CaptureFidelityTests: XCTestCase {
         let root = try XCTUnwrap(document, "the full-screen component should capture into a document").root
         XCTAssertEqual(root.h, 778, accuracy: 1, "a centered full-screen component must capture as one screen, not the tall canvas")
     }
+    // The icon crop must contain the rendered symbol, not the blank safe-area strip above it. The host
+    // layer renders with the safe-area inset the DisplayList frames omit, so cropping at the bare frame
+    // grabbed the empty region above the content (icons came out blank / shifted a row in Figma).
+    func testListIconCropReadsThroughTheSafeAreaInset() throws {
+        let list = PinList(state: .loaded, rows: [
+            .text("Wi-Fi", icon: Image(systemName: "wifi"), chevron: true) {},
+        ], onRetry: {})
+        let document = try XCTUnwrap(PinDisplayListCapture.document(list, name: "List", size: CGSize(width: 402, height: 1600), screenHeight: 778),
+                                     "the list should capture into a document")
+        let icon = try XCTUnwrap(imageNodes(in: document.root).first { $0.x < 40 && $0.image != nil },
+                                 "the row's icon should be captured with pixels")
+        let data = try XCTUnwrap(Data(base64Encoded: icon.image!))
+        let image = try XCTUnwrap(UIImage(data: data))
+        XCTAssertTrue(hasVisiblePixels(image),
+                      "the icon crop must contain the rendered symbol, not the blank safe-area region")
+    }
+
+    private func hasVisiblePixels(_ image: UIImage) -> Bool {
+        guard let cg = image.cgImage else { return false }
+        let width = cg.width, height = cg.height
+        var pixels = [UInt8](repeating: 0, count: width * height * 4)
+        let context = CGContext(data: &pixels, width: width, height: height, bitsPerComponent: 8,
+                                bytesPerRow: width * 4, space: CGColorSpaceCreateDeviceRGB(),
+                                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+        context?.draw(cg, in: CGRect(x: 0, y: 0, width: width, height: height))
+        for index in stride(from: 0, to: pixels.count, by: 4) {
+            let (r, g, b, a) = (pixels[index], pixels[index + 1], pixels[index + 2], pixels[index + 3])
+            if a > 20, r < 230 || g < 230 || b < 230 { return true }
+        }
+        return false
+    }
 }
