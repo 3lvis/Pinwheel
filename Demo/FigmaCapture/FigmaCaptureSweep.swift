@@ -17,6 +17,7 @@ enum FigmaCatalog {
     // A tall render canvas so scrolling demos lay out fully, plus the one-screen height a full-screen
     // component centers into: the iPhone 17 content area between the plugin's 62pt status bar and 34pt
     // home indicator (874 − 62 − 34).
+    static let appName = "Pinwheel iOS"
     static let captureCanvas = CGSize(width: 402, height: 1600)
     static let oneScreen: CGFloat = 778
 
@@ -46,7 +47,7 @@ enum FigmaCatalog {
         guard let entry = entry(id: id),
               let document = PinDisplayListCapture.document(entry.item.swiftUIView(), name: entry.title, size: FigmaCatalog.captureCanvas, screenHeight: FigmaCatalog.oneScreen)
         else { return }
-        FigmaCaptureFile.pushCatalog(id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, document: document)
+        FigmaCaptureFile.pushCatalog(app: FigmaCatalog.appName, id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, document: document)
     }
 
     static var requestedCaptureID: String? {
@@ -92,7 +93,7 @@ struct FigmaCaptureSweepView: SwiftUI.View {
                     entry.item.swiftUIView(), name: entry.title, size: FigmaCatalog.captureCanvas, screenHeight: FigmaCatalog.oneScreen
                 ) else { return }
                 FigmaCaptureFile.pushCatalog(
-                    id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, document: document
+                    app: FigmaCatalog.appName, id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, document: document
                 )
             }
         }
