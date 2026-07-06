@@ -29,7 +29,11 @@ enum PinDisplayList {
     // layoutIfNeeded, and it captures every demo reliably (the async on-screen variant only existed for
     // an icon crop that never worked). The window is returned so the caller keeps it alive.
     static func read<Content: SwiftUI.View>(_ view: Content, size: CGSize) -> (leaves: [DisplayLeaf], host: UIView, window: UIWindow)? {
-        let controller = UIHostingController(rootView: view.environment(\.pinCapturing, true))
+        // Top-align in the host: the hosting controller centers a view that hugs its content, which
+        // floats a short component (e.g. an empty state) in the middle of the tall capture canvas.
+        // Filling demos (ScrollView) are unaffected.
+        let controller = UIHostingController(rootView: view.environment(\.pinCapturing, true)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top))
         let hostView: UIView = controller.view
         hostView.frame = CGRect(origin: .zero, size: size)
         let window = UIWindow(frame: hostView.frame)

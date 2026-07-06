@@ -8,7 +8,7 @@ struct PinStateViewDemo: SwiftUI.View {
         PinStateView(state) {
             state = DemoStateFixture.loading
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity)
         .background(.primaryBackground)
         .pinwheelTweaks {
             PinwheelTweak("Loading") { state = DemoStateFixture.loading }
