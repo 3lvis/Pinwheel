@@ -315,11 +315,27 @@ public enum PinDisplayListCapture {
             }
         }
         // A container: its own fill/radius (a pill or card) plus its children laid out.
+        let fill = fillColor(box.leaf.kind)
+        let token = fill.flatMap(tokenName(for:))
+        // A flat set of leaves that inference reads as one horizontal row but that stacks in several
+        // Y-bands is a vertical list whose rows overlap in Y (icon beside title) — a settings list with
+        // no per-row background. Emit it as a column of rows so the auto-layout import stacks them
+        // instead of collapsing them side by side. Each multi-leaf row keeps absolute internal positions
+        // (no layout) so a two-line row's title/subtitle stay stacked.
+        let bands = yBands(box.children)
+        if bands.count > 1, inferLayout(orderedForLayout(box.children).map(\.leaf.frame), in: frame).axis == .row {
+            let rowNodes = bands.map { $0.count == 1 ? emit($0[0], host: host) : absoluteRowGroup($0, host: host) }
+            let columnLayout = inferLayout(rowNodes.map { CGRect(x: CGFloat($0.x), y: CGFloat($0.y), width: CGFloat($0.w), height: CGFloat($0.h)) }, in: frame)
+            return FigmaNode(
+                tag: "frame", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
+                fill: fill.map(RGBA.init), fillToken: token,
+                radius: cornerRadius(box.leaf.kind).map(Double.init),
+                name: "Column", layout: FigmaLayout(columnLayout), ordered: true, children: rowNodes
+            )
+        }
         let orderedChildren = orderedForLayout(box.children)
         let childNodes = orderedChildren.map { emit($0, host: host) }
         let layout = inferLayout(orderedChildren.map(\.leaf.frame), in: frame)
-        let fill = fillColor(box.leaf.kind)
-        let token = fill.flatMap(tokenName(for:))
         return FigmaNode(
             tag: "frame", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
             fill: fill.map(RGBA.init), fillToken: token,
@@ -327,6 +343,29 @@ public enum PinDisplayListCapture {
             name: layout.axis == .row ? "Row" : "Column",
             layout: FigmaLayout(layout), ordered: true, children: childNodes
         )
+    }
+
+    // Cluster leaves into vertical bands: each band is the set of leaves that overlap in Y (one visual
+    // row). Consecutive bands don't overlap, so a parent laying them out is unambiguously a column.
+    private static func yBands(_ children: [Box]) -> [[Box]] {
+        let sorted = children.sorted { $0.leaf.frame.minY < $1.leaf.frame.minY }
+        var bands: [[Box]] = []
+        for box in sorted {
+            if !bands.isEmpty, let maxY = bands[bands.count - 1].map({ $0.leaf.frame.maxY }).max(), box.leaf.frame.minY < maxY - 1 {
+                bands[bands.count - 1].append(box)
+            } else {
+                bands.append([box])
+            }
+        }
+        return bands
+    }
+
+    // One row of a list: the leaves keep their absolute positions (no auto-layout) so the icon, the
+    // title/subtitle stack, and the trailing accessory land where they rendered.
+    private static func absoluteRowGroup(_ band: [Box], host: UIView) -> FigmaNode {
+        let union = band.map(\.leaf.frame).reduce(band[0].leaf.frame) { $0.union($1) }
+        let children = orderedForLayout(band).map { emit($0, host: host) }
+        return FigmaNode(tag: "frame", x: union.minX, y: union.minY, w: union.width, h: union.height, name: "Row", children: children)
     }
 
     private static func filledRect(_ frame: CGRect, radius: CGFloat?, color: UIColor?) -> FigmaNode {

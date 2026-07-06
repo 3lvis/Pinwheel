@@ -89,6 +89,22 @@ final class CaptureFidelityTests: XCTestCase {
         XCTAssertNil(PinViewReflector.reflect(Picker("choice", selection: .constant(0)) { Text("A").tag(0) }))
     }
 
+    // A settings list (PinList) must capture as a vertical column of rows. It regressed to a single
+    // horizontal row: PinList falls back to containment, its ungrouped leaves overlap in Y (icon beside
+    // title), so axis inference read the whole list as one row — and the Figma auto-layout import then
+    // laid every row left-to-right, off-screen (only the first row showed).
+    func testListCapturesAsAVerticalColumn() throws {
+        let list = PinList(state: .loaded, rows: [
+            .text("Account", icon: Image(systemName: "person.crop.circle.fill"), subtitle: "Signed in", chevron: true) {},
+            .text("Wi-Fi", icon: Image(systemName: "wifi"), detail: "Home", chevron: true) {},
+            .toggle("Airplane Mode", icon: Image(systemName: "airplane"), isOn: .constant(false)),
+        ], onRetry: {})
+        let document = try XCTUnwrap(PinDisplayListCapture.document(list, name: "List", size: CGSize(width: 402, height: 1600), screenHeight: 778),
+                                     "the list should capture into a document")
+        XCTAssertEqual(document.root.layout?.mode, "column",
+                       "a settings list must capture as a vertical column of rows, not one horizontal row")
+    }
+
     // A full-screen component (fills the height, content centered — an empty state) must capture as one
     // screen with the content centered, not float in the oversized render canvas. Regressed to the full
     // 1600pt canvas when a hugging/centered component was captured naively.
