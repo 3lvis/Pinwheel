@@ -89,11 +89,11 @@ final class CaptureFidelityTests: XCTestCase {
         XCTAssertNil(PinViewReflector.reflect(Picker("choice", selection: .constant(0)) { Text("A").tag(0) }))
     }
 
-    // A settings list (PinList) must capture as a vertical column of rows. It regressed to a single
-    // horizontal row: PinList falls back to containment, its ungrouped leaves overlap in Y (icon beside
-    // title), so axis inference read the whole list as one row — and the Figma auto-layout import then
-    // laid every row left-to-right, off-screen (only the first row showed).
-    func testListCapturesAsAVerticalColumn() throws {
+    // A settings list (PinList) is UITableView-backed; its rows fall back to containment and overlap in
+    // Y (icon beside title). It must capture with absolute positions — each row where it rendered — not
+    // as a reflowable auto-layout frame (the plugin reflowed it and misplaced icons/toggles onto the
+    // wrong rows) and not as one horizontal row (which collapsed every row off-screen).
+    func testListCapturesRowsAtTheirVerticalPositions() throws {
         let list = PinList(state: .loaded, rows: [
             .text("Account", icon: Image(systemName: "person.crop.circle.fill"), subtitle: "Signed in", chevron: true) {},
             .text("Wi-Fi", icon: Image(systemName: "wifi"), detail: "Home", chevron: true) {},
@@ -101,8 +101,23 @@ final class CaptureFidelityTests: XCTestCase {
         ], onRetry: {})
         let document = try XCTUnwrap(PinDisplayListCapture.document(list, name: "List", size: CGSize(width: 402, height: 1600), screenHeight: 778),
                                      "the list should capture into a document")
-        XCTAssertEqual(document.root.layout?.mode, "column",
-                       "a settings list must capture as a vertical column of rows, not one horizontal row")
+        XCTAssertNil(document.root.layout,
+                     "a list must capture with absolute positions, not a reflowable auto-layout frame")
+        XCTAssertTrue(allFrameNodes(in: document.root).allSatisfy { $0.layout == nil },
+                      "every list row must be absolute too, so the plugin doesn't reflow a two-line row's title/subtitle side by side")
+        let titleYs = allTextNodes(in: document.root).compactMap { node -> Double? in
+            (node.texts?.first?.text).flatMap { ["Account", "Wi-Fi", "Airplane Mode"].contains($0) ? node.y : nil }
+        }.sorted()
+        XCTAssertGreaterThan((titleYs.last ?? 0) - (titleYs.first ?? 0), 60,
+                             "list rows must stack vertically, not collapse onto one row")
+    }
+
+    private func allTextNodes(in node: FigmaNode) -> [FigmaNode] {
+        ((node.texts?.isEmpty == false) ? [node] : []) + node.children.flatMap { allTextNodes(in: $0) }
+    }
+
+    private func allFrameNodes(in node: FigmaNode) -> [FigmaNode] {
+        (node.tag == "frame" ? [node] : []) + node.children.flatMap { allFrameNodes(in: $0) }
     }
 
     // A list row's icon/chevron must capture its pixels. SwiftUI's renderer returns a blank placeholder

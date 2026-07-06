@@ -319,18 +319,18 @@ public enum PinDisplayListCapture {
         let token = fill.flatMap(tokenName(for:))
         // A flat set of leaves that inference reads as one horizontal row but that stacks in several
         // Y-bands is a vertical list whose rows overlap in Y (icon beside title) — a settings list with
-        // no per-row background. Emit it as a column of rows so the auto-layout import stacks them
-        // instead of collapsing them side by side. Each multi-leaf row keeps absolute internal positions
-        // (no layout) so a two-line row's title/subtitle stay stacked.
-        let bands = yBands(box.children)
-        if bands.count > 1, inferLayout(orderedForLayout(box.children).map(\.leaf.frame), in: frame).axis == .row {
+        // no per-row background. Emit it with absolute positions (no layout) so the plugin places each
+        // row where it rendered; an auto-layout frame reflows by spacing and misplaces the icons/toggles.
+        // Each row is grouped so it's a grabbable unit, also absolute so its title/subtitle stay stacked.
+        let listLeaves = flattenLeaves(box.children)
+        let bands = yBands(listLeaves)
+        if bands.count > 1, inferLayout(orderedForLayout(listLeaves).map(\.leaf.frame), in: frame).axis == .row {
             let rowNodes = bands.map { $0.count == 1 ? emit($0[0], host: host) : absoluteRowGroup($0, host: host) }
-            let columnLayout = inferLayout(rowNodes.map { CGRect(x: CGFloat($0.x), y: CGFloat($0.y), width: CGFloat($0.w), height: CGFloat($0.h)) }, in: frame)
             return FigmaNode(
                 tag: "frame", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
                 fill: fill.map(RGBA.init), fillToken: token,
                 radius: cornerRadius(box.leaf.kind).map(Double.init),
-                name: "Column", layout: FigmaLayout(columnLayout), ordered: true, children: rowNodes
+                name: "List", children: rowNodes
             )
         }
         let orderedChildren = orderedForLayout(box.children)
@@ -343,6 +343,12 @@ public enum PinDisplayListCapture {
             name: layout.axis == .row ? "Row" : "Column",
             layout: FigmaLayout(layout), ordered: true, children: childNodes
         )
+    }
+
+    // Flatten to leaf boxes, dropping intermediate containment groups — the list re-bands everything by
+    // row, so a pre-grouped two-line row's leaves rejoin their band instead of keeping an auto-layout box.
+    private static func flattenLeaves(_ boxes: [Box]) -> [Box] {
+        boxes.flatMap { $0.children.isEmpty ? [$0] : flattenLeaves($0.children) }
     }
 
     // Cluster leaves into vertical bands: each band is the set of leaves that overlap in Y (one visual
