@@ -8,6 +8,34 @@ struct PinButtonDemo: SwiftUI.View {
     var body: some SwiftUI.View {
         ScrollView {
             VStack(spacing: .spacingM) {
+                HStack(spacing: .spacingM) {
+                    PinButton("Cancel") {}.style(.secondary)
+                    PinButton("Pay") {}
+                }
+
+                HStack {
+                    PinButton("Back", systemImage: "chevron.left") {}.style(.tertiary)
+                    Spacer()
+                    PinButton("Skip") {}.style(.tertiary)
+                    PinButton("Next", systemImage: "arrow.right") {}
+                }
+
+                PinButton("Place order", systemImage: "checkmark") {}
+                    .frame(maxWidth: .infinity)
+
+                VStack(alignment: .leading, spacing: .spacingM) {
+                    PinLabel("Payment method").font(.subtitleSemibold)
+                    HStack(spacing: .spacingS) {
+                        PinButton("Card") {}.style(.secondary)
+                        PinButton("Cash") {}.style(.secondary)
+                        PinButton("Points") {}.style(.secondary)
+                    }
+                }
+                .padding(.spacingL)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.secondaryBackground)
+                .clipShape(RoundedRectangle(cornerRadius: .radiusM))
+
                 PinButton("Press me") {}
                     .disabled(isDisabled)
 
@@ -51,6 +79,7 @@ struct PinButtonDemo: SwiftUI.View {
                     .style(.custom(text: .green, background: .red))
                     .disabled(true)
             }
+            .padding(.horizontal, .spacingL)
             .padding(.vertical, .spacingXXL)
             .frame(maxWidth: .infinity)
         }
