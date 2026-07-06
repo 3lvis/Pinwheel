@@ -16,7 +16,10 @@ struct FigmaCatalogEntry {
 enum FigmaCatalog {
     static var entries: [FigmaCatalogEntry] {
         DemoPinwheelSections.all.flatMap { section in
-            section.items.map { item in
+            // UIKit-hosted views capture only as an opaque platform-view snapshot, not editable Figma
+            // nodes — keep them out of the capture catalog until that's decomposed. The app's own
+            // catalog still shows them.
+            section.items.filter { !$0.tags.contains(.uiKit) }.map { item in
                 FigmaCatalogEntry(
                     id: item.id, title: item.title, section: section.title,
                     tags: item.tags.map(\.rawValue), item: item
