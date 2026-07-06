@@ -33,6 +33,20 @@ final class CatalogCaptureUITests: XCTestCase {
                       "Numbers demo should render after the catalog opens it and runs capture")
     }
 
+    // The button demo folds the layout stressors into one screen — side-by-side rows, a
+    // space-between Spacer, and a filled/clipped card — so it's the richest capture fixture.
+    // Opening it guards the reflector/DisplayList against regressions on all of those as the
+    // shared capture engine evolves.
+    @MainActor
+    func testOpeningTheButtonDemoRunsCaptureWithoutCrashing() {
+        app.launch()
+        openCatalogItem(.button, .swiftUI, in: .components)
+        // The card renders — so the catalog opened the demo and the auto-push capture ran over
+        // its HStacks, Spacer, and clipped card without the reflector trapping.
+        XCTAssertTrue(app.staticTexts["Payment method"].waitForExistence(timeout: defaultTimeout),
+                      "Button demo should render after the catalog opens it and runs capture")
+    }
+
     // Matches items by stable id, not title, and scrolls the lazy list into range.
     @MainActor
     private func openCatalogItem(_ component: Catalog, _ tag: PinTag, in section: CatalogSection) {
