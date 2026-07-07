@@ -26,11 +26,11 @@ struct PinwheelPlayground: SwiftUI.View {
             // recurses SwiftUI's layout into a stack overflow (crashes on every
             // device pick). The pill rides the playground, not the FAB window, so
             // its transition scales in place instead of collapsing.
-            // A top safe-area inset seats the pill just under the status bar / Dynamic Island (the
-            // highest an app can go — the island itself is system-reserved) and pushes the component
-            // down, so the pill never overlaps its content.
-            .safeAreaInset(edge: .top, spacing: 0) {
-                PinwheelDevicePill()
+            // An overlay (not a safe-area inset) so the pill never pushes the content down. It sits just
+            // under the status bar / Dynamic Island and self-manages whether it covers content — see
+            // PinwheelDevicePill.
+            .overlay(alignment: .top) {
+                PinwheelDevicePill(previewMode: previewMode)
                     .padding(.top, .spacingS)
             }
             .onAppear {
@@ -138,18 +138,38 @@ struct PinwheelPlayground: SwiftUI.View {
 }
 
 // The component's name and capture version, shown as a pill on top of the playground so it reads the
-// same number the Figma plugin lists. When a device is simulated it also shows that, with a reset.
+// same number the Figma plugin lists. It never pushes content (it's an overlay); whether it *covers*
+// content is deliberate per its three roles:
+//   • Preview/sweep (`previewMode`): the screenshot indicator (name · variant · version) — stays put,
+//     covering is fine, the snapshot wants it.
+//   • A simulated device: stays put with its reset ✕ — the content shrinks (letterboxed), so it covers
+//     nothing.
+//   • Otherwise it's just the version indicator: show for a few seconds so the number registers, then
+//     fade away, leaving the content unobstructed.
 private struct PinwheelDevicePill: SwiftUI.View {
+    let previewMode: Bool
     @Environment(PinwheelChrome.self) private var chrome
+    @SwiftUI.State private var versionFaded = false
+
+    private var isVisible: Bool {
+        guard chrome.isPresentingItem, chrome.componentName != nil else { return false }
+        if previewMode || chrome.simulatedDevice != nil { return true }
+        return !versionFaded
+    }
 
     var body: some SwiftUI.View {
         ZStack {
-            if chrome.isPresentingItem, let name = chrome.componentName {
+            if isVisible, let name = chrome.componentName {
                 pill(name: name)
                     .transition(.scale.combined(with: .opacity))
             }
         }
-        .animation(.easeOut(duration: 0.22), value: chrome.isPresentingItem)
+        .animation(.easeOut(duration: 0.35), value: isVisible)
+        .task(id: chrome.componentID) {
+            versionFaded = false
+            try? await Task.sleep(for: .seconds(3))
+            versionFaded = true
+        }
     }
 
     private func pill(name: String) -> some SwiftUI.View {
