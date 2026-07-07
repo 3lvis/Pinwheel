@@ -51,6 +51,35 @@ final class CaptureFidelityTests: XCTestCase {
         node.texts?.first?.text ?? node.children.lazy.compactMap { self.text(of: $0) }.first
     }
 
+    // A column taller than the capture host must still capture every row. The live sweep host was pinned
+    // to the window, so a screen taller than the device (the button showcase) had its below-the-fold rows
+    // dropped from the DisplayList; the reflected tree then outnumbered the rendered leaves and the whole
+    // screen fell to the containment fallback, losing every PinButton pill. `LiveCaptureHost` now hosts at
+    // content height — this pins the height sensitivity that makes that necessary (the `size` height here
+    // is the same host-height lever).
+    func testTallColumnNeedsAContentHeightHostOrItDropsRowsToContainment() throws {
+        struct Tall: SwiftUI.View {
+            var body: some SwiftUI.View {
+                VStack(spacing: .spacingM) {
+                    ForEach(0..<12, id: \.self) { PinButton("Button \($0)") {} }
+                }
+                .padding(.spacingL)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            }
+        }
+        // Hosted at content height, every row renders, so the reflected tree matches the rendered leaves
+        // and the semantic reflection path emits the screen. `tag == "screen"` is that path — it can only
+        // be reached when nothing was dropped.
+        let tall = try XCTUnwrap(PinDisplayListCapture.document(Tall(), name: "Tall", size: CGSize(width: 402, height: 1600), screenHeight: 778)).root
+        XCTAssertEqual(tall.tag, "screen",
+                       "a tall column hosted at content height must capture via the reflection path — every row present, counts matched")
+        // Hosted shorter than the content, the below-the-fold rows drop, the reflected count outnumbers the
+        // rendered leaves, and the screen collapses to the containment fallback.
+        let clamped = try XCTUnwrap(PinDisplayListCapture.document(Tall(), name: "Tall", size: CGSize(width: 402, height: 400), screenHeight: 778)).root
+        XCTAssertEqual(clamped.tag, "frame",
+                       "a host shorter than the content drops rows into the containment fallback — the regression LiveCaptureHost's content-height sizing avoids")
+    }
+
     func testCornerAndSpacingReferenceDesignTokens() throws {
         let root = try captureRoot()
         let card = try XCTUnwrap(firstNode(in: root) { $0.fillToken == "secondaryBackground" },
