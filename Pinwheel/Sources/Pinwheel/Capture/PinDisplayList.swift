@@ -62,10 +62,10 @@ enum PinDisplayList {
         let wideLeaves = leaves.indices
             .filter { if case .rasterizable = leaves[$0].kind, leaves[$0].image == nil, leaves[$0].frame.width > 40 { return true }; return false }
             .sorted { leaves[$0].frame.minY < leaves[$1].frame.minY }
-        var controlByLeaf: [Int: String] = [:]
-        if wideLeaves.count == controlCrops.count {
-            for (order, index) in wideLeaves.enumerated() { controlByLeaf[index] = controlCrops[order] }
-        }
+        let controlByLeaf = matchedControlCrops(
+            wideLeaves: wideLeaves.map { (index: $0, frame: leaves[$0].frame) },
+            crops: controlCrops
+        )
         return leaves.enumerated().map { index, leaf in
             guard case .rasterizable = leaf.kind, leaf.image == nil else { return leaf }
             if let image = controlByLeaf[index] { var filled = leaf; filled.image = image; return filled }
@@ -81,7 +81,7 @@ enum PinDisplayList {
     // Real control pixels: find each top-level UIKit control in the on-screen key window and crop it from
     // a live-window render (drawHierarchy paints the actual control — state, knob, tint — that an
     // off-screen render can't). Don't recurse into a control (a stepper's ± are inner buttons).
-    private static func keyWindowControlCrops() -> [String] {
+    private static func keyWindowControlCrops() -> [(frame: CGRect, image: String)] {
         guard let window = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene })
             .flatMap({ $0.windows }).first(where: { $0.isKeyWindow }) else { return [] }
         // Settle layout so control frames are final — mid-layout frames sort wrong and misassign crops.
@@ -104,9 +104,33 @@ enum PinDisplayList {
         return controls.compactMap { control in
             let frame = control.convert(control.bounds, to: window)
             let rect = CGRect(x: frame.minX * scale, y: frame.minY * scale, width: frame.width * scale, height: frame.height * scale)
-            guard let crop = cgImage.cropping(to: rect) else { return nil }
-            return UIImage(cgImage: crop).pngData()?.base64EncodedString()
+            guard let crop = cgImage.cropping(to: rect),
+                  let image = UIImage(cgImage: crop).pngData()?.base64EncodedString() else { return nil }
+            return (frame: frame, image: image)
         }
+    }
+
+    // Assign the live control crops to the wide rasterizable leaves — but only when the crops are
+    // actually this component's controls. The capture host and the live window lay the component out
+    // identically, so the on-screen controls sit at the leaf positions shifted by a *constant* (the two
+    // windows' insets differ slightly). Same count and a consistent shift ⇒ same component ⇒ assign by
+    // vertical order. If the shift isn't consistent, the controls belong to another on-screen surface —
+    // an incidental capture from the catalog — so reject them all and let each leaf fall back to the
+    // safe host-layer crop. Guards the v7 corruption, where capturing from the catalog assigned catalog
+    // rows to the controls by blind order — see Tests/PinwheelTests/Fixtures/apple-controls-v7-corruption.png.
+    static func matchedControlCrops(
+        wideLeaves: [(index: Int, frame: CGRect)],
+        crops: [(frame: CGRect, image: String)],
+        tolerance: CGFloat = 12
+    ) -> [Int: String] {
+        guard !wideLeaves.isEmpty, wideLeaves.count == crops.count else { return [:] }
+        let leaves = wideLeaves.sorted { $0.frame.minY < $1.frame.minY }
+        let sortedCrops = crops.sorted { $0.frame.minY < $1.frame.minY }
+        let shifts = zip(leaves, sortedCrops).map { $1.frame.minY - $0.frame.minY }
+        guard let base = shifts.first, shifts.allSatisfy({ abs($0 - base) <= tolerance }) else { return [:] }
+        var result: [Int: String] = [:]
+        for (leaf, crop) in zip(leaves, sortedCrops) { result[leaf.index] = crop.image }
+        return result
     }
 
     private static func displayList(of hostingView: Any) -> Any? {
