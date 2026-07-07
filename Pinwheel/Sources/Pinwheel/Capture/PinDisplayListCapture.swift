@@ -13,7 +13,11 @@ public enum PinDisplayListCapture {
     /// false: the key window is some other surface, and cropping it would put foreign pixels on the
     /// controls. Off-screen controls then fall back to their (flat) host-layer render.
     public static func document<Content: SwiftUI.View>(_ view: Content, name: String, size: CGSize, screenHeight: CGFloat, liveControlsOnScreen: Bool = false) -> FigmaDocument? {
-        guard let light = singleDocument(view, name: name, size: size, screenHeight: screenHeight, liveControlsOnScreen: liveControlsOnScreen) else { return nil }
+        // Force each pass's appearance so capture is deterministic regardless of the simulator's
+        // current setting. Left to the ambient trait, a sweep run while the sim is dark renders the
+        // "light" pass dark — a token then resolves to its dark value and RGBA-matches the wrong token
+        // (a white primaryText matches primaryBackground's light white), which imports invisible.
+        guard let light = singleDocument(view.environment(\.colorScheme, .light), name: name, size: size, screenHeight: screenHeight, liveControlsOnScreen: liveControlsOnScreen) else { return nil }
         // Rasterized nodes (SF Symbols, spinners) bake their appearance-dependent tint into fixed
         // pixels, so a light-only PNG imports wrong into Figma's dark mode. Render the same view once
         // more forced dark and graft each rasterized node's dark pixels onto its light twin — mirroring
