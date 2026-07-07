@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 import Pinwheel
 
-// SwiftUI → the JSON IR the fonno Figma plugin imports. See SPIKE-FIGMA-CAPTURE.md.
+// SwiftUI → the JSON IR the Figma plugin imports. See SPIKE-FIGMA-CAPTURE.md.
 
 enum FigmaCaptureFormat {
     // Bump when the IR shape changes; the plugin flags a capture whose version it doesn't expect.

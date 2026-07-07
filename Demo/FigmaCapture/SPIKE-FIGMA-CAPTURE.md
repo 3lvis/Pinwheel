@@ -1,14 +1,14 @@
 # SwiftUI → Figma capture
 
-Serializes a Pinwheel screen into the **same JSON** fonno's Figma plugin imports
-(`fonno/frontend/tools/figma-capture/plugin/code.ts`), so that plugin — which builds Figma
-component masters/instances, binds token variables, and creates text styles — is reused
-unchanged. Source stays the design source of truth; Figma becomes the playground.
+Serializes a Pinwheel screen into the **same JSON** the Figma plugin imports
+(`figma-plugin/code.ts`), so that plugin — which builds Figma component masters/instances,
+binds token variables, and creates text styles — is reused unchanged. Source stays the design
+source of truth; Figma becomes the playground.
 
 ## What it does
 
 Capture is a side effect of *rendering* — a component wrapped in `FigmaCaptureHost` reads its
-own `PinCaptureKey` descriptors, resolves each anchor to a frame, writes fonno's IR to
+own `PinCaptureKey` descriptors, resolves each anchor to a frame, writes the plugin's IR to
 `Documents/figma-capture.json`, and pushes it to the local capture serve, on appear. No special
 launch mode: just render it, via the **Screens** section of the catalog or an isolated preview
 deep-link.
