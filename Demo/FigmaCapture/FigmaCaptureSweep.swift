@@ -83,10 +83,20 @@ enum FigmaCatalog {
 // then merged, so every control and colour adapts from the same reliable render.
 struct FigmaCaptureSweepView: SwiftUI.View {
     let id: String
+    @State private var summary: String?
 
     var body: some SwiftUI.View {
         if let entry = FigmaCatalog.entry(id: id) {
-            LiveCaptureHost(entry: entry).ignoresSafeArea()
+            LiveCaptureHost(entry: entry) { document in summary = document.captureSummary }
+                .ignoresSafeArea()
+                .overlay(alignment: .top) {
+                    // A UI test reads this to assert the captured screen kept its content — a tall screen
+                    // that dropped to the containment fallback loses its pills. Only in UI-test runs, and
+                    // it rides the outer view (not the hosted content), so it never enters a real capture.
+                    if ProcessInfo.processInfo.arguments.contains("-UITesting"), let summary {
+                        Text(summary).accessibilityIdentifier("capture.summary").opacity(0.02)
+                    }
+                }
         } else {
             Color.clear
         }
@@ -95,6 +105,7 @@ struct FigmaCaptureSweepView: SwiftUI.View {
 
 private struct LiveCaptureHost: UIViewControllerRepresentable {
     let entry: FigmaCatalogEntry
+    var onCaptured: ((FigmaDocument) -> Void)?
 
     func makeUIViewController(context: Context) -> UIViewController {
         let container = UIViewController()
@@ -136,6 +147,7 @@ private struct LiveCaptureHost: UIViewControllerRepresentable {
         guard let document = PinDisplayListCapture.document(
             entry.item.swiftUIView(), name: entry.title, size: size, screenHeight: FigmaCatalog.oneScreen, liveHost: host.view
         ) else { return }
+        onCaptured?(document)
         let version = PinCaptureVersions.shared.record(id: entry.id, document: document)
         FigmaCaptureFile.pushCatalog(
             app: FigmaCatalog.appName, id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, version: version, document: document

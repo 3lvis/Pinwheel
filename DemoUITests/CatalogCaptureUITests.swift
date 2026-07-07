@@ -33,6 +33,29 @@ final class CatalogCaptureUITests: XCTestCase {
                       "Numbers demo should render after the catalog opens it and runs capture")
     }
 
+    // KEEP: guards the live-sweep host sizing, which no unit can reach. `LiveCaptureHost` sizes the
+    // on-screen host to `max(screen, content)` so a screen taller than the device (the button showcase)
+    // renders every row into the DisplayList; clamped to the window, the below-the-fold rows drop, the
+    // reflected count outnumbers the rendered leaves, and the whole screen falls to the containment
+    // fallback — losing every pill. That sizing lives in the Demo target and only manifests through the
+    // real `-PinwheelCapture` render, so a library unit test (CaptureFidelityTests) can pin the
+    // height-sensitivity mechanism but not this. Drives the actual sweep and asserts the captured screen
+    // kept its content.
+    @MainActor
+    func testSweepCapturingTheTallButtonScreenKeepsEveryPill() {
+        app.launchArguments += ["-PinwheelCapture", Catalog.button.id(.swiftUI)]
+        app.launch()
+        let summary = app.staticTexts["capture.summary"]
+        // Generous only as a failure ceiling: the sweep renders the screen and runs the capture first.
+        XCTAssertTrue(summary.waitForExistence(timeout: 20), "the sweep capture should publish its summary")
+        let label = summary.label
+        XCTAssertTrue(label.contains("tag=screen"),
+                      "the tall button screen must capture via the reflection path, not the containment fallback — got \(label)")
+        let pills = label.components(separatedBy: "pills=").last.flatMap { Int($0.trimmingCharacters(in: .whitespaces)) } ?? 0
+        XCTAssertGreaterThanOrEqual(pills, 10,
+                                    "every button pill must be captured (the demo has ~17); a window-clamped host drops all but one — got \(label)")
+    }
+
     // Matches items by stable id, not title, and scrolls the lazy list into range.
     @MainActor
     private func openCatalogItem(_ component: Catalog, _ tag: PinTag, in section: CatalogSection) {

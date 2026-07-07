@@ -16,6 +16,17 @@ public struct FigmaDocument: Encodable {
     let root: FigmaNode
     let tokens: [FigmaToken]
     let textStyles: [FigmaTextStyle]
+
+    // A compact capture diagnostic (`FigmaNode` is internal, so the walk lives here): whether the screen
+    // captured via the semantic reflection path and how many filled pills it kept. A UI test asserts on it
+    // to catch a screen that dropped to the containment fallback and lost its content.
+    public var captureSummary: String {
+        func pillCount(_ node: FigmaNode) -> Int {
+            let here = (node.fill != nil && node.h > 30 && node.tag != "screen") ? 1 : 0
+            return node.children.reduce(here) { $0 + pillCount($1) }
+        }
+        return "tag=\(root.tag) pills=\(pillCount(root))"
+    }
 }
 
 struct FigmaNode: Encodable {
