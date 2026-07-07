@@ -43,6 +43,29 @@ public enum PinDisplayListCapture {
         return node
     }
 
+    /// Graft the dark-appearance crops of live UIKit controls from a second, dark-screen capture onto a
+    /// light one. A control (a UISwitch) renders its real knob/state only on the live window, so its dark
+    /// variant can't come from the off-screen dark pass — the sweep captures the whole screen a second
+    /// time in dark and hands that document here. Only wide image nodes (the cropped controls) are
+    /// overridden; narrow images (symbols/icons) keep the off-screen dark variant `document` already gave
+    /// them. Off-screen content (colors, text, separators) stays entirely from `light`.
+    public static func graftingLiveControlDarkImages(onto light: FigmaDocument, from dark: FigmaDocument) -> FigmaDocument {
+        FigmaDocument(width: light.width, height: light.height, root: graftWideControlImages(light.root, dark.root),
+                      tokens: light.tokens, textStyles: light.textStyles)
+    }
+
+    private static func graftWideControlImages(_ light: FigmaNode, _ dark: FigmaNode?) -> FigmaNode {
+        var node = light
+        // A cropped live control is a wide image; a symbol/icon is a narrow one (≤40pt) whose dark
+        // variant the off-screen pass already captured correctly.
+        if node.image != nil, node.w > 40, let darkImage = dark?.image { node.imageDark = darkImage }
+        let darkChildren = dark?.children ?? []
+        node.children = light.children.enumerated().map { index, child in
+            graftWideControlImages(child, index < darkChildren.count ? darkChildren[index] : nil)
+        }
+        return node
+    }
+
     private static func singleDocument<Content: SwiftUI.View>(_ view: Content, name: String, size: CGSize, screenHeight: CGFloat, liveControlsOnScreen: Bool) -> FigmaDocument? {
         guard let (leaves, host, window) = PinDisplayList.read(view, size: size, liveControlsOnScreen: liveControlsOnScreen) else { return nil }
         return withExtendedLifetime(window) { build(view, name: name, leaves: leaves, host: host, size: size, screenHeight: screenHeight) }

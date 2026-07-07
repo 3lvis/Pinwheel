@@ -78,29 +78,51 @@ enum FigmaCatalog {
 
 struct FigmaCaptureSweepView: SwiftUI.View {
     let id: String
+    @SwiftUI.State private var captureScheme: ColorScheme = .light
+    @SwiftUI.State private var lightDocument: FigmaDocument?
     @SwiftUI.State private var pushed = false
 
     var body: some SwiftUI.View {
         Group {
             if let entry = FigmaCatalog.entry(id: id) { entry.item.swiftUIView() } else { Color.clear }
         }
-        .onAppear {
-            guard !pushed, let entry = FigmaCatalog.entry(id: id) else { return }
-            pushed = true
-            // Capture after the component paints on-screen: UIKit controls (a UISwitch's real state/knob)
-            // only render on the live window, which the capture crops for those leaves.
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                guard let document = PinDisplayListCapture.document(
-                    entry.item.swiftUIView(), name: entry.title, size: FigmaCatalog.captureCanvas, screenHeight: FigmaCatalog.oneScreen,
-                    // This view presents the component full-screen, so its UIKit controls are the live
-                    // key-window content — safe to crop them for their real state/knob.
-                    liveControlsOnScreen: true
-                ) else { return }
-                let version = PinCaptureVersions.shared.record(id: entry.id, document: document)
-                FigmaCaptureFile.pushCatalog(
-                    app: FigmaCatalog.appName, id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, version: version, document: document
-                )
-            }
+        // Drives the on-screen appearance so a live UIKit control (a UISwitch's knob only renders on the
+        // window) is cropped in the appearance being captured.
+        .preferredColorScheme(captureScheme)
+        .onAppear { captureLightPass() }
+    }
+
+    // A UIKit control only renders its real state on the live window, so its dark variant can't come from
+    // the off-screen dark pass — capture the whole screen twice (light, then dark) and graft the dark
+    // control crops onto the light document. Off-screen content (colors/symbols/separators) already
+    // carries both appearances from `document`'s own light/dark render.
+    private func captureLightPass() {
+        guard !pushed, let entry = FigmaCatalog.entry(id: id) else { return }
+        pushed = true
+        // Capture after the component paints on-screen (a UISwitch renders its knob only once on-window).
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            lightDocument = capture(entry)
+            captureScheme = .dark
+            captureDarkPass(entry)
         }
+    }
+
+    private func captureDarkPass(_ entry: FigmaCatalogEntry) {
+        // Let the dark appearance take effect on-screen before cropping the controls again.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            guard let light = lightDocument, let dark = capture(entry) else { return }
+            let document = PinDisplayListCapture.graftingLiveControlDarkImages(onto: light, from: dark)
+            let version = PinCaptureVersions.shared.record(id: entry.id, document: document)
+            FigmaCaptureFile.pushCatalog(
+                app: FigmaCatalog.appName, id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, version: version, document: document
+            )
+        }
+    }
+
+    private func capture(_ entry: FigmaCatalogEntry) -> FigmaDocument? {
+        PinDisplayListCapture.document(
+            entry.item.swiftUIView(), name: entry.title, size: FigmaCatalog.captureCanvas, screenHeight: FigmaCatalog.oneScreen,
+            liveControlsOnScreen: true
+        )
     }
 }

@@ -425,6 +425,27 @@ final class CaptureFidelityTests: XCTestCase {
                       "the dark separator must differ from the light one, not repeat the light value")
     }
 
+    // A live UIKit control renders its state only on-screen, so the sweep captures a second dark-screen
+    // pass and grafts those crops. The graft must override only wide (control) images — a narrow symbol
+    // keeps the dark variant the off-screen pass already gave it. This threshold is what tells them apart.
+    func testGraftingDarkImagesOverridesWideControlsButNotNarrowSymbols() {
+        func document(control: String, symbol: String) -> FigmaDocument {
+            let control = FigmaNode(tag: "image", x: 0, y: 0, w: 51, h: 31, image: control, children: [])
+            let symbol = FigmaNode(tag: "image", x: 0, y: 40, w: 20, h: 20, image: symbol, children: [])
+            return FigmaDocument(width: 100, height: 100,
+                                 root: FigmaNode(tag: "frame", x: 0, y: 0, w: 100, h: 100, children: [control, symbol]),
+                                 tokens: [], textStyles: [])
+        }
+        let merged = PinDisplayListCapture.graftingLiveControlDarkImages(
+            onto: document(control: "switch-light", symbol: "icon-light"),
+            from: document(control: "switch-dark", symbol: "icon-dark")
+        )
+        XCTAssertEqual(merged.root.children[0].imageDark, "switch-dark",
+                       "a wide live control must take the dark-screen crop as its dark variant")
+        XCTAssertNil(merged.root.children[1].imageDark,
+                     "a narrow symbol must keep the off-screen dark variant, not the second-pass crop")
+    }
+
     private func averageOpaqueBrightness(_ image: UIImage) -> Int {
         guard let cg = image.cgImage else { return -1 }
         let width = cg.width, height = cg.height
