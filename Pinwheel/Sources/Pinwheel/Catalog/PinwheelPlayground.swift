@@ -162,14 +162,17 @@ private struct PinwheelDevicePill: SwiftUI.View {
             if isVisible, let name = chrome.componentName {
                 pill(name: name)
                     .transition(.scale.combined(with: .opacity))
+                    // Time the fade from when the pill is actually on screen — not when the playground is
+                    // constructed (which can be a beat before it's presented, spending the window unseen).
+                    .task {
+                        try? await Task.sleep(for: .seconds(4))
+                        versionFaded = true
+                    }
             }
         }
         .animation(.easeOut(duration: 0.35), value: isVisible)
-        .task(id: chrome.componentID) {
-            versionFaded = false
-            try? await Task.sleep(for: .seconds(3))
-            versionFaded = true
-        }
+        // A newly-opened component shows its version again.
+        .onChange(of: chrome.componentID) { versionFaded = false }
     }
 
     private func pill(name: String) -> some SwiftUI.View {
