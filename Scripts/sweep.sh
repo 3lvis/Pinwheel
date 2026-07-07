@@ -93,29 +93,81 @@ dump_ids() {
   python3 -c "import json; print('\n'.join(item['id'] for item in json.load(open('${manifest}'))))"
 }
 
-run_capture() {
+# Launch each component once and let it push its single-appearance capture to the serve.
+capture_round() {
   local -a ids=("$@")
-  local id count
-  curl -sf -o /dev/null "${SERVE}/manifest.json" \
-    || die "--capture needs the serve at ${SERVE} — run 'npm run figma:serve' in fonno/frontend"
-  err "clearing previous catalog on serve ..."
-  curl -sf -X DELETE "${SERVE}/catalog" >/dev/null
-  # Rasterised native bits (switches, symbols) are photographed in the sim's appearance;
-  # capture in light so they match the plugin's default (light) variable mode.
-  xcrun simctl ui "${UDID}" appearance light >/dev/null 2>&1 || true
-  err "capturing ${#ids[@]} components ..."
-  # If captures start dropping controls from a screen (a control-heavy screen imports with only its
-  # labels), the SIMULATOR's render server is crufted from hundreds of prior heavy captures — reboot it
-  # (`xcrun simctl shutdown <udid> && xcrun simctl boot <udid>`), don't chase it in the capture code.
-  # A ~20s idle also recovers it; a fresh boot is the reliable reset.
+  local id
   for id in "${ids[@]}"; do
     xcrun simctl terminate "${UDID}" "${BUNDLE_ID}" >/dev/null 2>&1 || true
     xcrun simctl launch "${UDID}" "${BUNDLE_ID}" -PinwheelCapture "${id}" >/dev/null 2>&1
     sleep 3   # let layout, rasterisation, and the push complete
     echo "  ok: ${id}"
   done
+}
+
+run_capture() {
+  local -a ids=("$@")
+  local count light_dir="/tmp/pinwheel-sweep-light"
+  curl -sf -o /dev/null "${SERVE}/manifest.json" \
+    || die "--capture needs the serve at ${SERVE} — run 'npm run figma:serve' in fonno/frontend"
+  err "clearing previous catalog on serve ..."
+  curl -sf -X DELETE "${SERVE}/catalog" >/dev/null
+  # A UIKit control (switch/segmented/slider/stepper/progress/datepicker) only renders in the SIM's
+  # appearance — no in-app override repaints it — so capture the whole sweep twice, sim light then sim
+  # dark, and merge the dark crops in as each node's dark variant. Reboot first: a batch of heavy
+  # captures exhausts the render server and it starts dropping controls; a fresh boot is the reset.
+  err "rebooting simulator for a clean render server ..."
+  xcrun simctl shutdown "${UDID}" >/dev/null 2>&1 || true
+  xcrun simctl boot "${UDID}" >/dev/null 2>&1 || true
+  xcrun simctl bootstatus "${UDID}" -b >/dev/null 2>&1 || true
+
+  rm -rf "${light_dir}"; mkdir -p "${light_dir}"
+  err "capturing ${#ids[@]} components (light) ..."
+  xcrun simctl ui "${UDID}" appearance light >/dev/null 2>&1 || true
+  capture_round "${ids[@]}"
+  # Save every light document before the dark round overwrites it on the serve.
+  python3 - "${SERVE}" "${light_dir}" <<'PY'
+import json, sys, os, urllib.request
+serve, out = sys.argv[1], sys.argv[2]
+items = json.load(urllib.request.urlopen(serve + '/manifest.json'))['items']
+for item in items:
+    data = urllib.request.urlopen(serve + '/' + item['file']).read()
+    open(os.path.join(out, item['id'] + '.json'), 'wb').write(data)
+PY
+
+  err "capturing ${#ids[@]} components (dark) ..."
+  xcrun simctl ui "${UDID}" appearance dark >/dev/null 2>&1 || true
+  capture_round "${ids[@]}"
+  # Graft the dark render's pixels/fills onto the saved light document (matched by position, same view)
+  # and re-push the merged entry, so every node — controls included — carries both appearances.
+  err "merging light + dark ..."
+  python3 - "${SERVE}" "${light_dir}" <<'PY'
+import json, sys, os, urllib.request
+serve, saved = sys.argv[1], sys.argv[2]
+def graft(light, dark):
+    if dark is not None:
+        if light.get('image') is not None: light['imageDark'] = dark.get('image')
+        if light.get('fill') is not None: light['fillDark'] = dark.get('fill')
+    darkKids = (dark or {}).get('children') or []
+    for i, child in enumerate(light.get('children') or []):
+        graft(child, darkKids[i] if i < len(darkKids) else None)
+items = json.load(urllib.request.urlopen(serve + '/manifest.json'))['items']
+for item in items:
+    path = os.path.join(saved, item['id'] + '.json')
+    if not os.path.exists(path):
+        continue
+    light = json.load(open(path))
+    dark = json.load(urllib.request.urlopen(serve + '/' + item['file']))
+    graft(light['document']['root'], dark['document']['root'])
+    body = json.dumps({k: light[k] for k in ('app', 'id', 'title', 'section', 'tags', 'version', 'document')}).encode()
+    req = urllib.request.Request(serve + '/catalog', data=body, headers={'Content-Type': 'application/json'}, method='POST')
+    urllib.request.urlopen(req).read()
+    print('  merged: ' + item['id'])
+PY
+
+  xcrun simctl ui "${UDID}" appearance light >/dev/null 2>&1 || true
   count="$(curl -sf "${SERVE}/manifest.json" | python3 -c "import json,sys; print(len(json.load(sys.stdin)['items']))")"
-  err "captured ${count} components — open the plugin's Catalog to import any."
+  err "captured ${count} components (light + dark merged) — open the plugin's Catalog to import any."
 }
 
 run_preview() {

@@ -120,24 +120,15 @@ private struct LiveCaptureHost: UIViewControllerRepresentable {
 
     private func capture(host: UIViewController) {
         let size = host.view.bounds.size
-        host.overrideUserInterfaceStyle = .light
         host.view.layoutIfNeeded()
-        guard let light = PinDisplayListCapture.document(
+        // Capture a single document in the *simulator's* current appearance — UIKit controls only render
+        // in the sim's appearance, so the sweep runs twice (sim light, then sim dark) and merges the two.
+        guard let document = PinDisplayListCapture.document(
             entry.item.swiftUIView(), name: entry.title, size: size, screenHeight: FigmaCatalog.oneScreen, liveHost: host.view
         ) else { return }
-        host.overrideUserInterfaceStyle = .dark
-        // Let the dark appearance repaint on-screen before the second read.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-            host.view.layoutIfNeeded()
-            guard let dark = PinDisplayListCapture.document(
-                entry.item.swiftUIView(), name: entry.title, size: size, screenHeight: FigmaCatalog.oneScreen, liveHost: host.view
-            ) else { return }
-            let document = PinDisplayListCapture.mergingDarkVariants(light: light, dark: dark)
-            let version = PinCaptureVersions.shared.record(id: entry.id, document: document)
-            FigmaCaptureFile.pushCatalog(
-                app: FigmaCatalog.appName, id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, version: version, document: document
-            )
-            host.overrideUserInterfaceStyle = .unspecified
-        }
+        let version = PinCaptureVersions.shared.record(id: entry.id, document: document)
+        FigmaCaptureFile.pushCatalog(
+            app: FigmaCatalog.appName, id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, version: version, document: document
+        )
     }
 }

@@ -28,24 +28,15 @@ public enum PinDisplayListCapture {
                              tokens: light.tokens, textStyles: light.textStyles)
     }
 
-    /// Capture from an already-hosted, on-screen view (a full-screen sweep) instead of a throwaway
-    /// off-screen copy. The live render is complete — every UIKit control has painted — so nothing drops;
-    /// the caller flips the host's appearance and calls this once per appearance, then merges with
-    /// `mergingDarkVariants`.
+    /// Capture from an already-hosted, on-screen view (a full-screen sweep) in the simulator's current
+    /// appearance. The live render is complete — every UIKit control has painted — so nothing drops, and a
+    /// control is cropped in whatever appearance the sim is set to. The sweep calls this once per sim
+    /// appearance (light, then dark) and merges the two documents itself.
     public static func document<Content: SwiftUI.View>(_ view: Content, name: String, size: CGSize, screenHeight: CGFloat, liveHost: UIView) -> FigmaDocument? {
-        // The host is on-screen and fully rendered, so its own layer render already captures each control
-        // (knob and all) — no need for the expensive key-window `drawHierarchy` crop, which hammered the
-        // render server and exhausted it across a batch.
-        guard let leaves = PinDisplayList.leaves(fromHost: liveHost, liveControlsOnScreen: false) else { return nil }
+        // Crop live controls via the key window's `drawHierarchy` — it paints them in the sim's current
+        // appearance (a plain layer render returns a control's stale pixels).
+        guard let leaves = PinDisplayList.leaves(fromHost: liveHost, liveControlsOnScreen: true) else { return nil }
         return build(view, name: name, leaves: leaves, host: liveHost, size: size, screenHeight: screenHeight)
-    }
-
-    /// Merge a dark-appearance capture into a light one: each node's dark pixels (imageDark) and dark fill
-    /// (fillDark) come from its dark twin. Both captures are the same view + size, so the trees zip by
-    /// position. The plugin prefers a token's dark value, falling back to these for untokenized colors.
-    public static func mergingDarkVariants(light: FigmaDocument, dark: FigmaDocument) -> FigmaDocument {
-        FigmaDocument(width: light.width, height: light.height, root: withDarkVariants(light.root, dark.root),
-                      tokens: light.tokens, textStyles: light.textStyles)
     }
 
     // Graft each node's dark appearance onto its light twin: dark pixels for a rasterized node, and the
