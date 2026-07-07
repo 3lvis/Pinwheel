@@ -343,6 +343,22 @@ final class CaptureFidelityTests: XCTestCase {
         let root = try XCTUnwrap(document, "the full-screen component should capture into a document").root
         XCTAssertEqual(root.h, 778, accuracy: 1, "a centered full-screen component must capture as one screen, not the tall canvas")
     }
+
+    // PinStateView reflects as a single leaf but renders several (title + subtitle), so it can't take the
+    // reflection path and falls to containment. Its centered empty state must still capture centered in
+    // one screen, not top-anchored to the bottom. (The lone-PinLabel case above takes the reflection
+    // path, so it never guarded the fallback centering — this does.)
+    func testCenteredComponentCentersEvenViaTheContainmentFallback() throws {
+        let view = PinStateView(.empty(title: "Ready to Move?", subtitle: "Kick things off with your first booking."))
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(.primaryBackground)
+        let root = try XCTUnwrap(PinDisplayListCapture.document(view, name: "StateView", size: CGSize(width: 402, height: 1600), screenHeight: 778),
+                                 "the state view should capture into a document").root
+        XCTAssertEqual(root.h, 778, accuracy: 1,
+                       "a centered full-screen component must center in one screen even when it falls to containment")
+        XCTAssertLessThan(root.layout?.pad.first ?? 0, 778 * 0.6,
+                          "the content must be centered, not top-anchored toward the bottom")
+    }
     // The icon crop must contain the rendered symbol, not the blank safe-area strip above it. The host
     // layer renders with the safe-area inset the DisplayList frames omit, so cropping at the bare frame
     // grabbed the empty region above the content (icons came out blank / shifted a row in Figma).

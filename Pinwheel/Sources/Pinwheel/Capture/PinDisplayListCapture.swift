@@ -51,6 +51,16 @@ public enum PinDisplayListCapture {
         }
 
         var rootNode = emit(root, host: host)
+        // A full-screen component whose content sits centered in the tall canvas (an empty state) fell to
+        // the containment fallback — a component that reflects as one leaf but renders several (PinStateView)
+        // can't take the reflection path. Re-center it in one screen; the fallback would otherwise
+        // top-anchor it and push it to the bottom. Top-anchored content isn't centered-in-canvas, so this
+        // is a no-op for it.
+        let minY = components.map { $0.leaf.frame.minY }.min() ?? 0
+        let maxY = components.map { $0.leaf.frame.maxY }.max() ?? 0
+        if abs((minY + maxY) / 2 - size.height / 2) < screenHeight / 4, (maxY - minY) < screenHeight {
+            rootNode = screen(rootNode, width: size.width, fill: screenFill, components: components, canvasHeight: size.height, oneScreen: screenHeight)
+        }
         rootNode.name = name
         return FigmaDocument(width: size.width, height: rootNode.h, root: rootNode, tokens: colorTokens + PinFloatTokens.tokens, textStyles: [])
     }
