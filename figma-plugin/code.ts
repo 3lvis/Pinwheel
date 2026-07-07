@@ -166,12 +166,18 @@ async function makeText(run: any, font: any): Promise<TextNode> {
     const letterSpacing: LetterSpacing = { value: font.letterSpacing, unit: 'PIXELS' }
     text.letterSpacing = letterSpacing
   }
-  text.textAutoResize = 'WIDTH_AND_HEIGHT'
-  // Pin the line box to the device-captured height so vertical centering lands where iOS drew it —
-  // Figma's SF Pro Rounded line box is a hair taller than iOS's, which floats centered text ~1pt.
-  // (The vertical analog of calibrateWidth.)
-  if (typeof run.h === 'number' && run.h > 0) {
-    text.lineHeight = { value: run.h, unit: 'PIXELS' }
+  // A label captured taller than a single line wrapped on device (its height is N line boxes). Pin the
+  // captured width and let the height grow so Figma re-wraps it the same way, instead of laying it out on
+  // one line that overflows the frame. A single-line label hugs and pins its line box to the captured
+  // height so vertical centering lands where iOS drew it (Figma's SF Pro line box is a hair taller).
+  if (typeof run.w === 'number' && run.w > 0 && typeof run.h === 'number' && run.h > font.size * 1.5) {
+    text.textAutoResize = 'HEIGHT'
+    text.resize(run.w, text.height)
+  } else {
+    text.textAutoResize = 'WIDTH_AND_HEIGHT'
+    if (typeof run.h === 'number' && run.h > 0) {
+      text.lineHeight = { value: run.h, unit: 'PIXELS' }
+    }
   }
   return text
 }
