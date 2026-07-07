@@ -68,7 +68,14 @@ enum PinDisplayList {
         )
         return leaves.enumerated().map { index, leaf in
             guard case .rasterizable = leaf.kind, leaf.image == nil else { return leaf }
-            if let image = controlByLeaf[index] { var filled = leaf; filled.image = image; return filled }
+            if let crop = controlByLeaf[index] {
+                // Size the leaf to the real control bounds. SwiftUI's DisplayList undersizes a platform
+                // view (the date picker captures 16pt narrower than it draws), so keeping the placeholder
+                // frame would crop the live crop under the plugin's FILL. Keep the laid-out origin.
+                var filled = DisplayLeaf(frame: CGRect(origin: leaf.frame.origin, size: crop.frame.size), kind: leaf.kind)
+                filled.image = crop.image
+                return filled
+            }
             let rect = CGRect(x: (leaf.frame.minX + inset.left) * scale, y: (leaf.frame.minY + inset.top) * scale,
                               width: leaf.frame.width * scale, height: leaf.frame.height * scale)
             guard rect.width >= 1, rect.height >= 1, let crop = cgImage.cropping(to: rect) else { return leaf }
@@ -122,14 +129,14 @@ enum PinDisplayList {
         wideLeaves: [(index: Int, frame: CGRect)],
         crops: [(frame: CGRect, image: String)],
         tolerance: CGFloat = 12
-    ) -> [Int: String] {
+    ) -> [Int: (frame: CGRect, image: String)] {
         guard !wideLeaves.isEmpty, wideLeaves.count == crops.count else { return [:] }
         let leaves = wideLeaves.sorted { $0.frame.minY < $1.frame.minY }
         let sortedCrops = crops.sorted { $0.frame.minY < $1.frame.minY }
         let shifts = zip(leaves, sortedCrops).map { $1.frame.minY - $0.frame.minY }
         guard let base = shifts.first, shifts.allSatisfy({ abs($0 - base) <= tolerance }) else { return [:] }
-        var result: [Int: String] = [:]
-        for (leaf, crop) in zip(leaves, sortedCrops) { result[leaf.index] = crop.image }
+        var result: [Int: (frame: CGRect, image: String)] = [:]
+        for (leaf, crop) in zip(leaves, sortedCrops) { result[leaf.index] = crop }
         return result
     }
 

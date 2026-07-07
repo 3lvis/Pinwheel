@@ -36,8 +36,11 @@ final class ControlCropMatchTests: XCTestCase {
             (frame: CGRect(x: 16, y: 304 + 8, width: 370, height: 31), image: "slider"),
         ]
         let matches = PinDisplayList.matchedControlCrops(wideLeaves: leaves, crops: aligned)
-        XCTAssertEqual(matches[3], "toggle")
-        XCTAssertEqual(matches[5], "segmented")
-        XCTAssertEqual(matches[7], "slider")
+        XCTAssertEqual(matches[3]?.image, "toggle")
+        XCTAssertEqual(matches[5]?.image, "segmented")
+        XCTAssertEqual(matches[7]?.image, "slider")
+        // The crop frame comes back so the leaf can size to the real control bounds (SwiftUI undersizes
+        // a platform view), rather than the placeholder frame that would crop it under FILL.
+        XCTAssertEqual(matches[3]?.frame.width, 63)
     }
 }
