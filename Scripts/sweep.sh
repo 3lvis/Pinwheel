@@ -104,6 +104,10 @@ run_capture() {
   # capture in light so they match the plugin's default (light) variable mode.
   xcrun simctl ui "${UDID}" appearance light >/dev/null 2>&1 || true
   err "capturing ${#ids[@]} components ..."
+  # If captures start dropping controls from a screen (a control-heavy screen imports with only its
+  # labels), the SIMULATOR's render server is crufted from hundreds of prior heavy captures — reboot it
+  # (`xcrun simctl shutdown <udid> && xcrun simctl boot <udid>`), don't chase it in the capture code.
+  # A ~20s idle also recovers it; a fresh boot is the reliable reset.
   for id in "${ids[@]}"; do
     xcrun simctl terminate "${UDID}" "${BUNDLE_ID}" >/dev/null 2>&1 || true
     xcrun simctl launch "${UDID}" "${BUNDLE_ID}" -PinwheelCapture "${id}" >/dev/null 2>&1
