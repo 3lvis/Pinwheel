@@ -61,6 +61,11 @@ These stay UIKit because no SwiftUI primitive matches their ergonomics/perf:
 - **Color tokens have a SwiftUI-native shorthand.** A public `extension ShapeStyle where Self == Color` forwards the `PinwheelTheme.Colors` tokens, so any `ShapeStyle`/`Color` context takes a token the way it takes `.red` — `.background(.primaryBackground)`, `.foregroundStyle(.actionText)`. `PinwheelTheme.Colors` stays the canonical definition (the shorthand just forwards); prefer the leading-dot form at call sites. It can't reach `.listRowBackground(_:)` (parameter is a generic `View`, not a `ShapeStyle`), so those stay spelled out.
 - **`PinList` is greenfield SwiftUI** (themed `List` + `PinState`, value-based rows) — the counterpart of `UIKitPinTableView`, *not* a replacement: the UIKit table stays for recycling. Non-loaded states reuse `PinStateView`.
 
+### Figma capture
+
+- **A Figma-captured surface must render into SwiftUI's own tree — never a UIKit-backed `List`.** Capture reads SwiftUI's DisplayList off an *off-screen* host; a `List` (UIKit-backed — `UICollectionView` on iOS 16+, `UITableView` before) builds its rows lazily in the UIKit layer, which an off-screen host with no viewport never populates. So a `List` screen captures as an empty background shape (the rows are simply not in the DisplayList). Build capturable demos/components as `ScrollView { VStack { ForEach } }` — eager, fully in SwiftUI's tree, so every row renders and captures as editable text/color nodes (Numbers, Typography, Color). `LazyVStack` is pure SwiftUI but still lazy (viewport-gated), so it's not a safe capture bet either.
+- **`List` stays only where its recycling/chrome earns the capture cost.** `PinList` keeps `List` (separators, swipe, recycling) and pays for capture with per-row markers + the live-window/layer-crop path — its rows come back as image crops, not editable nodes. Reserve that treatment for genuine data lists; default everything else (token showcases, static content) to the pure-SwiftUI stack.
+
 ### Project layout
 
 - **Sources organized by domain, not access level.** `API/` (public surface), `Tokens/` (tokens, both worlds, incl. SwiftUI `PinwheelTheme`), `Components/SwiftUI` + `Components/UIKit` (split by world; `TableView/` under UIKit), `Catalog/` (the one, pure-SwiftUI catalog + FAB + device/state), `Bridge/` (SwiftUI↔UIKit), `Extensions/`.

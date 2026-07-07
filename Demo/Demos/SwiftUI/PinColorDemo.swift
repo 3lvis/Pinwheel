@@ -14,17 +14,23 @@ struct PinColorDemo: SwiftUI.View {
         ("Critical Background", .criticalBackground)
     ]
 
+    // Rows live in a VStack, not a List: a List's UIKit-backed cells don't render off-screen, so the
+    // Figma capture reads them as an empty background; a VStack renders into SwiftUI's own tree.
     var body: some SwiftUI.View {
-        List(colors, id: \.0) { title, color in
-            HStack {
-                PinLabel(title).color(.custom(.black))
-                PinLabel(title).color(.custom(.white))
+        ScrollView {
+            VStack(spacing: 0) {
+                ForEach(colors, id: \.0) { title, color in
+                    HStack {
+                        PinLabel(title).color(.custom(.black))
+                        PinLabel(title).color(.custom(.white))
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, .spacingL)
+                    .padding(.vertical, .spacingM)
+                    .background(SwiftUI.Color(uiColor: color))
+                }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .listRowBackground(SwiftUI.Color(uiColor: color))
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
         .background(.primaryBackground)
     }
 }

@@ -139,6 +139,35 @@ final class CaptureFidelityTests: XCTestCase {
                       "each row must stay grouped (label + value) — the reflection path preserves it; the collapsed fallback flattens every row into loose siblings")
     }
 
+    // A scrolling column of left-aligned labels (the Typography demo) must capture every label. The
+    // labels are narrower than the full width, so the column's wrapping group looked like a padded
+    // fill-less button — emitting a phantom transparent box that orphaned the labels in containment and
+    // collapsed the whole screen to one background shape. A button wraps a single label; a multi-text
+    // group is a layout container, not a button.
+    func testLeftAlignedLabelColumnCapturesEveryLabel() throws {
+        struct Fixture: SwiftUI.View {
+            let labels = ["Title", "Subtitle", "Body", "Caption"]
+            var body: some SwiftUI.View {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(labels, id: \.self) { label in
+                            PinLabel(label)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, .spacingL)
+                                .padding(.vertical, .spacingM)
+                        }
+                    }
+                }
+                .background(.primaryBackground)
+            }
+        }
+        let root = try XCTUnwrap(PinDisplayListCapture.document(Fixture(), name: "Typography", size: CGSize(width: 402, height: 1600), screenHeight: 778),
+                                 "the fixture should capture into a document").root
+        let captured = Set(allTextNodes(in: root).compactMap { $0.texts?.first?.text })
+        XCTAssertEqual(captured, Set(["Title", "Subtitle", "Body", "Caption"]),
+                       "every label must capture as text, not collapse into a single background shape")
+    }
+
     // A frame whose children are exactly the two texts — a tight grouped row the reflection path
     // preserves. The collapsed containment fallback emits every row's texts as loose siblings of the
     // root, so only the root (holding every text) would contain both — never a two-child group.

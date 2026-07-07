@@ -190,15 +190,17 @@ enum PinDisplayList {
     // frame is the real padded, min-width box, so keep it as a transparent container.
     private static func isBareButton(_ frame: CGRect, _ children: [DisplayLeaf]) -> Bool {
         guard frame.height >= 30, !children.isEmpty else { return false }
-        var hasText = false
+        var textCount = 0
         for child in children {
             switch child.kind {
-            case .text: hasText = true
+            case .text: textCount += 1
             case .rasterizable: break
             default: return false
             }
         }
-        guard hasText else { return false }
+        // A button wraps a single label (plus an optional icon); a group of several texts is a layout
+        // container — a stack of rows — not a button.
+        guard textCount == 1 else { return false }
         // A button's box pads its label (or hits the control min-width); a multi-line wrapping label
         // fills its frame edge to edge. Only the padded case is a button — else it's just tall text.
         let content = children.map(\.frame).reduce(children[0].frame) { $0.union($1) }

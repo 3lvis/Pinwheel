@@ -11,13 +11,19 @@ struct PinTypographyDemo: SwiftUI.View {
         ("Caption", .caption)
     ]
 
+    // Rows live in a VStack, not a List: a List's UIKit-backed cells don't render off-screen, so the
+    // Figma capture reads them as an empty background; a VStack renders into SwiftUI's own tree.
     var body: some SwiftUI.View {
-        List(styles, id: \.0) { title, style in
-            PinLabel(title).font(style)
-                .listRowBackground(Color.primaryBackground)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(styles, id: \.0) { title, style in
+                    PinLabel(title).font(style)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, .spacingL)
+                        .padding(.vertical, .spacingM)
+                }
+            }
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
         .background(.primaryBackground)
     }
 }
