@@ -86,7 +86,7 @@ public enum PinDisplayListCapture {
                 return matched.map { pool.remove(at: $0) }
             }
             if let content {
-                var rootNode = screen(content, width: size.width, fill: screenFill, components: components, canvasHeight: size.height, oneScreen: screenHeight)
+                var rootNode = screen(content, width: size.width, fill: screenFill, components: components, canvasHeight: size.height, oneScreen: screenHeight, safeAreaTop: host.safeAreaInsets.top)
                 rootNode.name = name
                 return FigmaDocument(width: size.width, height: rootNode.h, root: rootNode, tokens: colorTokens + PinFloatTokens.tokens, textStyles: [])
             }
@@ -101,7 +101,7 @@ public enum PinDisplayListCapture {
         let minY = components.map { $0.leaf.frame.minY }.min() ?? 0
         let maxY = components.map { $0.leaf.frame.maxY }.max() ?? 0
         if abs((minY + maxY) / 2 - size.height / 2) < screenHeight / 4, (maxY - minY) < screenHeight {
-            rootNode = screen(rootNode, width: size.width, fill: screenFill, components: components, canvasHeight: size.height, oneScreen: screenHeight)
+            rootNode = screen(rootNode, width: size.width, fill: screenFill, components: components, canvasHeight: size.height, oneScreen: screenHeight, safeAreaTop: host.safeAreaInsets.top)
         }
         rootNode.name = name
         return FigmaDocument(width: size.width, height: rootNode.h, root: rootNode, tokens: colorTokens + PinFloatTokens.tokens, textStyles: [])
@@ -305,27 +305,42 @@ public enum PinDisplayListCapture {
 
     // The outer container becomes the screen: fixed to the device width (so centered content spans it)
     // and padded to where the content actually sits, with the screen fill behind.
-    private static func screen(_ content: FigmaNode, width: CGFloat, fill: UIColor?, components: [Box], canvasHeight: CGFloat, oneScreen: CGFloat) -> FigmaNode {
+    private static func screen(_ content: FigmaNode, width: CGFloat, fill: UIColor?, components: [Box], canvasHeight: CGFloat, oneScreen: CGFloat, safeAreaTop: CGFloat) -> FigmaNode {
         let minY = components.map { $0.leaf.frame.minY }.min() ?? 0
         let maxY = components.map { $0.leaf.frame.maxY }.max() ?? 0
         let minX = components.map { $0.leaf.frame.minX }.min() ?? 0
         let maxX = components.map { $0.leaf.frame.maxX }.max() ?? 0
-        // Content the hosting controller centered in the tall capture canvas (a hugging or fill-centered
-        // component sits symmetrically) is a full-screen component — re-center it in one screen so it
-        // matches the device, instead of floating in the oversized canvas. Otherwise it's top-anchored:
-        // the screen height is the content plus its symmetric top/bottom inset (maxY + minY).
-        let centeredInCanvas = abs((minY + maxY) / 2 - canvasHeight / 2) < oneScreen / 4 && (maxY - minY) < oneScreen
-        let verticalPad = centeredInCanvas ? (oneScreen - (maxY - minY)) / 2 : minY
+        let contentHeight = maxY - minY
+        // A full-screen empty state (StateView) floats centered in the tall canvas — center it in one
+        // screen to match the device. A content screen begins right below the safe area; its short
+        // content can *also* land near the canvas center, so require it to actually float (start well
+        // below the safe area) before centering, else it's top-anchored.
+        let floatsBelowSafeArea = (minY - safeAreaTop) > oneScreen / 6
+        let centeredInCanvas = floatsBelowSafeArea && abs((minY + maxY) / 2 - canvasHeight / 2) < oneScreen / 4 && contentHeight < oneScreen
+        let topPad: CGFloat, bottomPad: CGFloat, height: CGFloat
+        if centeredInCanvas {
+            topPad = (oneScreen - contentHeight) / 2
+            bottomPad = topPad
+            height = oneScreen
+        } else {
+            // The captured top Y includes the device safe area, which the plugin's device frame already
+            // draws as its status bar — subtract it so content sits below the status bar at its real
+            // padding, not doubled. Fill a full screen so it top-anchors with empty space below (a screen
+            // taller than one device grows to fit its content).
+            topPad = max(minY - safeAreaTop, 0)
+            height = max(oneScreen, topPad + contentHeight)
+            bottomPad = max(height - topPad - contentHeight, 0)
+        }
         var screenNode = content
         screenNode.tag = "screen"
         screenNode.x = 0
         screenNode.y = 0
         screenNode.w = Double(width)
-        screenNode.h = Double(centeredInCanvas ? oneScreen : maxY + minY)
+        screenNode.h = Double(height)
         screenNode.fill = fill.map(RGBA.init)
         screenNode.fillToken = fill.flatMap(tokenName(for:))
         if var layout = screenNode.layout {
-            layout.pad = [Double(verticalPad), Double(width) - Double(maxX), Double(verticalPad), Double(minX)]
+            layout.pad = [Double(topPad), Double(width) - Double(maxX), Double(bottomPad), Double(minX)]
             layout.primarySizing = "FIXED"
             layout.counterSizing = "FIXED"
             screenNode.layout = layout
