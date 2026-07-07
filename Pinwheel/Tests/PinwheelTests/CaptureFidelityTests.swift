@@ -72,6 +72,20 @@ final class CaptureFidelityTests: XCTestCase {
         XCTAssertNil(FigmaLayout(PinCaptureLayout(axis: .row, spacing: 20)).gapToken)
     }
 
+    // A multi-line label's paragraph alignment must be captured — a `.multilineTextAlignment(.center)`
+    // message (the Tweakable empty state) read as left-aligned in Figma because the alignment was dropped.
+    func testMultilineTextCapturesItsCenterAlignment() throws {
+        let view = PinLabel("Tap the settings button and choose an option.")
+            .multilineTextAlignment(.center)
+            .frame(width: 200)
+        let root = try XCTUnwrap(PinDisplayListCapture.document(view, name: "Tweakable", size: CGSize(width: 402, height: 900), screenHeight: 778),
+                                 "the label should capture into a document").root
+        let label = try XCTUnwrap(firstNode(in: root) { text(of: $0)?.hasPrefix("Tap the") == true },
+                                  "the wrapping label should be captured")
+        XCTAssertEqual(label.textAlign, "center",
+                       "a .multilineTextAlignment(.center) label must capture its center alignment")
+    }
+
     func testCardKeepsItsRadiusToken() throws {
         let card = try XCTUnwrap(firstNode(in: captureRoot()) { $0.fillToken == "secondaryBackground" },
                                  "the secondaryBackground card should be captured")

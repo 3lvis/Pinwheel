@@ -112,7 +112,7 @@ public enum PinDisplayListCapture {
     }
 
     private static func componentText(_ box: Box) -> String? {
-        if case .text(let string, _, _, _) = box.leaf.kind { return string }
+        if case .text(let string, _, _, _, _) = box.leaf.kind { return string }
         for child in box.children { if let text = componentText(child) { return text } }
         return nil
     }
@@ -215,7 +215,7 @@ public enum PinDisplayListCapture {
 
     private static func boxTexts(_ box: Box) -> Set<String> {
         var texts = Set<String>()
-        if case .text(let string, _, _, _) = box.leaf.kind { texts.insert(string) }
+        if case .text(let string, _, _, _, _) = box.leaf.kind { texts.insert(string) }
         box.children.forEach { texts.formUnion(boxTexts($0)) }
         return texts
     }
@@ -232,11 +232,12 @@ public enum PinDisplayListCapture {
         let frame = box.leaf.frame
         if box.children.isEmpty {
             switch box.leaf.kind {
-            case .text(let string, let font, let color, let underline):
+            case .text(let string, let font, let color, let underline, let alignment):
                 return FigmaNode(
                     tag: "text", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
                     font: figmaFont(font, color: color, underline: underline),
                     texts: [FigmaText(text: string, x: frame.minX, y: frame.minY, w: frame.width, h: frame.height)],
+                    textAlign: textAlignName(alignment),
                     children: []
                 )
             case .rasterizable:
@@ -318,11 +319,12 @@ public enum PinDisplayListCapture {
         let frame = box.leaf.frame
         if box.children.isEmpty {
             switch box.leaf.kind {
-            case .text(let string, let font, let color, let underline):
+            case .text(let string, let font, let color, let underline, let alignment):
                 return FigmaNode(
                     tag: "text", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
                     font: figmaFont(font, color: color, underline: underline),
                     texts: [FigmaText(text: string, x: frame.minX, y: frame.minY, w: frame.width, h: frame.height)],
+                    textAlign: textAlignName(alignment),
                     children: []
                 )
             case .rasterizable:
@@ -416,6 +418,16 @@ public enum PinDisplayListCapture {
 
     private static func radiusTokenName(_ radius: CGFloat?) -> String? {
         radius.flatMap { PinFloatTokens.radiusName(for: Double($0)) }
+    }
+
+    // A multi-line label's paragraph alignment — the plugin centers/right-aligns the wrapped lines. Left
+    // and natural are the default, so they stay unset.
+    private static func textAlignName(_ alignment: NSTextAlignment) -> String? {
+        switch alignment {
+        case .center: return "center"
+        case .right: return "right"
+        default: return nil
+        }
     }
 
     private static func filledRect(_ frame: CGRect, radius: CGFloat?, color: UIColor?) -> FigmaNode {
