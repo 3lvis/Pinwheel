@@ -390,6 +390,41 @@ final class CaptureFidelityTests: XCTestCase {
                       "the icon crop must contain the rendered symbol, not the blank safe-area region")
     }
 
+    // A primary button's symbol tints with the appearance-dependent primaryBackground token — white in
+    // light, black in dark. The single light-rendered PNG imported into Figma's dark mode as a white
+    // arrow on cyan where it should be black, so the node must carry a distinct dark variant.
+    func testAppearanceDependentSymbolCapturesADistinctDarkVariant() throws {
+        let button = PinButton("Continue", systemImage: "arrow.right") {}
+        let document = try XCTUnwrap(PinDisplayListCapture.document(button, name: "Button", size: CGSize(width: 402, height: 400), screenHeight: 778),
+                                     "the button should capture into a document")
+        let symbol = try XCTUnwrap(imageNodes(in: document.root).first { $0.image != nil },
+                                   "the button's symbol should be captured with pixels")
+        let light = try XCTUnwrap(symbol.image.flatMap { Data(base64Encoded: $0) }.flatMap(UIImage.init(data:)),
+                                  "the light symbol image should decode")
+        let dark = try XCTUnwrap(symbol.imageDark.flatMap { Data(base64Encoded: $0) }.flatMap(UIImage.init(data:)),
+                                 "the symbol must carry a dark variant so it imports correctly in dark mode")
+        XCTAssertGreaterThan(averageOpaqueBrightness(light), 200,
+                             "the light symbol tints with primaryBackground (near white)")
+        XCTAssertLessThan(averageOpaqueBrightness(dark), 60,
+                          "the dark symbol tints with primaryBackground (near black), not the light white")
+    }
+
+    private func averageOpaqueBrightness(_ image: UIImage) -> Int {
+        guard let cg = image.cgImage else { return -1 }
+        let width = cg.width, height = cg.height
+        var pixels = [UInt8](repeating: 0, count: width * height * 4)
+        let context = CGContext(data: &pixels, width: width, height: height, bitsPerComponent: 8,
+                                bytesPerRow: width * 4, space: CGColorSpaceCreateDeviceRGB(),
+                                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+        context?.draw(cg, in: CGRect(x: 0, y: 0, width: width, height: height))
+        var sum = 0, count = 0
+        for index in stride(from: 0, to: pixels.count, by: 4) where pixels[index + 3] > 10 {
+            sum += (Int(pixels[index]) + Int(pixels[index + 1]) + Int(pixels[index + 2])) / 3
+            count += 1
+        }
+        return count > 0 ? sum / count : -1
+    }
+
     private func hasVisiblePixels(_ image: UIImage) -> Bool {
         guard let cg = image.cgImage else { return false }
         let width = cg.width, height = cg.height

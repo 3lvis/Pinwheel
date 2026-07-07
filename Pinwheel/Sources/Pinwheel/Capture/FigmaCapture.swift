@@ -35,6 +35,7 @@ struct FigmaNode: Encodable {
     var textAlign: String?
     var opacity: Double?
     var image: String?
+    var imageDark: String?
     var layout: FigmaLayout?
     var grow: Bool?
     var ordered: Bool?

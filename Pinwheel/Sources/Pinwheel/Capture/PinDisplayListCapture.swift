@@ -13,6 +13,28 @@ public enum PinDisplayListCapture {
     /// false: the key window is some other surface, and cropping it would put foreign pixels on the
     /// controls. Off-screen controls then fall back to their (flat) host-layer render.
     public static func document<Content: SwiftUI.View>(_ view: Content, name: String, size: CGSize, screenHeight: CGFloat, liveControlsOnScreen: Bool = false) -> FigmaDocument? {
+        guard let light = singleDocument(view, name: name, size: size, screenHeight: screenHeight, liveControlsOnScreen: liveControlsOnScreen) else { return nil }
+        // Rasterized nodes (SF Symbols, spinners) bake their appearance-dependent tint into fixed
+        // pixels, so a light-only PNG imports wrong into Figma's dark mode. Render the same view once
+        // more forced dark and graft each rasterized node's dark pixels onto its light twin — mirroring
+        // how a color token carries both `value` and `dark`. Structure is identical (same view + size),
+        // so the two trees zip by position.
+        guard let dark = singleDocument(view.environment(\.colorScheme, .dark), name: name, size: size, screenHeight: screenHeight, liveControlsOnScreen: liveControlsOnScreen) else { return light }
+        return FigmaDocument(width: light.width, height: light.height, root: withDarkImages(light.root, dark.root),
+                             tokens: light.tokens, textStyles: light.textStyles)
+    }
+
+    private static func withDarkImages(_ light: FigmaNode, _ dark: FigmaNode?) -> FigmaNode {
+        var node = light
+        if node.image != nil { node.imageDark = dark?.image }
+        let darkChildren = dark?.children ?? []
+        node.children = light.children.enumerated().map { index, child in
+            withDarkImages(child, index < darkChildren.count ? darkChildren[index] : nil)
+        }
+        return node
+    }
+
+    private static func singleDocument<Content: SwiftUI.View>(_ view: Content, name: String, size: CGSize, screenHeight: CGFloat, liveControlsOnScreen: Bool) -> FigmaDocument? {
         guard let (leaves, host, window) = PinDisplayList.read(view, size: size, liveControlsOnScreen: liveControlsOnScreen) else { return nil }
         return withExtendedLifetime(window) { build(view, name: name, leaves: leaves, host: host, size: size, screenHeight: screenHeight) }
     }
