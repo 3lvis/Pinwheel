@@ -27,6 +27,7 @@ struct FigmaNode: Encodable {
     var fill: RGBA?
     var fillToken: String?
     var radius: Double?
+    var radiusToken: String?
     var component: String?
     var name: String?
     var font: FigmaFont?
@@ -45,7 +46,9 @@ struct FigmaLayout: Encodable {
     var mode: String
     var columnGap: Double
     var rowGap: Double
+    var gapToken: String?
     var pad: [Double]
+    var padTokens: [String?]
     var justify: String
     var align: String
     var primarySizing: String
@@ -57,8 +60,10 @@ struct FigmaLayout: Encodable {
         mode = horizontal ? "row" : "column"
         columnGap = horizontal ? Double(layout.spacing) : 0
         rowGap = horizontal ? 0 : Double(layout.spacing)
+        gapToken = PinFloatTokens.spacingName(for: Double(layout.spacing))
         pad = [Double(layout.padding.top), Double(layout.padding.trailing),
                Double(layout.padding.bottom), Double(layout.padding.leading)]
+        padTokens = pad.map(PinFloatTokens.spacingName(for:))
         func css(_ crossAxis: PinCaptureLayout.CrossAxis) -> String {
             switch crossAxis {
             case .leading: return "flex-start"
@@ -109,8 +114,33 @@ struct FigmaText: Encodable {
 struct FigmaToken: Encodable {
     let name: String
     let type: String
-    let value: RGBA
-    let dark: RGBA?
+    var value: RGBA? = nil
+    var dark: RGBA? = nil
+    var float: Double? = nil
+}
+
+// The spacing and radius design tokens, matched by value so a captured gap/padding/corner-radius can
+// reference the Figma variable instead of a raw number. Names use the plugin's dashed convention
+// (`spacing-s` → the `spacing/s` variable); a value that isn't a token stays a raw number.
+enum PinFloatTokens {
+    static var spacing: [(name: String, value: CGFloat)] {
+        [("spacing-xxs", .spacingXXS), ("spacing-xs", .spacingXS), ("spacing-xm", .spacingXM),
+         ("spacing-s", .spacingS), ("spacing-m", .spacingM), ("spacing-l", .spacingL),
+         ("spacing-xl", .spacingXL), ("spacing-xxl", .spacingXXL)]
+    }
+    static var radius: [(name: String, value: CGFloat)] { [("radius-m", .radiusM)] }
+
+    static func spacingName(for value: Double) -> String? { name(for: value, in: spacing) }
+    static func radiusName(for value: Double) -> String? { name(for: value, in: radius) }
+
+    private static func name(for value: Double, in table: [(name: String, value: CGFloat)]) -> String? {
+        guard value > 0.5 else { return nil }
+        return table.first { abs(Double($0.value) - value) < 0.5 }?.name
+    }
+
+    static var tokens: [FigmaToken] {
+        (spacing + radius).map { FigmaToken(name: $0.name, type: "float", float: Double($0.value)) }
+    }
 }
 
 extension RGBA {

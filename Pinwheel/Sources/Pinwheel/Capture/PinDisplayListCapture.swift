@@ -46,13 +46,13 @@ public enum PinDisplayListCapture {
             if let content {
                 var rootNode = screen(content, width: size.width, fill: screenFill, components: components, canvasHeight: size.height, oneScreen: screenHeight)
                 rootNode.name = name
-                return FigmaDocument(width: size.width, height: rootNode.h, root: rootNode, tokens: colorTokens, textStyles: [])
+                return FigmaDocument(width: size.width, height: rootNode.h, root: rootNode, tokens: colorTokens + PinFloatTokens.tokens, textStyles: [])
             }
         }
 
         var rootNode = emit(root, host: host)
         rootNode.name = name
-        return FigmaDocument(width: size.width, height: rootNode.h, root: rootNode, tokens: colorTokens, textStyles: [])
+        return FigmaDocument(width: size.width, height: rootNode.h, root: rootNode, tokens: colorTokens + PinFloatTokens.tokens, textStyles: [])
     }
 
     private static func leafCount(_ node: ReflectedNode) -> Int {
@@ -148,6 +148,7 @@ public enum PinDisplayListCapture {
                 tag: "frame", x: 0, y: 0, w: 0, h: 0,
                 fill: background?.fill.map(RGBA.init), fillToken: background?.fill.flatMap(tokenName(for:)),
                 radius: background?.radius.map(Double.init),
+                radiusToken: radiusTokenName(background?.radius),
                 name: container.axis == .row ? "HStack" : "VStack",
                 layout: FigmaLayout(layout), ordered: true, children: childNodes
             )
@@ -244,6 +245,7 @@ public enum PinDisplayListCapture {
             tag: "frame", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
             fill: fill.map(RGBA.init), fillToken: fill.flatMap(tokenName(for:)),
             radius: cornerRadius(box.leaf.kind).map(Double.init),
+            radiusToken: radiusTokenName(cornerRadius(box.leaf.kind)),
             name: "Pill", layout: FigmaLayout(layout), ordered: true, children: childNodes
         )
     }
@@ -345,6 +347,7 @@ public enum PinDisplayListCapture {
                 tag: "frame", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
                 fill: fill.map(RGBA.init), fillToken: token,
                 radius: cornerRadius(box.leaf.kind).map(Double.init),
+                radiusToken: radiusTokenName(cornerRadius(box.leaf.kind)),
                 name: "List", children: rowNodes
             )
         }
@@ -366,6 +369,7 @@ public enum PinDisplayListCapture {
             tag: "frame", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
             fill: fill.map(RGBA.init), fillToken: token,
             radius: cornerRadius(box.leaf.kind).map(Double.init),
+            radiusToken: radiusTokenName(cornerRadius(box.leaf.kind)),
             name: layout.axis == .row ? "Row" : "Column",
             layout: FigmaLayout(layout), ordered: true, children: childNodes
         )
@@ -400,11 +404,15 @@ public enum PinDisplayListCapture {
         return FigmaNode(tag: "frame", x: union.minX, y: union.minY, w: union.width, h: union.height, name: "Row", children: children)
     }
 
+    private static func radiusTokenName(_ radius: CGFloat?) -> String? {
+        radius.flatMap { PinFloatTokens.radiusName(for: Double($0)) }
+    }
+
     private static func filledRect(_ frame: CGRect, radius: CGFloat?, color: UIColor?) -> FigmaNode {
         FigmaNode(
             tag: "shape", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
             fill: color.map(RGBA.init), fillToken: color.flatMap(tokenName(for:)),
-            radius: radius.map(Double.init), children: []
+            radius: radius.map(Double.init), radiusToken: radiusTokenName(radius), children: []
         )
     }
 

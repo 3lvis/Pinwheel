@@ -51,6 +51,17 @@ final class CaptureFidelityTests: XCTestCase {
         node.texts?.first?.text ?? node.children.lazy.compactMap { self.text(of: $0) }.first
     }
 
+    func testCornerAndSpacingReferenceDesignTokens() throws {
+        let root = try captureRoot()
+        let card = try XCTUnwrap(firstNode(in: root) { $0.fillToken == "secondaryBackground" },
+                                 "the secondaryBackground card should be captured")
+        XCTAssertEqual(card.radiusToken, "radius-m",
+                       "a radiusM corner must reference the radius token, not just a raw number")
+        let gapTokens = allFrameNodes(in: root).compactMap { $0.layout?.gapToken }
+        XCTAssertTrue(gapTokens.contains { $0.hasPrefix("spacing-") },
+                      "an inferred gap that matches a spacing value must reference the spacing token")
+    }
+
     func testCardKeepsItsRadiusToken() throws {
         let card = try XCTUnwrap(firstNode(in: captureRoot()) { $0.fillToken == "secondaryBackground" },
                                  "the secondaryBackground card should be captured")
