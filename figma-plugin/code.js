@@ -275,6 +275,13 @@ async function build(node, parent, parentX, parentY, flow, insideComponent = fal
         // Match the device-captured text width so the hugging parent (a button pill) doesn't reflow
         // narrower than the real control — Figma renders SF Pro at a slightly tighter metric.
         calibrateWidth(text, node.texts[0].w);
+        // A multi-line label carries its paragraph alignment on the node; the wrapped lines must match it,
+        // else a centered empty-state message (Tweakable) renders left-aligned. The non-flow path centers
+        // via an auto-layout wrapper, but a bare flow text sets its own paragraph alignment.
+        if (node.textAlign === 'center')
+            text.textAlignHorizontal = 'CENTER';
+        else if (node.textAlign === 'right')
+            text.textAlignHorizontal = 'RIGHT';
         return text;
     }
     if (node.component && masters[node.component]) {
