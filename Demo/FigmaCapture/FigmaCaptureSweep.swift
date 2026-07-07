@@ -103,12 +103,22 @@ private struct LiveCaptureHost: UIViewControllerRepresentable {
         container.addChild(host)
         host.view.translatesAutoresizingMaskIntoConstraints = false
         container.view.addSubview(host.view)
+        // Host at the taller of the screen and the content's own height. Content taller than the screen
+        // (a long button list) would otherwise be clamped to the window and its below-the-fold rows would
+        // never enter the DisplayList — the reflected tree then outnumbers the rendered leaves, the zip
+        // fails, and the whole screen drops to the containment fallback (losing every pill). A short screen
+        // stays at screen height so its controls paint on-window (drawHierarchy only sees the visible
+        // window) and a centered empty state still centers.
+        let width = FigmaCatalog.captureCanvas.width
+        let screenHeight = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }.first?.screen.bounds.height ?? FigmaCatalog.captureCanvas.height
+        let contentHeight = host.sizeThatFits(in: CGSize(width: width, height: .greatestFiniteMagnitude)).height
         // Fixed capture width so the IR matches the design regardless of the device the sim happens to be.
         NSLayoutConstraint.activate([
-            host.view.widthAnchor.constraint(equalToConstant: FigmaCatalog.captureCanvas.width),
+            host.view.widthAnchor.constraint(equalToConstant: width),
             host.view.centerXAnchor.constraint(equalTo: container.view.centerXAnchor),
             host.view.topAnchor.constraint(equalTo: container.view.topAnchor),
-            host.view.bottomAnchor.constraint(equalTo: container.view.bottomAnchor)
+            host.view.heightAnchor.constraint(equalToConstant: max(screenHeight, contentHeight))
         ])
         host.didMove(toParent: container)
         // Capture once the component has painted on-screen (a UISwitch renders its knob only on-window).
