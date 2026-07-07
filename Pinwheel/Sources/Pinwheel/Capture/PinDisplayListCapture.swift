@@ -334,9 +334,12 @@ public enum PinDisplayListCapture {
         // no per-row background. Emit it with absolute positions (no layout) so the plugin places each
         // row where it rendered; an auto-layout frame reflows by spacing and misplaces the icons/toggles.
         // Each row is grouped so it's a grabbable unit, also absolute so its title/subtitle stay stacked.
+        // Judge the axis by the *direct* children: when they're clean per-row containers that stack
+        // vertically (rows with their own background — the Color showcase), that's a column, not a list.
+        // Flattening first would drop those backgrounds and misread the side-by-side labels as a row.
         let listLeaves = flattenLeaves(box.children)
         let bands = yBands(listLeaves)
-        if bands.count > 1, inferLayout(orderedForLayout(listLeaves).map(\.leaf.frame), in: frame).axis == .row {
+        if bands.count > 1, inferLayout(orderedForLayout(box.children).map(\.leaf.frame), in: frame).axis == .row {
             let rowNodes = bands.map { $0.count == 1 ? emit($0[0], host: host) : absoluteRowGroup($0, host: host) }
             return FigmaNode(
                 tag: "frame", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,

@@ -177,6 +177,40 @@ final class CaptureFidelityTests: XCTestCase {
         return node.children.contains { hasGroup($0, first, second) }
     }
 
+    // Rows with their own colored background (the Color token showcase) must keep that fill. The rows'
+    // side-by-side dual labels made the fallback read the screen as a horizontal list and flatten each
+    // row to its labels, dropping the background — so the colored rows captured as bare text on white.
+    func testColoredRowsKeepTheirBackgroundFill() throws {
+        struct Fixture: SwiftUI.View {
+            let rows: [(String, SwiftUI.Color)] = [("Alpha", .red), ("Beta", .green), ("Gamma", .blue)]
+            var body: some SwiftUI.View {
+                ScrollView {
+                    VStack(spacing: 0) {
+                        ForEach(rows, id: \.0) { title, color in
+                            HStack {
+                                PinLabel(title).color(.custom(.black))
+                                PinLabel(title).color(.custom(.white))
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, .spacingL)
+                            .padding(.vertical, .spacingM)
+                            .background(color)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .background(.primaryBackground)
+            }
+        }
+        let root = try XCTUnwrap(PinDisplayListCapture.document(Fixture(), name: "Color", size: CGSize(width: 402, height: 1600), screenHeight: 778),
+                                 "the fixture should capture into a document").root
+        let coloredRows = allFrameNodes(in: root).filter { frame in
+            frame.fill != nil && frame.children.contains { $0.texts?.isEmpty == false }
+        }
+        XCTAssertGreaterThanOrEqual(coloredRows.count, 3,
+                                    "each colored row must keep its background fill, not flatten to bare labels on the screen fill")
+    }
+
     private func leafCount(_ node: ReflectedNode?) -> Int {
         guard let node else { return 0 }
         switch node {
