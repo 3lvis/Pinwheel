@@ -56,6 +56,7 @@ enum PinDisplayList {
     private static func fillRasterCrops(_ leaves: [DisplayLeaf], host: UIView, liveControlsOnScreen: Bool) -> [DisplayLeaf] {
         let needsCrop = leaves.contains { if case .rasterizable = $0.kind, $0.image == nil { return true }; return false }
         guard needsCrop else { return leaves }
+        return autoreleasepool {
         let full = UIGraphicsImageRenderer(bounds: host.bounds).image { context in host.layer.render(in: context.cgContext) }
         guard let cgImage = full.cgImage else { return leaves }
         let scale = full.scale
@@ -94,6 +95,7 @@ enum PinDisplayList {
             filled.image = UIImage(cgImage: crop).pngData()?.base64EncodedString()
             return filled
         }
+        }
     }
 
     // Real control pixels: find each top-level UIKit control in the on-screen key window and crop it from
@@ -116,15 +118,22 @@ enum PinDisplayList {
         scan(window)
         guard !controls.isEmpty else { return [] }
         controls.sort { $0.convert($0.bounds, to: window).minY < $1.convert($1.bounds, to: window).minY }
-        let full = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in window.drawHierarchy(in: window.bounds, afterScreenUpdates: true) }
-        guard let cgImage = full.cgImage else { return [] }
-        let scale = full.scale
-        return controls.compactMap { control in
-            let frame = control.convert(control.bounds, to: window)
-            let rect = CGRect(x: frame.minX * scale, y: frame.minY * scale, width: frame.width * scale, height: frame.height * scale)
-            guard let crop = cgImage.cropping(to: rect),
-                  let image = UIImage(cgImage: crop).pngData()?.base64EncodedString() else { return nil }
-            return (frame: frame, image: image)
+        // `afterScreenUpdates: false` reads the window's existing front buffer — the control has already
+        // painted (the caller waits for on-screen render + we settle layout above), so forcing a
+        // synchronous render-server commit with `true` only accumulates GPU-backed surfaces the sim's
+        // render server never reclaims, which is what degrades it into dropping heavy controls after a
+        // batch. The autoreleasepool releases the full-window bitmap the instant the crops are extracted.
+        return autoreleasepool {
+            let full = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in window.drawHierarchy(in: window.bounds, afterScreenUpdates: false) }
+            guard let cgImage = full.cgImage else { return [] }
+            let scale = full.scale
+            return controls.compactMap { control in
+                let frame = control.convert(control.bounds, to: window)
+                let rect = CGRect(x: frame.minX * scale, y: frame.minY * scale, width: frame.width * scale, height: frame.height * scale)
+                guard let crop = cgImage.cropping(to: rect),
+                      let image = UIImage(cgImage: crop).pngData()?.base64EncodedString() else { return nil }
+                return (frame: frame, image: image)
+            }
         }
     }
 
