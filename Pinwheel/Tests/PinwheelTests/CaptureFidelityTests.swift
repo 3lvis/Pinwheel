@@ -211,6 +211,40 @@ final class CaptureFidelityTests: XCTestCase {
                                     "each colored row must keep its background fill, not flatten to bare labels on the screen fill")
     }
 
+    // A row inset symmetrically (a spacing bar that shrinks toward the middle) is centered. In a column
+    // shared with a leading section header, the single cross-alignment is leading, which would pin the
+    // bar to the left. It must instead capture wrapped in a full-width centering slot.
+    func testSymmetricallyInsetRowCentersInALeadingColumn() throws {
+        struct Fixture: SwiftUI.View {
+            var body: some SwiftUI.View {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: .spacingL) {
+                        PinLabel("Spacing").font(.title)
+                        ForEach([CGFloat(8), CGFloat(32)], id: \.self) { pad in
+                            PinLabel("bar \(Int(pad))")
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, .spacingS)
+                                .background(.tertiaryText)
+                                .padding(.horizontal, pad)
+                        }
+                    }
+                    .padding(.spacingL)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .background(.primaryBackground)
+            }
+        }
+        let root = try XCTUnwrap(PinDisplayListCapture.document(Fixture(), name: "Numbers", size: CGSize(width: 402, height: 1600), screenHeight: 778),
+                                 "the fixture should capture into a document").root
+        XCTAssertTrue(hasCenteringSlot(root),
+                      "a symmetrically-inset bar must capture wrapped in a centering slot, not pinned to the left")
+    }
+
+    private func hasCenteringSlot(_ node: FigmaNode) -> Bool {
+        if node.name == "Center", node.children.contains(where: { $0.fill != nil }) { return true }
+        return node.children.contains { hasCenteringSlot($0) }
+    }
+
     private func leafCount(_ node: ReflectedNode?) -> Int {
         guard let node else { return 0 }
         switch node {

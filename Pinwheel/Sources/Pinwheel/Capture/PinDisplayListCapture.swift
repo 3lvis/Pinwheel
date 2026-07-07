@@ -349,8 +349,19 @@ public enum PinDisplayListCapture {
             )
         }
         let orderedChildren = orderedForLayout(box.children)
-        let childNodes = orderedChildren.map { emit($0, host: host) }
         let layout = inferLayout(orderedChildren.map(\.leaf.frame), in: frame)
+        // A leading column has one cross-alignment, so a child centered on the column's axis but inset
+        // from the leading edge — a spacing bar that shrinks toward the middle, sharing the column with a
+        // leading header — would be pinned left. Wrap such a child in a full-width centering slot so it
+        // stays centered. A leading header (off-axis) and a full-width row (not inset) are left as-is.
+        let contentMinX = orderedChildren.map { $0.leaf.frame.minX }.min() ?? frame.minX
+        let childNodes = orderedChildren.map { child -> FigmaNode in
+            let node = emit(child, host: host)
+            guard layout.axis == .column, layout.alignment == .leading else { return node }
+            let centeredOnAxis = abs(child.leaf.frame.midX - frame.midX) < 2
+            let insetFromLeading = child.leaf.frame.minX - contentMinX > 1
+            return (centeredOnAxis && insetFromLeading) ? fillWidthCentered(node) : node
+        }
         return FigmaNode(
             tag: "frame", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
             fill: fill.map(RGBA.init), fillToken: token,
