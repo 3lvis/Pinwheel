@@ -91,7 +91,10 @@ struct FigmaCaptureSweepView: SwiftUI.View {
             // only render on the live window, which the capture crops for those leaves.
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                 guard let document = PinDisplayListCapture.document(
-                    entry.item.swiftUIView(), name: entry.title, size: FigmaCatalog.captureCanvas, screenHeight: FigmaCatalog.oneScreen
+                    entry.item.swiftUIView(), name: entry.title, size: FigmaCatalog.captureCanvas, screenHeight: FigmaCatalog.oneScreen,
+                    // This view presents the component full-screen, so its UIKit controls are the live
+                    // key-window content — safe to crop them for their real state/knob.
+                    liveControlsOnScreen: true
                 ) else { return }
                 let version = PinCaptureVersions.shared.record(id: entry.id, document: document)
                 FigmaCaptureFile.pushCatalog(

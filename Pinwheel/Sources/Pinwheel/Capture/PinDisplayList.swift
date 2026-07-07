@@ -28,7 +28,7 @@ enum PinDisplayList {
     // Reads the rendered DisplayList off a hosted copy. Synchronous — the display list is populated by
     // layoutIfNeeded, and it captures every demo reliably (the async on-screen variant only existed for
     // an icon crop that never worked). The window is returned so the caller keeps it alive.
-    static func read<Content: SwiftUI.View>(_ view: Content, size: CGSize) -> (leaves: [DisplayLeaf], host: UIView, window: UIWindow)? {
+    static func read<Content: SwiftUI.View>(_ view: Content, size: CGSize, liveControlsOnScreen: Bool) -> (leaves: [DisplayLeaf], host: UIView, window: UIWindow)? {
         let controller = UIHostingController(rootView: view.environment(\.pinCapturing, true))
         let hostView: UIView = controller.view
         hostView.frame = CGRect(origin: .zero, size: size)
@@ -37,14 +37,14 @@ enum PinDisplayList {
         window.isHidden = false
         hostView.layoutIfNeeded()
         guard let list = displayList(of: hostView) else { return nil }
-        return (fillRasterCrops(walk(list, origin: .zero), host: hostView), hostView, window)
+        return (fillRasterCrops(walk(list, origin: .zero), host: hostView, liveControlsOnScreen: liveControlsOnScreen), hostView, window)
     }
 
     // A rasterizable leaf the DisplayList gave us no vector Path for — a UITableView-hosted List cell's
     // icon/toggle/chevron lives in the UIKit layer tree, and SwiftUI's renderer returns a blank
     // placeholder for platform-backed content. Recover its pixels by rendering the host layer once and
     // cropping each blank region (the UIKit-layer render captures what SwiftUI's renderer can't).
-    private static func fillRasterCrops(_ leaves: [DisplayLeaf], host: UIView) -> [DisplayLeaf] {
+    private static func fillRasterCrops(_ leaves: [DisplayLeaf], host: UIView, liveControlsOnScreen: Bool) -> [DisplayLeaf] {
         let needsCrop = leaves.contains { if case .rasterizable = $0.kind, $0.image == nil { return true }; return false }
         guard needsCrop else { return leaves }
         let full = UIGraphicsImageRenderer(bounds: host.bounds).image { context in host.layer.render(in: context.cgContext) }
@@ -57,8 +57,10 @@ enum PinDisplayList {
         // A UIKit control (switch, segmented, slider, stepper, progress, date picker) paints its real
         // appearance/state only on the live screen (off-screen it's a flat blob), so crop those from the
         // on-screen key window and assign them to the wide rasterizable leaves in vertical order;
-        // icons/chevrons crop the off-screen host fine.
-        let controlCrops = keyWindowControlCrops()
+        // icons/chevrons crop the off-screen host fine. Only crop the key window when the caller vouches
+        // that this component *is* the on-screen content — otherwise the key window is some other surface
+        // (the catalog) and its controls would land on this component's leaves (the v7 corruption).
+        let controlCrops = liveControlsOnScreen ? keyWindowControlCrops() : []
         let wideLeaves = leaves.indices
             .filter { if case .rasterizable = leaves[$0].kind, leaves[$0].image == nil, leaves[$0].frame.width > 40 { return true }; return false }
             .sorted { leaves[$0].frame.minY < leaves[$1].frame.minY }
@@ -117,24 +119,20 @@ enum PinDisplayList {
         }
     }
 
-    // Assign the live control crops to the wide rasterizable leaves — but only when the crops are
-    // actually this component's controls. The capture host and the live window lay the component out
-    // identically, so the on-screen controls sit at the leaf positions shifted by a *constant* (the two
-    // windows' insets differ slightly). Same count and a consistent shift ⇒ same component ⇒ assign by
-    // vertical order. If the shift isn't consistent, the controls belong to another on-screen surface —
-    // an incidental capture from the catalog — so reject them all and let each leaf fall back to the
-    // safe host-layer crop. Guards the v7 corruption, where capturing from the catalog assigned catalog
-    // rows to the controls by blind order — see Tests/PinwheelTests/Fixtures/apple-controls-v7-corruption.png.
+    // Assign the live control crops to the wide rasterizable leaves by vertical order. The caller only
+    // passes live crops when the component is the on-screen content (the sweep), so the on-screen
+    // controls top-to-bottom are this component's controls top-to-bottom — no geometric matching needed,
+    // which is why this survives a UITableView whose off-screen and on-screen row spacing differ. The
+    // returned crop carries its frame so the leaf can size to the real control bounds. When the component
+    // isn't on screen (the catalog), the caller passes no crops, so nothing foreign is ever assigned —
+    // that's what prevents the v7 corruption (see Tests/PinwheelTests/Fixtures/apple-controls-v7-corruption.png).
     static func matchedControlCrops(
         wideLeaves: [(index: Int, frame: CGRect)],
-        crops: [(frame: CGRect, image: String)],
-        tolerance: CGFloat = 12
+        crops: [(frame: CGRect, image: String)]
     ) -> [Int: (frame: CGRect, image: String)] {
         guard !wideLeaves.isEmpty, wideLeaves.count == crops.count else { return [:] }
         let leaves = wideLeaves.sorted { $0.frame.minY < $1.frame.minY }
         let sortedCrops = crops.sorted { $0.frame.minY < $1.frame.minY }
-        let shifts = zip(leaves, sortedCrops).map { $1.frame.minY - $0.frame.minY }
-        guard let base = shifts.first, shifts.allSatisfy({ abs($0 - base) <= tolerance }) else { return [:] }
         var result: [Int: (frame: CGRect, image: String)] = [:]
         for (leaf, crop) in zip(leaves, sortedCrops) { result[leaf.index] = crop }
         return result

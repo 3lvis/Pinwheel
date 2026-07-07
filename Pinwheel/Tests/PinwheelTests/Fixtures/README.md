@@ -6,9 +6,9 @@ segmented, slider, stepper, progress, and date-picker, they show **catalog rows*
 
 Cause: the capture was triggered from the catalog (the capture-on-view `autoPush` sink), so
 `keyWindowControlCrops` cropped the *ambient* key window — the catalog — and assigned those crops
-to the component's control leaves by blind vertical order (the `count == count` guard passed, 6 == 6).
+to the component's control leaves by vertical order.
 
-Guard against recurrence: `PinDisplayList.matchedControlCrops` now pairs a leaf with a live crop only
-when the crop rendered at that leaf's position (frame + safe-area inset). A control from another
-on-screen surface doesn't line up, so it's left unmatched and the leaf falls back to the safe
-host-layer crop instead of foreign content. See `testControlCropsRejectForeignPositionedControls`.
+Guard against recurrence: `PinDisplayListCapture.document(…, liveControlsOnScreen:)` defaults to
+`false`, so the key window is cropped only when the caller vouches the component *is* the on-screen
+content (the full-screen sweep). A capture-on-view from the catalog leaves it false, so no live
+crops are taken and nothing foreign can land on a control. See `ControlCropMatchTests`.

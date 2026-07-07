@@ -7,8 +7,13 @@ import Pinwheel
 // its buttons); axis/spacing/alignment are inferred from the frames SwiftUI already computed.
 @MainActor
 public enum PinDisplayListCapture {
-    public static func document<Content: SwiftUI.View>(_ view: Content, name: String, size: CGSize, screenHeight: CGFloat) -> FigmaDocument? {
-        guard let (leaves, host, window) = PinDisplayList.read(view, size: size) else { return nil }
+    /// Set `liveControlsOnScreen` only when `view` is the on-screen content (a full-screen sweep) — it
+    /// lets the capture crop UIKit controls (a switch/date picker) from the live window, which paints
+    /// their real state. When the view isn't on screen (a capture-on-view from the catalog), leave it
+    /// false: the key window is some other surface, and cropping it would put foreign pixels on the
+    /// controls. Off-screen controls then fall back to their (flat) host-layer render.
+    public static func document<Content: SwiftUI.View>(_ view: Content, name: String, size: CGSize, screenHeight: CGFloat, liveControlsOnScreen: Bool = false) -> FigmaDocument? {
+        guard let (leaves, host, window) = PinDisplayList.read(view, size: size, liveControlsOnScreen: liveControlsOnScreen) else { return nil }
         return withExtendedLifetime(window) { build(view, name: name, leaves: leaves, host: host, size: size, screenHeight: screenHeight) }
     }
 
