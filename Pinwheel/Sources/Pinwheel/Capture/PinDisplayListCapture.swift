@@ -28,6 +28,26 @@ public enum PinDisplayListCapture {
                              tokens: light.tokens, textStyles: light.textStyles)
     }
 
+    /// Capture from an already-hosted, on-screen view (a full-screen sweep) instead of a throwaway
+    /// off-screen copy. The live render is complete — every UIKit control has painted — so nothing drops;
+    /// the caller flips the host's appearance and calls this once per appearance, then merges with
+    /// `mergingDarkVariants`.
+    public static func document<Content: SwiftUI.View>(_ view: Content, name: String, size: CGSize, screenHeight: CGFloat, liveHost: UIView) -> FigmaDocument? {
+        // The host is on-screen and fully rendered, so its own layer render already captures each control
+        // (knob and all) — no need for the expensive key-window `drawHierarchy` crop, which hammered the
+        // render server and exhausted it across a batch.
+        guard let leaves = PinDisplayList.leaves(fromHost: liveHost, liveControlsOnScreen: false) else { return nil }
+        return build(view, name: name, leaves: leaves, host: liveHost, size: size, screenHeight: screenHeight)
+    }
+
+    /// Merge a dark-appearance capture into a light one: each node's dark pixels (imageDark) and dark fill
+    /// (fillDark) come from its dark twin. Both captures are the same view + size, so the trees zip by
+    /// position. The plugin prefers a token's dark value, falling back to these for untokenized colors.
+    public static func mergingDarkVariants(light: FigmaDocument, dark: FigmaDocument) -> FigmaDocument {
+        FigmaDocument(width: light.width, height: light.height, root: withDarkVariants(light.root, dark.root),
+                      tokens: light.tokens, textStyles: light.textStyles)
+    }
+
     // Graft each node's dark appearance onto its light twin: dark pixels for a rasterized node, and the
     // dark fill for a raw (untokenized) fill. A tokenized fill already adapts via the token's dark value,
     // so the plugin prefers that; fillDark is the fallback for a fill no token names — e.g. a List
@@ -39,29 +59,6 @@ public enum PinDisplayListCapture {
         let darkChildren = dark?.children ?? []
         node.children = light.children.enumerated().map { index, child in
             withDarkVariants(child, index < darkChildren.count ? darkChildren[index] : nil)
-        }
-        return node
-    }
-
-    /// Graft the dark-appearance crops of live UIKit controls from a second, dark-screen capture onto a
-    /// light one. A control (a UISwitch) renders its real knob/state only on the live window, so its dark
-    /// variant can't come from the off-screen dark pass — the sweep captures the whole screen a second
-    /// time in dark and hands that document here. Only wide image nodes (the cropped controls) are
-    /// overridden; narrow images (symbols/icons) keep the off-screen dark variant `document` already gave
-    /// them. Off-screen content (colors, text, separators) stays entirely from `light`.
-    public static func graftingLiveControlDarkImages(onto light: FigmaDocument, from dark: FigmaDocument) -> FigmaDocument {
-        FigmaDocument(width: light.width, height: light.height, root: graftWideControlImages(light.root, dark.root),
-                      tokens: light.tokens, textStyles: light.textStyles)
-    }
-
-    private static func graftWideControlImages(_ light: FigmaNode, _ dark: FigmaNode?) -> FigmaNode {
-        var node = light
-        // A cropped live control is a wide image; a symbol/icon is a narrow one (≤40pt) whose dark
-        // variant the off-screen pass already captured correctly.
-        if node.image != nil, node.w > 40, let darkImage = dark?.image { node.imageDark = darkImage }
-        let darkChildren = dark?.children ?? []
-        node.children = light.children.enumerated().map { index, child in
-            graftWideControlImages(child, index < darkChildren.count ? darkChildren[index] : nil)
         }
         return node
     }

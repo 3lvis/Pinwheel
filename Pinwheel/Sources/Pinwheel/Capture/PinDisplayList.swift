@@ -35,9 +35,18 @@ enum PinDisplayList {
         let window = UIWindow(frame: hostView.frame)
         window.rootViewController = controller
         window.isHidden = false
+        guard let leaves = leaves(fromHost: hostView, liveControlsOnScreen: liveControlsOnScreen) else { return nil }
+        return (leaves, hostView, window)
+    }
+
+    /// Reads leaves from an already-hosted view — used to capture the real on-screen render (a full-screen
+    /// sweep) rather than a throwaway off-screen copy. Heavy UIKit controls only populate the DisplayList
+    /// when actually rendered, and an off-screen duplicate is throttled in a batch, so reading the live
+    /// host is what makes every control reliably present.
+    static func leaves(fromHost hostView: UIView, liveControlsOnScreen: Bool) -> [DisplayLeaf]? {
         hostView.layoutIfNeeded()
         guard let list = displayList(of: hostView) else { return nil }
-        return (fillRasterCrops(walk(list, origin: .zero), host: hostView, liveControlsOnScreen: liveControlsOnScreen), hostView, window)
+        return fillRasterCrops(walk(list, origin: .zero), host: hostView, liveControlsOnScreen: liveControlsOnScreen)
     }
 
     // A rasterizable leaf the DisplayList gave us no vector Path for — a UITableView-hosted List cell's

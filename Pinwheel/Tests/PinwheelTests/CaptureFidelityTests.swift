@@ -425,25 +425,22 @@ final class CaptureFidelityTests: XCTestCase {
                       "the dark separator must differ from the light one, not repeat the light value")
     }
 
-    // A live UIKit control renders its state only on-screen, so the sweep captures a second dark-screen
-    // pass and grafts those crops. The graft must override only wide (control) images — a narrow symbol
-    // keeps the dark variant the off-screen pass already gave it. This threshold is what tells them apart.
-    func testGraftingDarkImagesOverridesWideControlsButNotNarrowSymbols() {
-        func document(control: String, symbol: String) -> FigmaDocument {
-            let control = FigmaNode(tag: "image", x: 0, y: 0, w: 51, h: 31, image: control, children: [])
-            let symbol = FigmaNode(tag: "image", x: 0, y: 40, w: 20, h: 20, image: symbol, children: [])
+    // Merging a dark capture into a light one carries every node's dark pixels and dark fill onto its
+    // light twin, so a control captured on the live screen in each appearance adapts on import.
+    func testMergingDarkVariantsCarriesDarkImageAndFill() {
+        func document(image: String, fill: RGBA) -> FigmaDocument {
+            let leaf = FigmaNode(tag: "image", x: 0, y: 0, w: 51, h: 31, fill: fill, image: image, children: [])
             return FigmaDocument(width: 100, height: 100,
-                                 root: FigmaNode(tag: "frame", x: 0, y: 0, w: 100, h: 100, children: [control, symbol]),
+                                 root: FigmaNode(tag: "frame", x: 0, y: 0, w: 100, h: 100, children: [leaf]),
                                  tokens: [], textStyles: [])
         }
-        let merged = PinDisplayListCapture.graftingLiveControlDarkImages(
-            onto: document(control: "switch-light", symbol: "icon-light"),
-            from: document(control: "switch-dark", symbol: "icon-dark")
+        let merged = PinDisplayListCapture.mergingDarkVariants(
+            light: document(image: "light", fill: RGBA(r: 1, g: 1, b: 1, a: 1)),
+            dark: document(image: "dark", fill: RGBA(r: 0, g: 0, b: 0, a: 1))
         )
-        XCTAssertEqual(merged.root.children[0].imageDark, "switch-dark",
-                       "a wide live control must take the dark-screen crop as its dark variant")
-        XCTAssertNil(merged.root.children[1].imageDark,
-                     "a narrow symbol must keep the off-screen dark variant, not the second-pass crop")
+        XCTAssertEqual(merged.root.children[0].imageDark, "dark", "the dark capture's pixels become imageDark")
+        XCTAssertEqual(merged.root.children[0].fillDark?.r, 0, "the dark capture's fill becomes fillDark")
+        XCTAssertEqual(merged.root.children[0].image, "light", "the light capture stays the base image")
     }
 
     private func averageOpaqueBrightness(_ image: UIImage) -> Int {

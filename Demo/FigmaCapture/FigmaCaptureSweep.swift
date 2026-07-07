@@ -76,53 +76,68 @@ enum FigmaCatalog {
     }
 }
 
+// Hosts the component full-screen and captures the DisplayList off that *live* on-screen render — not a
+// throwaway off-screen copy. Heavy UIKit controls (slider/segmented/progress) only populate the
+// DisplayList once actually rendered, and an off-screen duplicate is throttled in a batch and drops them;
+// the real render is always complete. Captured once per appearance (the host's own light/dark override),
+// then merged, so every control and colour adapts from the same reliable render.
 struct FigmaCaptureSweepView: SwiftUI.View {
     let id: String
-    @SwiftUI.State private var captureScheme: ColorScheme = .light
-    @SwiftUI.State private var lightDocument: FigmaDocument?
-    @SwiftUI.State private var pushed = false
 
     var body: some SwiftUI.View {
-        Group {
-            if let entry = FigmaCatalog.entry(id: id) { entry.item.swiftUIView() } else { Color.clear }
-        }
-        // Drives the on-screen appearance so a live UIKit control (a UISwitch's knob only renders on the
-        // window) is cropped in the appearance being captured.
-        .preferredColorScheme(captureScheme)
-        .onAppear { captureLightPass() }
-    }
-
-    // A UIKit control only renders its real state on the live window, so its dark variant can't come from
-    // the off-screen dark pass — capture the whole screen twice (light, then dark) and graft the dark
-    // control crops onto the light document. Off-screen content (colors/symbols/separators) already
-    // carries both appearances from `document`'s own light/dark render.
-    private func captureLightPass() {
-        guard !pushed, let entry = FigmaCatalog.entry(id: id) else { return }
-        pushed = true
-        // Capture after the component paints on-screen (a UISwitch renders its knob only once on-window).
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-            lightDocument = capture(entry)
-            captureScheme = .dark
-            captureDarkPass(entry)
+        if let entry = FigmaCatalog.entry(id: id) {
+            LiveCaptureHost(entry: entry).ignoresSafeArea()
+        } else {
+            Color.clear
         }
     }
+}
 
-    private func captureDarkPass(_ entry: FigmaCatalogEntry) {
-        // Let the dark appearance take effect on-screen before cropping the controls again.
+private struct LiveCaptureHost: UIViewControllerRepresentable {
+    let entry: FigmaCatalogEntry
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        let container = UIViewController()
+        container.view.backgroundColor = .clear
+        let host = UIHostingController(rootView: AnyView(entry.item.swiftUIView().environment(\.pinCapturing, true)))
+        container.addChild(host)
+        host.view.translatesAutoresizingMaskIntoConstraints = false
+        container.view.addSubview(host.view)
+        // Fixed capture width so the IR matches the design regardless of the device the sim happens to be.
+        NSLayoutConstraint.activate([
+            host.view.widthAnchor.constraint(equalToConstant: FigmaCatalog.captureCanvas.width),
+            host.view.centerXAnchor.constraint(equalTo: container.view.centerXAnchor),
+            host.view.topAnchor.constraint(equalTo: container.view.topAnchor),
+            host.view.bottomAnchor.constraint(equalTo: container.view.bottomAnchor)
+        ])
+        host.didMove(toParent: container)
+        // Capture once the component has painted on-screen (a UISwitch renders its knob only on-window).
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { capture(host: host) }
+        return container
+    }
+
+    func updateUIViewController(_ controller: UIViewController, context: Context) {}
+
+    private func capture(host: UIViewController) {
+        let size = host.view.bounds.size
+        host.overrideUserInterfaceStyle = .light
+        host.view.layoutIfNeeded()
+        guard let light = PinDisplayListCapture.document(
+            entry.item.swiftUIView(), name: entry.title, size: size, screenHeight: FigmaCatalog.oneScreen, liveHost: host.view
+        ) else { return }
+        host.overrideUserInterfaceStyle = .dark
+        // Let the dark appearance repaint on-screen before the second read.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-            guard let light = lightDocument, let dark = capture(entry) else { return }
-            let document = PinDisplayListCapture.graftingLiveControlDarkImages(onto: light, from: dark)
+            host.view.layoutIfNeeded()
+            guard let dark = PinDisplayListCapture.document(
+                entry.item.swiftUIView(), name: entry.title, size: size, screenHeight: FigmaCatalog.oneScreen, liveHost: host.view
+            ) else { return }
+            let document = PinDisplayListCapture.mergingDarkVariants(light: light, dark: dark)
             let version = PinCaptureVersions.shared.record(id: entry.id, document: document)
             FigmaCaptureFile.pushCatalog(
                 app: FigmaCatalog.appName, id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, version: version, document: document
             )
+            host.overrideUserInterfaceStyle = .unspecified
         }
-    }
-
-    private func capture(_ entry: FigmaCatalogEntry) -> FigmaDocument? {
-        PinDisplayListCapture.document(
-            entry.item.swiftUIView(), name: entry.title, size: FigmaCatalog.captureCanvas, screenHeight: FigmaCatalog.oneScreen,
-            liveControlsOnScreen: true
-        )
     }
 }
