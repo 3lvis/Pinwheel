@@ -24,16 +24,21 @@ public enum PinDisplayListCapture {
         // how a color token carries both `value` and `dark`. Structure is identical (same view + size),
         // so the two trees zip by position.
         guard let dark = singleDocument(view.environment(\.colorScheme, .dark), name: name, size: size, screenHeight: screenHeight, liveControlsOnScreen: liveControlsOnScreen) else { return light }
-        return FigmaDocument(width: light.width, height: light.height, root: withDarkImages(light.root, dark.root),
+        return FigmaDocument(width: light.width, height: light.height, root: withDarkVariants(light.root, dark.root),
                              tokens: light.tokens, textStyles: light.textStyles)
     }
 
-    private static func withDarkImages(_ light: FigmaNode, _ dark: FigmaNode?) -> FigmaNode {
+    // Graft each node's dark appearance onto its light twin: dark pixels for a rasterized node, and the
+    // dark fill for a raw (untokenized) fill. A tokenized fill already adapts via the token's dark value,
+    // so the plugin prefers that; fillDark is the fallback for a fill no token names — e.g. a List
+    // separator's Apple color, which stayed light on a dark background without it.
+    private static func withDarkVariants(_ light: FigmaNode, _ dark: FigmaNode?) -> FigmaNode {
         var node = light
         if node.image != nil { node.imageDark = dark?.image }
+        if node.fill != nil { node.fillDark = dark?.fill }
         let darkChildren = dark?.children ?? []
         node.children = light.children.enumerated().map { index, child in
-            withDarkImages(child, index < darkChildren.count ? darkChildren[index] : nil)
+            withDarkVariants(child, index < darkChildren.count ? darkChildren[index] : nil)
         }
         return node
     }

@@ -26,6 +26,7 @@ struct FigmaNode: Encodable {
     var h: Double
     var fill: RGBA?
     var fillToken: String?
+    var fillDark: RGBA?
     var radius: Double?
     var radiusToken: String?
     var component: String?

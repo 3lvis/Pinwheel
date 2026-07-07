@@ -409,6 +409,22 @@ final class CaptureFidelityTests: XCTestCase {
                           "the dark symbol tints with primaryBackground (near black), not the light white")
     }
 
+    // A List separator is a SwiftUI Divider — Apple's separator color, which matches no Pinwheel token.
+    // A raw (untokenized) fill only carries its light value, so it imported with the light separator
+    // color on the dark background; it must carry a dark fill to adapt like a tokenized color does.
+    func testNonTokenizedSeparatorCapturesADarkFill() throws {
+        let list = PinList(state: .loaded, rows: [.text("A") {}, .text("B") {}], onRetry: {})
+        let document = try XCTUnwrap(PinDisplayListCapture.document(list, name: "List", size: CGSize(width: 402, height: 400), screenHeight: 778),
+                                     "the list should capture into a document")
+        let separator = try XCTUnwrap(firstNode(in: document.root) { $0.h > 0 && $0.h < 2 && $0.fill != nil },
+                                      "the list should capture a hairline separator with a fill")
+        let light = try XCTUnwrap(separator.fill)
+        let dark = try XCTUnwrap(separator.fillDark,
+                                 "a non-tokenized fill must carry a dark variant so it adapts on import into dark mode")
+        XCTAssertTrue(abs(dark.r - light.r) > 0.03 || abs(dark.a - light.a) > 0.03,
+                      "the dark separator must differ from the light one, not repeat the light value")
+    }
+
     private func averageOpaqueBrightness(_ image: UIImage) -> Int {
         guard let cg = image.cgImage else { return -1 }
         let width = cg.width, height = cg.height
