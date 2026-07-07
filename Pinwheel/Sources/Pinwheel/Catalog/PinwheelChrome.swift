@@ -16,6 +16,7 @@ final class PinwheelChrome {
     var componentID: String?
     // The preview variant (applied tweak), shown in the pill so a sweep snapshot names which one it is.
     var componentVariant: String?
+    var colorScheme: ColorScheme?
 
     var tweakCount: Int { tweaks.count }
 
