@@ -1,0 +1,14 @@
+{
+  "name": "pinwheel-figma-capture",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pinwheel's Figma capture plugin and the local serve it reads from.",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "serve": "node serve.mjs"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.130.0",
+    "typescript": "~5.6.0"
+  }
+}

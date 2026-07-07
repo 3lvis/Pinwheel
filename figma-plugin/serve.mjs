@@ -1,0 +1,100 @@
+// Serves capture.json with permissive CORS: the plugin UI iframe runs on a figma.com origin, so a
+// bare static server's responses would be blocked.
+import { createServer } from 'node:http'
+import { readFileSync, writeFileSync, readdirSync, unlinkSync } from 'node:fs'
+import { resolve, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const here = dirname(fileURLToPath(import.meta.url))
+const captureFile = resolve(here, 'capture.json')
+const slug = (value) => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+
+createServer((request, response) => {
+  response.setHeader('Access-Control-Allow-Origin', '*')
+  // application/json makes the plugin's inspect POST a non-simple request, so answer its preflight.
+  response.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
+  response.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  if (request.method === 'OPTIONS') {
+    response.statusCode = 204
+    return response.end()
+  }
+
+  if (request.url === '/catalog' && request.method === 'POST') {
+    const chunks = []
+    request.on('data', (chunk) => chunks.push(chunk))
+    request.on('end', () => {
+      const body = Buffer.concat(chunks)
+      let id = 'unknown'
+      try { id = slug(JSON.parse(body.toString()).id) || 'unknown' } catch { /* keep 'unknown' */ }
+      const outFile = 'catalog-' + id + '.json'
+      writeFileSync(resolve(here, outFile), body)
+      response.setHeader('Content-Type', 'application/json')
+      response.end(JSON.stringify({ ok: true, file: outFile }))
+    })
+    return
+  }
+  if (request.url === '/catalog' && request.method === 'DELETE') {
+    for (const name of readdirSync(here)) if (/^catalog-.+\.json$/.test(name)) unlinkSync(resolve(here, name))
+    response.setHeader('Content-Type', 'application/json')
+    return response.end(JSON.stringify({ ok: true }))
+  }
+  if (request.url === '/manifest.json') {
+    const items = readdirSync(here)
+      .filter((name) => /^catalog-.+\.json$/.test(name))
+      .map((name) => {
+        try {
+          const entry = JSON.parse(readFileSync(resolve(here, name)))
+          return { id: entry.id, title: entry.title, section: entry.section, tags: entry.tags }
+        } catch { return null }
+      })
+      .filter(Boolean)
+    response.setHeader('Content-Type', 'application/json')
+    return response.end(JSON.stringify({ items }))
+  }
+
+  if (request.url === '/inspect.json' && request.method === 'POST') {
+    const chunks = []
+    request.on('data', (chunk) => chunks.push(chunk))
+    request.on('end', () => {
+      const body = Buffer.concat(chunks)
+      let name = 'latest'
+      try { name = slug(JSON.parse(body.toString()).name) || 'latest' } catch { /* keep 'latest' on unparseable body */ }
+      const outFile = 'inspect-' + name + '.json'
+      writeFileSync(resolve(here, outFile), body)
+      response.setHeader('Content-Type', 'application/json')
+      response.end(JSON.stringify({ ok: true, file: outFile }))
+    })
+    return
+  }
+
+  // The demo app pushes its render here; capture.mjs (the web flow) writes the same file.
+  if (request.url === '/capture.json' && request.method === 'POST') {
+    const chunks = []
+    request.on('data', (chunk) => chunks.push(chunk))
+    request.on('end', () => {
+      writeFileSync(captureFile, Buffer.concat(chunks))
+      response.setHeader('Content-Type', 'application/json')
+      response.end(JSON.stringify({ ok: true }))
+    })
+    return
+  }
+
+  // Only a-z/0-9/- in the name, so a request can't escape the directory.
+  const inspectMatch = /^\/(inspect-[a-z0-9-]+\.json)$/.exec(request.url)
+  const catalogMatch = /^\/(catalog-[a-z0-9-]+\.json)$/.exec(request.url)
+  const file = request.url === '/capture.json' ? captureFile
+    : catalogMatch ? resolve(here, catalogMatch[1])
+    : inspectMatch ? resolve(here, inspectMatch[1])
+    : null
+  if (!file) {
+    response.statusCode = 404
+    return response.end('not found')
+  }
+  try {
+    response.setHeader('Content-Type', 'application/json')
+    response.end(readFileSync(file))
+  } catch {
+    response.statusCode = 404
+    response.end(JSON.stringify({ error: file === captureFile ? 'run capture.mjs first' : 'no such inspection' }))
+  }
+}).listen(8787, () => console.log('serving capture.json + inspect.json on http://localhost:8787'))

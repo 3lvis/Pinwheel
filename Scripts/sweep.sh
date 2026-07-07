@@ -21,7 +21,7 @@
 #   PINWHEEL_SERVE="http://localhost:8787"
 #   PINWHEEL_PREVIEW_OUT=/tmp/...          # preview PNG output directory
 #
-# Serve (for --capture):  cd ../../web/fonno/frontend && npm run figma:serve
+# Serve (for --capture):  cd figma-plugin && npm run serve
 
 set -euo pipefail
 
@@ -109,7 +109,7 @@ run_capture() {
   local -a ids=("$@")
   local count light_dir="/tmp/pinwheel-sweep-light"
   curl -sf -o /dev/null "${SERVE}/manifest.json" \
-    || die "--capture needs the serve at ${SERVE} — run 'npm run figma:serve' in fonno/frontend"
+    || die "--capture needs the serve at ${SERVE} — run 'npm run serve' in figma-plugin/"
   err "clearing previous catalog on serve ..."
   curl -sf -X DELETE "${SERVE}/catalog" >/dev/null
   # A UIKit control (switch/segmented/slider/stepper/progress/datepicker) only renders in the SIM's
