@@ -62,6 +62,16 @@ final class CaptureFidelityTests: XCTestCase {
                       "an inferred gap that matches a spacing value must reference the spacing token")
     }
 
+    func testInferredGapBindsTheSpacingTokenDespiteGlyphBearing() {
+        // A gap measured between rendered leaves reads a hair wider than the declared spacing (a glyph or
+        // symbol sits inset within its frame), so a label↔icon gap of ~9-10 must still bind spacingS (8).
+        XCTAssertEqual(FigmaLayout(PinCaptureLayout(axis: .row, spacing: 9.33)).gapToken, "spacing-s")
+        XCTAssertEqual(FigmaLayout(PinCaptureLayout(axis: .row, spacing: 10.33)).gapToken, "spacing-s")
+        // An exact token still binds; a gap that isn't near any token stays raw.
+        XCTAssertEqual(FigmaLayout(PinCaptureLayout(axis: .row, spacing: 16)).gapToken, "spacing-l")
+        XCTAssertNil(FigmaLayout(PinCaptureLayout(axis: .row, spacing: 20)).gapToken)
+    }
+
     func testCardKeepsItsRadiusToken() throws {
         let card = try XCTUnwrap(firstNode(in: captureRoot()) { $0.fillToken == "secondaryBackground" },
                                  "the secondaryBackground card should be captured")

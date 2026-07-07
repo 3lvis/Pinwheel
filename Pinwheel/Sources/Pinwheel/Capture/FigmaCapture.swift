@@ -60,7 +60,7 @@ struct FigmaLayout: Encodable {
         mode = horizontal ? "row" : "column"
         columnGap = horizontal ? Double(layout.spacing) : 0
         rowGap = horizontal ? 0 : Double(layout.spacing)
-        gapToken = PinFloatTokens.spacingName(for: Double(layout.spacing))
+        gapToken = PinFloatTokens.gapTokenName(for: Double(layout.spacing))
         pad = [Double(layout.padding.top), Double(layout.padding.trailing),
                Double(layout.padding.bottom), Double(layout.padding.leading)]
         padTokens = pad.map(PinFloatTokens.spacingName(for:))
@@ -132,6 +132,16 @@ enum PinFloatTokens {
 
     static func spacingName(for value: Double) -> String? { name(for: value, in: spacing) }
     static func radiusName(for value: Double) -> String? { name(for: value, in: radius) }
+
+    // A gap measured between rendered leaves reads a hair wider than the declared HStack/VStack spacing
+    // — a glyph or SF Symbol sits inset within its frame — so round a gap down to the spacing token at
+    // or just below it. (Padding matches exactly; its edges aren't inflated by that bearing.)
+    static func gapTokenName(for value: Double) -> String? {
+        guard value > 0.5 else { return nil }
+        guard let best = spacing.filter({ Double($0.value) <= value + 0.5 }).max(by: { $0.value < $1.value }),
+              value - Double(best.value) < 3 else { return nil }
+        return best.name
+    }
 
     private static func name(for value: Double, in table: [(name: String, value: CGFloat)]) -> String? {
         guard value > 0.5 else { return nil }
