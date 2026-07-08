@@ -34,6 +34,7 @@ async function resolveFont(family: string, weight: number, italic: boolean): Pro
 
 let colorVars: Record<string, Variable> = {}
 let colorVarsByName: Record<string, Variable> = {}
+let floatVarsByName: Record<string, Variable> = {}
 let textStyles: Record<string, TextStyle> = {}
 let darkMode = false
 let darkByToken: Record<string, { r: number; g: number; b: number; a: number }> = {}
@@ -80,6 +81,12 @@ function applyAutoLayout(frame: FrameNode | ComponentNode, layout: any): void {
   frame.primaryAxisAlignItems = plan.primaryAxisAlignItems
   frame.counterAxisAlignItems = plan.counterAxisAlignItems
   if (plan.minWidth !== null) frame.minWidth = plan.minWidth
+  const padFields = ['paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft'] as const
+  const padTokens = layout.padTokens || []
+  for (let side = 0; side < padFields.length; side += 1) {
+    const variable = floatVarsByName[padTokens[side]]
+    if (variable) frame.setBoundVariable(padFields[side], variable)
+  }
 }
 
 function centerViaAutoLayout(frame: FrameNode | ComponentNode, width: number, height: number): void {
@@ -233,6 +240,12 @@ async function build(node: any, parent: BaseNode & ChildrenMixin, parentX: numbe
     frame.strokeWeight = node.strokeWidth
   }
   if (node.radius) frame.cornerRadius = node.radius
+  const radiusVariable = node.radiusToken && floatVarsByName[node.radiusToken]
+  if (radiusVariable) {
+    for (const corner of ['topLeftRadius', 'topRightRadius', 'bottomLeftRadius', 'bottomRightRadius'] as const) {
+      frame.setBoundVariable(corner, radiusVariable)
+    }
+  }
   if (typeof node.opacity === 'number') frame.opacity = node.opacity
   parent.appendChild(frame)
   frame.resize(Math.max(node.w, 0.01), Math.max(node.h, 0.01))
@@ -306,12 +319,14 @@ async function syncTokens(tokens: any[]): Promise<void> {
 
   let created = 0
   let updated = 0
+  floatVarsByName = {}
   for (const token of tokens) {
     const name = variableName(token)
     const type: VariableResolvedDataType = token.type === 'color' ? 'COLOR' : token.type === 'float' ? 'FLOAT' : 'STRING'
     let variable: Variable | undefined = byName[name]
     if (variable && variable.resolvedType !== type) { variable.remove(); variable = undefined }
     if (!variable) { variable = figma.variables.createVariable(name, collection, type); created += 1 } else { updated += 1 }
+    if (token.type === 'float') floatVarsByName[token.name] = variable
     const light = token.type === 'float' ? token.float : token.value
     const dark = token.type === 'float' ? token.float : (token.dark || token.value)
     if (light === undefined || light === null) continue

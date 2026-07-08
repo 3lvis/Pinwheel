@@ -127,6 +127,7 @@ var PW = (() => {
   }
   var colorVars = {};
   var colorVarsByName = {};
+  var floatVarsByName = {};
   var textStyles = {};
   var darkMode = false;
   var darkByToken = {};
@@ -170,6 +171,12 @@ var PW = (() => {
     frame.primaryAxisAlignItems = plan.primaryAxisAlignItems;
     frame.counterAxisAlignItems = plan.counterAxisAlignItems;
     if (plan.minWidth !== null) frame.minWidth = plan.minWidth;
+    const padFields = ["paddingTop", "paddingRight", "paddingBottom", "paddingLeft"];
+    const padTokens = layout.padTokens || [];
+    for (let side = 0; side < padFields.length; side += 1) {
+      const variable = floatVarsByName[padTokens[side]];
+      if (variable) frame.setBoundVariable(padFields[side], variable);
+    }
   }
   function centerViaAutoLayout(frame, width, height) {
     frame.layoutMode = "HORIZONTAL";
@@ -312,6 +319,12 @@ var PW = (() => {
       frame.strokeWeight = node.strokeWidth;
     }
     if (node.radius) frame.cornerRadius = node.radius;
+    const radiusVariable = node.radiusToken && floatVarsByName[node.radiusToken];
+    if (radiusVariable) {
+      for (const corner of ["topLeftRadius", "topRightRadius", "bottomLeftRadius", "bottomRightRadius"]) {
+        frame.setBoundVariable(corner, radiusVariable);
+      }
+    }
     if (typeof node.opacity === "number") frame.opacity = node.opacity;
     parent.appendChild(frame);
     frame.resize(Math.max(node.w, 0.01), Math.max(node.h, 0.01));
@@ -386,6 +399,7 @@ var PW = (() => {
     for (const v of existing) if (v.variableCollectionId === collection.id) byName[v.name] = v;
     let created = 0;
     let updated = 0;
+    floatVarsByName = {};
     for (const token of tokens) {
       const name = variableName(token);
       const type = token.type === "color" ? "COLOR" : token.type === "float" ? "FLOAT" : "STRING";
@@ -400,6 +414,7 @@ var PW = (() => {
       } else {
         updated += 1;
       }
+      if (token.type === "float") floatVarsByName[token.name] = variable;
       const light = token.type === "float" ? token.float : token.value;
       const dark = token.type === "float" ? token.float : token.dark || token.value;
       if (light === void 0 || light === null) continue;

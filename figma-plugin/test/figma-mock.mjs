@@ -12,9 +12,10 @@ export function loadPlugin() {
   const variableWrites = []
   const node = (type, extra = {}) => {
     const made = {
-      type, children: [], width: 100, height: 20, layoutMode: 'NONE',
+      type, children: [], width: 100, height: 20, layoutMode: 'NONE', boundVariables: {},
       appendChild(child) { this.children.push(child); child.parent = this },
       resize(width, height) { this.width = width; this.height = height },
+      setBoundVariable(field, variable) { this.boundVariables[field] = variable },
       ...extra,
     }
     created.push(made)
