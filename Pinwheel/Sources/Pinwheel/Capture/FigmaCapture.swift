@@ -178,22 +178,30 @@ extension PinTextStyle {
     @MainActor var captureUIFont: UIFont {
         switch self {
         case .title: return .title
+        case .titleSemibold: return .titleSemibold
         case .subtitle: return .subtitle
         case .subtitleSemibold: return .subtitleSemibold
         case .body: return .body
+        case .bodySemibold: return .bodySemibold
         case .footnote: return .footnote
+        case .footnoteSemibold: return .footnoteSemibold
         case .caption: return .caption
+        case .captionSemibold: return .captionSemibold
         }
     }
 
     var captureName: String {
         switch self {
         case .title: return "title"
+        case .titleSemibold: return "titleSemibold"
         case .subtitle: return "subtitle"
         case .subtitleSemibold: return "subtitleSemibold"
         case .body: return "body"
+        case .bodySemibold: return "bodySemibold"
         case .footnote: return "footnote"
+        case .footnoteSemibold: return "footnoteSemibold"
         case .caption: return "caption"
+        case .captionSemibold: return "captionSemibold"
         }
     }
 
@@ -205,7 +213,7 @@ extension PinTextStyle {
         return ("SF Pro Rounded", Double(font.pointSize), figmaCssWeight(weight))
     }
 
-    static let allCapturable: [PinTextStyle] = [.title, .subtitle, .subtitleSemibold, .body, .footnote, .caption]
+    static let allCapturable: [PinTextStyle] = [.title, .titleSemibold, .subtitle, .subtitleSemibold, .body, .bodySemibold, .footnote, .footnoteSemibold, .caption, .captionSemibold]
 
     // Map a resolved font back to its typography token by size + weight. Both worlds resolve to the same
     // UIFonts (SwiftUI `.subtitle` is `Font(UIFont.subtitle)`), so this tokenizes text captured either way.

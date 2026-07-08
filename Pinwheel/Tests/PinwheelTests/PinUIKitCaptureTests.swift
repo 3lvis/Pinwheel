@@ -161,6 +161,23 @@ final class PinUIKitCaptureTests: XCTestCase {
         XCTAssertFalse(document.textStyles.isEmpty, "the document ships the typography tokens")
     }
 
+    // A semibold shares its regular counterpart's size, so tokenizing must use weight to tell them apart.
+    func testSemiboldTokenizesDistinctlyFromItsRegularWeight() throws {
+        let host = UIView()
+        let label = UILabel()
+        label.font = .titleSemibold
+        label.text = "Heading"
+        label.translatesAutoresizingMaskIntoConstraints = false
+        host.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.topAnchor.constraint(equalTo: host.topAnchor, constant: 40),
+            label.leadingAnchor.constraint(equalTo: host.leadingAnchor),
+        ])
+        let document = try XCTUnwrap(capture(host))
+        let node = try XCTUnwrap(firstText(document.root, "Heading"))
+        XCTAssertEqual(node.font?.style, "titleSemibold", "a semibold must not collapse onto its regular-weight token")
+    }
+
     private func firstNode(_ node: FigmaNode, where predicate: (FigmaNode) -> Bool) -> FigmaNode? {
         if predicate(node) { return node }
         for child in node.children { if let found = firstNode(child, where: predicate) { return found } }

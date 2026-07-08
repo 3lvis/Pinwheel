@@ -5,6 +5,10 @@ public extension UIFont {
         Config.fontProvider.title
     }
 
+    class var titleSemibold: UIFont {
+        Config.fontProvider.titleSemibold
+    }
+
     class var subtitle: UIFont {
         Config.fontProvider.subtitle
     }
@@ -17,12 +21,24 @@ public extension UIFont {
         Config.fontProvider.body
     }
 
+    class var bodySemibold: UIFont {
+        Config.fontProvider.bodySemibold
+    }
+
     class var footnote: UIFont {
         Config.fontProvider.footnote
     }
 
+    class var footnoteSemibold: UIFont {
+        Config.fontProvider.footnoteSemibold
+    }
+
     class var caption: UIFont {
         Config.fontProvider.caption
+    }
+
+    class var captionSemibold: UIFont {
+        Config.fontProvider.captionSemibold
     }
 
     func scaledFont(forTextStyle textStyle: UIFont.TextStyle) -> UIFont {

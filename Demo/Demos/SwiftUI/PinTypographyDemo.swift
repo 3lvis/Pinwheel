@@ -4,11 +4,15 @@ import Pinwheel
 struct PinTypographyDemo: SwiftUI.View {
     private let styles: [(String, PinTextStyle)] = [
         ("Title", .title),
+        ("Title Semibold", .titleSemibold),
         ("Subtitle", .subtitle),
         ("Subtitle Semibold", .subtitleSemibold),
         ("Body", .body),
+        ("Body Semibold", .bodySemibold),
         ("Footnote", .footnote),
-        ("Caption", .caption)
+        ("Footnote Semibold", .footnoteSemibold),
+        ("Caption", .caption),
+        ("Caption Semibold", .captionSemibold)
     ]
 
     // VStack, not List: a List's UIKit-backed cells don't render off-screen, so Figma capture reads them empty.

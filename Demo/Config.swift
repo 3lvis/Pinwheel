@@ -37,33 +37,6 @@ struct DemoFontProvider: FontProvider {
     }
 }
 
-public extension UIFont {
-    class var titleSemibold: UIFont {
-        let font = UIFont.rounded(ofSize: 23, weight: .semibold)
-        return font.scaledFont(forTextStyle: .headline)
-    }
-
-    class var subtitleSemibold: UIFont {
-        let font = UIFont.rounded(ofSize: 20, weight: .semibold)
-        return font.scaledFont(forTextStyle: .subheadline)
-    }
-
-    class var bodySemibold: UIFont {
-        let font = UIFont.rounded(ofSize: 17, weight: .semibold)
-        return font.scaledFont(forTextStyle: .body)
-    }
-
-    class var footnoteSemibold: UIFont {
-        let font = UIFont.rounded(ofSize: 13, weight: .semibold)
-        return font.scaledFont(forTextStyle: .footnote)
-    }
-
-    class var captionSemibold: UIFont {
-        let font = UIFont.rounded(ofSize: 11, weight: .semibold)
-        return font.scaledFont(forTextStyle: .caption1)
-    }
-}
-
 struct DemoColorProvider: ColorProvider {
     var primaryText: UIColor {
         let defaultColor: UIColor = .init(hex: "021622")

@@ -18,16 +18,15 @@ class UIKitPinTypographyDemo: UIKitPinView {
     lazy var items: [FontItem] = {
         return [
             FontItem(font: .title, title: "Title"),
-            FontItem(font: .subtitle, title: "Subtitle"),
-            FontItem(font: .body, title: "Body"),
-            FontItem(font: .footnote, title: "Footnote"),
-            FontItem(font: .caption, title: "A caption awesome"),
-
             FontItem(font: .titleSemibold, title: "Title Semibold"),
+            FontItem(font: .subtitle, title: "Subtitle"),
             FontItem(font: .subtitleSemibold, title: "Subtitle Semibold"),
+            FontItem(font: .body, title: "Body"),
             FontItem(font: .bodySemibold, title: "Body Semibold"),
+            FontItem(font: .footnote, title: "Footnote"),
             FontItem(font: .footnoteSemibold, title: "Footnote Semibold"),
-            FontItem(font: .captionSemibold, title: "A caption awesome semibold"),
+            FontItem(font: .caption, title: "Caption"),
+            FontItem(font: .captionSemibold, title: "Caption Semibold"),
         ]
     }()
 
