@@ -341,10 +341,6 @@ public enum PinDisplayListCapture {
         screenNode.fillToken = fill.flatMap(tokenName(for:))
         if var layout = screenNode.layout {
             layout.pad = [Double(topPad), Double(width) - Double(maxX), Double(bottomPad), Double(minX)]
-            // Tokenize each computed side by value: the demo's real spacing edges (16 → spacing-l) reference
-            // the token, while the positioning geometry (a left-anchored screen's right/bottom pad) stays
-            // raw. Recomputed here, not inherited, so a stale token from the content's own padding can't
-            // mismatch the new geometry.
             layout.padTokens = layout.pad.map(PinFloatTokens.spacingName(for:))
             layout.primarySizing = "FIXED"
             layout.counterSizing = "FIXED"
