@@ -31,3 +31,30 @@ test('planText: no fill descriptor when the font has no colour', () => {
   const p = plan({ text: 'x', w: 40, h: 18 }, { family: 'SF Pro Rounded', size: 15, weight: 400 })
   assert.equal(p.fill, null)
 })
+
+const layout = (l) => loadPlugin().sandbox.planAutoLayout(l)
+
+test('planAutoLayout: a centered column maps justify/align to primary/counter CENTER and keeps padding', () => {
+  const p = layout({ mode: 'column', rowGap: 0, columnGap: 0, pad: [10, 20, 30, 40], justify: 'center', align: 'center', primarySizing: 'FIXED', counterSizing: 'AUTO' })
+  assert.equal(p.layoutMode, 'VERTICAL')
+  assert.equal(p.primaryAxisAlignItems, 'CENTER')
+  assert.equal(p.counterAxisAlignItems, 'CENTER')
+  assert.equal(p.primaryAxisSizingMode, 'FIXED')
+  assert.equal(p.counterAxisSizingMode, 'AUTO')
+  assert.equal(p.paddingTop, 10)
+  assert.equal(p.paddingLeft, 40)
+})
+
+test('planAutoLayout: a grid centers on the cross axis via justify, not align-items', () => {
+  const p = layout({ mode: 'column', rowGap: 0, columnGap: 0, pad: [0, 0, 0, 0], grid: true, alignContent: 'center', justify: 'center', justifyItems: 'start' })
+  assert.equal(p.primaryAxisAlignItems, 'CENTER', 'grid main axis is align-content')
+  assert.equal(p.counterAxisAlignItems, 'CENTER', 'grid cross axis comes from justify, not align-items')
+})
+
+test('planAutoLayout: a wrapping row carries WRAP and the row gap as counter spacing', () => {
+  const p = layout({ mode: 'row', rowGap: 8, columnGap: 4, pad: [0, 0, 0, 0], wrap: true, justify: 'flex-start', align: 'flex-start' })
+  assert.equal(p.layoutMode, 'HORIZONTAL')
+  assert.equal(p.layoutWrap, 'WRAP')
+  assert.equal(p.counterAxisSpacing, 8)
+  assert.equal(p.itemSpacing, 4)
+})

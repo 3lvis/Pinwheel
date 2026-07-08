@@ -87,37 +87,59 @@ function counterAlign(value) {
         return 'BASELINE';
     return 'MIN';
 }
-function applyAutoLayout(frame, layout) {
+// Pure: resolve a captured layout into the frame's auto-layout properties. AUTO hugs, FIXED fills (a
+// space-between row needs FIXED to hold the split). A grid takes its cross-axis alignment from
+// justify/justify-items, not align-items (which is the cross axis in flex but the main axis in grid).
+function planAutoLayout(layout) {
     const horizontal = layout.mode === 'row';
-    frame.layoutMode = horizontal ? 'HORIZONTAL' : 'VERTICAL';
-    // AUTO hugs (frame reflows); FIXED fills (a space-between row needs it to hold the split). The
-    // web capture omits these and keeps the fixed sizes it measured.
-    frame.primaryAxisSizingMode = layout.primarySizing || 'FIXED';
-    frame.counterAxisSizingMode = layout.counterSizing || 'FIXED';
-    frame.itemSpacing = (horizontal ? layout.columnGap : layout.rowGap) || 0;
-    if (layout.wrap && horizontal) {
-        frame.layoutWrap = 'WRAP';
-        frame.counterAxisSpacing = layout.rowGap || 0;
-    }
-    frame.paddingTop = layout.pad[0];
-    frame.paddingRight = layout.pad[1];
-    frame.paddingBottom = layout.pad[2];
-    frame.paddingLeft = layout.pad[3];
+    const wrap = Boolean(layout.wrap && horizontal);
+    let primaryAxisAlignItems;
+    let counterAxisAlignItems;
     if (layout.grid) {
-        // Grid: the main (vertical) axis is align-content; the cross (horizontal) axis is centered via
-        // justify-content or justify-items — NOT align-items (which controls the cross axis in flex).
-        frame.primaryAxisAlignItems = primaryAlign(layout.alignContent);
+        primaryAxisAlignItems = primaryAlign(layout.alignContent);
         const cross = layout.justify && layout.justify !== 'normal' ? layout.justify : layout.justifyItems;
-        frame.counterAxisAlignItems = counterAlign(cross);
+        counterAxisAlignItems = counterAlign(cross);
     }
     else {
-        frame.primaryAxisAlignItems = primaryAlign(layout.justify);
-        frame.counterAxisAlignItems = counterAlign(layout.align);
+        primaryAxisAlignItems = primaryAlign(layout.justify);
+        counterAxisAlignItems = counterAlign(layout.align);
     }
-    // A hugging frame keeps this floor, so a short-label instance doesn't reflow below the real
-    // control's minimum width (a PinButton's 100pt titled pill).
-    if (typeof layout.minWidth === 'number')
-        frame.minWidth = layout.minWidth;
+    return {
+        layoutMode: horizontal ? 'HORIZONTAL' : 'VERTICAL',
+        primaryAxisSizingMode: layout.primarySizing || 'FIXED',
+        counterAxisSizingMode: layout.counterSizing || 'FIXED',
+        itemSpacing: (horizontal ? layout.columnGap : layout.rowGap) || 0,
+        layoutWrap: wrap ? 'WRAP' : null,
+        counterAxisSpacing: wrap ? layout.rowGap || 0 : null,
+        paddingTop: layout.pad[0],
+        paddingRight: layout.pad[1],
+        paddingBottom: layout.pad[2],
+        paddingLeft: layout.pad[3],
+        primaryAxisAlignItems,
+        counterAxisAlignItems,
+        // A hugging frame keeps this floor so a short-label instance doesn't reflow below the real control's
+        // minimum width (a PinButton's 100pt titled pill).
+        minWidth: typeof layout.minWidth === 'number' ? layout.minWidth : null,
+    };
+}
+function applyAutoLayout(frame, layout) {
+    const plan = planAutoLayout(layout);
+    frame.layoutMode = plan.layoutMode;
+    frame.primaryAxisSizingMode = plan.primaryAxisSizingMode;
+    frame.counterAxisSizingMode = plan.counterAxisSizingMode;
+    frame.itemSpacing = plan.itemSpacing;
+    if (plan.layoutWrap) {
+        frame.layoutWrap = plan.layoutWrap;
+        frame.counterAxisSpacing = plan.counterAxisSpacing;
+    }
+    frame.paddingTop = plan.paddingTop;
+    frame.paddingRight = plan.paddingRight;
+    frame.paddingBottom = plan.paddingBottom;
+    frame.paddingLeft = plan.paddingLeft;
+    frame.primaryAxisAlignItems = plan.primaryAxisAlignItems;
+    frame.counterAxisAlignItems = plan.counterAxisAlignItems;
+    if (plan.minWidth !== null)
+        frame.minWidth = plan.minWidth;
 }
 // Not absolute x/y: you can't set x/y on a node inside an instance, and auto-layout
 // re-centers an instance's own (shorter/longer) text override for free.
