@@ -165,10 +165,6 @@ async function makeText(run, font) {
         const letterSpacing = { value: font.letterSpacing, unit: 'PIXELS' };
         text.letterSpacing = letterSpacing;
     }
-    // A label captured taller than a single line wrapped on device (its height is N line boxes). Pin the
-    // captured width and let the height grow so Figma re-wraps it the same way, instead of laying it out on
-    // one line that overflows the frame. A single-line label hugs and pins its line box to the captured
-    // height so vertical centering lands where iOS drew it (Figma's SF Pro line box is a hair taller).
     if (typeof run.w === 'number' && run.w > 0 && typeof run.h === 'number' && run.h > font.size * 1.5) {
         text.textAutoResize = 'HEIGHT';
         text.resize(run.w, text.height);
@@ -176,6 +172,8 @@ async function makeText(run, font) {
     else {
         text.textAutoResize = 'WIDTH_AND_HEIGHT';
         if (typeof run.h === 'number' && run.h > 0) {
+            // Pin the line box to the captured height so vertical centering lands where iOS drew it — Figma's
+            // SF Pro line box is a hair taller.
             text.lineHeight = { value: run.h, unit: 'PIXELS' };
         }
     }
@@ -275,9 +273,6 @@ async function build(node, parent, parentX, parentY, flow, insideComponent = fal
         // Match the device-captured text width so the hugging parent (a button pill) doesn't reflow
         // narrower than the real control — Figma renders SF Pro at a slightly tighter metric.
         calibrateWidth(text, node.texts[0].w);
-        // A multi-line label carries its paragraph alignment on the node; the wrapped lines must match it,
-        // else a centered empty-state message (Tweakable) renders left-aligned. The non-flow path centers
-        // via an auto-layout wrapper, but a bare flow text sets its own paragraph alignment.
         if (node.textAlign === 'center')
             text.textAlignHorizontal = 'CENTER';
         else if (node.textAlign === 'right')
@@ -401,7 +396,6 @@ function variableName(token) {
         return 'type/family/' + base.slice(5);
     return 'other/' + base;
 }
-// Idempotent: re-syncing updates the same-named variables in place rather than piling up duplicates.
 async function syncTokens(tokens) {
     const collections = await figma.variables.getLocalVariableCollectionsAsync();
     let collection = collections.find((c) => c.name === 'Pinwheel Tokens');
@@ -442,8 +436,6 @@ async function syncTokens(tokens) {
         else {
             updated += 1;
         }
-        // A float token (spacing/radius) carries its value in `float`, not `value`; feeding `value` (undefined)
-        // to a FLOAT variable fails setValueForMode with "Required value missing".
         const light = token.type === 'float' ? token.float : token.value;
         const dark = token.type === 'float' ? token.float : (token.dark || token.value);
         if (light === undefined || light === null)
