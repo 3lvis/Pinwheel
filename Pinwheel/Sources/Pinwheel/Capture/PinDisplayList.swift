@@ -92,7 +92,7 @@ enum PinDisplayList {
         var controls: [UIView] = []
         func scan(_ view: UIView) {
             if view is UISwitch || view is UISegmentedControl || view is UISlider || view is UIStepper
-                || view is UIProgressView || view is UIDatePicker {
+                || view is UIProgressView || view is UIDatePicker || view is UIActivityIndicatorView {
                 controls.append(view)
                 return
             }
