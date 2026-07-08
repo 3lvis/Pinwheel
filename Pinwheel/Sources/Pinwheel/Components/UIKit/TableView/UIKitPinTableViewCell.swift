@@ -33,6 +33,14 @@ open class UIKitPinTableViewCell: UITableViewCell {
         return label
     }()
 
+    open lazy var iconImageView: UIImageView = {
+        let imageView = UIImageView(withAutoLayout: true)
+        imageView.contentMode = .scaleAspectFit
+        imageView.tintColor = .actionText
+        imageView.setContentHuggingPriority(.required, for: .horizontal)
+        return imageView
+    }()
+
     open lazy var switchControl: UISwitch = {
         let aSwitch = UISwitch(withAutoLayout: true)
         aSwitch.addTarget(self, action: #selector(switchChanged), for: .valueChanged)
@@ -55,6 +63,8 @@ open class UIKitPinTableViewCell: UITableViewCell {
     }()
 
     open lazy var stackViewLeadingAnchorConstraint = stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: .spacingL)
+    private lazy var iconLeadingConstraint = iconImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: .spacingL)
+    private lazy var stackViewToIconConstraint = stackView.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: .spacingM)
     open lazy var stackViewTrailingAnchorConstraint = stackView.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor)
     open lazy var stackViewBottomAnchorConstraint = stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -13)
     open lazy var stackViewTopAnchorConstraint = stackView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 13)
@@ -85,6 +95,21 @@ open class UIKitPinTableViewCell: UITableViewCell {
 
             titleLabel.isEnabled = isEnabled
             selectionStyle = isEnabled ? .default : .none
+
+            if let icon = viewModel.icon {
+                iconImageView.image = icon
+                iconImageView.isHidden = false
+                iconImageView.tintColor = isEnabled ? .actionText : .secondaryText
+                stackViewLeadingAnchorConstraint.isActive = false
+                iconLeadingConstraint.isActive = true
+                stackViewToIconConstraint.isActive = true
+            } else {
+                iconImageView.image = nil
+                iconImageView.isHidden = true
+                iconLeadingConstraint.isActive = false
+                stackViewToIconConstraint.isActive = false
+                stackViewLeadingAnchorConstraint.isActive = true
+            }
 
             if let subtitle = viewModel.subtitle {
                 subtitleLabel.text = subtitle
@@ -134,17 +159,23 @@ open class UIKitPinTableViewCell: UITableViewCell {
         titleLabel.text = nil
         subtitleLabel.text = nil
         detailLabel.text = nil
+        iconImageView.image = nil
     }
 
     private func setup() {
         setDefaultSelectedBackgound()
         backgroundColor = .primaryBackground
 
+        contentView.addSubview(iconImageView)
         contentView.addSubview(stackView)
         contentView.addSubview(detailLabel)
         contentView.addSubview(switchControl)
 
         NSLayoutConstraint.activate([
+            iconImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            iconImageView.widthAnchor.constraint(equalToConstant: .spacingL),
+            iconImageView.heightAnchor.constraint(equalToConstant: .spacingL),
+
             stackViewTopAnchorConstraint,
             stackViewLeadingAnchorConstraint,
             stackViewTrailingAnchorConstraint,

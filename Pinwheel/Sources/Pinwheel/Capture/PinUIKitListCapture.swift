@@ -96,10 +96,17 @@ public enum PinUIKitListCapture {
     private static func textNode(_ label: UILabel, host: UIView) -> FigmaNode? {
         guard let text = label.text, !text.isEmpty else { return nil }
         let frame = label.convert(label.bounds, to: host)
+        // A UILabel in a fill-aligned stack gets a frame far wider than its text; capturing that width
+        // makes Figma justify a short string across the whole box ("s u b t i t l e"). Read the tight
+        // text rect and keep the natural (leading) origin so the box hugs the glyphs.
+        let fit = label.sizeThatFits(CGSize(width: frame.width, height: .greatestFiniteMagnitude))
+        let width = min(ceil(fit.width), frame.width)
+        let height = min(ceil(fit.height), frame.height)
+        let box = CGRect(x: frame.minX, y: frame.minY, width: width, height: height)
         return FigmaNode(
-            tag: "text", x: Double(frame.minX), y: Double(frame.minY), w: Double(frame.width), h: Double(frame.height),
+            tag: "text", x: Double(box.minX), y: Double(box.minY), w: Double(box.width), h: Double(box.height),
             font: PinDisplayListCapture.figmaFont(label.font, color: label.textColor, underline: false),
-            texts: [FigmaText(text: text, x: Double(frame.minX), y: Double(frame.minY), w: Double(frame.width), h: Double(frame.height))],
+            texts: [FigmaText(text: text, x: Double(box.minX), y: Double(box.minY), w: Double(box.width), h: Double(box.height))],
             children: []
         )
     }

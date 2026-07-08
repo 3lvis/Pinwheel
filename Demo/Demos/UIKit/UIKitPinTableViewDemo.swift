@@ -26,39 +26,33 @@ class UIKitPinTableViewDemo: UIKitPinView, Tweakable {
     }()
 
     lazy var items: [UIKitPinTableViewItem] = {
-        let onlyTitle = UIKitPinTextTableViewItem(title: "Only title")
-
-        let titleAndSubtitle = UIKitPinTextTableViewItem(title: "Title and subtitle", subtitle: "subtitle")
-
-        let titleSubtitleAndDetail = UIKitPinTextTableViewItem(title: "Title, subtitle and detail", subtitle: "subtitle")
-        titleSubtitleAndDetail.detailText = "Detail text"
-
-        let titleAndDetail = UIKitPinTextTableViewItem(title: "Title and detail")
-        titleAndDetail.detailText = "Detail text"
-
-        let hasChevron = UIKitPinTextTableViewItem(title: "Has chevron")
-        hasChevron.hasChevron = true
-
-        let disabled = UIKitPinTextTableViewItem(title: "Is disabled")
-        disabled.isEnabled = false
-
-        let off = UIKitPinBoolTableViewItem(title: "Off")
-        let on = UIKitPinBoolTableViewItem(title: "On")
-        on.isOn = true
-
-        let variants: [UIKitPinTableViewItem] = [
-            onlyTitle,
-            titleAndSubtitle,
-            titleSubtitleAndDetail,
-            titleAndDetail,
-            disabled,
-            hasChevron,
-            off,
-            on
+        @MainActor func text(_ title: String, icon: String, subtitle: String? = nil, detail: String? = nil, chevron: Bool = false, enabled: Bool = true) -> UIKitPinTextTableViewItem {
+            let item = UIKitPinTextTableViewItem(title: title, subtitle: subtitle)
+            item.icon = UIImage(systemName: icon)
+            item.detailText = detail
+            item.hasChevron = chevron
+            item.isEnabled = enabled
+            return item
+        }
+        @MainActor func toggle(_ title: String, icon: String, isOn: Bool) -> UIKitPinBoolTableViewItem {
+            let item = UIKitPinBoolTableViewItem(title: title)
+            item.icon = UIImage(systemName: icon)
+            item.isOn = isOn
+            return item
+        }
+        return [
+            text("Account", icon: "person.crop.circle.fill", subtitle: "Signed in", chevron: true),
+            text("Notifications", icon: "bell.badge.fill", chevron: true),
+            text("Privacy & Security", icon: "lock.fill", chevron: true),
+            text("General", icon: "gearshape.fill", chevron: true),
+            text("Wi-Fi", icon: "wifi", detail: "Home", chevron: true),
+            text("Bluetooth", icon: "wave.3.right", detail: "On", chevron: true),
+            toggle("Airplane Mode", icon: "airplane", isOn: false),
+            toggle("Low Power Mode", icon: "battery.25percent", isOn: false),
+            toggle("Dark Appearance", icon: "moon.fill", isOn: true),
+            text("About", icon: "info.circle.fill", subtitle: "Version 1.0", chevron: true),
+            text("Sign out", icon: "arrow.right.square.fill", enabled: false),
         ]
-        // Filler rows overflow the sheet so the scroll-edge shadow shows once content scrolls.
-        let filler = (1...12).map { UIKitPinTextTableViewItem(title: "Row \($0)") }
-        return variants + filler
     }()
 
     override func setup() {
