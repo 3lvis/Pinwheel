@@ -546,14 +546,15 @@ async function syncFromDocument(data: any): Promise<void> {
   await loadColorVars()
 }
 
-async function importFramed(data: any, version: any, dark: boolean): Promise<any> {
+async function importFramed(data: any, version: any, dark: boolean, tags?: string[]): Promise<any> {
   masters = {}
   darkMode = dark
-  const baseName = (data.root && data.root.name) || 'Screen'
-  let name = typeof version === 'number' ? baseName + ' · v' + version : baseName
-  if (dark) name += ' · Dark'
+  const parts: string[] = [(data.root && data.root.name) || 'Screen']
+  if (tags && tags.length) parts.push(tags.join(', '))
+  if (typeof version === 'number') parts.push('v' + version)
+  if (dark) parts.push('Dark')
   const root = await build(data.root, figma.currentPage, 0, 0, false)
-  return root.type === 'FRAME' ? await wrapInDeviceFrame(root as FrameNode, name) : root
+  return root.type === 'FRAME' ? await wrapInDeviceFrame(root as FrameNode, parts.join(' · ')) : root
 }
 
 figma.ui.onmessage = async (message: any) => {
@@ -578,7 +579,7 @@ figma.ui.onmessage = async (message: any) => {
         figma.notify('Stale capture: v' + data.version + ', plugin expects v' + EXPECTED_CAPTURE_VERSION + ' — re-capture', { error: true })
       }
       await syncFromDocument(data)
-      const framed = await importFramed(data, message.version, Boolean(message.dark))
+      const framed = await importFramed(data, message.version, Boolean(message.dark), message.tags)
       figma.viewport.scrollAndZoomIntoView([framed])
       figma.ui.postMessage({ type: 'done' })
       figma.notify('Imported ' + data.width + '×' + data.height)
@@ -597,7 +598,7 @@ figma.ui.onmessage = async (message: any) => {
       const columnX: number[] = []
       let cursor = 0
       for (const entry of entries) {
-        const frame = await importFramed(entry.data, entry.version, false)
+        const frame = await importFramed(entry.data, entry.version, false, entry.tags)
         frame.x = cursor
         frame.y = 0
         columnX.push(cursor)
@@ -608,7 +609,7 @@ figma.ui.onmessage = async (message: any) => {
         const darkRowY = Math.max(...placed.map((frame) => frame.height)) + GAP
         let index = 0
         for (const entry of entries) {
-          const frame = await importFramed(entry.data, entry.version, true)
+          const frame = await importFramed(entry.data, entry.version, true, entry.tags)
           frame.x = columnX[index]
           frame.y = darkRowY
           placed.push(frame)

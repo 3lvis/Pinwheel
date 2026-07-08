@@ -609,14 +609,15 @@ var PW = (() => {
     if (data.textStyles) await syncTextStyles(data.textStyles);
     await loadColorVars();
   }
-  async function importFramed(data, version, dark) {
+  async function importFramed(data, version, dark, tags) {
     masters = {};
     darkMode = dark;
-    const baseName = data.root && data.root.name || "Screen";
-    let name = typeof version === "number" ? baseName + " \xB7 v" + version : baseName;
-    if (dark) name += " \xB7 Dark";
+    const parts = [data.root && data.root.name || "Screen"];
+    if (tags && tags.length) parts.push(tags.join(", "));
+    if (typeof version === "number") parts.push("v" + version);
+    if (dark) parts.push("Dark");
     const root = await build(data.root, figma.currentPage, 0, 0, false);
-    return root.type === "FRAME" ? await wrapInDeviceFrame(root, name) : root;
+    return root.type === "FRAME" ? await wrapInDeviceFrame(root, parts.join(" \xB7 ")) : root;
   }
   figma.ui.onmessage = async (message) => {
     try {
@@ -640,7 +641,7 @@ var PW = (() => {
           figma.notify("Stale capture: v" + data.version + ", plugin expects v" + EXPECTED_CAPTURE_VERSION + " \u2014 re-capture", { error: true });
         }
         await syncFromDocument(data);
-        const framed = await importFramed(data, message.version, Boolean(message.dark));
+        const framed = await importFramed(data, message.version, Boolean(message.dark), message.tags);
         figma.viewport.scrollAndZoomIntoView([framed]);
         figma.ui.postMessage({ type: "done" });
         figma.notify("Imported " + data.width + "\xD7" + data.height);
@@ -659,7 +660,7 @@ var PW = (() => {
         const columnX = [];
         let cursor = 0;
         for (const entry of entries) {
-          const frame = await importFramed(entry.data, entry.version, false);
+          const frame = await importFramed(entry.data, entry.version, false, entry.tags);
           frame.x = cursor;
           frame.y = 0;
           columnX.push(cursor);
@@ -670,7 +671,7 @@ var PW = (() => {
           const darkRowY = Math.max(...placed.map((frame) => frame.height)) + GAP;
           let index = 0;
           for (const entry of entries) {
-            const frame = await importFramed(entry.data, entry.version, true);
+            const frame = await importFramed(entry.data, entry.version, true, entry.tags);
             frame.x = columnX[index];
             frame.y = darkRowY;
             placed.push(frame);

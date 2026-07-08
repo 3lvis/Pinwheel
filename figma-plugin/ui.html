@@ -30,7 +30,7 @@
   }
 
   const isDark = () => document.getElementById('dark').checked
-  const importDocument = (data, version) => parent.postMessage({ pluginMessage: { type: 'import', data, dark: isDark(), version } }, '*')
+  const importDocument = (data, version, tags) => parent.postMessage({ pluginMessage: { type: 'import', data, dark: isDark(), version, tags } }, '*')
 
   const catalogButton = document.getElementById('catalog')
 
@@ -75,18 +75,18 @@
         tags.textContent = [version, (item.tags || []).join(', ')].filter(Boolean).join(' · ')
         row.appendChild(title)
         row.appendChild(tags)
-        row.onclick = () => importCatalogItem(item.file, item.title, item.version)
+        row.onclick = () => importCatalogItem(item.file, item.title, item.version, item.tags)
         list.appendChild(row)
       }
     }
   }
 
-  async function importCatalogItem(file, title, version) {
+  async function importCatalogItem(file, title, version, tags) {
     status.textContent = 'importing ' + title + '…'
     try {
       const entry = await fetchJSON('/' + file)
       if (!entry || !entry.document) throw new Error('no document in ' + file)
-      importDocument(entry.document, version != null ? version : entry.version)
+      importDocument(entry.document, version != null ? version : entry.version, tags || entry.tags)
     } catch (error) {
       status.textContent = 'import failed: ' + error.message
     }
@@ -104,7 +104,7 @@
       for (const item of items) {
         const entry = await fetchJSON('/' + item.file)
         if (entry && entry.document) {
-          entries.push({ data: entry.document, version: item.version != null ? item.version : entry.version })
+          entries.push({ data: entry.document, version: item.version != null ? item.version : entry.version, tags: item.tags || entry.tags })
         }
       }
       status.textContent = 'importing ' + entries.length + ' components (light + dark)…'
