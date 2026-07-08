@@ -125,7 +125,7 @@ private struct LiveCaptureHost: UIViewControllerRepresentable {
         // light, then sim dark) and merges the two single-appearance documents.
         // A UIKit table/collection force-realizes its cells and reads the real UIView tree; everything
         // else reads SwiftUI's DisplayList off the live host.
-        guard let document = PinUIKitListCapture.document(
+        guard let document = PinUIKitCapture.document(
             host: host.view, name: entry.title, size: size, screenHeight: FigmaCatalog.oneScreen
         ) ?? PinDisplayListCapture.document(
             entry.item.swiftUIView(), name: entry.title, size: size, screenHeight: FigmaCatalog.oneScreen, liveHost: host.view
