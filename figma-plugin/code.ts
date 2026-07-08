@@ -120,8 +120,6 @@ async function makeText(run: any, font: any): Promise<TextNode> {
     await figma.loadFontAsync(style.fontName as FontName)
     text.fontName = style.fontName as FontName
     text.characters = plan.characters
-    await text.setTextStyleIdAsync(style.id)
-    boundTextStyleCount += 1
   } else {
     text.fontName = await resolveFont(plan.fontRequest.family, plan.fontRequest.weight, plan.fontRequest.italic)
     text.characters = plan.characters
@@ -132,11 +130,17 @@ async function makeText(run: any, font: any): Promise<TextNode> {
     text.textDecoration = 'UNDERLINE'
     text.textDecorationOffset = { value: 2, unit: 'PIXELS' }
   }
-  if (plan.letterSpacing !== null) text.letterSpacing = { value: plan.letterSpacing, unit: 'PIXELS' }
+  // letterSpacing/lineHeight are owned by a text style; writing them detaches an applied style (Figma
+  // reverts the node to raw values), so only set them when the text is unstyled.
+  if (!style && plan.letterSpacing !== null) text.letterSpacing = { value: plan.letterSpacing, unit: 'PIXELS' }
   text.textAutoResize = plan.autoResize
   if (plan.width !== null) text.resize(plan.width, text.height)
-  if (plan.lineHeight !== null) text.lineHeight = { value: plan.lineHeight, unit: 'PIXELS' }
-  // Diagnostic only (no behavior change): record whether the style survived to the end of the build.
+  if (!style && plan.lineHeight !== null) text.lineHeight = { value: plan.lineHeight, unit: 'PIXELS' }
+  // Bind last: any style-owned property written after this would detach the style.
+  if (style) {
+    await text.setTextStyleIdAsync(style.id)
+    boundTextStyleCount += 1
+  }
   debugTrace.push({ step: 'makeText', chars: (plan.characters || '').slice(0, 16), styleName: plan.styleName || null, found: Boolean(style), finalStyleId: (text as any).textStyleId || null })
   return text
 }

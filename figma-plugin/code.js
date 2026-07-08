@@ -208,8 +208,6 @@ var PW = (() => {
       await figma.loadFontAsync(style.fontName);
       text.fontName = style.fontName;
       text.characters = plan.characters;
-      await text.setTextStyleIdAsync(style.id);
-      boundTextStyleCount += 1;
     } else {
       text.fontName = await resolveFont(plan.fontRequest.family, plan.fontRequest.weight, plan.fontRequest.italic);
       text.characters = plan.characters;
@@ -220,10 +218,14 @@ var PW = (() => {
       text.textDecoration = "UNDERLINE";
       text.textDecorationOffset = { value: 2, unit: "PIXELS" };
     }
-    if (plan.letterSpacing !== null) text.letterSpacing = { value: plan.letterSpacing, unit: "PIXELS" };
+    if (!style && plan.letterSpacing !== null) text.letterSpacing = { value: plan.letterSpacing, unit: "PIXELS" };
     text.textAutoResize = plan.autoResize;
     if (plan.width !== null) text.resize(plan.width, text.height);
-    if (plan.lineHeight !== null) text.lineHeight = { value: plan.lineHeight, unit: "PIXELS" };
+    if (!style && plan.lineHeight !== null) text.lineHeight = { value: plan.lineHeight, unit: "PIXELS" };
+    if (style) {
+      await text.setTextStyleIdAsync(style.id);
+      boundTextStyleCount += 1;
+    }
     debugTrace.push({ step: "makeText", chars: (plan.characters || "").slice(0, 16), styleName: plan.styleName || null, found: Boolean(style), finalStyleId: text.textStyleId || null });
     return text;
   }

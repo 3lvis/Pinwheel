@@ -29,7 +29,7 @@ export function loadPlugin() {
   const loadedFonts = new Set()
   const fontKey = (font) => font && `${font.family}|${font.style}`
   const createText = () => {
-    const made = node('TEXT', { fontSize: 12, fills: [], fontName: { family: 'Inter', style: 'Regular' } })
+    const made = node('TEXT', { fills: [], textStyleId: '' })
     let characters = ''
     Object.defineProperty(made, 'characters', {
       enumerable: true,
@@ -39,6 +39,16 @@ export function loadPlugin() {
         characters = value
       },
     })
+    // Figma detaches an applied text style the moment a style-owned property is written afterwards, so
+    // the node reverts to raw values. Model that: writing these after a bind clears textStyleId.
+    const owned = { fontName: { family: 'Inter', style: 'Regular' }, fontSize: 12, letterSpacing: null, lineHeight: null, textDecoration: null }
+    for (const prop of Object.keys(owned)) {
+      Object.defineProperty(made, prop, {
+        enumerable: true,
+        get: () => owned[prop],
+        set: (value) => { owned[prop] = value; if (made.textStyleId) made.textStyleId = '' },
+      })
+    }
     return made
   }
   const api = {
