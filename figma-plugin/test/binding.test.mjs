@@ -20,6 +20,20 @@ test('a padding that carries a spacing token binds to that variable, not a raw n
   assert.equal(card.boundVariables.paddingTop.name, 'spacing/s')
 })
 
+test('a gap that carries a spacing token binds itemSpacing to that variable', async () => {
+  const { build, syncTokens, created } = loadPlugin()
+  await syncTokens([{ name: 'spacing-l', type: 'float', float: 16 }])
+  await build({
+    tag: 'frame', name: 'Stack', x: 0, y: 0, w: 100, h: 100, ordered: true,
+    layout: { mode: 'column', rowGap: 16, columnGap: 0, gapToken: 'spacing-l', pad: [0, 0, 0, 0], justify: 'flex-start', align: 'flex-start', primarySizing: 'FIXED', counterSizing: 'FIXED' },
+    children: [],
+  }, rootParent(), 0, 0, false)
+  const stack = created.find((n) => n.name === 'Stack')
+  assert.ok(stack, 'the stack frame should be created')
+  assert.ok(stack.boundVariables.itemSpacing, 'itemSpacing must bind to the spacing variable, not set raw')
+  assert.equal(stack.boundVariables.itemSpacing.name, 'spacing/l')
+})
+
 test('a corner radius that carries a radius token binds to that variable', async () => {
   const { build, syncTokens, created } = loadPlugin()
   await syncTokens([{ name: 'radius-m', type: 'float', float: 12 }])

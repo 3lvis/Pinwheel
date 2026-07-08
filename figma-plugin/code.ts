@@ -81,6 +81,11 @@ function applyAutoLayout(frame: FrameNode | ComponentNode, layout: any): void {
   frame.primaryAxisAlignItems = plan.primaryAxisAlignItems
   frame.counterAxisAlignItems = plan.counterAxisAlignItems
   if (plan.minWidth !== null) frame.minWidth = plan.minWidth
+  const gapVariable = layout.gapToken && floatVarsByName[layout.gapToken]
+  if (gapVariable) {
+    frame.setBoundVariable('itemSpacing', gapVariable)
+    if (plan.layoutWrap) frame.setBoundVariable('counterAxisSpacing', gapVariable)
+  }
   const padFields = ['paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft'] as const
   const padTokens = layout.padTokens || []
   for (let side = 0; side < padFields.length; side += 1) {
