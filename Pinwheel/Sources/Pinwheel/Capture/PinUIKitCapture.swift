@@ -77,6 +77,9 @@ public enum PinUIKitCapture {
                 } else if let node = controlNode(subview, host: host) {
                     nodes.append(node)
                 } else {
+                    // A rounded, colored view is a shape (a concentric-radius layer / card); emit its fill,
+                    // then still recurse so nested layers and labels capture too.
+                    if let shape = shapeFillNode(subview, host: host) { nodes.append(shape) }
                     walk(subview)
                 }
             }
@@ -87,6 +90,20 @@ public enum PinUIKitCapture {
 
     private static func isHostingView(_ view: UIView) -> Bool {
         String(describing: type(of: view)).contains("HostingView")
+    }
+
+    // A colored view with a corner radius is an intentional shape (concentric layer, card); a plain
+    // colored container (radius 0) is just layout and would clutter the capture, so require a radius.
+    private static func shapeFillNode(_ view: UIView, host: UIView) -> FigmaNode? {
+        guard let background = view.backgroundColor, background.cgColor.alpha > 0.01, view.layer.cornerRadius > 0.5 else { return nil }
+        let frame = view.convert(view.bounds, to: host)
+        let radius = view.layer.cornerRadius
+        return FigmaNode(
+            tag: "frame", x: Double(frame.minX), y: Double(frame.minY), w: Double(frame.width), h: Double(frame.height),
+            fill: RGBA(background), fillToken: PinDisplayListCapture.tokenName(for: background),
+            radius: Double(radius), radiusToken: PinFloatTokens.radiusName(for: Double(radius)),
+            children: []
+        )
     }
 
     private static func isVisible(_ view: UIView) -> Bool {

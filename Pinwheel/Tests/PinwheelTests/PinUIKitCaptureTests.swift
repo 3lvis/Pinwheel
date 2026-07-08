@@ -161,6 +161,26 @@ final class PinUIKitCaptureTests: XCTestCase {
         XCTAssertFalse(document.textStyles.isEmpty, "the document ships the typography tokens")
     }
 
+    // A rounded, colored UIView (a concentric-radius layer) must capture as a token fill + radius, not
+    // be walked through as an invisible container.
+    func testRoundedColoredViewCapturesAsAFillShape() throws {
+        let host = UIView()
+        let shape = UIView()
+        shape.backgroundColor = .actionBackground
+        shape.layer.cornerRadius = .radiusM
+        shape.translatesAutoresizingMaskIntoConstraints = false
+        host.addSubview(shape)
+        NSLayoutConstraint.activate([
+            shape.topAnchor.constraint(equalTo: host.topAnchor, constant: 40),
+            shape.leadingAnchor.constraint(equalTo: host.leadingAnchor, constant: 20),
+            shape.widthAnchor.constraint(equalToConstant: 200),
+            shape.heightAnchor.constraint(equalToConstant: 96),
+        ])
+        let document = try XCTUnwrap(capture(host), "a rounded colored view should capture")
+        let fill = firstNode(document.root) { $0.fillToken == "actionBackground" && $0.radiusToken == "radius-m" }
+        XCTAssertNotNil(fill, "a rounded colored view must capture as a fill shape carrying its radius token")
+    }
+
     // A semibold shares its regular counterpart's size, so tokenizing must use weight to tell them apart.
     func testSemiboldTokenizesDistinctlyFromItsRegularWeight() throws {
         let host = UIView()
