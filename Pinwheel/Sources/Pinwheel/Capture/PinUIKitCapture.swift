@@ -64,28 +64,68 @@ public enum PinUIKitCapture {
 
     private static func viewNodes(in view: UIView, host: UIView) -> [FigmaNode] {
         var nodes: [FigmaNode] = []
-        func walk(_ current: UIView) {
-            for subview in current.subviews where isVisible(subview) {
-                if let label = subview as? UILabel, let node = labelNode(label, host: host) {
-                    nodes.append(node)
-                } else if let textView = subview as? UITextView, let node = textViewNode(textView, host: host) {
-                    nodes.append(node)
-                } else if isHostingView(subview), let node = cropNode(subview, host: host) {
-                    // A hosted SwiftUI island (UIKitPinButton/StateView via PinHostView) is drawn, not a
-                    // UIView subtree — crop it whole rather than recursing and finding stray fragments.
-                    nodes.append(node)
-                } else if let node = controlNode(subview, host: host) {
-                    nodes.append(node)
-                } else {
-                    // A rounded, colored view is a shape (a concentric-radius layer / card); emit its fill,
-                    // then still recurse so nested layers and labels capture too.
-                    if let shape = shapeFillNode(subview, host: host) { nodes.append(shape) }
-                    walk(subview)
-                }
+        for subview in view.subviews where isVisible(subview) {
+            if let leaf = leafNode(subview, host: host) {
+                nodes.append(leaf)
+            } else if let stack = subview as? UIStackView {
+                nodes.append(stackFrame(stack, host: host))
+            } else {
+                // A rounded, colored view is a shape (a concentric-radius layer / card); emit its fill,
+                // then recurse for nested layers and labels.
+                if let shape = shapeFillNode(subview, host: host) { nodes.append(shape) }
+                nodes.append(contentsOf: viewNodes(in: subview, host: host))
             }
         }
-        walk(view)
         return nodes.sorted { ($0.y, $0.x) < ($1.y, $1.x) }
+    }
+
+    // The leaf mappings: a label/textview to a text node, a control/image/hosted-SwiftUI island to a crop.
+    private static func leafNode(_ view: UIView, host: UIView) -> FigmaNode? {
+        if let label = view as? UILabel { return labelNode(label, host: host) }
+        if let textView = view as? UITextView { return textViewNode(textView, host: host) }
+        if isHostingView(view) { return cropNode(view, host: host) }
+        return controlNode(view, host: host)
+    }
+
+    // One node for an arranged subview of a stack, so the stack keeps a 1:1 child mapping for auto-layout.
+    private static func singleNode(_ view: UIView, host: UIView) -> FigmaNode? {
+        if let leaf = leafNode(view, host: host) { return leaf }
+        if let stack = view as? UIStackView { return stackFrame(stack, host: host) }
+        let children = viewNodes(in: view, host: host)
+        let shape = shapeFillNode(view, host: host)
+        guard shape != nil || !children.isEmpty else { return nil }
+        let frame = view.convert(view.bounds, to: host)
+        var node = shape ?? FigmaNode(tag: "frame", x: Double(frame.minX), y: Double(frame.minY),
+                                      w: Double(frame.width), h: Double(frame.height), children: [])
+        node.children = children
+        return node
+    }
+
+    // A UIStackView is Figma auto-layout: map its axis/spacing/alignment and keep the arranged order.
+    private static func stackFrame(_ stack: UIStackView, host: UIView) -> FigmaNode {
+        let frame = stack.convert(stack.bounds, to: host)
+        let stretches = stack.alignment == .fill
+        let children = stack.arrangedSubviews.filter(isVisible).compactMap { view -> FigmaNode? in
+            guard var node = singleNode(view, host: host) else { return nil }
+            if stretches { node.fillWidth = true }
+            return node
+        }
+        return FigmaNode(
+            tag: "frame", x: Double(frame.minX), y: Double(frame.minY), w: Double(frame.width), h: Double(frame.height),
+            name: stack.axis == .vertical ? "VStack" : "HStack",
+            layout: FigmaLayout(stackLayout(stack)), ordered: true, children: children
+        )
+    }
+
+    private static func stackLayout(_ stack: UIStackView) -> PinCaptureLayout {
+        let axis: PinCaptureLayout.Axis = stack.axis == .vertical ? .column : .row
+        let alignment: PinCaptureLayout.CrossAxis
+        switch stack.alignment {
+        case .trailing, .bottom: alignment = .trailing
+        case .center: alignment = .center
+        default: alignment = .leading
+        }
+        return PinCaptureLayout(axis: axis, spacing: stack.spacing, alignment: alignment, mainAxisAlignment: .leading)
     }
 
     private static func isHostingView(_ view: UIView) -> Bool {

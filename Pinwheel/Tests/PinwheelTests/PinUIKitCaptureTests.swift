@@ -198,6 +198,30 @@ final class PinUIKitCaptureTests: XCTestCase {
         XCTAssertEqual(node.font?.style, "titleSemibold", "a semibold must not collapse onto its regular-weight token")
     }
 
+    // A UIStackView maps directly to Figma auto-layout — it must capture as an auto-layout frame, not
+    // flatten its arranged subviews into absolute positions.
+    func testStackViewCapturesAsAnAutoLayoutFrame() throws {
+        let host = UIView()
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.spacing = .spacingM
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        for text in ["One", "Two"] {
+            let label = UILabel()
+            label.text = text
+            stack.addArrangedSubview(label)
+        }
+        host.addSubview(stack)
+        NSLayoutConstraint.activate([
+            stack.topAnchor.constraint(equalTo: host.topAnchor, constant: 40),
+            stack.leadingAnchor.constraint(equalTo: host.leadingAnchor, constant: 16)
+        ])
+        let document = try XCTUnwrap(capture(host))
+        let frame = try XCTUnwrap(firstNode(document.root) { $0.layout?.mode == "column" && $0.children.count == 2 },
+                                  "a UIStackView should capture as an auto-layout column frame with its arranged subviews as children")
+        XCTAssertEqual(frame.layout?.rowGap ?? -1, Double(CGFloat.spacingM), accuracy: 0.5, "the stack spacing becomes the row gap")
+    }
+
     private func firstNode(_ node: FigmaNode, where predicate: (FigmaNode) -> Bool) -> FigmaNode? {
         if predicate(node) { return node }
         for child in node.children { if let found = firstNode(child, where: predicate) { return found } }
