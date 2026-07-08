@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url'
 export function loadPlugin() {
   const code = readFileSync(fileURLToPath(new URL('../code.js', import.meta.url)), 'utf8')
   const created = []
+  const variableWrites = []
   const node = (type, extra = {}) => {
     const made = {
       type, children: [], width: 100, height: 20, layoutMode: 'NONE',
@@ -19,9 +20,16 @@ export function loadPlugin() {
     created.push(made)
     return made
   }
+  const collection = {
+    id: 'collection', name: 'Mode', modes: [{ modeId: 'light', name: 'Mode 1' }],
+    renameMode(modeId, name) { this.modes.find((m) => m.modeId === modeId).name = name },
+    addMode(name) { this.modes.push({ modeId: 'dark', name }); return 'dark' },
+  }
+  const variablesByName = new Map()
   const api = {
     mixed: Symbol('mixed'),
     showUI() {},
+    notify() {},
     ui: { onmessage: null, postMessage() {} },
     createText: () => node('TEXT', { characters: '', fontSize: 12, fills: [] }),
     createFrame: () => node('FRAME', { fills: [] }),
@@ -31,13 +39,28 @@ export function loadPlugin() {
     createImage: () => ({ hash: 'image' }),
     base64Decode: () => new Uint8Array(),
     loadFontAsync: async () => {},
+    variables: {
+      getLocalVariableCollectionsAsync: async () => [],
+      createVariableCollection: (name) => { collection.name = name; return collection },
+      getLocalVariablesAsync: async () => [...variablesByName.values()],
+      createVariable: (name, coll, resolvedType) => {
+        const variable = {
+          name, resolvedType, variableCollectionId: coll.id, values: {},
+          setValueForMode(modeId, value) { this.values[modeId] = value; variableWrites.push({ name, modeId, value }) },
+          remove() { variablesByName.delete(name) },
+        }
+        variablesByName.set(name, variable)
+        return variable
+      },
+      setBoundVariableForPaint: (paint) => paint,
+    },
   }
   const figma = new Proxy(api, { get: (target, prop) => (prop in target ? target[prop] : () => {}) })
   const sandbox = { figma, __html__: '', console }
   sandbox.globalThis = sandbox
   vm.createContext(sandbox)
   vm.runInContext(code, sandbox)
-  return { build: sandbox.build, created }
+  return { build: sandbox.build, syncTokens: sandbox.syncTokens, created, variableWrites }
 }
 
 // A root parent for build() — the containing frame the plugin appends the screen into.
