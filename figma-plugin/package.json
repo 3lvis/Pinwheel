@@ -4,12 +4,13 @@
   "private": true,
   "description": "Pinwheel's Figma capture plugin and the local serve it reads from.",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "esbuild code.ts --bundle --format=iife --global-name=PW --target=es2017 --outfile=code.js",
     "serve": "node serve.mjs",
-    "test": "tsc -p tsconfig.json && node --test test/*.test.mjs"
+    "test": "npm run build && node --test test/*.test.mjs"
   },
   "devDependencies": {
     "@figma/plugin-typings": "^1.130.0",
+    "esbuild": "^0.28.1",
     "typescript": "~5.6.0"
   }
 }

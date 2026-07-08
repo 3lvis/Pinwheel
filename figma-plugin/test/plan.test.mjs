@@ -1,11 +1,9 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { loadPlugin } from './figma-mock.mjs'
+import { planText, planAutoLayout } from '../plan.ts'
 
-// The pure core: planText turns a captured run + font into a plain descriptor of what the text node
-// should be — no Figma API, so these assert on the returned object directly (the harness only loads the
-// script; planText itself touches nothing mockable).
-const plan = (run, font) => loadPlugin().sandbox.planText(run, font)
+// The pure core imported directly — no Figma, no mock, no vm. Node strips the TS types on import.
+const plan = (run, font) => planText(run, font)
 const body = { family: 'SF Pro Rounded', size: 15, weight: 400, color: { r: 1, g: 1, b: 1, a: 1 } }
 
 test('planText: a run taller than ~1.5 lines fixes its width and grows in height (re-wraps)', () => {
@@ -32,7 +30,7 @@ test('planText: no fill descriptor when the font has no colour', () => {
   assert.equal(p.fill, null)
 })
 
-const layout = (l) => loadPlugin().sandbox.planAutoLayout(l)
+const layout = (l) => planAutoLayout(l)
 
 test('planAutoLayout: a centered column maps justify/align to primary/counter CENTER and keeps padding', () => {
   const p = layout({ mode: 'column', rowGap: 0, columnGap: 0, pad: [10, 20, 30, 40], justify: 'center', align: 'center', primarySizing: 'FIXED', counterSizing: 'AUTO' })

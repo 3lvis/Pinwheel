@@ -1,7 +1,9 @@
 /// <reference types="@figma/plugin-typings" />
-// Edit this file, not the generated code.js (what manifest.json loads). Compiled by
-// `npm run figma:build` — tsc, target ES2017 — which down-levels syntax the plugin VM rejects
-// (e.g. ES2019 optional catch binding), so VM-incompatible code can't ship.
+// Edit this and plan.ts, not the generated code.js (what manifest.json loads). `npm run build` bundles
+// them with esbuild (target ES2017, one classic script — no module keywords the plugin VM rejects). The
+// pure decision logic lives in plan.ts; this file is the thin shell that writes those plans onto real
+// Figma nodes.
+import { planText, planAutoLayout } from './plan'
 
 figma.showUI(__html__, { width: 340, height: 520 })
 
@@ -75,71 +77,6 @@ function solid(color: { r: number; g: number; b: number; a: number }, token?: st
   return variable ? figma.variables.setBoundVariableForPaint(paint, 'color', variable) : paint
 }
 
-function primaryAlign(value: string): 'MIN' | 'CENTER' | 'MAX' | 'SPACE_BETWEEN' {
-  if (value === 'center') return 'CENTER'
-  if (value === 'flex-end' || value === 'end') return 'MAX'
-  if (value && value.startsWith('space')) return 'SPACE_BETWEEN'
-  return 'MIN'
-}
-
-function counterAlign(value: string): 'MIN' | 'CENTER' | 'MAX' | 'BASELINE' {
-  if (value === 'center') return 'CENTER'
-  if (value === 'flex-end' || value === 'end') return 'MAX'
-  if (value === 'baseline') return 'BASELINE'
-  return 'MIN'
-}
-
-interface AutoLayoutPlan {
-  layoutMode: 'HORIZONTAL' | 'VERTICAL'
-  primaryAxisSizingMode: 'FIXED' | 'AUTO'
-  counterAxisSizingMode: 'FIXED' | 'AUTO'
-  itemSpacing: number
-  layoutWrap: 'WRAP' | null
-  counterAxisSpacing: number | null
-  paddingTop: number
-  paddingRight: number
-  paddingBottom: number
-  paddingLeft: number
-  primaryAxisAlignItems: 'MIN' | 'CENTER' | 'MAX' | 'SPACE_BETWEEN'
-  counterAxisAlignItems: 'MIN' | 'CENTER' | 'MAX' | 'BASELINE'
-  minWidth: number | null
-}
-
-// Pure: resolve a captured layout into the frame's auto-layout properties. AUTO hugs, FIXED fills (a
-// space-between row needs FIXED to hold the split). A grid takes its cross-axis alignment from
-// justify/justify-items, not align-items (which is the cross axis in flex but the main axis in grid).
-function planAutoLayout(layout: any): AutoLayoutPlan {
-  const horizontal = layout.mode === 'row'
-  const wrap = Boolean(layout.wrap && horizontal)
-  let primaryAxisAlignItems: AutoLayoutPlan['primaryAxisAlignItems']
-  let counterAxisAlignItems: AutoLayoutPlan['counterAxisAlignItems']
-  if (layout.grid) {
-    primaryAxisAlignItems = primaryAlign(layout.alignContent)
-    const cross = layout.justify && layout.justify !== 'normal' ? layout.justify : layout.justifyItems
-    counterAxisAlignItems = counterAlign(cross)
-  } else {
-    primaryAxisAlignItems = primaryAlign(layout.justify)
-    counterAxisAlignItems = counterAlign(layout.align)
-  }
-  return {
-    layoutMode: horizontal ? 'HORIZONTAL' : 'VERTICAL',
-    primaryAxisSizingMode: layout.primarySizing || 'FIXED',
-    counterAxisSizingMode: layout.counterSizing || 'FIXED',
-    itemSpacing: (horizontal ? layout.columnGap : layout.rowGap) || 0,
-    layoutWrap: wrap ? 'WRAP' : null,
-    counterAxisSpacing: wrap ? layout.rowGap || 0 : null,
-    paddingTop: layout.pad[0],
-    paddingRight: layout.pad[1],
-    paddingBottom: layout.pad[2],
-    paddingLeft: layout.pad[3],
-    primaryAxisAlignItems,
-    counterAxisAlignItems,
-    // A hugging frame keeps this floor so a short-label instance doesn't reflow below the real control's
-    // minimum width (a PinButton's 100pt titled pill).
-    minWidth: typeof layout.minWidth === 'number' ? layout.minWidth : null,
-  }
-}
-
 function applyAutoLayout(frame: FrameNode | ComponentNode, layout: any): void {
   const plan = planAutoLayout(layout)
   frame.layoutMode = plan.layoutMode
@@ -177,40 +114,6 @@ function calibrateWidth(text: TextNode, targetWidth: number): void {
   const count = Math.max(text.characters.length, 1)
   if (targetWidth > text.width) {
     text.letterSpacing = { value: (targetWidth - text.width) / count, unit: 'PIXELS' }
-  }
-}
-
-interface TextPlan {
-  characters: string
-  fontSize: number
-  styleName?: string
-  fontRequest: { family: string; weight: number; italic: boolean }
-  fill: { color: { r: number; g: number; b: number; a: number }; token?: string } | null
-  underline: boolean
-  letterSpacing: number | null
-  autoResize: 'HEIGHT' | 'WIDTH_AND_HEIGHT'
-  width: number | null
-  lineHeight: number | null
-}
-
-// Pure: decide everything about a text node from the captured run + font, with no Figma API. A run taller
-// than ~1.5 line boxes wrapped on device, so it fixes its width and grows in height (Figma re-wraps it the
-// same way); a single-line run hugs and pins its line box to the captured height (vertical centering lands
-// where iOS drew it — Figma's SF Pro line box is a hair taller). The apply step resolves the font, binds
-// the fill, and writes these onto a real node.
-function planText(run: any, font: any): TextPlan {
-  const multiline = typeof run.w === 'number' && run.w > 0 && typeof run.h === 'number' && run.h > font.size * 1.5
-  return {
-    characters: run.text,
-    fontSize: font.size,
-    styleName: font.style,
-    fontRequest: { family: font.family, weight: font.weight, italic: font.italic },
-    fill: font.color ? { color: font.color, token: font.colorToken } : null,
-    underline: Boolean(font.underline),
-    letterSpacing: typeof font.letterSpacing === 'number' ? font.letterSpacing : null,
-    autoResize: multiline ? 'HEIGHT' : 'WIDTH_AND_HEIGHT',
-    width: multiline ? run.w : null,
-    lineHeight: !multiline && typeof run.h === 'number' && run.h > 0 ? run.h : null,
   }
 }
 
@@ -712,3 +615,5 @@ figma.ui.onmessage = async (message: any) => {
     figma.notify('Import failed: ' + String(error))
   }
 }
+
+export { build, syncTokens }

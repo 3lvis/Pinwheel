@@ -60,9 +60,9 @@ export function loadPlugin() {
   sandbox.globalThis = sandbox
   vm.createContext(sandbox)
   vm.runInContext(code, sandbox)
-  // sandbox exposes every top-level function; pure planners (planText, …) are read straight off it and
-  // called without touching the Figma mock at all.
-  return { build: sandbox.build, syncTokens: sandbox.syncTokens, sandbox, created, variableWrites }
+  // The bundle is an IIFE that returns the shell entry points as the `PW` global (esbuild --global-name).
+  // Pure decision logic isn't here — it's imported straight from plan.ts by the plan tests, no mock.
+  return { build: sandbox.PW.build, syncTokens: sandbox.PW.syncTokens, created, variableWrites }
 }
 
 // A root parent for build() — the containing frame the plugin appends the screen into.
