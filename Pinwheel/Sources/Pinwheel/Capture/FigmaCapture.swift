@@ -141,7 +141,7 @@ enum PinFloatTokens {
          ("spacing-s", .spacingS), ("spacing-m", .spacingM), ("spacing-l", .spacingL),
          ("spacing-xl", .spacingXL), ("spacing-xxl", .spacingXXL)]
     }
-    static var radius: [(name: String, value: CGFloat)] { [("radius-m", .radiusM)] }
+    static var radius: [(name: String, value: CGFloat)] { [("radius-m", .radiusM), ("radius-l", .radiusL)] }
 
     static func spacingName(for value: Double) -> String? { name(for: value, in: spacing) }
     static func radiusName(for value: Double) -> String? { name(for: value, in: radius) }

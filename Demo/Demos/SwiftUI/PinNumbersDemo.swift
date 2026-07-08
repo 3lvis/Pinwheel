@@ -14,11 +14,12 @@ struct PinNumbersDemo: SwiftUI.View {
     ]
 
     private let radii: [(String, CGFloat)] = [
-        ("radiusM", .radiusM)
+        ("radiusM", .radiusM),
+        ("radiusL", .radiusL)
     ]
 
     // Set the outer radius; each inset derives its own inner radius from the gap.
-    private let concentricOuter: CGFloat = 24
+    private let concentricOuter: CGFloat = .radiusL
     private let concentricInsets: [CGFloat] = [.spacingXS, .spacingM, .spacingL]
 
     var body: some SwiftUI.View {

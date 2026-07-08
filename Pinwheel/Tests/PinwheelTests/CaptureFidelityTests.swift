@@ -80,6 +80,13 @@ final class CaptureFidelityTests: XCTestCase {
                        "a host shorter than the content drops rows into the containment fallback — the regression LiveCaptureHost's content-height sizing avoids")
     }
 
+    // The concentric-radius demo's outer 24 must resolve to a radius token, or it imports as a raw number
+    // (24 has no exact token → nil → raw; it must never snap to the nearest radius-m).
+    func testLargeConcentricRadiusResolvesToItsToken() {
+        XCTAssertEqual(PinFloatTokens.radiusName(for: 24), "radius-l")
+        XCTAssertNil(PinFloatTokens.radiusName(for: 20), "an off-scale radius stays raw, never snapped to a token")
+    }
+
     func testCornerAndSpacingReferenceDesignTokens() throws {
         let root = try captureRoot()
         let card = try XCTUnwrap(firstNode(in: root) { $0.fillToken == "secondaryBackground" },
