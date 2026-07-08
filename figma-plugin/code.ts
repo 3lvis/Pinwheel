@@ -1,30 +1,19 @@
 /// <reference types="@figma/plugin-typings" />
-// Edit this and plan.ts, not the generated code.js (what manifest.json loads). `npm run build` bundles
-// them with esbuild (target ES2017, one classic script — no module keywords the plugin VM rejects). The
-// pure decision logic lives in plan.ts; this file is the thin shell that writes those plans onto real
-// Figma nodes.
 import { planText, planAutoLayout, orderChildren } from './plan'
 
 figma.showUI(__html__, { width: 340, height: 520 })
 
-// A weight maps to different style names across families — SF Pro Rounded is "Semibold",
-// Inter is "Semi Bold". Try each alias so a family match isn't missed (which is what dropped
-// the 600-weight buttons to the Inter fallback).
 const WEIGHT_ALIASES: Record<number, string[]> = {
   100: ['Thin'], 200: ['Extra Light', 'ExtraLight'], 300: ['Light'], 400: ['Regular'],
   500: ['Medium'], 600: ['Semibold', 'Semi Bold', 'SemiBold'], 700: ['Bold'],
   800: ['Extra Bold', 'ExtraBold'], 900: ['Black', 'Heavy'],
 }
 
-// The capture IR shape this plugin understands; a document stamped with a different version is a
-// stale capture (pushed by an older/newer app build) and won't render faithfully.
 const EXPECTED_CAPTURE_VERSION = 1
 
 const loaded = new Set<string>()
 let masters: Record<string, ComponentNode> = {}
 
-// Falls back to Inter (always present): the app uses system-ui, which Figma lacks, and Inter is the
-// chosen product typeface, so the fallback is intended.
 async function resolveFont(family: string, weight: number, italic: boolean): Promise<FontName> {
   const bases = WEIGHT_ALIASES[Math.round(weight / 100) * 100] || ['Regular']
   for (const candidate of [family, 'Inter']) {
@@ -46,7 +35,6 @@ async function resolveFont(family: string, weight: number, italic: boolean): Pro
 let colorVars: Record<string, Variable> = {}
 let colorVarsByName: Record<string, Variable> = {}
 let textStyles: Record<string, TextStyle> = {}
-// The "Dark" toggle paints dark values directly (unbound), so it works without the paid variable-mode feature.
 let darkMode = false
 let darkByToken: Record<string, { r: number; g: number; b: number; a: number }> = {}
 
@@ -65,8 +53,6 @@ async function loadColorVars(): Promise<void> {
   }
 }
 
-// Binds to a token variable by name first (a captured fill carries its token, e.g. `actionText`),
-// then by colour value; two tokens sharing a colour can't be told apart by value alone.
 function solid(color: { r: number; g: number; b: number; a: number }, token?: string): SolidPaint {
   if (darkMode && token && darkByToken[token]) {
     const d = darkByToken[token]
@@ -96,8 +82,6 @@ function applyAutoLayout(frame: FrameNode | ComponentNode, layout: any): void {
   if (plan.minWidth !== null) frame.minWidth = plan.minWidth
 }
 
-// Not absolute x/y: you can't set x/y on a node inside an instance, and auto-layout
-// re-centers an instance's own (shorter/longer) text override for free.
 function centerViaAutoLayout(frame: FrameNode | ComponentNode, width: number, height: number): void {
   frame.layoutMode = 'HORIZONTAL'
   frame.primaryAxisSizingMode = 'FIXED'
@@ -107,9 +91,6 @@ function centerViaAutoLayout(frame: FrameNode | ComponentNode, width: number, he
   frame.resize(Math.max(width, 0.01), Math.max(height, 0.01))
 }
 
-// Figma renders SF Pro Rounded at a slightly different optical spacing than iOS. Rather than
-// hardcode per-size tracking, the plugin (running inside Figma) measures its own rendered width
-// and adds exactly the letter-spacing needed to hit the device-captured width.
 function calibrateWidth(text: TextNode, targetWidth: number): void {
   const count = Math.max(text.characters.length, 1)
   if (targetWidth > text.width) {
@@ -122,8 +103,7 @@ async function makeText(run: any, font: any): Promise<TextNode> {
   const text = figma.createText()
   const style = plan.styleName ? textStyles[plan.styleName] : undefined
   if (style) {
-    // Put the node on the (loaded) style font before writing characters — a fresh text node defaults to
-    // the unloaded "Inter Regular", which can't be written to.
+    // Load the font before writing characters — a fresh text node's default font is unloaded.
     await figma.loadFontAsync(style.fontName as FontName)
     text.fontName = style.fontName as FontName
     text.characters = plan.characters
@@ -136,7 +116,6 @@ async function makeText(run: any, font: any): Promise<TextNode> {
   if (plan.fill) text.fills = [solid(plan.fill.color, plan.fill.token)]
   if (plan.underline) {
     text.textDecoration = 'UNDERLINE'
-    // iOS draws the underline 2.84pt below the baseline; Figma's AUTO sits ~2pt lower, so raise it.
     text.textDecorationOffset = { value: 2, unit: 'PIXELS' }
   }
   if (plan.letterSpacing !== null) text.letterSpacing = { value: plan.letterSpacing, unit: 'PIXELS' }
@@ -156,13 +135,9 @@ function collectRunTexts(node: any): string[] {
   return out
 }
 
-// An instance inherits the master's text and fill; override them so repeats of a component
-// (two Buttons: "Pay now" / "Cancel") show their own captured content, not the first one's.
 async function applyInstanceContent(instance: InstanceNode, node: any): Promise<void> {
   if (node.fill) instance.fills = [solid(node.fill, node.fillToken)]
 
-  // A container instance (a list row): override only the nested text by position — the master's
-  // per-label styling and native-bit image (chevron/switch) are inherited unchanged.
   const nested = node.children && node.children.length ? collectRunTexts(node) : []
   if (nested.length) {
     const nestedTexts = instance.findAllWithCriteria({ types: ['TEXT'] }) as TextNode[]
@@ -199,8 +174,6 @@ async function applyInstanceContent(instance: InstanceNode, node: any): Promise<
 
 async function build(node: any, parent: BaseNode & ChildrenMixin, parentX: number, parentY: number, flow: boolean, insideComponent: boolean = false): Promise<SceneNode> {
   if (node.grow) {
-    // A SwiftUI Spacer: a transparent flow child that eats the slack, so one Spacer pushes its
-    // neighbours apart (Figma has no per-gap flex, but a growing child reproduces it exactly).
     const spacer = figma.createFrame()
     parent.appendChild(spacer)
     spacer.name = 'Spacer'
@@ -224,14 +197,9 @@ async function build(node: any, parent: BaseNode & ChildrenMixin, parentX: numbe
     return rect
   }
 
-  // A captured text label inside an auto-layout parent: build a bare text node (which hugs), not a
-  // fixed-size frame. Otherwise a reused row's longer text ("$30" overriding the master's "$3")
-  // overflows the frame sized for the master and overlaps the next item instead of pushing it.
   if (flow && node.font && node.texts && node.texts.length === 1 && !(node.children && node.children.length) && !node.image) {
     const text = await makeText(node.texts[0], node.font)
     parent.appendChild(text)
-    // Match the device-captured text width so the hugging parent (a button pill) doesn't reflow
-    // narrower than the real control — Figma renders SF Pro at a slightly tighter metric.
     calibrateWidth(text, node.texts[0].w)
     if (node.textAlign === 'center') text.textAlignHorizontal = 'CENTER'
     else if (node.textAlign === 'right') text.textAlignHorizontal = 'RIGHT'
@@ -250,10 +218,8 @@ async function build(node: any, parent: BaseNode & ChildrenMixin, parentX: numbe
     return instance
   }
 
-  // Figma forbids a component inside a component, so only mint a master at the top level; a
-  // component-tagged node nested in one (a row's labels) becomes a plain frame — the row is the
-  // reusable unit, its labels are just its content.
   let frame: FrameNode | ComponentNode
+  // Figma forbids a component inside a component, so a component-tagged node nested in one becomes a frame.
   if (node.component && !insideComponent) {
     const component = figma.createComponent()
     masters[node.component] = component
@@ -284,8 +250,6 @@ async function build(node: any, parent: BaseNode & ChildrenMixin, parentX: numbe
       if (item.child) await build(item.child, frame, node.x, node.y, true, childInside)
       else frame.appendChild(await makeText(item.run, node.font))
     }
-    // A growing child (Spacer), or a `.frame(maxWidth: .infinity)` leaf, needs to span the parent's
-    // width — fill it (a reflection-synthesized row hugs at w=0, so resizing wouldn't help).
     const parentIsAutoLayout = frame.parent && 'layoutMode' in frame.parent && (frame.parent as FrameNode).layoutMode !== 'NONE'
     if ((node.children.some((child: any) => child.grow) || node.fillWidth) && parentIsAutoLayout) {
       frame.layoutSizingHorizontal = 'FILL'
@@ -311,8 +275,6 @@ async function build(node: any, parent: BaseNode & ChildrenMixin, parentX: numbe
   return frame
 }
 
-// Slash = folder in a Figma variable name, so tokens group by kind: --spacing-m → spacing/m,
-// --fs-title → type/size/title.
 function variableName(token: any): string {
   const base = token.name.replace(/^--/, '')
   if (token.type === 'color') return 'color/' + base
@@ -332,8 +294,6 @@ async function syncTokens(tokens: any[]): Promise<void> {
   if (!collection) collection = figma.variables.createVariableCollection('Pinwheel Tokens')
   const lightModeId = collection.modes[0].modeId
   collection.renameMode(lightModeId, 'Light')
-  // A second mode carries the dark values; adding one needs a paid Figma plan, so degrade to
-  // light-only if it's not allowed.
   let darkModeId: string | null = (collection.modes.find((m) => m.name === 'Dark') || {}).modeId || null
   if (!darkModeId) {
     darkModeId = ((): string | null => { try { return collection.addMode('Dark') } catch { return null } })()
@@ -376,8 +336,6 @@ async function syncTextStyles(styles: any[]): Promise<void> {
   }
 }
 
-// Keep the ES-module keyword (i-m-p-o-r-t) out of comments: the sandbox scans raw source and
-// rejects the plugin on a bare occurrence, even inside a comment.
 async function boundVariableName(alias: any): Promise<string | undefined> {
   if (!alias || alias.type !== 'VARIABLE_ALIAS') return undefined
   const variable = await figma.variables.getVariableByIdAsync(alias.id)
@@ -444,8 +402,6 @@ async function inspectNode(node: any): Promise<any> {
   return result
 }
 
-// Wrap the imported screen in an iPhone 17 device frame — rounded 402×874 with a status bar and a
-// home indicator — so an import reads like the real device. Taller than 874 only if the content is.
 async function wrapInDeviceFrame(content: FrameNode, screenName: string): Promise<FrameNode> {
   const WIDTH = 402
   const CONTENT_TOP = 62
@@ -460,8 +416,6 @@ async function wrapInDeviceFrame(content: FrameNode, screenName: string): Promis
   device.cornerRadius = 55
   device.clipsContent = true
   device.fills = content.fills
-  // The status bar and content stack vertically (a real safe-area layout, not absolute siblings); the
-  // home indicator floats absolutely at the bottom.
   device.layoutMode = 'VERTICAL'
   device.primaryAxisSizingMode = 'FIXED'
   device.counterAxisSizingMode = 'FIXED'
@@ -472,12 +426,9 @@ async function wrapInDeviceFrame(content: FrameNode, screenName: string): Promis
   device.paddingLeft = 0
   device.paddingRight = 0
 
-  // Status bar is the first flow child; content follows it. Space-between auto-layout: the time and
-  // indicators anchor to the two ears; the island floats absolutely in the middle, out of the flow.
   const statusBar = figma.createFrame()
   device.appendChild(statusBar)
   statusBar.name = 'Status Bar'
-  // The bar spans the full safe-area top (iPhone 17 = 62pt), so content flows right after it.
   statusBar.resize(WIDTH, CONTENT_TOP)
   statusBar.fills = []
   statusBar.clipsContent = false
@@ -487,8 +438,6 @@ async function wrapInDeviceFrame(content: FrameNode, screenName: string): Promis
   statusBar.primaryAxisAlignItems = 'SPACE_BETWEEN'
   statusBar.counterAxisAlignItems = 'CENTER'
   statusBar.itemSpacing = 0
-  // The clock/indicators ride the Dynamic Island's midline (~y32), 1pt below the bar's center, so a
-  // 2pt top pad nudges the centered row down to meet it.
   statusBar.paddingTop = 2
   statusBar.paddingBottom = 0
   statusBar.paddingLeft = 52
@@ -501,12 +450,8 @@ async function wrapInDeviceFrame(content: FrameNode, screenName: string): Promis
   time.characters = '9:41'
   time.fontSize = 17
   time.fills = [{ type: 'SOLID', color: chrome }]
-  // Floor the time width so a shorter string ('9:41') holds the same slot as a wider one ('19:15'),
-  // right-aligned so the digits sit at the slot's right edge regardless of length.
   time.minWidth = 44
   time.textAlignHorizontal = 'RIGHT'
-  // Center on the glyphs, not the line box: SF Pro's line box sits ~1pt above the caps, so plain
-  // vertical centering floats the clock 1pt above the Dynamic Island's midline.
   time.leadingTrim = 'CAP_HEIGHT'
 
   const indicators = figma.createNodeFromSvg(statusIndicatorsSvg(chrome))
@@ -523,7 +468,6 @@ async function wrapInDeviceFrame(content: FrameNode, screenName: string): Promis
   island.x = (WIDTH - 124) / 2
   island.y = 13.5
 
-  // Content flows right after the safe-area-top bar — no gap, no absolute offset.
   device.appendChild(content)
   content.layoutSizingHorizontal = 'FILL'
   device.itemSpacing = 0
@@ -541,8 +485,6 @@ async function wrapInDeviceFrame(content: FrameNode, screenName: string): Promis
   return device
 }
 
-// Cellular bars, wifi, and battery, as one vector — the right cluster of the iOS status bar. Sized
-// ~80×13 so it centers on the Dynamic Island's vertical midline.
 function statusIndicatorsSvg(color: RGB): string {
   const c = 'rgb(' + Math.round(color.r * 255) + ',' + Math.round(color.g * 255) + ',' + Math.round(color.b * 255) + ')'
   return '<svg width="80" height="13" viewBox="0 0 80 13" xmlns="http://www.w3.org/2000/svg">'
@@ -582,13 +524,9 @@ figma.ui.onmessage = async (message: any) => {
       darkMode = Boolean(message.dark)
       darkByToken = {}
       if (data.tokens) for (const token of data.tokens) if (token.dark) darkByToken[token.name] = token.dark
-      // Sync first so the token variables exist on a single "Import layers" click — fills bind
-      // without a separate "Sync tokens" pass (the ordering that left them unbound before).
       if (data.tokens) await syncTokens(data.tokens)
       if (data.textStyles) await syncTextStyles(data.textStyles)
       await loadColorVars()
-      // Stamp the app's capture version onto the frame name so the imported artifact carries the same
-      // number the simulator shows — "10 in the sim = 10 in Figma".
       const baseName = data.root.name || 'Screen'
       const name = typeof message.version === 'number' ? baseName + ' · v' + message.version : baseName
       const root = await build(data.root, figma.currentPage, 0, 0, false)

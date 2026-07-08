@@ -33,7 +33,6 @@
 
   const catalogButton = document.getElementById('catalog')
 
-  // `auto` = the on-open attempt: stay quiet if the serve isn't running, since it's not user-initiated.
   async function loadCatalog({ auto = false } = {}) {
     if (!auto) status.textContent = 'loading catalog…'
     try {
@@ -52,7 +51,6 @@
 
   catalogButton.onclick = () => loadCatalog()
 
-  // Load the catalog automatically when the plugin opens, if the serve has one.
   loadCatalog({ auto: true })
 
   function renderCatalog(items) {
@@ -72,7 +70,6 @@
         title.textContent = item.title
         const tags = document.createElement('span')
         tags.className = 'tags'
-        // Show the capture version so it can be matched against the number shown in the simulator.
         const version = typeof item.version === 'number' ? 'v' + item.version : ''
         tags.textContent = [version, (item.tags || []).join(', ')].filter(Boolean).join(' · ')
         row.appendChild(title)
@@ -86,8 +83,6 @@
   async function importCatalogItem(file, title, version) {
     status.textContent = 'importing ' + title + '…'
     try {
-      // Use the manifest's own filename — it carries the app prefix (`catalog-<app>--<id>.json`) that a
-      // bare id can't reconstruct.
       const entry = await fetchJSON('/' + file)
       if (!entry || !entry.document) throw new Error('no document in ' + file)
       importDocument(entry.document, version != null ? version : entry.version)

@@ -64,8 +64,6 @@ var PW = (() => {
       paddingLeft: layout.pad[3],
       primaryAxisAlignItems,
       counterAxisAlignItems,
-      // A hugging frame keeps this floor so a short-label instance doesn't reflow below the real control's
-      // minimum width (a PinButton's 100pt titled pill).
       minWidth: typeof layout.minWidth === "number" ? layout.minWidth : null
     };
   }

@@ -1,5 +1,4 @@
-// Serves capture.json with permissive CORS: the plugin UI iframe runs on a figma.com origin, so a
-// bare static server's responses would be blocked.
+// Permissive CORS: the plugin UI runs on a figma.com origin.
 import { createServer } from 'node:http'
 import { readFileSync, writeFileSync, readdirSync, unlinkSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
@@ -11,7 +10,6 @@ const slug = (value) => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g,
 
 createServer((request, response) => {
   response.setHeader('Access-Control-Allow-Origin', '*')
-  // application/json makes the plugin's inspect POST a non-simple request, so answer its preflight.
   response.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
   response.setHeader('Access-Control-Allow-Headers', 'Content-Type')
   if (request.method === 'OPTIONS') {
@@ -67,7 +65,6 @@ createServer((request, response) => {
     return
   }
 
-  // The demo app pushes its render here; capture.mjs (the web flow) writes the same file.
   if (request.url === '/capture.json' && request.method === 'POST') {
     const chunks = []
     request.on('data', (chunk) => chunks.push(chunk))

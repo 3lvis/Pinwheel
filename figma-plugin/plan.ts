@@ -1,6 +1,3 @@
-// Pure IR → RenderPlan decisions: no Figma API, so a test imports this module directly with zero mocking.
-// The thin apply shell in code.ts writes these plans onto real Figma nodes.
-
 function primaryAlign(value: string): 'MIN' | 'CENTER' | 'MAX' | 'SPACE_BETWEEN' {
   if (value === 'center') return 'CENTER'
   if (value === 'flex-end' || value === 'end') return 'MAX'
@@ -31,9 +28,6 @@ export interface AutoLayoutPlan {
   minWidth: number | null
 }
 
-// AUTO hugs, FIXED fills (a space-between row needs FIXED to hold the split). A grid takes its cross-axis
-// alignment from justify/justify-items, not align-items (which is the cross axis in flex but the main axis
-// in grid).
 export function planAutoLayout(layout: any): AutoLayoutPlan {
   const horizontal = layout.mode === 'row'
   const wrap = Boolean(layout.wrap && horizontal)
@@ -60,8 +54,6 @@ export function planAutoLayout(layout: any): AutoLayoutPlan {
     paddingLeft: layout.pad[3],
     primaryAxisAlignItems,
     counterAxisAlignItems,
-    // A hugging frame keeps this floor so a short-label instance doesn't reflow below the real control's
-    // minimum width (a PinButton's 100pt titled pill).
     minWidth: typeof layout.minWidth === 'number' ? layout.minWidth : null,
   }
 }
@@ -79,15 +71,6 @@ export interface TextPlan {
   lineHeight: number | null
 }
 
-// A run taller than ~1.5 line boxes wrapped on device, so it fixes its width and grows in height (Figma
-// re-wraps it the same way); a single-line run hugs and pins its line box to the captured height (vertical
-// centering lands where iOS drew it — Figma's SF Pro line box is a hair taller). The apply step resolves
-// the font, binds the fill, and writes these onto a real node.
-// The order to place an auto-layout frame's children. A reflection-synthesized stack already carries its
-// children in declaration order (and a zero-origin Spacer would sort to the front), so an ordered node
-// keeps the given order. Otherwise sort children and text runs top-to-bottom by row, then left-to-right
-// within a row — a single-axis sort scrambles wrapped flex rows (a step wizard wrapping to a second line
-// came out 1,2,4,3).
 export function orderChildren(node: any): Array<{ child?: any; run?: any }> {
   if (node.ordered) return (node.children || []).map((child: any) => ({ child }))
   const ROW_TOLERANCE = 8
