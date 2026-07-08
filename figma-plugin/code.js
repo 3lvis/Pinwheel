@@ -600,6 +600,24 @@ var PW = (() => {
     const c = "rgb(" + Math.round(color.r * 255) + "," + Math.round(color.g * 255) + "," + Math.round(color.b * 255) + ")";
     return '<svg width="80" height="13" viewBox="0 0 80 13" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="7" width="3" height="6" rx="1" fill="' + c + '"/><rect x="4.5" y="5" width="3" height="8" rx="1" fill="' + c + '"/><rect x="9" y="2.5" width="3" height="10.5" rx="1" fill="' + c + '"/><rect x="13.5" y="0" width="3" height="13" rx="1" fill="' + c + '"/><path d="M30 3.2c2.2 0 4.3.85 5.85 2.35l-1.05 1.05C33.5 5.4 31.8 4.7 30 4.7s-3.5.7-4.8 1.9L24.15 5.55C25.7 4.05 27.8 3.2 30 3.2zm0 3.1c1.35 0 2.6.52 3.55 1.4l-1.05 1.05C31.85 8.15 30.95 7.8 30 7.8s-1.85.35-2.5.95L26.45 7.7C27.4 6.82 28.65 6.3 30 6.3zm0 3.05c.55 0 1.05.2 1.45.55L30 10.9l-1.45-1c.4-.35.9-.55 1.45-.55z" fill="' + c + '"/><rect x="46.5" y="1" width="24" height="11" rx="3" fill="none" stroke="' + c + '" stroke-opacity="0.35"/><rect x="48" y="2.5" width="19" height="8" rx="1.5" fill="' + c + '"/><path d="M72 4.3v4.4c.9-.35 1.5-1.15 1.5-2.2s-.6-1.85-1.5-2.2z" fill="' + c + '"/></svg>';
   }
+  async function syncFromDocument(data) {
+    darkByToken = {};
+    if (data.tokens) {
+      for (const token of data.tokens) if (token.dark) darkByToken[token.name] = token.dark;
+    }
+    if (data.tokens) await syncTokens(data.tokens);
+    if (data.textStyles) await syncTextStyles(data.textStyles);
+    await loadColorVars();
+  }
+  async function importFramed(data, version, dark) {
+    masters = {};
+    darkMode = dark;
+    const baseName = data.root && data.root.name || "Screen";
+    let name = typeof version === "number" ? baseName + " \xB7 v" + version : baseName;
+    if (dark) name += " \xB7 Dark";
+    const root = await build(data.root, figma.currentPage, 0, 0, false);
+    return root.type === "FRAME" ? await wrapInDeviceFrame(root, name) : root;
+  }
   figma.ui.onmessage = async (message) => {
     try {
       if (message.type === "inspect") {
@@ -621,22 +639,48 @@ var PW = (() => {
         if (typeof data.version === "number" && data.version !== EXPECTED_CAPTURE_VERSION) {
           figma.notify("Stale capture: v" + data.version + ", plugin expects v" + EXPECTED_CAPTURE_VERSION + " \u2014 re-capture", { error: true });
         }
-        masters = {};
-        darkMode = Boolean(message.dark);
-        darkByToken = {};
-        if (data.tokens) {
-          for (const token of data.tokens) if (token.dark) darkByToken[token.name] = token.dark;
-        }
-        if (data.tokens) await syncTokens(data.tokens);
-        if (data.textStyles) await syncTextStyles(data.textStyles);
-        await loadColorVars();
-        const baseName = data.root.name || "Screen";
-        const name = typeof message.version === "number" ? baseName + " \xB7 v" + message.version : baseName;
-        const root = await build(data.root, figma.currentPage, 0, 0, false);
-        const framed = root.type === "FRAME" ? await wrapInDeviceFrame(root, name) : root;
+        await syncFromDocument(data);
+        const framed = await importFramed(data, message.version, Boolean(message.dark));
         figma.viewport.scrollAndZoomIntoView([framed]);
         figma.ui.postMessage({ type: "done" });
         figma.notify("Imported " + data.width + "\xD7" + data.height);
+        return;
+      }
+      if (message.type === "importAll") {
+        const entries = message.entries || [];
+        if (!entries.length) {
+          figma.notify("Nothing to import \u2014 run the capture sweep", { error: true });
+          figma.ui.postMessage({ type: "done" });
+          return;
+        }
+        await syncFromDocument(entries[0].data);
+        const GAP = 80;
+        const placed = [];
+        const columnX = [];
+        let cursor = 0;
+        for (const entry of entries) {
+          const frame = await importFramed(entry.data, entry.version, false);
+          frame.x = cursor;
+          frame.y = 0;
+          columnX.push(cursor);
+          cursor += frame.width + GAP;
+          placed.push(frame);
+        }
+        if (message.includeDark) {
+          const darkRowY = Math.max(...placed.map((frame) => frame.height)) + GAP;
+          let index = 0;
+          for (const entry of entries) {
+            const frame = await importFramed(entry.data, entry.version, true);
+            frame.x = columnX[index];
+            frame.y = darkRowY;
+            placed.push(frame);
+            index++;
+          }
+        }
+        figma.viewport.scrollAndZoomIntoView(placed);
+        figma.ui.postMessage({ type: "done" });
+        figma.notify("Imported " + entries.length + " components" + (message.includeDark ? " \xD7 light + dark" : ""));
+        return;
       }
     } catch (error) {
       const detail = error && error.message ? error.message : String(error);

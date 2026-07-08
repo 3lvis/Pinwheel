@@ -538,6 +538,24 @@ function statusIndicatorsSvg(color: RGB): string {
     + '</svg>'
 }
 
+async function syncFromDocument(data: any): Promise<void> {
+  darkByToken = {}
+  if (data.tokens) for (const token of data.tokens) if (token.dark) darkByToken[token.name] = token.dark
+  if (data.tokens) await syncTokens(data.tokens)
+  if (data.textStyles) await syncTextStyles(data.textStyles)
+  await loadColorVars()
+}
+
+async function importFramed(data: any, version: any, dark: boolean): Promise<any> {
+  masters = {}
+  darkMode = dark
+  const baseName = (data.root && data.root.name) || 'Screen'
+  let name = typeof version === 'number' ? baseName + ' · v' + version : baseName
+  if (dark) name += ' · Dark'
+  const root = await build(data.root, figma.currentPage, 0, 0, false)
+  return root.type === 'FRAME' ? await wrapInDeviceFrame(root as FrameNode, name) : root
+}
+
 figma.ui.onmessage = async (message: any) => {
   try {
     if (message.type === 'inspect') {
@@ -559,20 +577,48 @@ figma.ui.onmessage = async (message: any) => {
       if (typeof data.version === 'number' && data.version !== EXPECTED_CAPTURE_VERSION) {
         figma.notify('Stale capture: v' + data.version + ', plugin expects v' + EXPECTED_CAPTURE_VERSION + ' — re-capture', { error: true })
       }
-      masters = {}
-      darkMode = Boolean(message.dark)
-      darkByToken = {}
-      if (data.tokens) for (const token of data.tokens) if (token.dark) darkByToken[token.name] = token.dark
-      if (data.tokens) await syncTokens(data.tokens)
-      if (data.textStyles) await syncTextStyles(data.textStyles)
-      await loadColorVars()
-      const baseName = data.root.name || 'Screen'
-      const name = typeof message.version === 'number' ? baseName + ' · v' + message.version : baseName
-      const root = await build(data.root, figma.currentPage, 0, 0, false)
-      const framed = root.type === 'FRAME' ? await wrapInDeviceFrame(root as FrameNode, name) : root
+      await syncFromDocument(data)
+      const framed = await importFramed(data, message.version, Boolean(message.dark))
       figma.viewport.scrollAndZoomIntoView([framed])
       figma.ui.postMessage({ type: 'done' })
       figma.notify('Imported ' + data.width + '×' + data.height)
+      return
+    }
+    if (message.type === 'importAll') {
+      const entries: any[] = message.entries || []
+      if (!entries.length) {
+        figma.notify('Nothing to import — run the capture sweep', { error: true })
+        figma.ui.postMessage({ type: 'done' })
+        return
+      }
+      await syncFromDocument(entries[0].data)
+      const GAP = 80
+      const placed: any[] = []
+      const columnX: number[] = []
+      let cursor = 0
+      for (const entry of entries) {
+        const frame = await importFramed(entry.data, entry.version, false)
+        frame.x = cursor
+        frame.y = 0
+        columnX.push(cursor)
+        cursor += frame.width + GAP
+        placed.push(frame)
+      }
+      if (message.includeDark) {
+        const darkRowY = Math.max(...placed.map((frame) => frame.height)) + GAP
+        let index = 0
+        for (const entry of entries) {
+          const frame = await importFramed(entry.data, entry.version, true)
+          frame.x = columnX[index]
+          frame.y = darkRowY
+          placed.push(frame)
+          index++
+        }
+      }
+      figma.viewport.scrollAndZoomIntoView(placed)
+      figma.ui.postMessage({ type: 'done' })
+      figma.notify('Imported ' + entries.length + ' components' + (message.includeDark ? ' × light + dark' : ''))
+      return
     }
   } catch (error) {
     const detail = error && (error as any).message ? (error as any).message : String(error)

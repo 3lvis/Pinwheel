@@ -14,8 +14,9 @@
 </style>
 
 <button id="catalog">Load catalog</button>
+<button id="importAll">Import all (light + dark)</button>
 <button id="inspect" class="secondary">Inspect selection</button>
-<label class="dark"><input type="checkbox" id="dark"> Dark version</label>
+<label class="dark"><input type="checkbox" id="dark"> Dark version (single import)</label>
 <div id="status"></div>
 <div id="list"></div>
 
@@ -88,6 +89,28 @@
       importDocument(entry.document, version != null ? version : entry.version)
     } catch (error) {
       status.textContent = 'import failed: ' + error.message
+    }
+  }
+
+  document.getElementById('importAll').onclick = async () => {
+    status.textContent = 'loading all components…'
+    try {
+      const { items } = await fetchJSON('/manifest.json')
+      if (!items || !items.length) {
+        status.textContent = 'no components on the serve yet — run the capture sweep'
+        return
+      }
+      const entries = []
+      for (const item of items) {
+        const entry = await fetchJSON('/' + item.file)
+        if (entry && entry.document) {
+          entries.push({ data: entry.document, version: item.version != null ? item.version : entry.version })
+        }
+      }
+      status.textContent = 'importing ' + entries.length + ' components (light + dark)…'
+      parent.postMessage({ pluginMessage: { type: 'importAll', entries, includeDark: true } }, '*')
+    } catch (error) {
+      status.textContent = 'import all failed: ' + error.message + ' (is the serve script running?)'
     }
   }
 
