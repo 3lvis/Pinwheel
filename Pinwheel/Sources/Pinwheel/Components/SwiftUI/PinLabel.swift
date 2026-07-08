@@ -5,7 +5,7 @@ import SwiftUI
 /// provider-backed font, and taking a `PinTextStyle` (not a raw `Font`) makes the
 /// system-font path unrepresentable.
 public struct PinLabel: SwiftUI.View {
-    public enum TextColor: PinTextColorToken {
+    public enum TextColor {
         case primary
         case secondary
         case tertiary
@@ -13,23 +13,16 @@ public struct PinLabel: SwiftUI.View {
         case critical
         case custom(SwiftUI.Color)
 
-        var token: PinColorToken? {
+        var color: SwiftUI.Color {
             switch self {
             case .primary: return .primaryText
             case .secondary: return .secondaryText
             case .tertiary: return .tertiaryText
             case .action: return .actionText
             case .critical: return .criticalText
-            case .custom: return nil
+            case .custom(let color): return color
             }
         }
-
-        var color: SwiftUI.Color {
-            if case .custom(let color) = self { return color }
-            return token?.color ?? .primaryText
-        }
-
-        public var captureTextColorToken: String? { token?.rawValue }
     }
 
     private let text: String
@@ -38,14 +31,6 @@ public struct PinLabel: SwiftUI.View {
 
     public init(_ text: String) {
         self.text = text
-    }
-
-    private var pinnedStyle: PinComponentStyle {
-        PinComponentStyle(
-            name: "PinLabel", text: text, textStyle: typography,
-            textColorTokenName: color.captureTextColorToken, fillTokenName: nil,
-            textColor: color.captureTextColor, cornerRadius: nil, centersText: false
-        )
     }
 
     public func font(_ font: PinTextStyle) -> PinLabel {
@@ -64,6 +49,5 @@ public struct PinLabel: SwiftUI.View {
         Text(text)
             .font(typography.font)
             .foregroundStyle(color.color)
-            .pinCaptured(pinnedStyle)
     }
 }
