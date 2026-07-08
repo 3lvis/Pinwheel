@@ -125,7 +125,7 @@ final class CaptureFidelityTests: XCTestCase {
     func testFillLessTertiaryKeepsItsMinWidthBox() throws {
         let skip = try XCTUnwrap(firstNode(in: captureRoot()) { $0.name == "Pill" && text(of: $0) == "Skip" },
                                  "the tertiary 'Skip' must capture as a boxed Pill, not bare text")
-        XCTAssertEqual(skip.w, Double(PinButton.minTitledWidth), accuracy: 0.5,
+        XCTAssertEqual(skip.w, Double(PinDisplayListCapture.bareButtonMinWidth), accuracy: 0.5,
                        "a fill-less tertiary button must keep the control min width")
     }
 

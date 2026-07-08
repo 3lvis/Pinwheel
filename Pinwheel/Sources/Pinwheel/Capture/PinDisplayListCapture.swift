@@ -171,15 +171,17 @@ public enum PinDisplayListCapture {
     }
 
     // Rebuild the pill box SwiftUI optimized away for a fill-less button: min-width, standard padding, centered, transparent.
+    static let bareButtonMinWidth: CGFloat = 100
+
     private static func bareButtonContainer(_ content: FigmaNode) -> FigmaNode {
         let layout = PinCaptureLayout(
             axis: .row, spacing: .spacingS,
             padding: EdgeInsets(top: .spacingM, leading: .spacingL, bottom: .spacingM, trailing: .spacingL),
-            alignment: .center, mainAxisAlignment: .center, minWidth: PinButton.minTitledWidth
+            alignment: .center, mainAxisAlignment: .center, minWidth: bareButtonMinWidth
         )
         return FigmaNode(
             tag: "frame", x: content.x, y: content.y,
-            w: max(content.w + 2 * Double(CGFloat.spacingL), Double(PinButton.minTitledWidth)),
+            w: max(content.w + 2 * Double(CGFloat.spacingL), Double(bareButtonMinWidth)),
             h: content.h + 2 * Double(CGFloat.spacingM),
             name: "Pill", layout: FigmaLayout(layout), ordered: true, children: [content]
         )

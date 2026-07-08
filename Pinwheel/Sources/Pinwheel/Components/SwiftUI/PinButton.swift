@@ -26,6 +26,7 @@ public struct PinButton: SwiftUI.View {
     private var isLoading: Bool = false
 
     @SwiftUI.State private var tapCount = 0
+    @Environment(\.pinCapturing) private var pinCapturing
 
     public init(
         _ title: String? = nil,
@@ -82,10 +83,37 @@ public struct PinButton: SwiftUI.View {
             }
 
             if isLoading {
-                ProgressView()
-                    .controlSize(.small)
+                // UIKit's ProgressView blanks when cropped from the capture window, so a static SwiftUI
+                // spinner stands in under capture while the app shows the real animated one.
+                if pinCapturing {
+                    CaptureSpinner()
+                } else {
+                    ProgressView().controlSize(.small)
+                }
             }
         }
+    }
+}
+
+private struct CaptureSpinner: SwiftUI.View {
+    var body: some SwiftUI.View {
+        SpinnerShape().frame(width: 15, height: 15)
+    }
+}
+
+// All spokes in one Path: a per-spoke .rotationEffect loses its rotation in the captured static frame.
+private struct SpinnerShape: Shape {
+    private let spokes = 8
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        for index in 0..<spokes {
+            let spoke = Path(roundedRect: CGRect(x: -1, y: -rect.height / 2, width: 2, height: rect.height / 2.8), cornerRadius: 1)
+            let rotate = CGAffineTransform(rotationAngle: Double(index) / Double(spokes) * 2 * .pi)
+            path.addPath(spoke.applying(rotate).applying(CGAffineTransform(translationX: center.x, y: center.y)))
+        }
+        return path
     }
 }
 
