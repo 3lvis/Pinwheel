@@ -157,11 +157,16 @@ public enum PinUIKitCapture {
         guard let background = label.backgroundColor, background.cgColor.alpha > 0.01 else { return textNode }
         let frame = label.convert(label.bounds, to: host)
         let radius = label.layer.cornerRadius
+        // An auto-layout frame (not absolute) so the plugin renders the text inline instead of wrapping
+        // it in an extra frame. The label's alignment drives where the text sits.
+        let justify: PinCaptureLayout.CrossAxis = label.textAlignment == .center ? .center : (label.textAlignment == .right ? .trailing : .leading)
         return FigmaNode(
             tag: "frame", x: Double(frame.minX), y: Double(frame.minY), w: Double(frame.width), h: Double(frame.height),
             fill: RGBA(background), fillToken: PinDisplayListCapture.tokenName(for: background),
             radius: radius > 0.5 ? Double(radius) : nil,
             radiusToken: radius > 0.5 ? PinFloatTokens.radiusName(for: Double(radius)) : nil,
+            layout: FigmaLayout(PinCaptureLayout(axis: .row, spacing: 0, alignment: .center, mainAxisAlignment: justify)),
+            ordered: true,
             children: [textNode]
         )
     }

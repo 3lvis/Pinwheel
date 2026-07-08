@@ -198,6 +198,27 @@ final class PinUIKitCaptureTests: XCTestCase {
         XCTAssertEqual(node.font?.style, "titleSemibold", "a semibold must not collapse onto its regular-weight token")
     }
 
+    // A colored label captures as an auto-layout frame, so the plugin renders its text inline instead of
+    // wrapping it in an extra frame (one less nesting level per bar).
+    func testColoredLabelIsAnAutoLayoutFrame() throws {
+        let host = UIView()
+        let label = UILabel()
+        label.text = "Bar"
+        label.textAlignment = .center
+        label.backgroundColor = .tertiaryText
+        label.translatesAutoresizingMaskIntoConstraints = false
+        host.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.topAnchor.constraint(equalTo: host.topAnchor, constant: 40),
+            label.leadingAnchor.constraint(equalTo: host.leadingAnchor),
+            label.widthAnchor.constraint(equalToConstant: 200),
+            label.heightAnchor.constraint(equalToConstant: 40)
+        ])
+        let document = try XCTUnwrap(capture(host))
+        let bar = try XCTUnwrap(firstNode(document.root) { $0.fillToken == "tertiaryText" })
+        XCTAssertNotNil(bar.layout, "a colored label is an auto-layout frame so its text renders inline")
+    }
+
     // A UIStackView maps directly to Figma auto-layout — it must capture as an auto-layout frame, not
     // flatten its arranged subviews into absolute positions.
     func testStackViewCapturesAsAnAutoLayoutFrame() throws {
