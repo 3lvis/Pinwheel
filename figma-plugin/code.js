@@ -131,7 +131,6 @@ var PW = (() => {
   var floatVarsByName = {};
   var textStyles = {};
   var boundTextStyleCount = 0;
-  var debugTrace = [];
   var darkMode = false;
   var darkByToken = {};
   function colorKey(c) {
@@ -227,7 +226,6 @@ var PW = (() => {
       await text.setTextStyleIdAsync(style.id);
       boundTextStyleCount += 1;
     }
-    debugTrace.push({ step: "makeText", chars: (plan.characters || "").slice(0, 16), styleName: plan.styleName || null, found: Boolean(style), finalStyleId: text.textStyleId || null });
     return text;
   }
   function collectRunTexts(node) {
@@ -452,69 +450,6 @@ var PW = (() => {
       textStyles[entry.name] = style;
     }
   }
-  async function boundVariableName(alias) {
-    if (!alias || alias.type !== "VARIABLE_ALIAS") return void 0;
-    const variable = await figma.variables.getVariableByIdAsync(alias.id);
-    return variable ? variable.name : void 0;
-  }
-  async function inspectFills(node) {
-    const fills = node.fills;
-    if (!fills || fills === figma.mixed || !fills.length) return void 0;
-    const result = [];
-    for (const paint of fills) {
-      if (paint.type === "SOLID") {
-        const bound = paint.boundVariables && paint.boundVariables.color;
-        result.push({ type: "SOLID", color: paint.color, opacity: paint.opacity, variable: await boundVariableName(bound) });
-      } else {
-        result.push({ type: paint.type });
-      }
-    }
-    return result;
-  }
-  async function inspectNode(node) {
-    const result = { type: node.type, name: node.name };
-    const box = node.absoluteBoundingBox;
-    if (box) result.frame = { x: box.x, y: box.y, w: box.width, h: box.height };
-    const fills = await inspectFills(node);
-    if (fills) result.fills = fills;
-    if (typeof node.cornerRadius === "number") result.cornerRadius = node.cornerRadius;
-    if (node.layoutMode && node.layoutMode !== "NONE") {
-      result.autoLayout = {
-        mode: node.layoutMode,
-        spacing: node.itemSpacing,
-        padding: [node.paddingTop, node.paddingRight, node.paddingBottom, node.paddingLeft],
-        primarySizing: node.primaryAxisSizingMode,
-        counterSizing: node.counterAxisSizingMode,
-        primaryAlign: node.primaryAxisAlignItems,
-        counterAlign: node.counterAxisAlignItems
-      };
-    }
-    if (node.type === "TEXT") {
-      result.characters = node.characters;
-      result.fontName = node.fontName;
-      result.fontSize = node.fontSize;
-      if (node.letterSpacing && node.letterSpacing.value) result.letterSpacing = node.letterSpacing.value;
-      if (typeof node.textStyleId === "string" && node.textStyleId) {
-        const style = await figma.getStyleByIdAsync(node.textStyleId);
-        if (style) result.textStyle = style.name;
-      }
-    }
-    if (node.type === "INSTANCE") {
-      const main = await node.getMainComponentAsync();
-      if (main) result.mainComponent = main.name;
-      const properties = node.componentProperties;
-      if (properties) {
-        const values = {};
-        for (const key of Object.keys(properties)) values[key] = properties[key].value;
-        result.componentProperties = values;
-      }
-    }
-    if (node.children && node.children.length) {
-      result.children = [];
-      for (const child of node.children) result.children.push(await inspectNode(child));
-    }
-    return result;
-  }
   var DEVICE_WIDTH = 402;
   var SAFE_AREA_TOP = 62;
   var SAFE_AREA_BOTTOM = 34;
@@ -614,9 +549,7 @@ var PW = (() => {
       for (const token of data.tokens) if (token.dark) darkByToken[token.name] = token.dark;
     }
     if (data.tokens) await syncTokens(data.tokens);
-    debugTrace.push({ step: "doc", textStyles: (data.textStyles || []).map((s) => s.name) });
     if (data.textStyles) await syncTextStyles(data.textStyles);
-    debugTrace.push({ step: "afterSync", styleKeys: Object.keys(textStyles) });
     await loadColorVars();
   }
   async function importFramed(data, version, dark, tags) {
@@ -631,16 +564,6 @@ var PW = (() => {
   }
   figma.ui.onmessage = async (message) => {
     try {
-      if (message.type === "inspect") {
-        const selection = figma.currentPage.selection;
-        const roots = selection.length ? selection : figma.currentPage.children;
-        const name = selection.length ? selection[0].name : figma.currentPage.name;
-        const nodes = [];
-        for (const node of roots) nodes.push(await inspectNode(node));
-        figma.ui.postMessage({ type: "inspected", data: { page: figma.currentPage.name, name, nodes } });
-        figma.notify("Inspected " + roots.length + " node(s)");
-        return;
-      }
       if (message.type === "import") {
         const data = message.data;
         if (!data || !data.root) {
@@ -651,11 +574,9 @@ var PW = (() => {
           figma.notify("Stale capture: v" + data.version + ", plugin expects v" + EXPECTED_CAPTURE_VERSION + " \u2014 re-capture", { error: true });
         }
         boundTextStyleCount = 0;
-        debugTrace = [];
         await syncFromDocument(data);
         const framed = await importFramed(data, message.version, Boolean(message.dark), message.tags);
         figma.viewport.scrollAndZoomIntoView([framed]);
-        figma.ui.postMessage({ type: "debug", trace: debugTrace });
         figma.ui.postMessage({ type: "done" });
         figma.notify("Imported " + data.width + "\xD7" + data.height + " \xB7 " + Object.keys(textStyles).length + " text styles, " + boundTextStyleCount + " bound");
         return;
@@ -668,7 +589,6 @@ var PW = (() => {
           return;
         }
         boundTextStyleCount = 0;
-        debugTrace = [];
         await syncFromDocument(entries[0].data);
         const GAP = 80;
         const placed = [];
@@ -694,7 +614,6 @@ var PW = (() => {
           }
         }
         figma.viewport.scrollAndZoomIntoView(placed);
-        figma.ui.postMessage({ type: "debug", trace: debugTrace });
         figma.ui.postMessage({ type: "done" });
         figma.notify("Imported " + entries.length + " components" + (message.includeDark ? " \xD7 light + dark" : "") + " \xB7 " + boundTextStyleCount + " text styles bound");
         return;

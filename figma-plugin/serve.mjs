@@ -50,32 +50,6 @@ createServer((request, response) => {
     return response.end(JSON.stringify({ items }))
   }
 
-  if (request.url === '/inspect.json' && request.method === 'POST') {
-    const chunks = []
-    request.on('data', (chunk) => chunks.push(chunk))
-    request.on('end', () => {
-      const body = Buffer.concat(chunks)
-      let name = 'latest'
-      try { name = slug(JSON.parse(body.toString()).name) || 'latest' } catch {}
-      const outFile = 'inspect-' + name + '.json'
-      writeFileSync(resolve(here, outFile), body)
-      response.setHeader('Content-Type', 'application/json')
-      response.end(JSON.stringify({ ok: true, file: outFile }))
-    })
-    return
-  }
-
-  if (request.url === '/debug.json' && request.method === 'POST') {
-    const chunks = []
-    request.on('data', (chunk) => chunks.push(chunk))
-    request.on('end', () => {
-      writeFileSync(resolve(here, 'debug.json'), Buffer.concat(chunks))
-      response.setHeader('Content-Type', 'application/json')
-      response.end(JSON.stringify({ ok: true }))
-    })
-    return
-  }
-
   if (request.url === '/capture.json' && request.method === 'POST') {
     const chunks = []
     request.on('data', (chunk) => chunks.push(chunk))
@@ -88,12 +62,9 @@ createServer((request, response) => {
   }
 
   // Only a-z/0-9/- in the name, so a request can't escape the directory.
-  const inspectMatch = /^\/(inspect-[a-z0-9-]+\.json)$/.exec(request.url)
   const catalogMatch = /^\/(catalog-[a-z0-9-]+\.json)$/.exec(request.url)
   const file = request.url === '/capture.json' ? captureFile
-    : request.url === '/debug.json' ? resolve(here, 'debug.json')
     : catalogMatch ? resolve(here, catalogMatch[1])
-    : inspectMatch ? resolve(here, inspectMatch[1])
     : null
   if (!file) {
     response.statusCode = 404
@@ -104,6 +75,6 @@ createServer((request, response) => {
     response.end(readFileSync(file))
   } catch {
     response.statusCode = 404
-    response.end(JSON.stringify({ error: file === captureFile ? 'run capture.mjs first' : 'no such inspection' }))
+    response.end(JSON.stringify({ error: file === captureFile ? 'run capture.mjs first' : 'no such file' }))
   }
-}).listen(8787, () => console.log('serving capture.json + inspect.json on http://localhost:8787'))
+}).listen(8787, () => console.log('serving the capture catalog on http://localhost:8787'))
