@@ -14,10 +14,8 @@ public enum PinUIKitCapture {
             guard !rows.isEmpty else { return nil }
             children = rows + separatorNodes(between: rows, table: scroll as? UITableView)
         } else {
-            // Require real text: a component that hosts SwiftUI (UIKitPinButton/StateView) has no UILabels
-            // in its UIKit tree, so the walk finds only stray crops — worse than the flat-image fallback.
             let walked = viewNodes(in: host, host: host)
-            guard walked.contains(where: containsText) else { return nil }
+            guard !walked.isEmpty else { return nil }
             children = walked
         }
         return assemble(children: children, background: hostedBackground(host), safeAreaTop: host.safeAreaInsets.top, name: name, size: size, screenHeight: screenHeight)
@@ -72,6 +70,10 @@ public enum PinUIKitCapture {
                     nodes.append(node)
                 } else if let textView = subview as? UITextView, let node = textViewNode(textView, host: host) {
                     nodes.append(node)
+                } else if isHostingView(subview), let node = cropNode(subview, host: host) {
+                    // A hosted SwiftUI island (UIKitPinButton/StateView via PinHostView) is drawn, not a
+                    // UIView subtree — crop it whole rather than recursing and finding stray fragments.
+                    nodes.append(node)
                 } else if let node = controlNode(subview, host: host) {
                     nodes.append(node)
                 } else {
@@ -83,8 +85,8 @@ public enum PinUIKitCapture {
         return nodes.sorted { ($0.y, $0.x) < ($1.y, $1.x) }
     }
 
-    private static func containsText(_ node: FigmaNode) -> Bool {
-        (node.texts?.isEmpty == false) || node.children.contains(where: containsText)
+    private static func isHostingView(_ view: UIView) -> Bool {
+        String(describing: type(of: view)).contains("HostingView")
     }
 
     private static func isVisible(_ view: UIView) -> Bool {
@@ -150,11 +152,16 @@ public enum PinUIKitCapture {
         )
     }
 
-    // A switch/image bakes its appearance into pixels, so crop the live render (front buffer, no
-    // screen-update commit — the same discipline the SwiftUI control crop uses).
     private static func controlNode(_ view: UIView, host: UIView) -> FigmaNode? {
-        guard view is UISwitch || view is UIImageView, view.bounds.width > 1, view.bounds.height > 1 else { return nil }
-        if let imageView = view as? UIImageView, imageView.image == nil { return nil }
+        if view is UISwitch { return cropNode(view, host: host) }
+        if let imageView = view as? UIImageView, imageView.image != nil { return cropNode(view, host: host) }
+        return nil
+    }
+
+    // A control/image/hosted SwiftUI island bakes its appearance into pixels, so crop the live render
+    // (front buffer, no screen-update commit — the same discipline the SwiftUI control crop uses).
+    private static func cropNode(_ view: UIView, host: UIView) -> FigmaNode? {
+        guard view.bounds.width > 1, view.bounds.height > 1 else { return nil }
         let frame = view.convert(view.bounds, to: host)
         let image = autoreleasepool { () -> String? in
             let renderer = UIGraphicsImageRenderer(bounds: view.bounds)
