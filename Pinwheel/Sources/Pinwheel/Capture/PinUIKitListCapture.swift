@@ -16,15 +16,28 @@ public enum PinUIKitListCapture {
         guard !rows.isEmpty else { return nil }
 
         let separators = separatorNodes(between: rows, table: scroll as? UITableView)
-        let contentBottom = rows.map { $0.y + $0.h }.max() ?? Double(size.height)
+        // The table sits below the safe-area inset, so the first cell starts ~62pt down; lift the whole
+        // list so content begins at the top, matching the SwiftUI capture (which trims the safe area).
+        let children = rows + separators
+        let topOffset = children.map { $0.y }.min() ?? 0
+        let lifted = children.map { shiftUp($0, by: topOffset) }
+        let contentBottom = lifted.map { $0.y + $0.h }.max() ?? Double(size.height)
         let background = (scroll.backgroundColor).flatMap { $0.cgColor.alpha > 0 ? $0 : nil }
         let root = FigmaNode(
             tag: "screen", x: 0, y: 0, w: Double(size.width), h: max(Double(screenHeight), contentBottom),
             fill: background.map(RGBA.init), fillToken: background.flatMap(PinDisplayListCapture.tokenName(for:)),
-            name: name, children: rows + separators
+            name: name, children: lifted
         )
         return FigmaDocument(width: Double(size.width), height: root.h, root: root,
                              tokens: PinDisplayListCapture.colorTokens + PinFloatTokens.tokens, textStyles: [])
+    }
+
+    private static func shiftUp(_ node: FigmaNode, by offset: Double) -> FigmaNode {
+        var lifted = node
+        lifted.y -= offset
+        lifted.texts = node.texts?.map { FigmaText(text: $0.text, x: $0.x, y: $0.y - offset, w: $0.w, h: $0.h) }
+        lifted.children = node.children.map { shiftUp($0, by: offset) }
+        return lifted
     }
 
     private static func firstCellContainer(in view: UIView) -> UIScrollView? {

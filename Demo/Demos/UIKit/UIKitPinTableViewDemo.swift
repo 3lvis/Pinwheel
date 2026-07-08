@@ -26,9 +26,9 @@ class UIKitPinTableViewDemo: UIKitPinView, Tweakable {
     }()
 
     lazy var items: [UIKitPinTableViewItem] = {
-        @MainActor func text(_ title: String, icon: String, subtitle: String? = nil, detail: String? = nil, chevron: Bool = false, enabled: Bool = true) -> UIKitPinTextTableViewItem {
+        @MainActor func text(_ title: String, icon: String? = nil, subtitle: String? = nil, detail: String? = nil, chevron: Bool = false, enabled: Bool = true) -> UIKitPinTextTableViewItem {
             let item = UIKitPinTextTableViewItem(title: title, subtitle: subtitle)
-            item.icon = UIImage(systemName: icon)
+            item.icon = icon.flatMap { UIImage(systemName: $0) }
             item.detailText = detail
             item.hasChevron = chevron
             item.isEnabled = enabled
@@ -50,8 +50,8 @@ class UIKitPinTableViewDemo: UIKitPinView, Tweakable {
             toggle("Airplane Mode", icon: "airplane", isOn: false),
             toggle("Low Power Mode", icon: "battery.25percent", isOn: false),
             toggle("Dark Appearance", icon: "moon.fill", isOn: true),
-            text("About", icon: "info.circle.fill", subtitle: "Version 1.0", chevron: true),
-            text("Sign out", icon: "arrow.right.square.fill", enabled: false),
+            text("About", subtitle: "Version 1.0", chevron: true),
+            text("Sign out", enabled: false),
         ]
     }()
 

@@ -35,8 +35,9 @@ open class UIKitPinTableViewCell: UITableViewCell {
 
     open lazy var iconImageView: UIImageView = {
         let imageView = UIImageView(withAutoLayout: true)
-        imageView.contentMode = .scaleAspectFit
+        imageView.contentMode = .center
         imageView.tintColor = .actionText
+        imageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(font: .body)
         imageView.setContentHuggingPriority(.required, for: .horizontal)
         return imageView
     }()
@@ -64,7 +65,7 @@ open class UIKitPinTableViewCell: UITableViewCell {
 
     open lazy var stackViewLeadingAnchorConstraint = stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: .spacingL)
     private lazy var iconLeadingConstraint = iconImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: .spacingL)
-    private lazy var stackViewToIconConstraint = stackView.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: .spacingM)
+    private lazy var stackViewToIconConstraint = stackView.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: .spacingS)
     open lazy var stackViewTrailingAnchorConstraint = stackView.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor)
     open lazy var stackViewBottomAnchorConstraint = stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -13)
     open lazy var stackViewTopAnchorConstraint = stackView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 13)
@@ -173,8 +174,8 @@ open class UIKitPinTableViewCell: UITableViewCell {
 
         NSLayoutConstraint.activate([
             iconImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            iconImageView.widthAnchor.constraint(equalToConstant: .spacingL),
-            iconImageView.heightAnchor.constraint(equalToConstant: .spacingL),
+            iconImageView.widthAnchor.constraint(equalToConstant: .spacingXL),
+            iconImageView.heightAnchor.constraint(equalToConstant: .spacingXL),
 
             stackViewTopAnchorConstraint,
             stackViewLeadingAnchorConstraint,
