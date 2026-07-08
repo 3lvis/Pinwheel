@@ -59,7 +59,7 @@ extension UIKitPinColorDemo: UITableViewDataSource {
         whiteTitle.addAttribute(NSAttributedString.Key.foregroundColor, value: UIColor.white, range: NSRange(location: 0, length: title.count))
         attributedTitle.append(whiteTitle)
         cell.textLabel?.attributedText = attributedTitle
-        cell.textLabel?.font = UIFont.subtitle
+        cell.textLabel?.font = UIFont.body
         cell.selectionStyle = .none
 
         return cell

@@ -20,8 +20,8 @@ struct PinColorDemo: SwiftUI.View {
             VStack(spacing: 0) {
                 ForEach(colors, id: \.0) { title, color in
                     HStack {
-                        PinLabel(title).font(.subtitle).color(.custom(.black))
-                        PinLabel(title).font(.subtitle).color(.custom(.white))
+                        PinLabel(title).font(.body).color(.custom(.black))
+                        PinLabel(title).font(.body).color(.custom(.white))
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, .spacingL)
