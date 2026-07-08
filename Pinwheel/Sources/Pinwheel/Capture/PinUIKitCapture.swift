@@ -20,14 +20,15 @@ public enum PinUIKitCapture {
             guard walked.contains(where: containsText) else { return nil }
             children = walked
         }
-        return assemble(children: children, background: hostedBackground(host), name: name, size: size, screenHeight: screenHeight)
+        return assemble(children: children, background: hostedBackground(host), safeAreaTop: host.safeAreaInsets.top, name: name, size: size, screenHeight: screenHeight)
     }
 
-    // Lift the content so the first node starts at the top (a table sits below the safe-area inset) and
-    // wrap it in a screen sized to the content, matching the SwiftUI capture.
-    private static func assemble(children: [FigmaNode], background: UIColor?, name: String, size: CGSize, screenHeight: CGFloat) -> FigmaDocument {
-        let topOffset = children.map { $0.y }.min() ?? 0
-        let lifted = children.map { shiftUp($0, by: topOffset) }
+    // Drop only the safe-area inset (the plugin's device frame draws the status bar), not the topmost
+    // node's y — subtracting that would pin centered content (a lone centered label) to the top instead
+    // of leaving it centered. Guard against overshoot for content that starts above the inset.
+    private static func assemble(children: [FigmaNode], background: UIColor?, safeAreaTop: CGFloat, name: String, size: CGSize, screenHeight: CGFloat) -> FigmaDocument {
+        let minY = children.map { $0.y }.min() ?? 0
+        let lifted = children.map { shiftUp($0, by: min(Double(safeAreaTop), minY)) }
         let contentBottom = lifted.map { $0.y + $0.h }.max() ?? Double(size.height)
         let fill = background.flatMap { $0.cgColor.alpha > 0 ? $0 : nil }
         let root = FigmaNode(
@@ -218,9 +219,14 @@ public enum PinUIKitCapture {
             children.append(chevron)
         }
         guard !children.isEmpty else { return nil }
+        // The cell's own background is the row's fill — for the color demo it IS the swatch.
+        let background = (cell.backgroundColor ?? (cell as? UITableViewCell)?.contentView.backgroundColor)
+            .flatMap { $0.cgColor.alpha > 0.01 ? $0 : nil }
         return FigmaNode(
             tag: "frame", x: Double(frame.minX), y: Double(frame.minY),
-            w: Double(frame.width), h: Double(frame.height), name: "Row", children: children
+            w: Double(frame.width), h: Double(frame.height),
+            fill: background.map(RGBA.init), fillToken: background.flatMap(PinDisplayListCapture.tokenName(for:)),
+            name: "Row", children: children
         )
     }
 

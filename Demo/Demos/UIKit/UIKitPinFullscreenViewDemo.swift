@@ -20,6 +20,8 @@ class UIKitPinFullscreenViewDemo: UIKitPinFullscreenView {
         let textView = UITextView(withAutoLayout: true)
         textView.returnKeyType = .done
         textView.delegate = self
+        textView.textColor = .primaryText
+        textView.backgroundColor = .clear
         textView.text = """
         UIKitPinFullscreenView is a UIKit base class for keyboard-aware full-screen \
         screens (forms, composers, editors). Subclass it, override setup(), and anchor \
