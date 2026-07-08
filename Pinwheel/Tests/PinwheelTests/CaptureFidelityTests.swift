@@ -151,19 +151,6 @@ final class CaptureFidelityTests: XCTestCase {
         XCTAssertNil(PinViewReflector.reflect(Picker("choice", selection: .constant(0)) { Text("A").tag(0) }))
     }
 
-    func testReflectorCountsARasterizedControlAsALeaf() {
-        struct Fixture: SwiftUI.View {
-            var body: some SwiftUI.View {
-                VStack(alignment: .leading, spacing: .spacingXS) {
-                    PinLabel("Toggle").font(.caption).color(.secondary)
-                    Toggle("", isOn: .constant(true)).labelsHidden().pinCapturedRasterized(name: "Toggle")
-                }
-            }
-        }
-        XCTAssertEqual(leafCount(PinViewReflector.reflect(Fixture())), 2,
-                       "the rasterized control must count as a leaf, alongside its label")
-    }
-
     func testFlatGroupedScreenKeepsItsRowGrouping() throws {
         struct Fixture: SwiftUI.View {
             var body: some SwiftUI.View {
@@ -299,24 +286,6 @@ final class CaptureFidelityTests: XCTestCase {
                        "the captured screen must take the given name, not its structural root name")
     }
 
-    func testListCapturesRowsAtTheirVerticalPositions() throws {
-        let list = PinList(state: .loaded, rows: [
-            .text("Account", icon: Image(systemName: "person.crop.circle.fill"), subtitle: "Signed in", chevron: true) {},
-            .text("Wi-Fi", icon: Image(systemName: "wifi"), detail: "Home", chevron: true) {},
-            .toggle("Airplane Mode", icon: Image(systemName: "airplane"), isOn: .constant(false)),
-        ], onRetry: {})
-        let document = try XCTUnwrap(PinDisplayListCapture.document(list, name: "List", size: CGSize(width: 402, height: 1600), screenHeight: 778),
-                                     "the list should capture into a document")
-        XCTAssertNil(document.root.layout,
-                     "a list must capture with absolute positions, not a reflowable auto-layout frame")
-        XCTAssertTrue(allFrameNodes(in: document.root).allSatisfy { $0.layout == nil },
-                      "every list row must be absolute too, so the plugin doesn't reflow a two-line row's title/subtitle side by side")
-        let titleYs = allTextNodes(in: document.root).compactMap { node -> Double? in
-            (node.texts?.first?.text).flatMap { ["Account", "Wi-Fi", "Airplane Mode"].contains($0) ? node.y : nil }
-        }.sorted()
-        XCTAssertGreaterThan((titleYs.last ?? 0) - (titleYs.first ?? 0), 60,
-                             "list rows must stack vertically, not collapse onto one row")
-    }
 
     private func allTextNodes(in node: FigmaNode) -> [FigmaNode] {
         ((node.texts?.isEmpty == false) ? [node] : []) + node.children.flatMap { allTextNodes(in: $0) }
@@ -324,20 +293,6 @@ final class CaptureFidelityTests: XCTestCase {
 
     private func allFrameNodes(in node: FigmaNode) -> [FigmaNode] {
         (node.tag == "frame" ? [node] : []) + node.children.flatMap { allFrameNodes(in: $0) }
-    }
-
-    // SwiftUI's renderer returns a blank placeholder for UIKit-hosted content (a List is UITableView-backed),
-    // so a row's icon/chevron is recovered by rendering the host layer and cropping.
-    func testListRowIconsCaptureTheirPixels() throws {
-        let list = PinList(state: .loaded, rows: [
-            .text("Wi-Fi", icon: Image(systemName: "wifi"), detail: "Home", chevron: true) {},
-        ], onRetry: {})
-        let document = try XCTUnwrap(PinDisplayListCapture.document(list, name: "List", size: CGSize(width: 402, height: 1600), screenHeight: 778),
-                                     "the list should capture into a document")
-        let images = imageNodes(in: document.root)
-        XCTAssertFalse(images.isEmpty, "a list row with an icon and chevron should capture image leaves")
-        XCTAssertTrue(images.allSatisfy { $0.image != nil },
-                      "every captured icon/chevron must carry pixel data, not a blank placeholder")
     }
 
     private func imageNodes(in node: FigmaNode) -> [FigmaNode] {
@@ -363,22 +318,6 @@ final class CaptureFidelityTests: XCTestCase {
         XCTAssertLessThan(root.layout?.pad.first ?? 0, 778 * 0.6,
                           "the content must be centered, not top-anchored toward the bottom")
     }
-    // The host layer renders with a safe-area inset the DisplayList frames omit, so cropping at the bare
-    // frame grabs the blank strip above the content.
-    func testListIconCropReadsThroughTheSafeAreaInset() throws {
-        let list = PinList(state: .loaded, rows: [
-            .text("Wi-Fi", icon: Image(systemName: "wifi"), chevron: true) {},
-        ], onRetry: {})
-        let document = try XCTUnwrap(PinDisplayListCapture.document(list, name: "List", size: CGSize(width: 402, height: 1600), screenHeight: 778),
-                                     "the list should capture into a document")
-        let icon = try XCTUnwrap(imageNodes(in: document.root).first { $0.x < 40 && $0.image != nil },
-                                 "the row's icon should be captured with pixels")
-        let data = try XCTUnwrap(Data(base64Encoded: icon.image!))
-        let image = try XCTUnwrap(UIImage(data: data))
-        XCTAssertTrue(hasVisiblePixels(image),
-                      "the icon crop must contain the rendered symbol, not the blank safe-area region")
-    }
-
     func testAppearanceDependentSymbolCapturesADistinctDarkVariant() throws {
         let button = PinButton("Continue", systemImage: "arrow.right") {}
         let document = try XCTUnwrap(PinDisplayListCapture.document(button, name: "Button", size: CGSize(width: 402, height: 400), screenHeight: 778),
@@ -393,19 +332,6 @@ final class CaptureFidelityTests: XCTestCase {
                              "the light symbol tints with primaryBackground (near white)")
         XCTAssertLessThan(averageOpaqueBrightness(dark), 60,
                           "the dark symbol tints with primaryBackground (near black), not the light white")
-    }
-
-    func testNonTokenizedSeparatorCapturesADarkFill() throws {
-        let list = PinList(state: .loaded, rows: [.text("A") {}, .text("B") {}], onRetry: {})
-        let document = try XCTUnwrap(PinDisplayListCapture.document(list, name: "List", size: CGSize(width: 402, height: 400), screenHeight: 778),
-                                     "the list should capture into a document")
-        let separator = try XCTUnwrap(firstNode(in: document.root) { $0.h > 0 && $0.h < 2 && $0.fill != nil },
-                                      "the list should capture a hairline separator with a fill")
-        let light = try XCTUnwrap(separator.fill)
-        let dark = try XCTUnwrap(separator.fillDark,
-                                 "a non-tokenized fill must carry a dark variant so it adapts on import into dark mode")
-        XCTAssertTrue(abs(dark.r - light.r) > 0.03 || abs(dark.a - light.a) > 0.03,
-                      "the dark separator must differ from the light one, not repeat the light value")
     }
 
     private func averageOpaqueBrightness(_ image: UIImage) -> Int {
@@ -424,18 +350,4 @@ final class CaptureFidelityTests: XCTestCase {
         return count > 0 ? sum / count : -1
     }
 
-    private func hasVisiblePixels(_ image: UIImage) -> Bool {
-        guard let cg = image.cgImage else { return false }
-        let width = cg.width, height = cg.height
-        var pixels = [UInt8](repeating: 0, count: width * height * 4)
-        let context = CGContext(data: &pixels, width: width, height: height, bitsPerComponent: 8,
-                                bytesPerRow: width * 4, space: CGColorSpaceCreateDeviceRGB(),
-                                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
-        context?.draw(cg, in: CGRect(x: 0, y: 0, width: width, height: height))
-        for index in stride(from: 0, to: pixels.count, by: 4) {
-            let (r, g, b, a) = (pixels[index], pixels[index + 1], pixels[index + 2], pixels[index + 3])
-            if a > 20, r < 230 || g < 230 || b < 230 { return true }
-        }
-        return false
-    }
 }

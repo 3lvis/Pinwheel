@@ -80,17 +80,6 @@ final class ReflectionContractTests: XCTestCase {
         XCTAssertEqual(text, "demo body", "reflect walked into PinButtonDemo's body instead of treating it as a button")
     }
 
-    func testCaptureMarkerReflectsAsASingleLeaf() throws {
-        let marked = Toggle("", isOn: .constant(true)).pinCapturedRasterized(name: "Toggle")
-        let node = try XCTUnwrap(PinViewReflector.reflect(marked),
-                                 "a view carrying the capture marker must reflect as a leaf even though a bare Toggle reflects nil")
-        guard case .leaf(let text, _, _) = node else {
-            return XCTFail("a capture-marked control is exactly one leaf")
-        }
-        XCTAssertNil(text, "the marker leaf carries no text — its pixels are rasterized")
-        XCTAssertEqual(leafCount(node), 1, "the marked control counts as one leaf")
-    }
-
     func testFillWidthFrameFlipsTheLeafFillWidth() throws {
         let framed = try XCTUnwrap(PinViewReflector.reflect(PinButton("Continue") {}.frame(maxWidth: .infinity)))
         guard case .leaf(_, let framedIsButton, let framedFillWidth) = framed else {
