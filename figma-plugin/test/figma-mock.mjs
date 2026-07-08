@@ -60,7 +60,9 @@ export function loadPlugin() {
   sandbox.globalThis = sandbox
   vm.createContext(sandbox)
   vm.runInContext(code, sandbox)
-  return { build: sandbox.build, syncTokens: sandbox.syncTokens, created, variableWrites }
+  // sandbox exposes every top-level function; pure planners (planText, …) are read straight off it and
+  // called without touching the Figma mock at all.
+  return { build: sandbox.build, syncTokens: sandbox.syncTokens, sandbox, created, variableWrites }
 }
 
 // A root parent for build() — the containing frame the plugin appends the screen into.

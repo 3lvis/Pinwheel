@@ -141,42 +141,66 @@ function calibrateWidth(text: TextNode, targetWidth: number): void {
   }
 }
 
+interface TextPlan {
+  characters: string
+  fontSize: number
+  styleName?: string
+  fontRequest: { family: string; weight: number; italic: boolean }
+  fill: { color: { r: number; g: number; b: number; a: number }; token?: string } | null
+  underline: boolean
+  letterSpacing: number | null
+  autoResize: 'HEIGHT' | 'WIDTH_AND_HEIGHT'
+  width: number | null
+  lineHeight: number | null
+}
+
+// Pure: decide everything about a text node from the captured run + font, with no Figma API. A run taller
+// than ~1.5 line boxes wrapped on device, so it fixes its width and grows in height (Figma re-wraps it the
+// same way); a single-line run hugs and pins its line box to the captured height (vertical centering lands
+// where iOS drew it — Figma's SF Pro line box is a hair taller). The apply step resolves the font, binds
+// the fill, and writes these onto a real node.
+function planText(run: any, font: any): TextPlan {
+  const multiline = typeof run.w === 'number' && run.w > 0 && typeof run.h === 'number' && run.h > font.size * 1.5
+  return {
+    characters: run.text,
+    fontSize: font.size,
+    styleName: font.style,
+    fontRequest: { family: font.family, weight: font.weight, italic: font.italic },
+    fill: font.color ? { color: font.color, token: font.colorToken } : null,
+    underline: Boolean(font.underline),
+    letterSpacing: typeof font.letterSpacing === 'number' ? font.letterSpacing : null,
+    autoResize: multiline ? 'HEIGHT' : 'WIDTH_AND_HEIGHT',
+    width: multiline ? run.w : null,
+    lineHeight: !multiline && typeof run.h === 'number' && run.h > 0 ? run.h : null,
+  }
+}
+
 async function makeText(run: any, font: any): Promise<TextNode> {
+  const plan = planText(run, font)
   const text = figma.createText()
-  const style = font.style ? textStyles[font.style] : undefined
+  const style = plan.styleName ? textStyles[plan.styleName] : undefined
   if (style) {
+    // Put the node on the (loaded) style font before writing characters — a fresh text node defaults to
+    // the unloaded "Inter Regular", which can't be written to.
     await figma.loadFontAsync(style.fontName as FontName)
-    // Put the node on the (loaded) style font before writing characters — a fresh text
-    // node defaults to the unloaded "Inter Regular", which can't be written to.
     text.fontName = style.fontName as FontName
-    text.characters = run.text
+    text.characters = plan.characters
     await text.setTextStyleIdAsync(style.id)
   } else {
-    text.fontName = await resolveFont(font.family, font.weight, font.italic)
-    text.characters = run.text
-    text.fontSize = font.size
+    text.fontName = await resolveFont(plan.fontRequest.family, plan.fontRequest.weight, plan.fontRequest.italic)
+    text.characters = plan.characters
+    text.fontSize = plan.fontSize
   }
-  if (font.color) text.fills = [solid(font.color, font.colorToken)]
-  if (font.underline) {
+  if (plan.fill) text.fills = [solid(plan.fill.color, plan.fill.token)]
+  if (plan.underline) {
     text.textDecoration = 'UNDERLINE'
     // iOS draws the underline 2.84pt below the baseline; Figma's AUTO sits ~2pt lower, so raise it.
     text.textDecorationOffset = { value: 2, unit: 'PIXELS' }
   }
-  if (font.letterSpacing) {
-    const letterSpacing: LetterSpacing = { value: font.letterSpacing, unit: 'PIXELS' }
-    text.letterSpacing = letterSpacing
-  }
-  if (typeof run.w === 'number' && run.w > 0 && typeof run.h === 'number' && run.h > font.size * 1.5) {
-    text.textAutoResize = 'HEIGHT'
-    text.resize(run.w, text.height)
-  } else {
-    text.textAutoResize = 'WIDTH_AND_HEIGHT'
-    if (typeof run.h === 'number' && run.h > 0) {
-      // Pin the line box to the captured height so vertical centering lands where iOS drew it — Figma's
-      // SF Pro line box is a hair taller.
-      text.lineHeight = { value: run.h, unit: 'PIXELS' }
-    }
-  }
+  if (plan.letterSpacing !== null) text.letterSpacing = { value: plan.letterSpacing, unit: 'PIXELS' }
+  text.textAutoResize = plan.autoResize
+  if (plan.width !== null) text.resize(plan.width, text.height)
+  if (plan.lineHeight !== null) text.lineHeight = { value: plan.lineHeight, unit: 'PIXELS' }
   return text
 }
 
