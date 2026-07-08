@@ -42,7 +42,7 @@ createServer((request, response) => {
       .map((name) => {
         try {
           const entry = JSON.parse(readFileSync(resolve(here, name)))
-          return { id: entry.id, title: entry.title, section: entry.section, tags: entry.tags }
+          return { id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, version: entry.version, file: name }
         } catch { return null }
       })
       .filter(Boolean)
