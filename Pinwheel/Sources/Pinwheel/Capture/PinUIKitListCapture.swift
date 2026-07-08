@@ -15,12 +15,13 @@ public enum PinUIKitListCapture {
         let rows = withAllCellsRealized(scroll) { realizedRows(scroll, in: host) }
         guard !rows.isEmpty else { return nil }
 
+        let separators = separatorNodes(between: rows, table: scroll as? UITableView)
         let contentBottom = rows.map { $0.y + $0.h }.max() ?? Double(size.height)
         let background = (scroll.backgroundColor).flatMap { $0.cgColor.alpha > 0 ? $0 : nil }
         let root = FigmaNode(
             tag: "screen", x: 0, y: 0, w: Double(size.width), h: max(Double(screenHeight), contentBottom),
             fill: background.map(RGBA.init), fillToken: background.flatMap(PinDisplayListCapture.tokenName(for:)),
-            name: name, children: rows
+            name: name, children: rows + separators
         )
         return FigmaDocument(width: Double(size.width), height: root.h, root: root,
                              tokens: PinDisplayListCapture.colorTokens + PinFloatTokens.tokens, textStyles: [])
@@ -68,12 +69,47 @@ public enum PinUIKitListCapture {
         let frame = cell.convert(cell.bounds, to: host)
         guard frame.height > 1 else { return nil }
         let content = (cell as? UITableViewCell)?.contentView ?? cell
-        let children = contentNodes(in: content, host: host)
+        var children = contentNodes(in: content, host: host)
+        // The disclosure indicator is drawn by the cell outside contentView, so it isn't in the walk.
+        // Reconstruct it from the cell's own accessoryType as the SF Symbol chevron the table shows.
+        if (cell as? UITableViewCell)?.accessoryType == .disclosureIndicator, let chevron = chevronNode(inRow: frame) {
+            children.append(chevron)
+        }
         guard !children.isEmpty else { return nil }
         return FigmaNode(
             tag: "frame", x: Double(frame.minX), y: Double(frame.minY),
             w: Double(frame.width), h: Double(frame.height), name: "Row", children: children
         )
+    }
+
+    private static func chevronNode(inRow row: CGRect) -> FigmaNode? {
+        let configuration = UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold)
+        guard let symbol = UIImage(systemName: "chevron.right", withConfiguration: configuration)?
+            .withTintColor(.secondaryText, renderingMode: .alwaysOriginal) else { return nil }
+        let image = autoreleasepool {
+            UIGraphicsImageRenderer(size: symbol.size).image { _ in symbol.draw(at: .zero) }.pngData()?.base64EncodedString()
+        }
+        guard let image else { return nil }
+        let box = CGRect(x: row.maxX - .spacingL - symbol.size.width, y: row.midY - symbol.size.height / 2,
+                         width: symbol.size.width, height: symbol.size.height)
+        return FigmaNode(tag: "image", x: Double(box.minX), y: Double(box.minY),
+                         w: Double(box.width), h: Double(box.height), image: image, children: [])
+    }
+
+    // The table draws hairline separators between cells (not in any cell's tree). Reconstruct them from
+    // the table's own separatorColor at the row boundaries, inset to match the cells.
+    private static func separatorNodes(between rows: [FigmaNode], table: UITableView?) -> [FigmaNode] {
+        guard let color = table?.separatorColor, rows.count > 1 else { return [] }
+        let inset = CGFloat.spacingL
+        return rows.dropLast().enumerated().map { index, row in
+            let next = rows[index + 1]
+            return FigmaNode(
+                tag: "frame", x: row.x + Double(inset), y: next.y - 0.5,
+                w: row.w - Double(inset), h: 1,
+                fill: RGBA(color), fillToken: PinDisplayListCapture.tokenName(for: color),
+                name: "Separator", children: []
+            )
+        }
     }
 
     private static func contentNodes(in view: UIView, host: UIView) -> [FigmaNode] {
