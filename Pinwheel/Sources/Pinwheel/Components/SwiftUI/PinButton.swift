@@ -1,7 +1,7 @@
 import SwiftUI
 
 public struct PinButton: SwiftUI.View {
-    public enum Style: Equatable, PinFillToken, PinTextColorToken {
+    public enum Style: Equatable {
         case primary
         case secondary
         case tertiary
@@ -16,47 +16,7 @@ public struct PinButton: SwiftUI.View {
             if case .tertiary = self { return true }
             return false
         }
-
-        var fillToken: PinColorToken? {
-            switch self {
-            case .primary: return .actionText
-            case .secondary: return .secondaryBackground
-            case .tertiary, .custom: return nil
-            }
-        }
-
-        var textColorToken: PinColorToken? {
-            switch self {
-            case .primary: return .primaryBackground
-            case .secondary: return .primaryText
-            case .tertiary: return .secondaryText
-            case .custom: return nil
-            }
-        }
-
-        public var captureFillToken: String? { fillToken?.rawValue }
-        public var captureTextColorToken: String? { textColorToken?.rawValue }
-
-        public var captureFillColor: SwiftUI.Color? {
-            if case let .custom(_, background) = self { return background }
-            return nil
-        }
-        public var captureTextColor: SwiftUI.Color? {
-            if case let .custom(text, _) = self { return text }
-            return nil
-        }
-
-        var captureVariant: String {
-            switch self {
-            case .primary: return "primary"
-            case .secondary: return "secondary"
-            case .tertiary: return "tertiary"
-            case .custom: return "custom"
-            }
-        }
     }
-
-    public static let minTitledWidth: CGFloat = 100
 
     private let title: String?
     private let systemImage: String?
@@ -66,8 +26,6 @@ public struct PinButton: SwiftUI.View {
     private var isLoading: Bool = false
 
     @SwiftUI.State private var tapCount = 0
-    @Environment(\.isEnabled) private var isEnabled
-    @Environment(\.pinCapturing) private var pinCapturing
 
     public init(
         _ title: String? = nil,
@@ -108,11 +66,6 @@ public struct PinButton: SwiftUI.View {
         .sensoryFeedback(.impact(weight: style.isPrimary ? .medium : .light), trigger: tapCount)
     }
 
-    private var captureForegroundColor: SwiftUI.Color {
-        if case let .custom(text, _) = style { return text }
-        return style.textColorToken?.color ?? .primaryText
-    }
-
     @ViewBuilder
     private var label: some SwiftUI.View {
         HStack(spacing: .spacingS) {
@@ -124,47 +77,15 @@ public struct PinButton: SwiftUI.View {
             }
 
             if let systemImage {
-                if pinCapturing {
-                    Image(systemName: systemImage)
-                        .font(typography.font)
-                        .foregroundStyle(captureForegroundColor)
-                } else {
-                    Image(systemName: systemImage)
-                        .font(typography.font)
-                }
+                Image(systemName: systemImage)
+                    .font(typography.font)
             }
 
             if isLoading {
-                if pinCapturing {
-                    CaptureSpinner()
-                        .foregroundStyle(captureForegroundColor)
-                } else {
-                    ProgressView().controlSize(.small)
-                }
+                ProgressView()
+                    .controlSize(.small)
             }
         }
-    }
-}
-
-// A .rotationEffect per spoke loses its rotation in the captured frame, so all spokes are drawn in one Path.
-private struct CaptureSpinner: SwiftUI.View {
-    var body: some SwiftUI.View {
-        SpinnerShape().frame(width: 15, height: 15)
-    }
-}
-
-private struct SpinnerShape: Shape {
-    private let spokes = 8
-
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        let center = CGPoint(x: rect.midX, y: rect.midY)
-        for index in 0..<spokes {
-            let spoke = Path(roundedRect: CGRect(x: -1, y: -rect.height / 2, width: 2, height: rect.height / 2.8), cornerRadius: 1)
-            let rotate = CGAffineTransform(rotationAngle: Double(index) / Double(spokes) * 2 * .pi)
-            path.addPath(spoke.applying(rotate).applying(CGAffineTransform(translationX: center.x, y: center.y)))
-        }
-        return path
     }
 }
 
@@ -189,31 +110,43 @@ private struct PinButtonStyle: SwiftUI.ButtonStyle {
                 .tint(foreground)
                 .padding(.vertical, .spacingM)
                 .padding(.horizontal, .spacingL)
-                .frame(minWidth: hasTitle ? PinButton.minTitledWidth : nil)
+                .frame(minWidth: hasTitle ? 100 : nil)
                 .background {
                     if let background {
-                        RoundedRectangle(cornerRadius: .radiusM, style: .continuous)
+                        RoundedRectangle(cornerRadius: .spacingM, style: .continuous)
                             .fill(background)
                     }
                 }
-                .contentShape(RoundedRectangle(cornerRadius: .radiusM, style: .continuous))
+                .contentShape(RoundedRectangle(cornerRadius: .spacingM, style: .continuous))
                 .scaleEffect(configuration.isPressed ? 0.95 : 1)
                 .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
         }
 
-        // The label sits on the action-colored fill, so it's the surface token; hard-coding white renders invisible on a pale action color.
         private var foreground: SwiftUI.Color {
-            if case .custom(let text, _) = style { return isEnabled ? text : text.opacity(0.5) }
-            guard let token = style.textColorToken else { return .primaryText }
-            if !isEnabled && style != .primary { return .tertiaryText }
-            return token.color
+            switch style {
+            case .primary:
+                // The label sits on the action-colored fill, so it's the surface token; hard-coding white renders invisible on a pale action color.
+                return .primaryBackground
+            case .secondary:
+                return isEnabled ? .primaryText : .tertiaryText
+            case .tertiary:
+                return isEnabled ? .secondaryText : .tertiaryText
+            case .custom(let text, _):
+                return isEnabled ? text : text.opacity(0.5)
+            }
         }
 
         private var background: SwiftUI.Color? {
-            if case .custom(_, let background) = style { return isEnabled ? background : background.opacity(0.5) }
-            guard let token = style.fillToken else { return nil }
-            if !isEnabled && style == .primary { return .actionBackground }
-            return token.color
+            switch style {
+            case .primary:
+                return isEnabled ? .actionText : .actionBackground
+            case .secondary:
+                return .secondaryBackground
+            case .tertiary:
+                return nil
+            case .custom(_, let background):
+                return isEnabled ? background : background.opacity(0.5)
+            }
         }
     }
 }
