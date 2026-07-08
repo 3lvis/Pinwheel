@@ -1,6 +1,5 @@
 import SwiftUI
 import UIKit
-import Pinwheel
 
 // Turns DisplayList leaves into the Figma IR, inferring layout from the frames SwiftUI computed.
 @MainActor
@@ -155,7 +154,7 @@ public enum PinDisplayListCapture {
             // Reflection sees a card's filled shape as a transparent container — re-attach its fill/radius/padding by matching the text set it wraps.
             let texts = childNodes.reduce(into: Set<String>()) { $0.formUnion(nodeTexts($1)) }
             let background = backgrounds.first { $0.texts == texts }
-            var layout = PinCaptureLayout(
+            let layout = PinCaptureLayout(
                 axis: container.axis, spacing: container.spacing ?? 8,
                 padding: background?.padding ?? EdgeInsets(), alignment: container.alignment, mainAxisAlignment: .leading
             )
@@ -490,7 +489,7 @@ public enum PinDisplayListCapture {
         accumulated.map { $0.union(next) } ?? next
     }
 
-    private static func figmaFont(_ font: UIFont?, color: UIColor?, underline: Bool) -> FigmaFont {
+    static func figmaFont(_ font: UIFont?, color: UIColor?, underline: Bool) -> FigmaFont {
         FigmaFont(
             family: "SF Pro Rounded", size: Double(font?.pointSize ?? 17), weight: cssWeight(font),
             color: color.map(RGBA.init) ?? RGBA(r: 0, g: 0, b: 0, a: 1),
@@ -512,11 +511,11 @@ public enum PinDisplayListCapture {
         }
     }
 
-    private static let colorTokens: [FigmaToken] = PinColorToken.allCases.map {
+    static let colorTokens: [FigmaToken] = PinColorToken.allCases.map {
         FigmaToken(name: $0.rawValue, type: "color", value: RGBA($0.color, style: .light), dark: RGBA($0.color, style: .dark))
     }
 
-    private static func tokenName(for color: UIColor) -> String? {
+    static func tokenName(for color: UIColor) -> String? {
         let target = RGBA(color)
         for token in PinColorToken.allCases {
             let candidate = RGBA(token.color, style: .light)

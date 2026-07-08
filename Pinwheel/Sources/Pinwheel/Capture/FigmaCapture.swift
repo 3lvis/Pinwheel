@@ -1,6 +1,5 @@
 import SwiftUI
 import UIKit
-import Pinwheel
 
 // SwiftUI → the JSON IR the Figma plugin imports. See SPIKE-FIGMA-CAPTURE.md.
 

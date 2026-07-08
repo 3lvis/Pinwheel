@@ -18,8 +18,7 @@ enum FigmaCatalog {
 
     static var entries: [FigmaCatalogEntry] {
         DemoPinwheelSections.all.flatMap { section in
-            // UIKit-hosted views capture only as an opaque platform-view snapshot, not editable Figma nodes.
-            section.items.filter { !$0.tags.contains(.uiKit) }.map { item in
+            section.items.map { item in
                 FigmaCatalogEntry(
                     id: item.id, title: item.title, section: section.title,
                     tags: item.tags.map(\.rawValue), item: item
@@ -124,7 +123,11 @@ private struct LiveCaptureHost: UIViewControllerRepresentable {
         host.view.layoutIfNeeded()
         // UIKit controls render only in the simulator's own appearance, so the sweep runs twice (sim
         // light, then sim dark) and merges the two single-appearance documents.
-        guard let document = PinDisplayListCapture.document(
+        // A UIKit table/collection force-realizes its cells and reads the real UIView tree; everything
+        // else reads SwiftUI's DisplayList off the live host.
+        guard let document = PinUIKitListCapture.document(
+            host: host.view, name: entry.title, size: size, screenHeight: FigmaCatalog.oneScreen
+        ) ?? PinDisplayListCapture.document(
             entry.item.swiftUIView(), name: entry.title, size: size, screenHeight: FigmaCatalog.oneScreen, liveHost: host.view
         ) else { return }
         onCaptured?(document)
