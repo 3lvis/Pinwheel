@@ -22,6 +22,7 @@ class UIKitPinStateViewDemo: UIKitPinView, Tweakable {
     lazy var stateView: UIKitPinStateView = {
         let view = UIKitPinStateView()
         view.delegate = self
+        view.state = .empty(title: DemoStateFixture.emptyTitle, subtitle: DemoStateFixture.emptySubtitle)
         return view
     }()
 
