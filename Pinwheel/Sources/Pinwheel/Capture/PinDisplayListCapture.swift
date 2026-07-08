@@ -1,6 +1,5 @@
 import SwiftUI
 import UIKit
-import Pinwheel
 
 // Turns DisplayList leaves into the Figma IR, inferring layout from the frames SwiftUI computed.
 @MainActor
@@ -155,7 +154,7 @@ public enum PinDisplayListCapture {
             // Reflection sees a card's filled shape as a transparent container — re-attach its fill/radius/padding by matching the text set it wraps.
             let texts = childNodes.reduce(into: Set<String>()) { $0.formUnion(nodeTexts($1)) }
             let background = backgrounds.first { $0.texts == texts }
-            var layout = PinCaptureLayout(
+            let layout = PinCaptureLayout(
                 axis: container.axis, spacing: container.spacing ?? 8,
                 padding: background?.padding ?? EdgeInsets(), alignment: container.alignment, mainAxisAlignment: .leading
             )

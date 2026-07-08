@@ -1,6 +1,5 @@
 import SwiftUI
 import UIKit
-import Pinwheel
 
 // Reads SwiftUI's private, undocumented DisplayList via reflection — the internals shift across
 // toolchains, so all of it is contained to this file. Never ships.
