@@ -61,9 +61,22 @@ createServer((request, response) => {
     return
   }
 
+  // Every import posts a compact trace here; GET it to diagnose what the plugin received and built.
+  if (request.url === '/debug.json' && request.method === 'POST') {
+    const chunks = []
+    request.on('data', (chunk) => chunks.push(chunk))
+    request.on('end', () => {
+      writeFileSync(resolve(here, 'debug.json'), Buffer.concat(chunks))
+      response.setHeader('Content-Type', 'application/json')
+      response.end(JSON.stringify({ ok: true }))
+    })
+    return
+  }
+
   // Only a-z/0-9/- in the name, so a request can't escape the directory.
   const catalogMatch = /^\/(catalog-[a-z0-9-]+\.json)$/.exec(request.url)
   const file = request.url === '/capture.json' ? captureFile
+    : request.url === '/debug.json' ? resolve(here, 'debug.json')
     : catalogMatch ? resolve(here, catalogMatch[1])
     : null
   if (!file) {

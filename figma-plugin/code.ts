@@ -37,6 +37,7 @@ let colorVarsByName: Record<string, Variable> = {}
 let floatVarsByName: Record<string, Variable> = {}
 let textStyles: Record<string, TextStyle> = {}
 let boundTextStyleCount = 0
+let importTrace: any[] = []
 let darkMode = false
 let darkByToken: Record<string, { r: number; g: number; b: number; a: number }> = {}
 
@@ -502,6 +503,29 @@ async function importFramed(data: any, version: any, dark: boolean, tags?: strin
   return root.type === 'FRAME' ? await wrapInDeviceFrame(root as FrameNode, parts.join(' · ')) : root
 }
 
+// Always-on debug path: every import records a compact summary of what it received (the captured IR),
+// flushed to the serve so an import can be diagnosed by reading http://localhost:8787/debug.json.
+// A rootTag of "image" means the capture produced no structured nodes (it fell back to a flat image).
+function traceComponent(name: string, root: any): void {
+  let nodes = 0
+  let texts = 0
+  let images = 0
+  const walk = (node: any) => {
+    nodes += 1
+    if (node.texts) texts += node.texts.length
+    if (node.image) images += 1
+    for (const child of node.children || []) walk(child)
+  }
+  walk(root)
+  const summary: any = { name, rootTag: root.tag, nodes, texts, images, boundStyles: boundTextStyleCount }
+  if (root.tag === 'image') summary.warning = 'flat image — the capture produced no structured nodes'
+  importTrace.push(summary)
+}
+
+function flushTrace(): void {
+  figma.ui.postMessage({ type: 'debug', trace: importTrace })
+}
+
 figma.ui.onmessage = async (message: any) => {
   try {
     if (message.type === 'import') {
@@ -514,8 +538,11 @@ figma.ui.onmessage = async (message: any) => {
         figma.notify('Stale capture: v' + data.version + ', plugin expects v' + EXPECTED_CAPTURE_VERSION + ' — re-capture', { error: true })
       }
       boundTextStyleCount = 0
+      importTrace = []
       await syncFromDocument(data)
       const framed = await importFramed(data, message.version, Boolean(message.dark), message.tags)
+      traceComponent(data.root.name || 'Screen', data.root)
+      flushTrace()
       figma.viewport.scrollAndZoomIntoView([framed])
       figma.ui.postMessage({ type: 'done' })
       figma.notify('Imported ' + data.width + '×' + data.height + ' · ' + Object.keys(textStyles).length + ' text styles, ' + boundTextStyleCount + ' bound')
@@ -529,6 +556,7 @@ figma.ui.onmessage = async (message: any) => {
         return
       }
       boundTextStyleCount = 0
+      importTrace = []
       await syncFromDocument(entries[0].data)
       const GAP = 80
       const placed: any[] = []
@@ -541,6 +569,7 @@ figma.ui.onmessage = async (message: any) => {
         columnX.push(cursor)
         cursor += frame.width + GAP
         placed.push(frame)
+        traceComponent((entry.data.root && entry.data.root.name) || 'Screen', entry.data.root)
       }
       if (message.includeDark) {
         const darkRowY = Math.max(...placed.map((frame) => frame.height)) + GAP
@@ -553,6 +582,7 @@ figma.ui.onmessage = async (message: any) => {
           index++
         }
       }
+      flushTrace()
       figma.viewport.scrollAndZoomIntoView(placed)
       figma.ui.postMessage({ type: 'done' })
       figma.notify('Imported ' + entries.length + ' components' + (message.includeDark ? ' × light + dark' : '') + ' · ' + boundTextStyleCount + ' text styles bound')

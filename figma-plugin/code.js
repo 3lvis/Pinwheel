@@ -131,6 +131,7 @@ var PW = (() => {
   var floatVarsByName = {};
   var textStyles = {};
   var boundTextStyleCount = 0;
+  var importTrace = [];
   var darkMode = false;
   var darkByToken = {};
   function colorKey(c) {
@@ -562,6 +563,24 @@ var PW = (() => {
     const root = await build(data.root, figma.currentPage, 0, 0, false);
     return root.type === "FRAME" ? await wrapInDeviceFrame(root, parts.join(" \xB7 ")) : root;
   }
+  function traceComponent(name, root) {
+    let nodes = 0;
+    let texts = 0;
+    let images = 0;
+    const walk = (node) => {
+      nodes += 1;
+      if (node.texts) texts += node.texts.length;
+      if (node.image) images += 1;
+      for (const child of node.children || []) walk(child);
+    };
+    walk(root);
+    const summary = { name, rootTag: root.tag, nodes, texts, images, boundStyles: boundTextStyleCount };
+    if (root.tag === "image") summary.warning = "flat image \u2014 the capture produced no structured nodes";
+    importTrace.push(summary);
+  }
+  function flushTrace() {
+    figma.ui.postMessage({ type: "debug", trace: importTrace });
+  }
   figma.ui.onmessage = async (message) => {
     try {
       if (message.type === "import") {
@@ -574,8 +593,11 @@ var PW = (() => {
           figma.notify("Stale capture: v" + data.version + ", plugin expects v" + EXPECTED_CAPTURE_VERSION + " \u2014 re-capture", { error: true });
         }
         boundTextStyleCount = 0;
+        importTrace = [];
         await syncFromDocument(data);
         const framed = await importFramed(data, message.version, Boolean(message.dark), message.tags);
+        traceComponent(data.root.name || "Screen", data.root);
+        flushTrace();
         figma.viewport.scrollAndZoomIntoView([framed]);
         figma.ui.postMessage({ type: "done" });
         figma.notify("Imported " + data.width + "\xD7" + data.height + " \xB7 " + Object.keys(textStyles).length + " text styles, " + boundTextStyleCount + " bound");
@@ -589,6 +611,7 @@ var PW = (() => {
           return;
         }
         boundTextStyleCount = 0;
+        importTrace = [];
         await syncFromDocument(entries[0].data);
         const GAP = 80;
         const placed = [];
@@ -601,6 +624,7 @@ var PW = (() => {
           columnX.push(cursor);
           cursor += frame.width + GAP;
           placed.push(frame);
+          traceComponent(entry.data.root && entry.data.root.name || "Screen", entry.data.root);
         }
         if (message.includeDark) {
           const darkRowY = Math.max(...placed.map((frame) => frame.height)) + GAP;
@@ -613,6 +637,7 @@ var PW = (() => {
             index++;
           }
         }
+        flushTrace();
         figma.viewport.scrollAndZoomIntoView(placed);
         figma.ui.postMessage({ type: "done" });
         figma.notify("Imported " + entries.length + " components" + (message.includeDark ? " \xD7 light + dark" : "") + " \xB7 " + boundTextStyleCount + " text styles bound");
