@@ -299,6 +299,19 @@ final class CaptureFidelityTests: XCTestCase {
         (node.tag == "image" ? [node] : []) + node.children.flatMap { imageNodes(in: $0) }
     }
 
+    func testPinListRowsCaptureAsTextNodesNotAnEmptyListFrame() throws {
+        let list = PinList(state: .loaded, rows: [
+            .text("Wi-Fi", detail: "Home", chevron: true) {},
+            .toggle("Airplane Mode", isOn: .constant(false)),
+        ], onRetry: {})
+        let document = try XCTUnwrap(PinDisplayListCapture.document(list, name: "List", size: CGSize(width: 402, height: 400), screenHeight: 778),
+                                     "the list should capture into a document")
+        let titles = allTextNodes(in: document.root).compactMap { $0.texts?.first?.text }
+        XCTAssertTrue(titles.contains("Wi-Fi"),
+                      "an eager PinList captures its row titles as text nodes; a UIKit-backed List captures an empty frame")
+        XCTAssertTrue(titles.contains("Airplane Mode"), "toggle-row labels must capture too")
+    }
+
     func testFullScreenComponentCentersInOneScreen() throws {
         let document = PinDisplayListCapture.document(PinLabel("Nothing here yet"), name: "FullScreen", size: CGSize(width: 402, height: 1600), screenHeight: 778)
         let root = try XCTUnwrap(document, "the full-screen component should capture into a document").root
