@@ -142,6 +142,25 @@ final class PinUIKitCaptureTests: XCTestCase {
         XCTAssertEqual(rows.count, 30, "all 30 rows must capture, not just the ~7 that fit the 300pt viewport")
     }
 
+    // Text must bind a typography token (its PinTextStyle), derived from the resolved font, so Figma maps
+    // a text style — the same shared figmaFont path serves the SwiftUI leaf capture too.
+    func testCapturedTextCarriesItsTypographyStyleToken() throws {
+        let host = UIView()
+        let label = UILabel()
+        label.font = .subtitle
+        label.text = "Heading"
+        label.translatesAutoresizingMaskIntoConstraints = false
+        host.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.topAnchor.constraint(equalTo: host.topAnchor, constant: 40),
+            label.leadingAnchor.constraint(equalTo: host.leadingAnchor),
+        ])
+        let document = try XCTUnwrap(capture(host))
+        let node = try XCTUnwrap(firstText(document.root, "Heading"))
+        XCTAssertEqual(node.font?.style, "subtitle", "text binds its typography token so Figma maps a text style")
+        XCTAssertFalse(document.textStyles.isEmpty, "the document ships the typography tokens")
+    }
+
     private func firstNode(_ node: FigmaNode, where predicate: (FigmaNode) -> Bool) -> FigmaNode? {
         if predicate(node) { return node }
         for child in node.children { if let found = firstNode(child, where: predicate) { return found } }

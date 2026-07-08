@@ -206,6 +206,18 @@ extension PinTextStyle {
     }
 
     static let allCapturable: [PinTextStyle] = [.title, .subtitle, .subtitleSemibold, .body, .footnote, .caption]
+
+    // Map a resolved font back to its typography token by size + weight. Both worlds resolve to the same
+    // UIFonts (SwiftUI `.subtitle` is `Font(UIFont.subtitle)`), so this tokenizes text captured either way.
+    @MainActor static func matching(_ font: UIFont) -> PinTextStyle? {
+        func weight(_ candidate: UIFont) -> CGFloat {
+            (candidate.fontDescriptor.object(forKey: .traits) as? [UIFontDescriptor.TraitKey: Any])?[.weight] as? CGFloat ?? 0
+        }
+        let target = weight(font)
+        return allCapturable.first {
+            abs($0.captureUIFont.pointSize - font.pointSize) < 0.5 && abs(weight($0.captureUIFont) - target) < 0.05
+        }
+    }
 }
 
 private func figmaCssWeight(_ weight: CGFloat) -> Int {

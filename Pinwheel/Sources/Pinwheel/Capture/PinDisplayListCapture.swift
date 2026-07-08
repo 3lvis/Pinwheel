@@ -62,7 +62,7 @@ public enum PinDisplayListCapture {
             if let content {
                 var rootNode = screen(content, width: size.width, fill: screenFill, components: components, canvasHeight: size.height, oneScreen: screenHeight, safeAreaTop: host.safeAreaInsets.top)
                 rootNode.name = name
-                return FigmaDocument(width: size.width, height: rootNode.h, root: rootNode, tokens: colorTokens + PinFloatTokens.tokens, textStyles: [])
+                return FigmaDocument(width: size.width, height: rootNode.h, root: rootNode, tokens: colorTokens + PinFloatTokens.tokens, textStyles: textStyles)
             }
         }
 
@@ -74,7 +74,7 @@ public enum PinDisplayListCapture {
             rootNode = screen(rootNode, width: size.width, fill: screenFill, components: components, canvasHeight: size.height, oneScreen: screenHeight, safeAreaTop: host.safeAreaInsets.top)
         }
         rootNode.name = name
-        return FigmaDocument(width: size.width, height: rootNode.h, root: rootNode, tokens: colorTokens + PinFloatTokens.tokens, textStyles: [])
+        return FigmaDocument(width: size.width, height: rootNode.h, root: rootNode, tokens: colorTokens + PinFloatTokens.tokens, textStyles: textStyles)
     }
 
     private static func leafCount(_ node: ReflectedNode) -> Int {
@@ -493,9 +493,12 @@ public enum PinDisplayListCapture {
         FigmaFont(
             family: "SF Pro Rounded", size: Double(font?.pointSize ?? 17), weight: cssWeight(font),
             color: color.map(RGBA.init) ?? RGBA(r: 0, g: 0, b: 0, a: 1),
-            colorToken: color.flatMap(tokenName(for:)), style: nil, underline: underline
+            colorToken: color.flatMap(tokenName(for:)),
+            style: font.flatMap { PinTextStyle.matching($0)?.captureName }, underline: underline
         )
     }
+
+    static let textStyles: [FigmaTextStyle] = PinTextStyle.allCapturable.map { FigmaTextStyle($0) }
 
     private static func cssWeight(_ font: UIFont?) -> Int {
         guard let font,

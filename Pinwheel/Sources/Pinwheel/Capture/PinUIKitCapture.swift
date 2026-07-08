@@ -35,7 +35,7 @@ public enum PinUIKitCapture {
             name: name, children: lifted
         )
         return FigmaDocument(width: Double(size.width), height: root.h, root: root,
-                             tokens: PinDisplayListCapture.colorTokens + PinFloatTokens.tokens, textStyles: [])
+                             tokens: PinDisplayListCapture.colorTokens + PinFloatTokens.tokens, textStyles: PinDisplayListCapture.textStyles)
     }
 
     private static func shiftUp(_ node: FigmaNode, by offset: Double) -> FigmaNode {
