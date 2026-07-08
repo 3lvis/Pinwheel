@@ -121,15 +121,17 @@ private struct LiveCaptureHost: UIViewControllerRepresentable {
     private func capture(host: UIViewController) {
         let size = host.view.bounds.size
         host.view.layoutIfNeeded()
-        // UIKit controls render only in the simulator's own appearance, so the sweep runs twice (sim
-        // light, then sim dark) and merges the two single-appearance documents.
-        // A UIKit table/collection force-realizes its cells and reads the real UIView tree; everything
-        // else reads SwiftUI's DisplayList off the live host.
-        guard let document = PinUIKitCapture.document(
-            host: host.view, name: entry.title, size: size, screenHeight: FigmaCatalog.oneScreen
-        ) ?? PinDisplayListCapture.document(
-            entry.item.swiftUIView(), name: entry.title, size: size, screenHeight: FigmaCatalog.oneScreen, liveHost: host.view
-        ) else { return }
+        // Route by world, not by trial: a SwiftUI component reads its DisplayList; only a UIKit component
+        // walks the real UIView tree (PinUIKitCapture). Trying PinUIKitCapture first for everything lets
+        // it intercept a SwiftUI screen — e.g. it grabs a button's spinner views as stray crops and the
+        // real pills/text never capture. (UIKit controls render only in the sim's own appearance, so the
+        // sweep runs twice — sim light, then dark — and merges the two single-appearance documents.)
+        let displayList = { PinDisplayListCapture.document(entry.item.swiftUIView(), name: entry.title, size: size, screenHeight: FigmaCatalog.oneScreen, liveHost: host.view) }
+        let isUIKit = entry.tags.contains(PinTag.uiKit.rawValue)
+        guard let document = isUIKit
+            ? (PinUIKitCapture.document(host: host.view, name: entry.title, size: size, screenHeight: FigmaCatalog.oneScreen) ?? displayList())
+            : displayList()
+        else { return }
         onCaptured?(document)
         let version = PinCaptureVersions.shared.record(id: entry.id, document: document)
         FigmaCaptureFile.pushCatalog(
