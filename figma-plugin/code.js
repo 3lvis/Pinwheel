@@ -130,6 +130,7 @@ var PW = (() => {
   var colorVarsByName = {};
   var floatVarsByName = {};
   var textStyles = {};
+  var boundTextStyleCount = 0;
   var darkMode = false;
   var darkByToken = {};
   function colorKey(c) {
@@ -207,6 +208,7 @@ var PW = (() => {
       text.fontName = style.fontName;
       text.characters = plan.characters;
       await text.setTextStyleIdAsync(style.id);
+      boundTextStyleCount += 1;
     } else {
       text.fontName = await resolveFont(plan.fontRequest.family, plan.fontRequest.weight, plan.fontRequest.italic);
       text.characters = plan.characters;
@@ -641,11 +643,12 @@ var PW = (() => {
         if (typeof data.version === "number" && data.version !== EXPECTED_CAPTURE_VERSION) {
           figma.notify("Stale capture: v" + data.version + ", plugin expects v" + EXPECTED_CAPTURE_VERSION + " \u2014 re-capture", { error: true });
         }
+        boundTextStyleCount = 0;
         await syncFromDocument(data);
         const framed = await importFramed(data, message.version, Boolean(message.dark), message.tags);
         figma.viewport.scrollAndZoomIntoView([framed]);
         figma.ui.postMessage({ type: "done" });
-        figma.notify("Imported " + data.width + "\xD7" + data.height);
+        figma.notify("Imported " + data.width + "\xD7" + data.height + " \xB7 " + Object.keys(textStyles).length + " text styles, " + boundTextStyleCount + " bound");
         return;
       }
       if (message.type === "importAll") {
@@ -655,6 +658,7 @@ var PW = (() => {
           figma.ui.postMessage({ type: "done" });
           return;
         }
+        boundTextStyleCount = 0;
         await syncFromDocument(entries[0].data);
         const GAP = 80;
         const placed = [];
@@ -681,7 +685,7 @@ var PW = (() => {
         }
         figma.viewport.scrollAndZoomIntoView(placed);
         figma.ui.postMessage({ type: "done" });
-        figma.notify("Imported " + entries.length + " components" + (message.includeDark ? " \xD7 light + dark" : ""));
+        figma.notify("Imported " + entries.length + " components" + (message.includeDark ? " \xD7 light + dark" : "") + " \xB7 " + boundTextStyleCount + " text styles bound");
         return;
       }
     } catch (error) {

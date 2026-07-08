@@ -36,6 +36,7 @@ let colorVars: Record<string, Variable> = {}
 let colorVarsByName: Record<string, Variable> = {}
 let floatVarsByName: Record<string, Variable> = {}
 let textStyles: Record<string, TextStyle> = {}
+let boundTextStyleCount = 0
 let darkMode = false
 let darkByToken: Record<string, { r: number; g: number; b: number; a: number }> = {}
 
@@ -119,6 +120,7 @@ async function makeText(run: any, font: any): Promise<TextNode> {
     text.fontName = style.fontName as FontName
     text.characters = plan.characters
     await text.setTextStyleIdAsync(style.id)
+    boundTextStyleCount += 1
   } else {
     text.fontName = await resolveFont(plan.fontRequest.family, plan.fontRequest.weight, plan.fontRequest.italic)
     text.characters = plan.characters
@@ -578,11 +580,12 @@ figma.ui.onmessage = async (message: any) => {
       if (typeof data.version === 'number' && data.version !== EXPECTED_CAPTURE_VERSION) {
         figma.notify('Stale capture: v' + data.version + ', plugin expects v' + EXPECTED_CAPTURE_VERSION + ' — re-capture', { error: true })
       }
+      boundTextStyleCount = 0
       await syncFromDocument(data)
       const framed = await importFramed(data, message.version, Boolean(message.dark), message.tags)
       figma.viewport.scrollAndZoomIntoView([framed])
       figma.ui.postMessage({ type: 'done' })
-      figma.notify('Imported ' + data.width + '×' + data.height)
+      figma.notify('Imported ' + data.width + '×' + data.height + ' · ' + Object.keys(textStyles).length + ' text styles, ' + boundTextStyleCount + ' bound')
       return
     }
     if (message.type === 'importAll') {
@@ -592,6 +595,7 @@ figma.ui.onmessage = async (message: any) => {
         figma.ui.postMessage({ type: 'done' })
         return
       }
+      boundTextStyleCount = 0
       await syncFromDocument(entries[0].data)
       const GAP = 80
       const placed: any[] = []
@@ -618,7 +622,7 @@ figma.ui.onmessage = async (message: any) => {
       }
       figma.viewport.scrollAndZoomIntoView(placed)
       figma.ui.postMessage({ type: 'done' })
-      figma.notify('Imported ' + entries.length + ' components' + (message.includeDark ? ' × light + dark' : ''))
+      figma.notify('Imported ' + entries.length + ' components' + (message.includeDark ? ' × light + dark' : '') + ' · ' + boundTextStyleCount + ' text styles bound')
       return
     }
   } catch (error) {
