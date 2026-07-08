@@ -116,7 +116,6 @@ async function makeText(run: any, font: any): Promise<TextNode> {
   const plan = planText(run, font)
   const text = figma.createText()
   const style = plan.styleName ? textStyles[plan.styleName] : undefined
-  debugTrace.push({ step: 'makeText', chars: (plan.characters || '').slice(0, 16), styleName: plan.styleName || null, styleKeys: Object.keys(textStyles), found: Boolean(style) })
   if (style) {
     await figma.loadFontAsync(style.fontName as FontName)
     text.fontName = style.fontName as FontName
@@ -137,6 +136,8 @@ async function makeText(run: any, font: any): Promise<TextNode> {
   text.textAutoResize = plan.autoResize
   if (plan.width !== null) text.resize(plan.width, text.height)
   if (plan.lineHeight !== null) text.lineHeight = { value: plan.lineHeight, unit: 'PIXELS' }
+  // Diagnostic only (no behavior change): record whether the style survived to the end of the build.
+  debugTrace.push({ step: 'makeText', chars: (plan.characters || '').slice(0, 16), styleName: plan.styleName || null, found: Boolean(style), finalStyleId: (text as any).textStyleId || null })
   return text
 }
 
