@@ -69,6 +69,8 @@ public enum PinUIKitCapture {
             for subview in current.subviews where isVisible(subview) {
                 if let label = subview as? UILabel, let node = labelNode(label, host: host) {
                     nodes.append(node)
+                } else if let textView = subview as? UITextView, let node = textViewNode(textView, host: host) {
+                    nodes.append(node)
                 } else if let node = controlNode(subview, host: host) {
                     nodes.append(node)
                 } else {
@@ -122,6 +124,26 @@ public enum PinUIKitCapture {
         return FigmaNode(
             tag: "text", x: Double(box.minX), y: Double(box.minY), w: Double(box.width), h: Double(box.height),
             font: PinDisplayListCapture.figmaFont(label.font, color: label.textColor, underline: false),
+            texts: [FigmaText(text: text, x: Double(box.minX), y: Double(box.minY), w: Double(box.width), h: Double(box.height))],
+            children: []
+        )
+    }
+
+    // A UITextView is a UIScrollView (so not a cell container); capture its text inset by the text
+    // container so the node sits where the glyphs draw.
+    private static func textViewNode(_ textView: UITextView, host: UIView) -> FigmaNode? {
+        guard let text = textView.text, !text.isEmpty else { return nil }
+        let frame = textView.convert(textView.bounds, to: host)
+        let inset = textView.textContainerInset
+        let padding = textView.textContainer.lineFragmentPadding
+        let box = CGRect(
+            x: frame.minX + inset.left + padding, y: frame.minY + inset.top,
+            width: max(frame.width - inset.left - inset.right - padding * 2, 1),
+            height: max(frame.height - inset.top - inset.bottom, 1)
+        )
+        return FigmaNode(
+            tag: "text", x: Double(box.minX), y: Double(box.minY), w: Double(box.width), h: Double(box.height),
+            font: PinDisplayListCapture.figmaFont(textView.font, color: textView.textColor, underline: false),
             texts: [FigmaText(text: text, x: Double(box.minX), y: Double(box.minY), w: Double(box.width), h: Double(box.height))],
             children: []
         )
