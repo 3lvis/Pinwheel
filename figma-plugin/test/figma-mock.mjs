@@ -6,12 +6,14 @@ export function loadPlugin() {
   const code = readFileSync(fileURLToPath(new URL('../code.js', import.meta.url)), 'utf8')
   const created = []
   const variableWrites = []
+  let nodeId = 0
   const node = (type, extra = {}) => {
     const made = {
-      type, children: [], width: 100, height: 20, layoutMode: 'NONE', boundVariables: {},
+      type, id: `${type}-${++nodeId}`, children: [], width: 100, height: 20, layoutMode: 'NONE', boundVariables: {},
       appendChild(child) { this.children.push(child); child.parent = this },
       resize(width, height) { this.width = width; this.height = height },
       setBoundVariable(field, variable) { this.boundVariables[field] = variable },
+      setTextStyleIdAsync(id) { this.textStyleId = id; return Promise.resolve() },
       ...extra,
     }
     created.push(made)
@@ -49,6 +51,7 @@ export function loadPlugin() {
     createRectangle: () => node('RECT', { fills: [] }),
     createComponent: () => node('COMPONENT'),
     createTextStyle: () => node('TEXTSTYLE'),
+    getLocalTextStylesAsync: async () => [],
     createImage: () => ({ hash: 'image' }),
     base64Decode: () => new Uint8Array(),
     loadFontAsync: async (fontName) => { loadedFonts.add(fontKey(fontName)) },
@@ -73,7 +76,7 @@ export function loadPlugin() {
   sandbox.globalThis = sandbox
   vm.createContext(sandbox)
   vm.runInContext(code, sandbox)
-  return { build: sandbox.PW.build, syncTokens: sandbox.PW.syncTokens, created, variableWrites }
+  return { build: sandbox.PW.build, syncTokens: sandbox.PW.syncTokens, syncTextStyles: sandbox.PW.syncTextStyles, created, variableWrites }
 }
 
 export function rootParent() {

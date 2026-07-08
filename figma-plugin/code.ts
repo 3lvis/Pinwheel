@@ -628,4 +628,4 @@ figma.ui.onmessage = async (message: any) => {
   }
 }
 
-export { build, syncTokens }
+export { build, syncTokens, syncTextStyles }

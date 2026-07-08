@@ -22,6 +22,7 @@ var PW = (() => {
   var code_exports = {};
   __export(code_exports, {
     build: () => build,
+    syncTextStyles: () => syncTextStyles,
     syncTokens: () => syncTokens
   });
 
