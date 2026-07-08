@@ -195,6 +195,7 @@ var PW = (() => {
     frame.resize(Math.max(width, 0.01), Math.max(height, 0.01));
   }
   function calibrateWidth(text, targetWidth) {
+    if (text.textStyleId) return;
     const count = Math.max(text.characters.length, 1);
     if (targetWidth > text.width) {
       text.letterSpacing = { value: (targetWidth - text.width) / count, unit: "PIXELS" };

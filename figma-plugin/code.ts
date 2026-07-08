@@ -106,6 +106,9 @@ function centerViaAutoLayout(frame: FrameNode | ComponentNode, width: number, he
 }
 
 function calibrateWidth(text: TextNode, targetWidth: number): void {
+  // letterSpacing is owned by a text style; writing it would detach a bound style and revert the text
+  // to raw values. Keep the token binding over exact width matching.
+  if (text.textStyleId) return
   const count = Math.max(text.characters.length, 1)
   if (targetWidth > text.width) {
     text.letterSpacing = { value: (targetWidth - text.width) / count, unit: 'PIXELS' }
