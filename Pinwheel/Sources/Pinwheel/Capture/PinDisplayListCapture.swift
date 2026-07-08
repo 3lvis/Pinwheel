@@ -490,7 +490,7 @@ public enum PinDisplayListCapture {
         accumulated.map { $0.union(next) } ?? next
     }
 
-    private static func figmaFont(_ font: UIFont?, color: UIColor?, underline: Bool) -> FigmaFont {
+    static func figmaFont(_ font: UIFont?, color: UIColor?, underline: Bool) -> FigmaFont {
         FigmaFont(
             family: "SF Pro Rounded", size: Double(font?.pointSize ?? 17), weight: cssWeight(font),
             color: color.map(RGBA.init) ?? RGBA(r: 0, g: 0, b: 0, a: 1),
@@ -512,11 +512,11 @@ public enum PinDisplayListCapture {
         }
     }
 
-    private static let colorTokens: [FigmaToken] = PinColorToken.allCases.map {
+    static let colorTokens: [FigmaToken] = PinColorToken.allCases.map {
         FigmaToken(name: $0.rawValue, type: "color", value: RGBA($0.color, style: .light), dark: RGBA($0.color, style: .dark))
     }
 
-    private static func tokenName(for color: UIColor) -> String? {
+    static func tokenName(for color: UIColor) -> String? {
         let target = RGBA(color)
         for token in PinColorToken.allCases {
             let candidate = RGBA(token.color, style: .light)
