@@ -63,8 +63,6 @@ public extension PinList {
             self.kind = kind
         }
 
-        /// `icon` is a leading SF Symbol or asset, tinted to the theme icon color; pass
-        /// `.renderingMode(.original)` to keep a full-colour asset's own colours.
         public static func text(
             _ title: String,
             icon: Image? = nil,
@@ -82,8 +80,6 @@ public extension PinList {
         }
 
         public var body: some SwiftUI.View {
-            // Capture name is the row's *structure*, so identical rows reuse one Figma component; a
-            // no-op when nothing reads the preference, so ordinary rendering is unaffected.
             rowContent.pinCapturedContainer(
                 name: captureTemplate,
                 layout: PinCaptureLayout(axis: .row, spacing: .spacingS, spaceBetween: true)
@@ -100,7 +96,6 @@ public extension PinList {
                 if chevron { parts.append("chevron") }
                 return parts.joined(separator: "-")
             case let .toggle(subtitle, _, isOn):
-                // The switch is a reused image, so on/off are different components.
                 var parts = ["Row", "toggle"]
                 if icon != nil { parts.append("icon") }
                 if subtitle != nil { parts.append("subtitle") }
@@ -123,9 +118,7 @@ public extension PinList {
                     Toggle("", isOn: isOn)
                         .labelsHidden()
                         .disabled(!enabled)
-                        // The switch right-aligns in its frame and draws taller than it, so the crop
-                        // cut its right cap and top/bottom. Padding keeps the whole control inside the
-                        // captured bounds; the padding is background-coloured, so it's invisible in Figma.
+                        // The switch draws taller than its frame and right-aligns, so the crop clips it; background-coloured padding keeps the whole control in bounds, invisible in Figma.
                         .padding(.horizontal, .spacingS)
                         .padding(.vertical, .spacingXS)
                         .pinCapturedRasterized(name: "Switch")

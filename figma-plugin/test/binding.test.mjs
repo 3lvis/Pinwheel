@@ -2,10 +2,6 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { loadPlugin, rootParent } from './figma-mock.mjs'
 
-// A captured padding/radius that carries a token must import as a variable binding, not a raw number —
-// otherwise every spacing and corner-radius lands untokenized in Figma. syncTokens creates the float
-// variables; build must then bind them onto the frame.
-
 test('a padding that carries a spacing token binds to that variable, not a raw number', async () => {
   const { build, syncTokens, created } = loadPlugin()
   await syncTokens([{ name: 'spacing-s', type: 'float', float: 8 }])

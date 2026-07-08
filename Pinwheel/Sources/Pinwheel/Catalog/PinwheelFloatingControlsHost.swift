@@ -5,8 +5,7 @@ struct PinwheelFloatingControlsHost: UIViewRepresentable {
     let chrome: PinwheelChrome
     let tweakCount: Int
     let fabVisible: Bool
-    // A stored property so a change re-runs updateUIView — the FAB lives in its own window, which
-    // `.preferredColorScheme` doesn't reach, so it needs its own interface-style override.
+    // The FAB lives in its own window, which `.preferredColorScheme` doesn't reach, so it carries its own style override.
     var colorScheme: ColorScheme?
 
     func makeCoordinator() -> Coordinator { Coordinator() }

@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { planText, planAutoLayout, orderChildren } from '../plan.ts'
 
-// The pure core imported directly — no Figma, no mock, no vm. Node strips the TS types on import.
+// Node strips the TS types on import, so plan.ts imports directly with no build step.
 const plan = (run, font) => planText(run, font)
 const body = { family: 'SF Pro Rounded', size: 15, weight: 400, color: { r: 1, g: 1, b: 1, a: 1 } }
 
@@ -63,7 +63,6 @@ test('orderChildren: an ordered stack keeps declaration order, never sorting by 
 })
 
 test('orderChildren: an unordered row sorts by row then column, not one axis (the 1,2,4,3 scramble)', () => {
-  // Same visual row (y within tolerance) but y non-monotonic vs x — a pure-y sort would swap 1 and 2.
   const node = { children: [
     { name: '1', x: 0, y: 3 }, { name: '2', x: 100, y: 0 },
     { name: '3', x: 200, y: 6 }, { name: '4', x: 0, y: 50 },

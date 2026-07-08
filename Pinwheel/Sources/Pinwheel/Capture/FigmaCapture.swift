@@ -17,9 +17,7 @@ public struct FigmaDocument: Encodable {
     let tokens: [FigmaToken]
     let textStyles: [FigmaTextStyle]
 
-    // A compact capture diagnostic (`FigmaNode` is internal, so the walk lives here): whether the screen
-    // captured via the semantic reflection path and how many filled pills it kept. A UI test asserts on it
-    // to catch a screen that dropped to the containment fallback and lost its content.
+    // Public so a UI test can assert the screen captured via the reflection path and didn't drop to the containment fallback.
     public var captureSummary: String {
         func pillCount(_ node: FigmaNode) -> Int {
             let here = (node.fill != nil && node.h > 30 && node.tag != "screen") ? 1 : 0
@@ -132,9 +130,7 @@ struct FigmaToken: Encodable {
     var float: Double? = nil
 }
 
-// The spacing and radius design tokens, matched by value so a captured gap/padding/corner-radius can
-// reference the Figma variable instead of a raw number. Names use the plugin's dashed convention
-// (`spacing-s` → the `spacing/s` variable); a value that isn't a token stays a raw number.
+// Names use the plugin's dashed convention (`spacing-s` → the `spacing/s` Figma variable).
 enum PinFloatTokens {
     static var spacing: [(name: String, value: CGFloat)] {
         [("spacing-xxs", .spacingXXS), ("spacing-xs", .spacingXS), ("spacing-xm", .spacingXM),
@@ -146,9 +142,7 @@ enum PinFloatTokens {
     static func spacingName(for value: Double) -> String? { name(for: value, in: spacing) }
     static func radiusName(for value: Double) -> String? { name(for: value, in: radius) }
 
-    // A gap measured between rendered leaves reads a hair wider than the declared HStack/VStack spacing
-    // — a glyph or SF Symbol sits inset within its frame — so round a gap down to the spacing token at
-    // or just below it. (Padding matches exactly; its edges aren't inflated by that bearing.)
+    // A measured gap reads a hair wider than the declared spacing (glyph/SF Symbol bearing insets the frame), so round down to the token at or just below it.
     static func gapTokenName(for value: Double) -> String? {
         guard value > 0.5 else { return nil }
         guard let best = spacing.filter({ Double($0.value) <= value + 0.5 }).max(by: { $0.value < $1.value }),

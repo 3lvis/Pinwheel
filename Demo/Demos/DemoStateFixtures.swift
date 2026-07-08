@@ -1,7 +1,5 @@
 import Pinwheel
 
-// The three state enums are distinct types, so shared strings are what keep the
-// SwiftUI and UIKit parity examples in lockstep.
 enum DemoStateFixture {
     static let loadingTitle = "Loading..."
     static let loadingSubtitle = "Please wait while we fetch your details."

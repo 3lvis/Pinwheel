@@ -23,7 +23,7 @@ createServer((request, response) => {
     request.on('end', () => {
       const body = Buffer.concat(chunks)
       let id = 'unknown'
-      try { id = slug(JSON.parse(body.toString()).id) || 'unknown' } catch { /* keep 'unknown' */ }
+      try { id = slug(JSON.parse(body.toString()).id) || 'unknown' } catch {}
       const outFile = 'catalog-' + id + '.json'
       writeFileSync(resolve(here, outFile), body)
       response.setHeader('Content-Type', 'application/json')
@@ -56,7 +56,7 @@ createServer((request, response) => {
     request.on('end', () => {
       const body = Buffer.concat(chunks)
       let name = 'latest'
-      try { name = slug(JSON.parse(body.toString()).name) || 'latest' } catch { /* keep 'latest' on unparseable body */ }
+      try { name = slug(JSON.parse(body.toString()).name) || 'latest' } catch {}
       const outFile = 'inspect-' + name + '.json'
       writeFileSync(resolve(here, outFile), body)
       response.setHeader('Content-Type', 'application/json')

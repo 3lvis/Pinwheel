@@ -2,47 +2,27 @@ import SwiftUI
 import UIKit
 import Pinwheel
 
-// Turns the DisplayList leaves into the Figma IR — a nested auto-layout tree — with no capture
-// markers in the view. Containment groups leaves (a pill encloses its label/icon; a card encloses
-// its buttons); axis/spacing/alignment are inferred from the frames SwiftUI already computed.
+// Turns DisplayList leaves into the Figma IR, inferring layout from the frames SwiftUI computed.
 @MainActor
 public enum PinDisplayListCapture {
-    /// Set `liveControlsOnScreen` only when `view` is the on-screen content (a full-screen sweep) — it
-    /// lets the capture crop UIKit controls (a switch/date picker) from the live window, which paints
-    /// their real state. When the view isn't on screen (a capture-on-view from the catalog), leave it
-    /// false: the key window is some other surface, and cropping it would put foreign pixels on the
-    /// controls. Off-screen controls then fall back to their (flat) host-layer render.
+    /// Set `liveControlsOnScreen` only when `view` is on-screen: off-screen, the key window cropped for UIKit controls is a foreign surface whose pixels would land on the controls.
     public static func document<Content: SwiftUI.View>(_ view: Content, name: String, size: CGSize, screenHeight: CGFloat, liveControlsOnScreen: Bool = false) -> FigmaDocument? {
-        // Force each pass's appearance so capture is deterministic regardless of the simulator's
-        // current setting. Left to the ambient trait, a sweep run while the sim is dark renders the
-        // "light" pass dark — a token then resolves to its dark value and RGBA-matches the wrong token
-        // (a white primaryText matches primaryBackground's light white), which imports invisible.
+        // On a dark sim the "light" pass otherwise renders dark, so a token RGBA-matches the wrong (dark) value and imports invisible.
         guard let light = singleDocument(view.environment(\.colorScheme, .light), name: name, size: size, screenHeight: screenHeight, liveControlsOnScreen: liveControlsOnScreen) else { return nil }
-        // Rasterized nodes (SF Symbols, spinners) bake their appearance-dependent tint into fixed
-        // pixels, so a light-only PNG imports wrong into Figma's dark mode. Render the same view once
-        // more forced dark and graft each rasterized node's dark pixels onto its light twin — mirroring
-        // how a color token carries both `value` and `dark`. Structure is identical (same view + size),
-        // so the two trees zip by position.
+        // Rasterized nodes (SF Symbols, spinners) bake their tint into pixels, so render again forced-dark and graft the dark pixels on by position (identical structure zips).
         guard let dark = singleDocument(view.environment(\.colorScheme, .dark), name: name, size: size, screenHeight: screenHeight, liveControlsOnScreen: liveControlsOnScreen) else { return light }
         return FigmaDocument(width: light.width, height: light.height, root: withDarkVariants(light.root, dark.root),
                              tokens: light.tokens, textStyles: light.textStyles)
     }
 
-    /// Capture from an already-hosted, on-screen view (a full-screen sweep) in the simulator's current
-    /// appearance. The live render is complete — every UIKit control has painted — so nothing drops, and a
-    /// control is cropped in whatever appearance the sim is set to. The sweep calls this once per sim
-    /// appearance (light, then dark) and merges the two documents itself.
+    /// Capture from an on-screen host: the live render is complete (every UIKit control has painted, nothing drops), cropped in the sim's current appearance.
     public static func document<Content: SwiftUI.View>(_ view: Content, name: String, size: CGSize, screenHeight: CGFloat, liveHost: UIView) -> FigmaDocument? {
-        // Crop live controls via the key window's `drawHierarchy` — it paints them in the sim's current
-        // appearance (a plain layer render returns a control's stale pixels).
+        // `drawHierarchy` on the key window paints controls in the sim's current appearance; a plain layer render returns stale pixels.
         guard let leaves = PinDisplayList.leaves(fromHost: liveHost, liveControlsOnScreen: true) else { return nil }
         return build(view, name: name, leaves: leaves, host: liveHost, size: size, screenHeight: screenHeight)
     }
 
-    // Graft each node's dark appearance onto its light twin: dark pixels for a rasterized node, and the
-    // dark fill for a raw (untokenized) fill. A tokenized fill already adapts via the token's dark value,
-    // so the plugin prefers that; fillDark is the fallback for a fill no token names — e.g. a List
-    // separator's Apple color, which stayed light on a dark background without it.
+    // fillDark is the fallback for a fill no token names (e.g. a List separator's Apple color, which stayed light on dark without it); a tokenized fill adapts via the token.
     private static func withDarkVariants(_ light: FigmaNode, _ dark: FigmaNode?) -> FigmaNode {
         var node = light
         if node.image != nil { node.imageDark = dark?.image }
@@ -60,8 +40,7 @@ public enum PinDisplayListCapture {
     }
 
     private static func build<Content: SwiftUI.View>(_ view: Content, name: String, leaves: [DisplayLeaf], host: UIView, size: CGSize, screenHeight: CGFloat) -> FigmaDocument? {
-        // The screen fill spans the full hosting height; trim it to the content so the root frame
-        // (and its bottom padding) match the real screen, not the oversized host.
+        // The screen fill spans the oversized host; trim it to the content so the root matches the real screen.
         let contentBottom = (leaves.map { $0.frame.maxY }.filter { $0 < size.height - 1 }.max() ?? size.height)
         let trimmed = leaves.map { leaf in
             leaf.frame.height >= size.height - 1
@@ -72,16 +51,12 @@ public enum PinDisplayListCapture {
         let components = orderedComponents(root)
         let screenFill = fillColor(root.leaf.kind)
 
-        // Value-reflection supplies the semantic auto-layout tree (native VStack/HStack leave no
-        // drawable to group by); the DisplayList supplies each leaf's exact appearance. Zip the
-        // reflected leaves with the rendered components by order. Fall back to pure containment if
-        // the counts disagree (reflection couldn't cleanly account for the rendered leaves).
+        // Reflection supplies the semantic layout tree (native VStack/HStack leave no drawable to group by); zip it with the rendered leaves, falling back to containment if counts disagree.
         if let structure = PinViewReflector.reflect(view), leafCount(structure) == components.count {
             var pool = components
             let backgrounds = collectBackgrounds(root)
             let content = emitStructure(structure, host: host, backgrounds: backgrounds) { text in
-                // Match by content, not position — a 2D grid scrambles a positional zip. Duplicate
-                // texts resolve by order (first unconsumed); fall back to order if no text matches.
+                // Match by text, not index — a 2D grid scrambles a positional zip; duplicates resolve first-unconsumed.
                 let matched = pool.firstIndex { componentText($0) == text } ?? (pool.isEmpty ? nil : 0)
                 return matched.map { pool.remove(at: $0) }
             }
@@ -93,11 +68,7 @@ public enum PinDisplayListCapture {
         }
 
         var rootNode = emit(root, host: host)
-        // A full-screen component whose content sits centered in the tall canvas (an empty state) fell to
-        // the containment fallback — a component that reflects as one leaf but renders several (PinStateView)
-        // can't take the reflection path. Re-center it in one screen; the fallback would otherwise
-        // top-anchor it and push it to the bottom. Top-anchored content isn't centered-in-canvas, so this
-        // is a no-op for it.
+        // PinStateView reflects as one leaf but renders several, so it fell to containment; re-center it (a no-op for top-anchored content, which isn't centered-in-canvas).
         let minY = components.map { $0.leaf.frame.minY }.min() ?? 0
         let maxY = components.map { $0.leaf.frame.maxY }.max() ?? 0
         if abs((minY + maxY) / 2 - size.height / 2) < screenHeight / 4, (maxY - minY) < screenHeight {
@@ -115,12 +86,7 @@ public enum PinDisplayListCapture {
         }
     }
 
-    // Flatten the containment forest to leaf-level components in render order: a pill/label/image is a
-    // component; a shape that groups other components (a card background) is recursed through. The root is
-    // the screen container, never itself a component, so flatten its children — otherwise a flat screen
-    // (every child a bare leaf, e.g. label-over-control rows) collapses to the single root component and
-    // desyncs the reflected leaf count into the containment fallback. A childless root (a lone full-screen
-    // label) is itself the sole component.
+    // Flatten the root's children too, else a flat screen collapses to one component and desyncs the reflected leaf count. A childless root is itself the sole component.
     private static func orderedComponents(_ box: Box) -> [Box] {
         let leaves = box.children.isEmpty ? [box] : orderedForLayout(box.children).flatMap(flatten)
         return groupOrphanIcons(leaves)
@@ -132,8 +98,7 @@ public enum PinDisplayListCapture {
         return orderedForLayout(box.children).flatMap(flatten)
     }
 
-    // A fill-less button (tertiary) has no pill to enclose its label + icon, so they arrive as two
-    // adjacent orphan leaves — regroup an icon that sits on the same row next to a text.
+    // A fill-less (tertiary) button has no pill enclosing its label + icon, so they arrive as adjacent orphan leaves — regroup an icon next to a same-row text.
     private static func groupOrphanIcons(_ components: [Box]) -> [Box] {
         var result: [Box] = []
         var index = 0
@@ -178,8 +143,7 @@ public enum PinDisplayListCapture {
         case .leaf(let text, let isButton, let fillWidth):
             guard let box = next(text) else { return nil }
             var node = componentNode(box, host: host)
-            // A fill-less button whose frame SwiftUI dropped comes back as bare text — rebuild its
-            // padded, min-width, centered box so it reads as a button, not a loose label.
+            // SwiftUI drops a fill-less button's frame, so it arrives as bare text — rebuild the padded, min-width box so it reads as a button.
             if isButton, node.tag != "frame" { node = bareButtonContainer(node) }
             if fillWidth { node = fillWidthCentered(node) }
             return node
@@ -188,8 +152,7 @@ public enum PinDisplayListCapture {
         case .container(let container, let children):
             let childNodes = children.compactMap { emitStructure($0, host: host, backgrounds: backgrounds, next: next) }
             guard childNodes.contains(where: { $0.grow != true }) else { return nil }
-            // A decorative background (a card) is a filled shape reflection sees as a transparent
-            // container — re-attach its fill/radius/padding by matching the text set it wraps.
+            // Reflection sees a card's filled shape as a transparent container — re-attach its fill/radius/padding by matching the text set it wraps.
             let texts = childNodes.reduce(into: Set<String>()) { $0.formUnion(nodeTexts($1)) }
             let background = backgrounds.first { $0.texts == texts }
             var layout = PinCaptureLayout(
@@ -207,8 +170,7 @@ public enum PinDisplayListCapture {
         }
     }
 
-    // Wrap a lone label/icon in the pill box SwiftUI optimized away for a fill-less button: the
-    // control's min-width and standard padding, content centered. Transparent (tertiary has no fill).
+    // Rebuild the pill box SwiftUI optimized away for a fill-less button: min-width, standard padding, centered, transparent.
     private static func bareButtonContainer(_ content: FigmaNode) -> FigmaNode {
         let layout = PinCaptureLayout(
             axis: .row, spacing: .spacingS,
@@ -223,8 +185,7 @@ public enum PinDisplayListCapture {
         )
     }
 
-    // A `.frame(maxWidth: .infinity)` keeps the button's own width and centers it in the freed width —
-    // so wrap it in a parent-filling frame that centers, rather than stretching the button itself.
+    // `.frame(maxWidth: .infinity)` centers the button at its own width rather than stretching it, so wrap it in a parent-filling centering frame.
     private static func fillWidthCentered(_ content: FigmaNode) -> FigmaNode {
         let layout = PinCaptureLayout(axis: .column, spacing: 0, padding: EdgeInsets(), alignment: .center, mainAxisAlignment: .center)
         var wrapper = FigmaNode(tag: "frame", x: content.x, y: content.y, w: 0, h: content.h, name: "Center", layout: FigmaLayout(layout), ordered: true, children: [content])
@@ -232,8 +193,6 @@ public enum PinDisplayListCapture {
         return wrapper
     }
 
-    // A filled shape that groups other components (a card) — reflection treats it as a transparent
-    // container, so remember its fill/radius/padding keyed by the text set it wraps.
     private struct Background { let texts: Set<String>; let fill: UIColor?; let radius: CGFloat?; let padding: EdgeInsets }
 
     private static func collectBackgrounds(_ box: Box) -> [Background] {
@@ -268,8 +227,6 @@ public enum PinDisplayListCapture {
         return texts
     }
 
-    // A rendered component (from containment) → its Figma node: a pill is a filled auto-layout row of
-    // its label/icon; a bare text or image is a leaf.
     private static func componentNode(_ box: Box, host: UIView) -> FigmaNode {
         let frame = box.leaf.frame
         if box.children.isEmpty {
@@ -303,18 +260,13 @@ public enum PinDisplayListCapture {
         )
     }
 
-    // The outer container becomes the screen: fixed to the device width (so centered content spans it)
-    // and padded to where the content actually sits, with the screen fill behind.
     private static func screen(_ content: FigmaNode, width: CGFloat, fill: UIColor?, components: [Box], canvasHeight: CGFloat, oneScreen: CGFloat, safeAreaTop: CGFloat) -> FigmaNode {
         let minY = components.map { $0.leaf.frame.minY }.min() ?? 0
         let maxY = components.map { $0.leaf.frame.maxY }.max() ?? 0
         let minX = components.map { $0.leaf.frame.minX }.min() ?? 0
         let maxX = components.map { $0.leaf.frame.maxX }.max() ?? 0
         let contentHeight = maxY - minY
-        // A full-screen empty state (StateView) floats centered in the tall canvas — center it in one
-        // screen to match the device. A content screen begins right below the safe area; its short
-        // content can *also* land near the canvas center, so require it to actually float (start well
-        // below the safe area) before centering, else it's top-anchored.
+        // A short content screen can also land near the canvas center, so require content to actually float (start well below the safe area) before centering, else top-anchor it.
         let floatsBelowSafeArea = (minY - safeAreaTop) > oneScreen / 6
         let centeredInCanvas = floatsBelowSafeArea && abs((minY + maxY) / 2 - canvasHeight / 2) < oneScreen / 4 && contentHeight < oneScreen
         let topPad: CGFloat, bottomPad: CGFloat, height: CGFloat
@@ -323,10 +275,7 @@ public enum PinDisplayListCapture {
             bottomPad = topPad
             height = oneScreen
         } else {
-            // The captured top Y includes the device safe area, which the plugin's device frame already
-            // draws as its status bar — subtract it so content sits below the status bar at its real
-            // padding, not doubled. Fill a full screen so it top-anchors with empty space below (a screen
-            // taller than one device grows to fit its content).
+            // Subtract the safe area from the captured top Y — the plugin's device frame already draws the status bar, so keeping it would double the top padding.
             topPad = max(minY - safeAreaTop, 0)
             height = max(oneScreen, topPad + contentHeight)
             bottomPad = max(height - topPad - contentHeight, 0)
@@ -356,8 +305,7 @@ public enum PinDisplayListCapture {
         var area: CGFloat { leaf.frame.width * leaf.frame.height }
     }
 
-    // Nest each leaf under the smallest already-placed leaf that encloses it (largest-first ensures
-    // a potential parent is seen before its children). The biggest leaf — the screen fill — is the root.
+    // Largest-first so a parent is placed before its children. The biggest leaf (the screen fill) is the root.
     private static func containmentTree(_ leaves: [DisplayLeaf]) -> Box {
         let boxes = leaves.map(Box.init).sorted { $0.area > $1.area }
         for (index, box) in boxes.enumerated() {
@@ -398,17 +346,11 @@ public enum PinDisplayListCapture {
                 return filledRect(frame, radius: nil, color: nil)
             }
         }
-        // A container: its own fill/radius (a pill or card) plus its children laid out.
         let fill = fillColor(box.leaf.kind)
         let token = fill.flatMap(tokenName(for:))
-        // A flat set of leaves that inference reads as one horizontal row but that stacks in several
-        // Y-bands is a vertical list whose rows overlap in Y (icon beside title) — a settings list with
-        // no per-row background. Emit it with absolute positions (no layout) so the plugin places each
-        // row where it rendered; an auto-layout frame reflows by spacing and misplaces the icons/toggles.
-        // Each row is grouped so it's a grabbable unit, also absolute so its title/subtitle stay stacked.
-        // Judge the axis by the *direct* children: when they're clean per-row containers that stack
-        // vertically (rows with their own background — the Color showcase), that's a column, not a list.
-        // Flattening first would drop those backgrounds and misread the side-by-side labels as a row.
+        // A flat set that inference reads as one row but that stacks in several Y-bands is a vertical list
+        // with overlapping rows; emit absolute positions so the plugin doesn't reflow and misplace them.
+        // Judge the axis by direct children, not flattened leaves (which drop per-row backgrounds).
         let listLeaves = flattenLeaves(box.children)
         let bands = yBands(listLeaves)
         if bands.count > 1, inferLayout(orderedForLayout(box.children).map(\.leaf.frame), in: frame).axis == .row {
@@ -423,10 +365,7 @@ public enum PinDisplayListCapture {
         }
         let orderedChildren = orderedForLayout(box.children)
         let layout = inferLayout(orderedChildren.map(\.leaf.frame), in: frame)
-        // A leading column has one cross-alignment, so a child centered on the column's axis but inset
-        // from the leading edge — a spacing bar that shrinks toward the middle, sharing the column with a
-        // leading header — would be pinned left. Wrap such a child in a full-width centering slot so it
-        // stays centered. A leading header (off-axis) and a full-width row (not inset) are left as-is.
+        // A leading column pins children left, so a child centered on the axis but inset from the leading edge (a spacing bar sharing the column with a header) gets a full-width centering slot.
         let contentMinX = orderedChildren.map { $0.leaf.frame.minX }.min() ?? frame.minX
         let childNodes = orderedChildren.map { child -> FigmaNode in
             let node = emit(child, host: host)
@@ -445,14 +384,12 @@ public enum PinDisplayListCapture {
         )
     }
 
-    // Flatten to leaf boxes, dropping intermediate containment groups — the list re-bands everything by
-    // row, so a pre-grouped two-line row's leaves rejoin their band instead of keeping an auto-layout box.
+    // Drop intermediate containment groups so a pre-grouped two-line row's leaves rejoin their band.
     private static func flattenLeaves(_ boxes: [Box]) -> [Box] {
         boxes.flatMap { $0.children.isEmpty ? [$0] : flattenLeaves($0.children) }
     }
 
-    // Cluster leaves into vertical bands: each band is the set of leaves that overlap in Y (one visual
-    // row). Consecutive bands don't overlap, so a parent laying them out is unambiguously a column.
+    // Cluster leaves into non-overlapping vertical bands (one visual row each) so the parent is unambiguously a column.
     private static func yBands(_ children: [Box]) -> [[Box]] {
         let sorted = children.sorted { $0.leaf.frame.minY < $1.leaf.frame.minY }
         var bands: [[Box]] = []
@@ -466,8 +403,6 @@ public enum PinDisplayListCapture {
         return bands
     }
 
-    // One row of a list: the leaves keep their absolute positions (no auto-layout) so the icon, the
-    // title/subtitle stack, and the trailing accessory land where they rendered.
     private static func absoluteRowGroup(_ band: [Box], host: UIView) -> FigmaNode {
         let union = band.map(\.leaf.frame).reduce(band[0].leaf.frame) { $0.union($1) }
         let children = orderedForLayout(band).map { emit($0, host: host) }
@@ -478,8 +413,7 @@ public enum PinDisplayListCapture {
         radius.flatMap { PinFloatTokens.radiusName(for: Double($0)) }
     }
 
-    // A multi-line label's paragraph alignment — the plugin centers/right-aligns the wrapped lines. Left
-    // and natural are the default, so they stay unset.
+    // Left/natural are the plugin's default, so leave them unset; only center/right are emitted.
     private static func textAlignName(_ alignment: NSTextAlignment) -> String? {
         switch alignment {
         case .center: return "center"
@@ -496,8 +430,6 @@ public enum PinDisplayListCapture {
         )
     }
 
-    // MARK: content-kind accessors
-
     private static func fillColor(_ kind: DisplayLeaf.Kind) -> UIColor? {
         switch kind {
         case .roundedRect(_, let color): return color
@@ -509,8 +441,6 @@ public enum PinDisplayListCapture {
         if case .roundedRect(let radius, _) = kind { return radius }
         return nil
     }
-
-    // MARK: layout inference
 
     private static func orderedForLayout(_ children: [Box]) -> [Box] {
         children.sorted {
@@ -545,7 +475,6 @@ public enum PinDisplayListCapture {
     }
 
     private static func crossAlignment(_ frames: [CGRect], in parent: CGRect, axis: PinCaptureLayout.Axis) -> PinCaptureLayout.CrossAxis {
-        // Compare each child's cross-axis center to the children's shared box; leading if flush-start.
         guard let union = frames.reduce(nil, unite) else { return .center }
         if axis == .column {
             let centered = frames.allSatisfy { abs(($0.midX) - union.midX) < 2 }
@@ -558,8 +487,6 @@ public enum PinDisplayListCapture {
     private static func unite(_ accumulated: CGRect?, _ next: CGRect) -> CGRect {
         accumulated.map { $0.union(next) } ?? next
     }
-
-    // MARK: content decode → IR
 
     private static func figmaFont(_ font: UIFont?, color: UIColor?, underline: Bool) -> FigmaFont {
         FigmaFont(
@@ -582,8 +509,6 @@ public enum PinDisplayListCapture {
         default: return 800
         }
     }
-
-    // MARK: tokens
 
     private static let colorTokens: [FigmaToken] = PinColorToken.allCases.map {
         FigmaToken(name: $0.rawValue, type: "color", value: RGBA($0.color, style: .light), dark: RGBA($0.color, style: .dark))

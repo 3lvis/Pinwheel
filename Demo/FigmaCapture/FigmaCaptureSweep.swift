@@ -1,9 +1,6 @@
 import SwiftUI
 import Pinwheel
 
-// Renders one catalog item and pushes its capture to the serve, keyed by id — the per-item half of
-// the catalog sweep (`Scripts/sweep.sh --capture`).
-
 struct FigmaCatalogEntry {
     let id: String
     let title: String
@@ -14,18 +11,14 @@ struct FigmaCatalogEntry {
 
 @MainActor
 enum FigmaCatalog {
-    // A tall render canvas so scrolling demos lay out fully, plus the one-screen height a full-screen
-    // component centers into: the iPhone 17 content area between the plugin's 62pt status bar and 34pt
-    // home indicator (874 − 62 − 34).
+    // oneScreen is the plugin's iPhone 17 content area: 874 − 62pt status bar − 34pt home indicator.
     static let appName = "Pinwheel iOS"
     static let captureCanvas = CGSize(width: 402, height: 1600)
     static let oneScreen: CGFloat = 778
 
     static var entries: [FigmaCatalogEntry] {
         DemoPinwheelSections.all.flatMap { section in
-            // UIKit-hosted views capture only as an opaque platform-view snapshot, not editable Figma
-            // nodes — keep them out of the capture catalog until that's decomposed. The app's own
-            // catalog still shows them.
+            // UIKit-hosted views capture only as an opaque platform-view snapshot, not editable Figma nodes.
             section.items.filter { !$0.tags.contains(.uiKit) }.map { item in
                 FigmaCatalogEntry(
                     id: item.id, title: item.title, section: section.title,
@@ -39,11 +32,9 @@ enum FigmaCatalog {
         entries.first { $0.id == id }
     }
 
-    // The capture-on-view sink: the catalog hands us the displayed component; we build its IR and
-    // push it to the serve — so running the app and looking at a component refreshes it, no script.
     static func autoPush(id: String, captured: [PinCapturedComponent], proxy: GeometryProxy) {
-        // Ignore the marker descriptors — read the DisplayList off a fresh hosted copy so viewing a
-        // component in the app pushes the same marker-free IR as the -PinwheelCapture path.
+        // Ignore the passed-in descriptors and rebuild off a fresh hosted copy, so the app push is the
+        // same marker-free IR as the -PinwheelCapture path.
         guard let entry = entry(id: id),
               let document = PinDisplayListCapture.document(entry.item.swiftUIView(), name: entry.title, size: FigmaCatalog.captureCanvas, screenHeight: FigmaCatalog.oneScreen)
         else { return }
@@ -76,11 +67,8 @@ enum FigmaCatalog {
     }
 }
 
-// Hosts the component full-screen and captures the DisplayList off that *live* on-screen render — not a
-// throwaway off-screen copy. Heavy UIKit controls (slider/segmented/progress) only populate the
-// DisplayList once actually rendered, and an off-screen duplicate is throttled in a batch and drops them;
-// the real render is always complete. Captured once per appearance (the host's own light/dark override),
-// then merged, so every control and colour adapts from the same reliable render.
+// Heavy UIKit controls (slider/segmented/progress) populate the DisplayList only once actually rendered,
+// so capture off the live on-screen render; an off-screen duplicate is batch-throttled and drops them.
 struct FigmaCaptureSweepView: SwiftUI.View {
     let id: String
     @State private var summary: String?
@@ -90,9 +78,7 @@ struct FigmaCaptureSweepView: SwiftUI.View {
             LiveCaptureHost(entry: entry) { document in summary = document.captureSummary }
                 .ignoresSafeArea()
                 .overlay(alignment: .top) {
-                    // A UI test reads this to assert the captured screen kept its content — a tall screen
-                    // that dropped to the containment fallback loses its pills. Only in UI-test runs, and
-                    // it rides the outer view (not the hosted content), so it never enters a real capture.
+                    // Must ride the outer view, not the hosted content, or it enters the capture itself.
                     if ProcessInfo.processInfo.arguments.contains("-UITesting"), let summary {
                         Text(summary).accessibilityIdentifier("capture.summary").opacity(0.02)
                     }
@@ -114,17 +100,13 @@ private struct LiveCaptureHost: UIViewControllerRepresentable {
         container.addChild(host)
         host.view.translatesAutoresizingMaskIntoConstraints = false
         container.view.addSubview(host.view)
-        // Host at the taller of the screen and the content's own height. Content taller than the screen
-        // (a long button list) would otherwise be clamped to the window and its below-the-fold rows would
-        // never enter the DisplayList — the reflected tree then outnumbers the rendered leaves, the zip
-        // fails, and the whole screen drops to the containment fallback (losing every pill). A short screen
-        // stays at screen height so its controls paint on-window (drawHierarchy only sees the visible
-        // window) and a centered empty state still centers.
+        // Below-the-fold rows never enter the DisplayList if the host is clamped to the window, so size to
+        // the taller of screen and content; drawHierarchy only sees the visible window, so keep short
+        // content at screen height so its controls still paint on-window.
         let width = FigmaCatalog.captureCanvas.width
         let screenHeight = UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }.first?.screen.bounds.height ?? FigmaCatalog.captureCanvas.height
         let contentHeight = host.sizeThatFits(in: CGSize(width: width, height: .greatestFiniteMagnitude)).height
-        // Fixed capture width so the IR matches the design regardless of the device the sim happens to be.
         NSLayoutConstraint.activate([
             host.view.widthAnchor.constraint(equalToConstant: width),
             host.view.centerXAnchor.constraint(equalTo: container.view.centerXAnchor),
@@ -132,7 +114,7 @@ private struct LiveCaptureHost: UIViewControllerRepresentable {
             host.view.heightAnchor.constraint(equalToConstant: max(screenHeight, contentHeight))
         ])
         host.didMove(toParent: container)
-        // Capture once the component has painted on-screen (a UISwitch renders its knob only on-window).
+        // A UISwitch renders its knob only on-window, so capture after it has painted on-screen.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { capture(host: host) }
         return container
     }
@@ -142,8 +124,8 @@ private struct LiveCaptureHost: UIViewControllerRepresentable {
     private func capture(host: UIViewController) {
         let size = host.view.bounds.size
         host.view.layoutIfNeeded()
-        // Capture a single document in the *simulator's* current appearance — UIKit controls only render
-        // in the sim's appearance, so the sweep runs twice (sim light, then sim dark) and merges the two.
+        // UIKit controls render only in the simulator's own appearance, so the sweep runs twice (sim
+        // light, then sim dark) and merges the two single-appearance documents.
         guard let document = PinDisplayListCapture.document(
             entry.item.swiftUIView(), name: entry.title, size: size, screenHeight: FigmaCatalog.oneScreen, liveHost: host.view
         ) else { return }

@@ -13,8 +13,7 @@ public enum PinwheelPresentation {
     case fullscreen
 }
 
-/// A tag on a concept-grouped item, so an axis like SwiftUI/UIKit is a filter rather than its own
-/// section. `rawValue` is the chip text. Consumers add their own axes with a static extension.
+/// A filter axis on a concept-grouped item (e.g. SwiftUI/UIKit), not its own section; consumers add axes via a static extension.
 public struct PinTag: RawRepresentable, Hashable, Sendable {
     public let rawValue: String
     public nonisolated init(rawValue: String) { self.rawValue = rawValue }

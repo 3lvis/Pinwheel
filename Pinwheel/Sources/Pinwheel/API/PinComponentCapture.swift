@@ -1,22 +1,17 @@
 import SwiftUI
 import ImageIO
 
-// A `Pin*` view's own description of how it renders, in design-token terms. Design facts only
-// (token names, radius, typography); any Figma/other mapping lives in the consumer.
 public struct PinComponentStyle {
     public let name: String
     public let text: String?
     public let textStyle: PinTextStyle?
     public let textColorTokenName: String?
     public let fillTokenName: String?
-    // Resolved colors used when there's no token (a `.custom(text:background:)` style); the
-    // capture emits them raw so the fill/text aren't dropped to nothing.
     public let textColor: Color?
     public let fillColor: Color?
     public let cornerRadius: CGFloat?
     public let centersText: Bool
     public let underline: Bool
-    // `false` dims the captured node, matching a disabled control.
     public let enabled: Bool
 
     public init(
@@ -45,8 +40,7 @@ public struct PinComponentStyle {
         self.enabled = enabled
     }
 
-    /// A copy under a different capture name. Components use it to give each visual variant its own
-    /// name so distinct-looking instances don't collapse onto one Figma master.
+    /// Distinct capture names keep visual variants from collapsing onto one Figma master.
     public func named(_ name: String) -> PinComponentStyle {
         PinComponentStyle(
             name: name, text: text, textStyle: textStyle, textColorTokenName: textColorTokenName,
@@ -56,11 +50,8 @@ public struct PinComponentStyle {
     }
 }
 
-/// A token that names itself for capture, so the `name` mapping lives on the token once
-/// rather than in every component.
 public protocol PinFillToken {
     var captureFillToken: String? { get }
-    // The raw fill when the style resolves to no token (e.g. `.custom`); `nil` when a token covers it.
     var captureFillColor: Color? { get }
 }
 
@@ -80,8 +71,6 @@ public extension PinTextColorToken {
 public struct PinCapturedComponent {
     public let style: PinComponentStyle
     public let bounds: Anchor<CGRect>
-    // Base64 PNG for rasterized nodes — native controls, images, SF Symbols — that have no
-    // structured descriptor. `nil` for structured components, which rebuild from `style`.
     public let image: String?
     public let isContainer: Bool
     public let needsRasterization: Bool
@@ -108,11 +97,7 @@ public struct PinCaptureLayout {
     public let padding: EdgeInsets
     public let spaceBetween: Bool
     public let alignment: CrossAxis
-    // Main-axis distribution — `.center` keeps content centered when a `minWidth` floor makes the
-    // container wider than its content (a short-label pill), matching the real centered control.
     public let mainAxisAlignment: CrossAxis
-    // A floor a hugging container keeps, so a short-content instance doesn't reflow below the real
-    // control's minimum (a `PinButton`'s 100pt titled width).
     public let minWidth: CGFloat?
 
     public init(axis: Axis, spacing: CGFloat, padding: EdgeInsets = EdgeInsets(), spaceBetween: Bool = false, alignment: CrossAxis = .center, mainAxisAlignment: CrossAxis = .leading, minWidth: CGFloat? = nil) {
@@ -127,12 +112,9 @@ public struct PinCaptureLayout {
 }
 
 public extension EnvironmentValues {
-    /// Set by a capture host so lazy containers (`PinList`) lay out every row eagerly; off-screen
-    /// rows emit no capture descriptors otherwise.
+    /// A lazy container (`PinList`) lays out no off-screen rows, so they emit no capture descriptors unless it lays out eagerly under capture.
     @Entry var pinCapturing: Bool = false
 
-    /// A sink the catalog calls with a displayed component's id, its captured descriptors, and the
-    /// layout proxy — so a consumer can capture-on-view (e.g. push to a Figma serve) with no button.
     @Entry var pinCaptureSink: (@MainActor (String, [PinCapturedComponent], GeometryProxy) -> Void)? = nil
 }
 
@@ -150,9 +132,7 @@ public extension View {
         }
     }
 
-    /// Marks this view a capture group (a list row) that nests the captured nodes inside its bounds.
-    /// `transformAnchorPreference` *appends* the container; plain `anchorPreference` would replace the
-    /// descendants' captured nodes (the row's own labels) with just this one.
+    /// `transformAnchorPreference` appends the container; plain `anchorPreference` would replace the descendants' captured nodes with just this one.
     func pinCapturedContainer(name: String, fillTokenName: String? = nil, fillColor: Color? = nil, cornerRadius: CGFloat? = nil, enabled: Bool = true, layout: PinCaptureLayout? = nil) -> some View {
         transformAnchorPreference(key: PinCaptureKey.self, value: .bounds) { value, anchor in
             value.append(PinCapturedComponent(
@@ -177,15 +157,12 @@ public extension View {
                 ),
                 bounds: anchor,
                 image: image,
-                // A pre-rendered image needs no window crop; only mark for it when we lack one.
                 needsRasterization: image == nil
             ))
         }
     }
 
-    /// Rasterizes a pure-SwiftUI view off-screen for capture instead of cropping the live window.
-    /// Deterministic and transparent — the crop races layout and bakes in whatever is behind the
-    /// view, so a thin/small element (a spinner) captures blank or as a mismatched square.
+    /// The live-window crop races layout and bakes in whatever's behind the view, so a thin element (a spinner) captures blank or mismatched; render off-screen instead.
     @MainActor func pinCapturedRendered(name: String, scale: CGFloat = 3) -> some View {
         pinCapturedRasterized(name: name, image: PinCaptureRasterizer.base64PNG(of: self, scale: scale))
     }

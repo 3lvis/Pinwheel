@@ -3,10 +3,6 @@ import SwiftUI
 import UIKit
 @testable import Pinwheel
 
-// Pins the *shape* of the captured IR, not just "it didn't crash": a silent drift in the card's
-// radius token, the fill-less button's min-width box, or cross-axis alignment fails here rather than
-// shipping to Figma. The fixture exercises the same constructs the button demo folds in — a filled/
-// clipped card and a trailing column — so this and the catalog-open UI test cover it from both sides.
 @MainActor
 final class CaptureFidelityTests: XCTestCase {
     private struct Fixture: SwiftUI.View {
@@ -51,12 +47,6 @@ final class CaptureFidelityTests: XCTestCase {
         node.texts?.first?.text ?? node.children.lazy.compactMap { self.text(of: $0) }.first
     }
 
-    // A column taller than the capture host must still capture every row. The live sweep host was pinned
-    // to the window, so a screen taller than the device (the button showcase) had its below-the-fold rows
-    // dropped from the DisplayList; the reflected tree then outnumbered the rendered leaves and the whole
-    // screen fell to the containment fallback, losing every PinButton pill. `LiveCaptureHost` now hosts at
-    // content height — this pins the height sensitivity that makes that necessary (the `size` height here
-    // is the same host-height lever).
     func testTallColumnNeedsAContentHeightHostOrItDropsRowsToContainment() throws {
         struct Tall: SwiftUI.View {
             var body: some SwiftUI.View {
@@ -67,30 +57,19 @@ final class CaptureFidelityTests: XCTestCase {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             }
         }
-        // Hosted at content height, every row renders, so the reflected tree matches the rendered leaves
-        // and the semantic reflection path emits the screen. `tag == "screen"` is that path — it can only
-        // be reached when nothing was dropped.
         let tall = try XCTUnwrap(PinDisplayListCapture.document(Tall(), name: "Tall", size: CGSize(width: 402, height: 1600), screenHeight: 778)).root
         XCTAssertEqual(tall.tag, "screen",
                        "a tall column hosted at content height must capture via the reflection path — every row present, counts matched")
-        // Hosted shorter than the content, the below-the-fold rows drop, the reflected count outnumbers the
-        // rendered leaves, and the screen collapses to the containment fallback.
         let clamped = try XCTUnwrap(PinDisplayListCapture.document(Tall(), name: "Tall", size: CGSize(width: 402, height: 400), screenHeight: 778)).root
         XCTAssertEqual(clamped.tag, "frame",
                        "a host shorter than the content drops rows into the containment fallback — the regression LiveCaptureHost's content-height sizing avoids")
     }
 
-    // The concentric-radius demo's outer 24 must resolve to a radius token, or it imports as a raw number
-    // (24 has no exact token → nil → raw; it must never snap to the nearest radius-m).
     func testLargeConcentricRadiusResolvesToItsToken() {
         XCTAssertEqual(PinFloatTokens.radiusName(for: 24), "radius-l")
         XCTAssertNil(PinFloatTokens.radiusName(for: 20), "an off-scale radius stays raw, never snapped to a token")
     }
 
-    // The screen wrapper recomputes its padding tokens from the computed pad, per side — a real spacing
-    // edge references the token, a positioning-geometry edge stays raw. It must never inherit a stale
-    // token from the content's own padding (the bug: a spacing-xl left on a geometry side that no longer
-    // measures 24).
     func testScreenPaddingTokensMatchTheirValuesNeverInheritingStale() throws {
         let layout = try XCTUnwrap(try captureRoot().layout, "the screen must have an auto-layout")
         let tokens = try XCTUnwrap(layout.padTokens, "the screen must carry per-side padding tokens")
@@ -115,17 +94,14 @@ final class CaptureFidelityTests: XCTestCase {
     }
 
     func testInferredGapBindsTheSpacingTokenDespiteGlyphBearing() {
-        // A gap measured between rendered leaves reads a hair wider than the declared spacing (a glyph or
-        // symbol sits inset within its frame), so a label↔icon gap of ~9-10 must still bind spacingS (8).
+        // A gap between rendered leaves reads a hair wider than declared — a glyph sits inset within its
+        // frame — so a ~9-10 label↔icon gap still binds spacing-s (8).
         XCTAssertEqual(FigmaLayout(PinCaptureLayout(axis: .row, spacing: 9.33)).gapToken, "spacing-s")
         XCTAssertEqual(FigmaLayout(PinCaptureLayout(axis: .row, spacing: 10.33)).gapToken, "spacing-s")
-        // An exact token still binds; a gap that isn't near any token stays raw.
         XCTAssertEqual(FigmaLayout(PinCaptureLayout(axis: .row, spacing: 16)).gapToken, "spacing-l")
         XCTAssertNil(FigmaLayout(PinCaptureLayout(axis: .row, spacing: 20)).gapToken)
     }
 
-    // A multi-line label's paragraph alignment must be captured — a `.multilineTextAlignment(.center)`
-    // message (the Tweakable empty state) read as left-aligned in Figma because the alignment was dropped.
     func testMultilineTextCapturesItsCenterAlignment() throws {
         let view = PinLabel("Tap the settings button and choose an option.")
             .multilineTextAlignment(.center)
@@ -161,9 +137,8 @@ final class CaptureFidelityTests: XCTestCase {
                        "a .trailing VStack must capture as flex-end cross-axis alignment")
     }
 
-    // The reflector must skip views whose `.body` traps — a UIKit bridge and any SwiftUI-module
-    // primitive — returning nil (containment then captures their geometry) rather than calling `.body`.
-    // Trapping there crashed the app while capturing UIKit / Apple-controls demos.
+    // Reading `.body` on a UIKit bridge or a SwiftUI-module primitive traps, so the reflector returns nil
+    // for them (containment then captures their geometry) rather than crashing the capture.
     func testReflectorSkipsUIKitBridge() {
         struct Bridge: UIViewControllerRepresentable {
             func makeUIViewController(context: Context) -> UIViewController { UIViewController() }
@@ -176,10 +151,6 @@ final class CaptureFidelityTests: XCTestCase {
         XCTAssertNil(PinViewReflector.reflect(Picker("choice", selection: .constant(0)) { Text("A").tag(0) }))
     }
 
-    // A rasterized Apple control (Toggle/Slider/DatePicker via `pinCapturedRasterized`) wraps a SwiftUI
-    // primitive the reflector otherwise skips. It must still count as one leaf, or the reflected count
-    // won't match the rendered components and the whole screen falls back to containment — which misread
-    // the Apple-controls VStack as an absolute "List" (mangled layout, wrong frame name).
     func testReflectorCountsARasterizedControlAsALeaf() {
         struct Fixture: SwiftUI.View {
             var body: some SwiftUI.View {
@@ -193,12 +164,6 @@ final class CaptureFidelityTests: XCTestCase {
                        "the rasterized control must count as a leaf, alongside its label")
     }
 
-    // A flat screen — a column of grouped rows where every leaf is a direct child of the root and none
-    // nests another (the Apple-controls layout: each control rasterizes to one leaf, a platform view) —
-    // must capture via the semantic reflection path, keeping each row grouped. `orderedComponents` used to
-    // collapse such a root to a single component, desyncing the reflected count into the containment
-    // fallback, which flattens the rows (and, when they overlap in Y, misreads the screen as a "List").
-    // Bare text rows stand in for the controls so the leaves are deterministic and never nest off-screen.
     func testFlatGroupedScreenKeepsItsRowGrouping() throws {
         struct Fixture: SwiftUI.View {
             var body: some SwiftUI.View {
@@ -226,11 +191,6 @@ final class CaptureFidelityTests: XCTestCase {
                       "each row must stay grouped (label + value) — the reflection path preserves it; the collapsed fallback flattens every row into loose siblings")
     }
 
-    // A scrolling column of left-aligned labels (the Typography demo) must capture every label. The
-    // labels are narrower than the full width, so the column's wrapping group looked like a padded
-    // fill-less button — emitting a phantom transparent box that orphaned the labels in containment and
-    // collapsed the whole screen to one background shape. A button wraps a single label; a multi-text
-    // group is a layout container, not a button.
     func testLeftAlignedLabelColumnCapturesEveryLabel() throws {
         struct Fixture: SwiftUI.View {
             let labels = ["Title", "Subtitle", "Body", "Caption"]
@@ -255,18 +215,12 @@ final class CaptureFidelityTests: XCTestCase {
                        "every label must capture as text, not collapse into a single background shape")
     }
 
-    // A frame whose children are exactly the two texts — a tight grouped row the reflection path
-    // preserves. The collapsed containment fallback emits every row's texts as loose siblings of the
-    // root, so only the root (holding every text) would contain both — never a two-child group.
     private func hasGroup(_ node: FigmaNode, _ first: String, _ second: String) -> Bool {
         let texts = Set(node.children.compactMap { text(of: $0) })
         if node.tag == "frame", texts == Set([first, second]) { return true }
         return node.children.contains { hasGroup($0, first, second) }
     }
 
-    // Rows with their own colored background (the Color token showcase) must keep that fill. The rows'
-    // side-by-side dual labels made the fallback read the screen as a horizontal list and flatten each
-    // row to its labels, dropping the background — so the colored rows captured as bare text on white.
     func testColoredRowsKeepTheirBackgroundFill() throws {
         struct Fixture: SwiftUI.View {
             let rows: [(String, SwiftUI.Color)] = [("Alpha", .red), ("Beta", .green), ("Gamma", .blue)]
@@ -298,9 +252,6 @@ final class CaptureFidelityTests: XCTestCase {
                                     "each colored row must keep its background fill, not flatten to bare labels on the screen fill")
     }
 
-    // A row inset symmetrically (a spacing bar that shrinks toward the middle) is centered. In a column
-    // shared with a leading section header, the single cross-alignment is leading, which would pin the
-    // bar to the left. It must instead capture wrapped in a full-width centering slot.
     func testSymmetricallyInsetRowCentersInALeadingColumn() throws {
         struct Fixture: SwiftUI.View {
             var body: some SwiftUI.View {
@@ -341,9 +292,6 @@ final class CaptureFidelityTests: XCTestCase {
         }
     }
 
-    // The captured screen takes the given name so the Figma frame reads the component title, not its
-    // structural root name (the Apple-controls capture showed "List" — its misinferred root — as the
-    // frame name, since `name` was accepted but dropped).
     func testCapturedRootTakesTheGivenScreenName() throws {
         let root = try XCTUnwrap(PinDisplayListCapture.document(Fixture(), name: "Checkout", size: CGSize(width: 402, height: 900), screenHeight: 778),
                                  "the fixture should capture into a document").root
@@ -351,10 +299,6 @@ final class CaptureFidelityTests: XCTestCase {
                        "the captured screen must take the given name, not its structural root name")
     }
 
-    // A settings list (PinList) is UITableView-backed; its rows fall back to containment and overlap in
-    // Y (icon beside title). It must capture with absolute positions — each row where it rendered — not
-    // as a reflowable auto-layout frame (the plugin reflowed it and misplaced icons/toggles onto the
-    // wrong rows) and not as one horizontal row (which collapsed every row off-screen).
     func testListCapturesRowsAtTheirVerticalPositions() throws {
         let list = PinList(state: .loaded, rows: [
             .text("Account", icon: Image(systemName: "person.crop.circle.fill"), subtitle: "Signed in", chevron: true) {},
@@ -382,9 +326,8 @@ final class CaptureFidelityTests: XCTestCase {
         (node.tag == "frame" ? [node] : []) + node.children.flatMap { allFrameNodes(in: $0) }
     }
 
-    // A list row's icon/chevron must capture its pixels. SwiftUI's renderer returns a blank placeholder
-    // for UIKit-hosted content (a List is UITableView-backed), so these came through as empty image
-    // nodes — recovered by rendering the host layer and cropping.
+    // SwiftUI's renderer returns a blank placeholder for UIKit-hosted content (a List is UITableView-backed),
+    // so a row's icon/chevron is recovered by rendering the host layer and cropping.
     func testListRowIconsCaptureTheirPixels() throws {
         let list = PinList(state: .loaded, rows: [
             .text("Wi-Fi", icon: Image(systemName: "wifi"), detail: "Home", chevron: true) {},
@@ -401,19 +344,14 @@ final class CaptureFidelityTests: XCTestCase {
         (node.tag == "image" ? [node] : []) + node.children.flatMap { imageNodes(in: $0) }
     }
 
-    // A full-screen component (fills the height, content centered — an empty state) must capture as one
-    // screen with the content centered, not float in the oversized render canvas. Regressed to the full
-    // 1600pt canvas when a hugging/centered component was captured naively.
     func testFullScreenComponentCentersInOneScreen() throws {
         let document = PinDisplayListCapture.document(PinLabel("Nothing here yet"), name: "FullScreen", size: CGSize(width: 402, height: 1600), screenHeight: 778)
         let root = try XCTUnwrap(document, "the full-screen component should capture into a document").root
         XCTAssertEqual(root.h, 778, accuracy: 1, "a centered full-screen component must capture as one screen, not the tall canvas")
     }
 
-    // PinStateView reflects as a single leaf but renders several (title + subtitle), so it can't take the
-    // reflection path and falls to containment. Its centered empty state must still capture centered in
-    // one screen, not top-anchored to the bottom. (The lone-PinLabel case above takes the reflection
-    // path, so it never guarded the fallback centering — this does.)
+    // PinStateView renders several leaves (title + subtitle) but reflects as one, so it falls to containment
+    // — the lone-PinLabel case above takes the reflection path, so this is what guards the fallback centering.
     func testCenteredComponentCentersEvenViaTheContainmentFallback() throws {
         let view = PinStateView(.empty(title: "Ready to Move?", subtitle: "Kick things off with your first booking."))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -425,9 +363,8 @@ final class CaptureFidelityTests: XCTestCase {
         XCTAssertLessThan(root.layout?.pad.first ?? 0, 778 * 0.6,
                           "the content must be centered, not top-anchored toward the bottom")
     }
-    // The icon crop must contain the rendered symbol, not the blank safe-area strip above it. The host
-    // layer renders with the safe-area inset the DisplayList frames omit, so cropping at the bare frame
-    // grabbed the empty region above the content (icons came out blank / shifted a row in Figma).
+    // The host layer renders with a safe-area inset the DisplayList frames omit, so cropping at the bare
+    // frame grabs the blank strip above the content.
     func testListIconCropReadsThroughTheSafeAreaInset() throws {
         let list = PinList(state: .loaded, rows: [
             .text("Wi-Fi", icon: Image(systemName: "wifi"), chevron: true) {},
@@ -442,9 +379,6 @@ final class CaptureFidelityTests: XCTestCase {
                       "the icon crop must contain the rendered symbol, not the blank safe-area region")
     }
 
-    // A primary button's symbol tints with the appearance-dependent primaryBackground token — white in
-    // light, black in dark. The single light-rendered PNG imported into Figma's dark mode as a white
-    // arrow on cyan where it should be black, so the node must carry a distinct dark variant.
     func testAppearanceDependentSymbolCapturesADistinctDarkVariant() throws {
         let button = PinButton("Continue", systemImage: "arrow.right") {}
         let document = try XCTUnwrap(PinDisplayListCapture.document(button, name: "Button", size: CGSize(width: 402, height: 400), screenHeight: 778),
@@ -461,9 +395,6 @@ final class CaptureFidelityTests: XCTestCase {
                           "the dark symbol tints with primaryBackground (near black), not the light white")
     }
 
-    // A List separator is a SwiftUI Divider — Apple's separator color, which matches no Pinwheel token.
-    // A raw (untokenized) fill only carries its light value, so it imported with the light separator
-    // color on the dark background; it must carry a dark fill to adapt like a tokenized color does.
     func testNonTokenizedSeparatorCapturesADarkFill() throws {
         let list = PinList(state: .loaded, rows: [.text("A") {}, .text("B") {}], onRetry: {})
         let document = try XCTUnwrap(PinDisplayListCapture.document(list, name: "List", size: CGSize(width: 402, height: 400), screenHeight: 778),

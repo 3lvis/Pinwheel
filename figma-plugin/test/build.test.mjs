@@ -2,9 +2,6 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { importedLabel, loadPlugin, rootParent } from './figma-mock.mjs'
 
-// Each test pins a text-rendering behavior that regressed this session — the plugin's rendering only runs
-// in Figma, so these exercise it headlessly through the vm harness (see figma-mock.mjs).
-
 test('a .center multi-line label imports center-aligned, not left', async () => {
   const label = await importedLabel({ textAlign: 'center' })
   assert.ok(label, 'the label node should be created')
@@ -19,7 +16,6 @@ test('a natural-alignment label is left by default (no over-centering)', async (
 })
 
 test('a label taller than one line wraps to its captured width instead of overflowing on one line', async () => {
-  // run.h (40) well over one line for a 15pt font: must re-wrap at the captured width.
   const label = await importedLabel({ textAlign: 'center', h: 40, texts: [{ text: 'Tap the settings button and choose an option.', x: 64, y: 380, w: 272, h: 40 }] })
   assert.equal(label.textAutoResize, 'HEIGHT', 'a multi-line label fixes its width and grows in height so Figma re-wraps it')
   assert.equal(label.width, 272, 'it wraps at the device-captured width, not its single-line hug width')
@@ -31,7 +27,6 @@ test('a single-line label hugs its content instead of being pinned to a wrap wid
 })
 
 test('makeText loads the font before writing characters (a fresh node default is unloaded)', async () => {
-  // The mock throws if characters are set on an unloaded font; a reordered makeText fails here.
   const label = await importedLabel({ textAlign: 'center' })
   assert.ok(label.characters.startsWith('Tap'), 'characters are written only after the font is loaded')
 })

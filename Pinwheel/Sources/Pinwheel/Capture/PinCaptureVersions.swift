@@ -1,10 +1,6 @@
 import Foundation
 import CryptoKit
 
-// The version a component's capture is on — a plain integer the app owns, bumping by one only when the
-// captured structure actually changes. Persisted so it survives launches (the sweep runs one app launch
-// per component). The catalog pill reads it and the pushed catalog carries it, so the number the plugin
-// lists and the number the app shows are the same — a designer can tell when an import is behind.
 @MainActor
 @Observable
 public final class PinCaptureVersions {
@@ -21,8 +17,6 @@ public final class PinCaptureVersions {
 
     public func version(for id: String) -> Int? { entries[id]?.version }
 
-    /// Records this capture and returns its version — unchanged when the structure matches the last
-    /// recorded one, incremented by one when it differs.
     @discardableResult
     public func record(id: String, document: FigmaDocument) -> Int {
         let hash = Self.structureHash(document)
@@ -33,9 +27,6 @@ public final class PinCaptureVersions {
         return version
     }
 
-    // Images are excluded: a control's PNG varies with the render context (playground vs full-screen
-    // sweep) without being a design change, so hashing them would churn the number. Structure, text,
-    // and tokens are what a real update changes.
     private static func structureHash(_ document: FigmaDocument) -> String {
         guard let data = try? JSONEncoder().encode(document),
               let object = try? JSONSerialization.jsonObject(with: data) else { return "" }

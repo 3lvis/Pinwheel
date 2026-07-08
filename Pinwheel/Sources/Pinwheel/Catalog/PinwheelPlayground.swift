@@ -26,9 +26,6 @@ struct PinwheelPlayground: SwiftUI.View {
             // recurses SwiftUI's layout into a stack overflow (crashes on every
             // device pick). The pill rides the playground, not the FAB window, so
             // its transition scales in place instead of collapsing.
-            // An overlay (not a safe-area inset) so the pill never pushes the content down. It sits just
-            // under the status bar / Dynamic Island and self-manages whether it covers content — see
-            // PinwheelDevicePill.
             .overlay(alignment: .top) {
                 PinwheelDevicePill(previewMode: previewMode)
                     .padding(.top, .spacingS)
@@ -137,15 +134,6 @@ struct PinwheelPlayground: SwiftUI.View {
     }
 }
 
-// The component's name and capture version, shown as a pill on top of the playground so it reads the
-// same number the Figma plugin lists. It never pushes content (it's an overlay); whether it *covers*
-// content is deliberate per its three roles:
-//   • Preview/sweep (`previewMode`): the screenshot indicator (name · variant · version) — stays put,
-//     covering is fine, the snapshot wants it.
-//   • A simulated device: stays put with its reset ✕ — the content shrinks (letterboxed), so it covers
-//     nothing.
-//   • Otherwise it's just the version indicator: show for a few seconds so the number registers, then
-//     fade away, leaving the content unobstructed.
 private struct PinwheelDevicePill: SwiftUI.View {
     let previewMode: Bool
     @Environment(PinwheelChrome.self) private var chrome
@@ -162,8 +150,8 @@ private struct PinwheelDevicePill: SwiftUI.View {
             if isVisible, let name = chrome.componentName {
                 pill(name: name)
                     .transition(.scale.combined(with: .opacity))
-                    // Time the fade from when the pill is actually on screen — not when the playground is
-                    // constructed (which can be a beat before it's presented, spending the window unseen).
+                    // The playground is constructed a beat before it's presented, so time the fade from
+                    // the pill appearing, not from construction (which spends the window unseen).
                     .task {
                         try? await Task.sleep(for: .seconds(4))
                         versionFaded = true
@@ -171,7 +159,6 @@ private struct PinwheelDevicePill: SwiftUI.View {
             }
         }
         .animation(.easeOut(duration: 0.35), value: isVisible)
-        // A newly-opened component shows its version again.
         .onChange(of: chrome.componentID) { versionFaded = false }
     }
 
@@ -221,8 +208,6 @@ private struct PinwheelHostedItem: SwiftUI.View {
 
     var body: some SwiftUI.View {
         if let captureSink {
-            // Capture-on-view: whatever component the catalog shows is captured and handed to the
-            // sink (a consumer pushes it), so there's no button/script — just viewing refreshes it.
             view
                 .environment(\.pinCapturing, true)
                 .backgroundPreferenceValue(PinCaptureKey.self) { captured in

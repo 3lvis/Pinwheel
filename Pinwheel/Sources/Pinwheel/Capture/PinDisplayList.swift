@@ -2,32 +2,26 @@ import SwiftUI
 import UIKit
 import Pinwheel
 
-// Reads SwiftUI's private DisplayList off a hosted view — the exact frames and rendered content
-// SwiftUI itself produced, with no anchors or capture markers in the view. All undocumented
-// internals (ViewUpdater.lastList, DisplayList item/value shapes, Path.storage, StringDrawing) are
-// contained to this file; they shift across toolchains, so a break is one place to fix. Never ships.
+// Reads SwiftUI's private, undocumented DisplayList via reflection — the internals shift across
+// toolchains, so all of it is contained to this file. Never ships.
 
 struct DisplayLeaf {
     enum Kind {
         case text(String, font: UIFont?, color: UIColor?, underline: Bool, alignment: NSTextAlignment)
         case roundedRect(radius: CGFloat, color: UIColor?)
-        case rasterizable          // a complex shape (SF Symbol) or platform view — render to a PNG
+        case rasterizable
         case color(UIColor)
-        case transparent           // a synthesized group (a fill-less button: label + icon)
+        case transparent
         case unknown(String)
     }
     let frame: CGRect
     let kind: Kind
-    // A pre-rendered PNG for a rasterizable unit — the symbol/spinner shapes drawn headless via
-    // CoreGraphics (the DisplayList hands us the vector Path, so no screen crop is needed).
     var image: String? = nil
 }
 
 @MainActor
 enum PinDisplayList {
-    // Reads the rendered DisplayList off a hosted copy. Synchronous — the display list is populated by
-    // layoutIfNeeded, and it captures every demo reliably (the async on-screen variant only existed for
-    // an icon crop that never worked). The window is returned so the caller keeps it alive.
+    // The window is returned so the caller keeps it alive.
     static func read<Content: SwiftUI.View>(_ view: Content, size: CGSize, liveControlsOnScreen: Bool) -> (leaves: [DisplayLeaf], host: UIView, window: UIWindow)? {
         let controller = UIHostingController(rootView: view.environment(\.pinCapturing, true))
         let hostView: UIView = controller.view
@@ -39,20 +33,16 @@ enum PinDisplayList {
         return (leaves, hostView, window)
     }
 
-    /// Reads leaves from an already-hosted view — used to capture the real on-screen render (a full-screen
-    /// sweep) rather than a throwaway off-screen copy. Heavy UIKit controls only populate the DisplayList
-    /// when actually rendered, and an off-screen duplicate is throttled in a batch, so reading the live
-    /// host is what makes every control reliably present.
+    // Heavy UIKit controls populate the DisplayList only once actually rendered, so reading the live
+    // on-screen host (not an off-screen copy) is what makes every control reliably present.
     static func leaves(fromHost hostView: UIView, liveControlsOnScreen: Bool) -> [DisplayLeaf]? {
         hostView.layoutIfNeeded()
         guard let list = displayList(of: hostView) else { return nil }
         return fillRasterCrops(walk(list, origin: .zero), host: hostView, liveControlsOnScreen: liveControlsOnScreen)
     }
 
-    // A rasterizable leaf the DisplayList gave us no vector Path for — a UITableView-hosted List cell's
-    // icon/toggle/chevron lives in the UIKit layer tree, and SwiftUI's renderer returns a blank
-    // placeholder for platform-backed content. Recover its pixels by rendering the host layer once and
-    // cropping each blank region (the UIKit-layer render captures what SwiftUI's renderer can't).
+    // SwiftUI's renderer returns a blank placeholder for platform-backed content (a List cell's
+    // icon/toggle/chevron in the UIKit layer tree), so recover its pixels from a host-layer render.
     private static func fillRasterCrops(_ leaves: [DisplayLeaf], host: UIView, liveControlsOnScreen: Bool) -> [DisplayLeaf] {
         let needsCrop = leaves.contains { if case .rasterizable = $0.kind, $0.image == nil { return true }; return false }
         guard needsCrop else { return leaves }
@@ -60,16 +50,12 @@ enum PinDisplayList {
         let full = UIGraphicsImageRenderer(bounds: host.bounds).image { context in host.layer.render(in: context.cgContext) }
         guard let cgImage = full.cgImage else { return leaves }
         let scale = full.scale
-        // The layer render includes the safe-area inset; the DisplayList frames are relative to the
-        // content below it. Read the crop from frame + inset so the icon lands on its own row, not the
-        // empty strip above (a UITableView-hosted List sits inside the safe area).
+        // The layer render includes the safe-area inset but DisplayList frames don't, so crop at
+        // frame + inset (a UITableView-hosted List sits inside the safe area).
         let inset = host.safeAreaInsets
-        // A UIKit control (switch, segmented, slider, stepper, progress, date picker) paints its real
-        // appearance/state only on the live screen (off-screen it's a flat blob), so crop those from the
-        // on-screen key window and assign them to the wide rasterizable leaves in vertical order;
-        // icons/chevrons crop the off-screen host fine. Only crop the key window when the caller vouches
-        // that this component *is* the on-screen content — otherwise the key window is some other surface
-        // (the catalog) and its controls would land on this component's leaves (the v7 corruption).
+        // A UIKit control paints its real appearance only on the live screen (off-screen it's a flat
+        // blob). Crop the key window only when the caller vouches this component is the on-screen
+        // content — otherwise foreign controls (the catalog's) land on these leaves (the v7 corruption).
         let controlCrops = liveControlsOnScreen ? keyWindowControlCrops() : []
         let wideLeaves = leaves.indices
             .filter { if case .rasterizable = leaves[$0].kind, leaves[$0].image == nil, leaves[$0].frame.width > 40 { return true }; return false }
@@ -81,9 +67,8 @@ enum PinDisplayList {
         return leaves.enumerated().map { index, leaf in
             guard case .rasterizable = leaf.kind, leaf.image == nil else { return leaf }
             if let crop = controlByLeaf[index] {
-                // Size the leaf to the real control bounds. SwiftUI's DisplayList undersizes a platform
-                // view (the date picker captures 16pt narrower than it draws), so keeping the placeholder
-                // frame would crop the live crop under the plugin's FILL. Keep the laid-out origin.
+                // SwiftUI's DisplayList undersizes a platform view (the date picker captures 16pt
+                // narrower than it draws), so size the leaf to the real control bounds, keeping its origin.
                 var filled = DisplayLeaf(frame: CGRect(origin: leaf.frame.origin, size: crop.frame.size), kind: leaf.kind)
                 filled.image = crop.image
                 return filled
@@ -98,9 +83,7 @@ enum PinDisplayList {
         }
     }
 
-    // Real control pixels: find each top-level UIKit control in the on-screen key window and crop it from
-    // a live-window render (drawHierarchy paints the actual control — state, knob, tint — that an
-    // off-screen render can't). Don't recurse into a control (a stepper's ± are inner buttons).
+    // Don't recurse into a control — a stepper's ± are inner buttons, not separate controls.
     private static func keyWindowControlCrops() -> [(frame: CGRect, image: String)] {
         guard let window = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene })
             .flatMap({ $0.windows }).first(where: { $0.isKeyWindow }) else { return [] }
@@ -118,11 +101,8 @@ enum PinDisplayList {
         scan(window)
         guard !controls.isEmpty else { return [] }
         controls.sort { $0.convert($0.bounds, to: window).minY < $1.convert($1.bounds, to: window).minY }
-        // `afterScreenUpdates: false` reads the window's existing front buffer — the control has already
-        // painted (the caller waits for on-screen render + we settle layout above), so forcing a
-        // synchronous render-server commit with `true` only accumulates GPU-backed surfaces the sim's
-        // render server never reclaims, which is what degrades it into dropping heavy controls after a
-        // batch. The autoreleasepool releases the full-window bitmap the instant the crops are extracted.
+        // `afterScreenUpdates: false` reads the already-painted front buffer; `true` forces render-server
+        // commits that accumulate GPU surfaces the sim never reclaims, degrading it into dropping controls.
         return autoreleasepool {
             let full = UIGraphicsImageRenderer(bounds: window.bounds).image { _ in window.drawHierarchy(in: window.bounds, afterScreenUpdates: false) }
             guard let cgImage = full.cgImage else { return [] }
@@ -137,13 +117,6 @@ enum PinDisplayList {
         }
     }
 
-    // Assign the live control crops to the wide rasterizable leaves by vertical order. The caller only
-    // passes live crops when the component is the on-screen content (the sweep), so the on-screen
-    // controls top-to-bottom are this component's controls top-to-bottom — no geometric matching needed,
-    // which is why this survives a UITableView whose off-screen and on-screen row spacing differ. The
-    // returned crop carries its frame so the leaf can size to the real control bounds. When the component
-    // isn't on screen (the catalog), the caller passes no crops, so nothing foreign is ever assigned —
-    // that's what prevents the v7 corruption (see Tests/PinwheelTests/Fixtures/apple-controls-v7-corruption.png).
     static func matchedControlCrops(
         wideLeaves: [(index: Int, frame: CGRect)],
         crops: [(frame: CGRect, image: String)]
@@ -175,26 +148,20 @@ enum PinDisplayList {
                 let inner = child(payload, "value") ?? payload
                 if let (kind, data) = enumCase(inner), kind == "shape",
                    let path = Mirror(reflecting: data).children.first?.value as? SwiftUI.Path, roundedRectRadius(path) == nil {
-                    // A complex (non rounded-rect) shape — an SF Symbol or the single-path spinner —
-                    // render its vector headless rather than leaving it a blank rasterizable.
                     leaves.append(DisplayLeaf(frame: frame, kind: .rasterizable, image: renderPath(path, color: deepColor(data), unitSize: frame.size)))
                 } else if let kind = contentKind(inner) {
                     leaves.append(DisplayLeaf(frame: frame, kind: kind))
                 }
             } else {
                 var children = nestedLists(in: payload).flatMap { walk($0, origin: frame.origin) }
-                // A clipShape(RoundedRectangle) rides a clip effect, not the fill — round the fill it
-                // wraps (a card's background) by its corner radius so the corners match.
+                // A clipShape(RoundedRectangle) rides a separate clip effect, not the fill, so round the
+                // fill it wraps by the clip's corner radius.
                 if let radius = clipCornerRadius(payload) {
                     children = children.map { rounded($0, by: radius, matching: frame) }
                 }
-                // A small, text-free group is an icon or the spinner — render its vector shapes headless
-                // into one rasterizable unit (the DisplayList gives us the Path, so no screen crop).
                 if isRasterUnit(frame, children) {
                     leaves.append(DisplayLeaf(frame: frame, kind: .rasterizable, image: renderShapes(in: payload, unitSize: frame.size)))
                 } else if isBareButton(frame, children) {
-                    // A fill-less button (tertiary) has no shape, but its frame carries the real padded,
-                    // min-width box — emit a transparent container so the label centers in it, not bare.
                     leaves.append(DisplayLeaf(frame: frame, kind: .transparent))
                     leaves.append(contentsOf: children)
                 } else {
@@ -210,8 +177,8 @@ enum PinDisplayList {
         return children.allSatisfy { if case .text = $0.kind { return false } else { return true } }
     }
 
-    // The corner radius of a clipShape(RoundedRectangle) effect — its FixedRoundedRect lives in the
-    // effect payload (not the nested content), so search there without descending into child lists.
+    // A clipShape's FixedRoundedRect lives in the effect payload, not the nested content — search the
+    // payload without descending into child display lists.
     private static func clipCornerRadius(_ payload: Any, _ depth: Int = 0) -> CGFloat? {
         if depth > 8 { return nil }
         if String(describing: type(of: payload)).contains("FixedRoundedRect"), let size = child(payload, "cornerSize") as? CGSize {
@@ -223,7 +190,6 @@ enum PinDisplayList {
         return nil
     }
 
-    // Round a fill leaf (a color/rect background) that the clip wraps — matched by frame.
     private static func rounded(_ leaf: DisplayLeaf, by radius: CGFloat, matching frame: CGRect) -> DisplayLeaf {
         guard abs(leaf.frame.width - frame.width) < 2, abs(leaf.frame.height - frame.height) < 2 else { return leaf }
         switch leaf.kind {
@@ -233,8 +199,6 @@ enum PinDisplayList {
         }
     }
 
-    // A fill-less button: a control-height group (taller than a label) wrapping only text/icon — its
-    // frame is the real padded, min-width box, so keep it as a transparent container.
     private static func isBareButton(_ frame: CGRect, _ children: [DisplayLeaf]) -> Bool {
         guard frame.height >= 30, !children.isEmpty else { return false }
         var textCount = 0
@@ -245,16 +209,13 @@ enum PinDisplayList {
             default: return false
             }
         }
-        // A button wraps a single label (plus an optional icon); a group of several texts is a layout
-        // container — a stack of rows — not a button.
         guard textCount == 1 else { return false }
-        // A button's box pads its label (or hits the control min-width); a multi-line wrapping label
-        // fills its frame edge to edge. Only the padded case is a button — else it's just tall text.
+        // SwiftUI pads a button's box around its label (or hits the control min-width) but a multi-line
+        // label fills its frame edge to edge — only the padded case is a button.
         let content = children.map(\.frame).reduce(children[0].frame) { $0.union($1) }
         return (frame.width - content.width) / 2 > 4
     }
 
-    // Fill one vector Path into a transparent PNG of the leaf's size — headless, no screen.
     private static func renderPath(_ path: SwiftUI.Path, color: UIColor?, unitSize: CGSize) -> String? {
         let bounds = path.boundingRect
         let size = CGSize(width: max(unitSize.width, 1), height: max(unitSize.height, 1))
@@ -267,8 +228,6 @@ enum PinDisplayList {
         return image.pngData()?.base64EncodedString()
     }
 
-    // Render every shape in an icon/spinner subtree via CoreGraphics — headless, so no screen crop.
-    // The DisplayList hands us the SwiftUI Path per shape; fill each at its position in the unit.
     private static func renderShapes(in effectPayload: Any, unitSize: CGSize) -> String? {
         var shapes: [(path: SwiftUI.Path, color: UIColor?, origin: CGPoint)] = []
         func collect(_ payload: Any, _ origin: CGPoint) {
@@ -371,7 +330,7 @@ enum PinDisplayList {
         if depth > 8 { return nil }
         if let color = value as? UIColor { return color }
         if CFGetTypeID(value as CFTypeRef) == CGColor.typeID { return UIColor(cgColor: value as! CGColor) }
-        // SwiftUI resolves fills to `Color.Resolved` — linear-RGB floats, not a UIColor. Convert.
+        // SwiftUI resolves fills to `Color.Resolved` — linear-RGB floats, not a UIColor.
         if let color = resolvedColor(value) { return color }
         for child in Mirror(reflecting: value).children { if let found = deepColor(child.value, depth + 1) { return found } }
         return nil

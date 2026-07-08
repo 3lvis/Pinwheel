@@ -56,8 +56,7 @@ class UIKitPinTableViewDemo: UIKitPinView, Tweakable {
             off,
             on
         ]
-        // Filler rows make the list overflow the sheet; the scroll-edge shadow
-        // only shows once content scrolls.
+        // Filler rows overflow the sheet so the scroll-edge shadow shows once content scrolls.
         let filler = (1...12).map { UIKitPinTextTableViewItem(title: "Row \($0)") }
         return variants + filler
     }()

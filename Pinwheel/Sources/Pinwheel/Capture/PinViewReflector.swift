@@ -1,11 +1,7 @@
 import SwiftUI
 import Pinwheel
 
-// Recovers the SwiftUI layout tree — native VStack/HStack, their spacing/alignment, and the order
-// of their leaves — by reflecting the view value with Mirror. SwiftUI won't let us intercept its
-// own stacks, so this reads their private internals (_VariadicView.Tree / _VStackLayout). That's
-// undocumented and can shift between toolchains (Swift 6 already inserts implicit AnyViews we unwrap
-// here); the quirks are contained to this file so a break is one place to fix.
+// Recovers the SwiftUI layout tree by reflecting the view value over SwiftUI's private, undocumented view internals, which shift between toolchains.
 
 indirect enum ReflectedNode {
     case container(ReflectedContainer, [ReflectedNode])
@@ -33,8 +29,6 @@ enum PinViewReflector {
             let children = content.map { flatten($0).compactMap(walk) } ?? []
             return .container(ReflectedContainer(axis: axis, spacing: spacing, alignment: alignment), children)
         }
-        // Exact match (allowing a generic parameter) — a prefix would misread a custom composite like
-        // PinButtonDemo as a PinButton leaf and stop there.
         if isLeaf(typeName) {
             return .leaf(text: leafText(value), isButton: typeName == "PinButton" || typeName.hasPrefix("PinButton<"), fillWidth: false)
         }
@@ -49,11 +43,7 @@ enum PinViewReflector {
         }
         if typeName.hasPrefix("ModifiedContent") {
             let modifier = property(value, "modifier")
-            // `pinCapturedRasterized` marks its content as one rendered leaf — a raster crop of a SwiftUI
-            // primitive (Toggle/Slider/DatePicker…) the walk would otherwise skip, desyncing the count.
             if isCaptureMarker(modifier) { return .leaf(text: nil, isButton: false, fillWidth: false) }
-            // The modifier (padding/background) is layout we don't model — walk the content. But a
-            // `.frame(maxWidth: .infinity)` is meaningful: flag the leaf to fill its parent's width.
             let node = property(value, "content").flatMap(walk)
             if isFillWidthFrame(modifier), case .leaf(let text, let isButton, _) = node {
                 return .leaf(text: text, isButton: isButton, fillWidth: true)
@@ -62,25 +52,13 @@ enum PinViewReflector {
         }
         if typeName.hasPrefix("TupleView") || typeName.hasPrefix("Group") || typeName.hasPrefix("Optional")
             || typeName.hasPrefix("_ConditionalContent") {
-            // A bare group of views with no stack of its own — hand its children to the parent by
-            // returning the first meaningful node, or nothing.
             let children = flatten(value).compactMap(walk)
             return children.count == 1 ? children.first : (children.isEmpty ? nil : .container(ReflectedContainer(axis: .column, spacing: nil, alignment: .leading), children))
         }
-        // A dynamic/structural container (ForEach, List, Section) generates its children through a
-        // closure the value tree doesn't expose, and its `body` traps. Skip it so the leaf count won't
-        // match and capture falls back to containment, which recovers the geometry from the DisplayList.
         if isStructuralContainer(typeName) { return nil }
-        // A raw SwiftUI primitive emits no capture descriptor, so it's not a leaf (counting it would
-        // desync the leaf-to-descriptor zip) and its `body` traps — skip it.
         if isPrimitive(typeName) { return nil }
-        // A UIKit bridge (UIViewRepresentable / UIViewControllerRepresentable — e.g. the catalog's
-        // UIKit host) has no reflectable body; `.body` traps. Skip so capture falls back to containment
-        // (the platform view rasterizes as one leaf) instead of crashing the app.
+        // A SwiftUI primitive's or UIKit-bridge's `.body` traps if reached; skip so capture falls back to containment instead of crashing.
         if value is any UIViewRepresentable || value is any UIViewControllerRepresentable { return nil }
-        // Any remaining SwiftUI-module view is a primitive we don't model (Picker, Stepper, DatePicker,
-        // …); its `.body` traps, so skip — containment captures its geometry. Only recurse into a custom
-        // composite's body (a user/library type, never `SwiftUI.*`). `any View` reaches `.body` on `Any`.
         if let view = value as? any SwiftUI.View {
             if String(reflecting: type(of: value)).hasPrefix("SwiftUI.") { return nil }
             return walk(view.body)
@@ -88,29 +66,21 @@ enum PinViewReflector {
         return nil
     }
 
-    // Pinwheel components that manage their own capture; reflection stops here rather than recursing
-    // into their body. PinButton/PinLabel emit one top-level node each (clean 1:1 zip); PinList/
-    // PinStateView emit many, which the engine's leaf-count guard catches to fall back to flat.
     private static let leafTypes = ["PinButton", "PinLabel", "PinList", "PinStateView"]
     private static func isLeaf(_ typeName: String) -> Bool {
         leafTypes.contains { typeName == $0 || typeName.hasPrefix($0 + "<") }
     }
 
-    // The anchor-preference transform `pinCapturedRasterized`/`pinCapturedContainer` attach on
-    // PinCaptureKey — the marked view is one captured element, counted as a leaf.
     private static func isCaptureMarker(_ modifier: Any?) -> Bool {
         guard let modifier else { return false }
         return String(describing: type(of: modifier)).contains("PinCaptureKey")
     }
 
-    // A `.frame(maxWidth: .infinity)` modifier (a _FlexFrameLayout with an infinite max width).
     private static func isFillWidthFrame(_ modifier: Any?) -> Bool {
         guard let modifier, String(describing: type(of: modifier)).contains("FlexFrame") else { return false }
         return (Mirror(reflecting: modifier).children.first { $0.label == "maxWidth" }?.value as? CGFloat) == .infinity
     }
 
-    // The leaf's identifying text (PinButton.title / PinLabel.text) so a consumer can match it to the
-    // rendered element by content rather than by position (2D grids scramble a positional zip).
     private static func leafText(_ value: Any) -> String? {
         let mirror = Mirror(reflecting: value)
         for label in ["title", "text"] {
@@ -122,7 +92,6 @@ enum PinViewReflector {
         return nil
     }
 
-    // Raw SwiftUI primitives — no descriptor, and their `body` traps, so skip rather than recurse.
     private static let primitiveTypes = ["Text", "Image", "Color", "Divider", "EmptyView", "Rectangle",
                                          "RoundedRectangle", "Circle", "Capsule", "Ellipse", "ProgressView",
                                          "Toggle", "Slider", "Label", "Link"]

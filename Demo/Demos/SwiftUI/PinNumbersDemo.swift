@@ -18,7 +18,6 @@ struct PinNumbersDemo: SwiftUI.View {
         ("radiusL", .radiusL)
     ]
 
-    // Set the outer radius; each inset derives its own inner radius from the gap.
     private let concentricOuter: CGFloat = .radiusL
     private let concentricInsets: [CGFloat] = [.spacingXS, .spacingM, .spacingL]
 
@@ -54,9 +53,6 @@ struct PinNumbersDemo: SwiftUI.View {
         .background(.primaryBackground)
     }
 
-    // An inner box inset from a rounded outer box keeps its corners parallel — the
-    // two share a corner center — when its radius is the outer radius minus the
-    // inset, clamped at 0 once the inset swallows the radius.
     private func concentricRadius(outer: CGFloat, inset: CGFloat) -> CGFloat {
         max(outer - inset, 0)
     }
@@ -78,8 +74,6 @@ struct PinNumbersDemo: SwiftUI.View {
         }
     }
 
-    // Nesting three deep: each layer re-declares itself as the container for the next, so every inset
-    // steps the radius down by the gap (24 → 16 → 8) and all three curves stay concentric.
     private func concentricStack() -> some SwiftUI.View {
         let gap: CGFloat = .spacingS
         let middle = concentricRadius(outer: concentricOuter, inset: gap)

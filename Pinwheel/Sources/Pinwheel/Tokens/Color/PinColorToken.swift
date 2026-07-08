@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// A color token that knows its own name. Components map to a token *once* (for rendering);
-/// its `rawValue` is the capture name, so there's no parallel name mapping to keep in sync.
 public enum PinColorToken: String, CaseIterable {
     case primaryText
     case secondaryText

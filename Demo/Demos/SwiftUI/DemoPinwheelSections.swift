@@ -44,8 +44,6 @@ enum DemoPinwheelSections {
 }
 
 #if DEBUG
-// Change to any catalog id and render the preview below; an unknown id renders a
-// list of every available id.
 private let previewComponentID = Catalog.numbers.id(.swiftUI)
 
 #Preview("Pinwheel Component") {

@@ -4,10 +4,7 @@ import { getQuickJS } from 'quickjs-emscripten'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
-// Figma runs plugins in QuickJS-on-WASM, not V8. Evaluating the bundle in that same engine catches
-// VM-incompatible output — syntax esbuild's ES2017 target is supposed to down-level — that a Node/V8 vm
-// would silently accept. A minimal figma stub covers what the bundle touches at load (showUI + the
-// ui.onmessage assignment); everything else runs inside functions.
+// Figma runs plugins in QuickJS-on-WASM, not V8, so evaluating the bundle there catches VM-incompatible output a Node/V8 vm would silently accept.
 const code = readFileSync(fileURLToPath(new URL('../code.js', import.meta.url)), 'utf8')
 const stub = `
   var __html__ = '';

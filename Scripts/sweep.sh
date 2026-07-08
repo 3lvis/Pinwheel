@@ -32,7 +32,6 @@ readonly PREVIEW_OUT="${PINWHEEL_PREVIEW_OUT:-/tmp/pinwheel-previews}"
 readonly DERIVED="/tmp/pinwheel-sweep-dd"
 readonly BUILD_LOG="/tmp/pinwheel-sweep-build.log"
 
-# Set once in main(); the EXIT trap and helpers read them.
 UDID=""
 CONTAINER=""
 ONLY=""
@@ -52,12 +51,10 @@ Usage: Scripts/sweep.sh [--capture] [--preview] [--no-build] [--only=<id>]
 EOF
 }
 
-# Leave the simulator light after preview flips its appearance.
 cleanup() {
   [[ -n "${UDID}" ]] && xcrun simctl ui "${UDID}" appearance light >/dev/null 2>&1 || true
 }
 
-# Prefer an already-booted sim; else boot the named device. Echoes the UDID.
 resolve_udid() {
   local udid device
   udid="$(xcrun simctl list devices | awk -F '[()]' '/Booted/ {print $2; exit}')"
@@ -85,7 +82,6 @@ build_and_install() {
   xcrun simctl install "${UDID}" "${app}"
 }
 
-# Launch the app's manifest dump and echo one component id per line.
 dump_ids() {
   local manifest="${CONTAINER}/Documents/pinwheel-catalog.json" i
   xcrun simctl terminate "${UDID}" "${BUNDLE_ID}" >/dev/null 2>&1 || true
@@ -96,14 +92,13 @@ dump_ids() {
   python3 -c "import json; print('\n'.join(item['id'] for item in json.load(open('${manifest}'))))"
 }
 
-# Launch each component once and let it push its single-appearance capture to the serve.
 capture_round() {
   local -a ids=("$@")
   local id
   for id in "${ids[@]}"; do
     xcrun simctl terminate "${UDID}" "${BUNDLE_ID}" >/dev/null 2>&1 || true
     xcrun simctl launch "${UDID}" "${BUNDLE_ID}" -PinwheelCapture "${id}" >/dev/null 2>&1
-    sleep 3   # let layout, rasterisation, and the push complete
+    sleep 3
     echo "  ok: ${id}"
   done
 }
@@ -113,10 +108,7 @@ run_capture() {
   local count light_dir="/tmp/pinwheel-sweep-light"
   curl -sf -o /dev/null "${SERVE}/manifest.json" \
     || die "--capture needs the serve at ${SERVE} — run 'npm run serve' in figma-plugin/"
-  # A UIKit control (switch/segmented/slider/stepper/progress/datepicker) only renders in the SIM's
-  # appearance — no in-app override repaints it — so capture the whole sweep twice, sim light then sim
-  # dark, and merge the dark crops in as each node's dark variant. A --only spot-check keeps the rest of
-  # the catalog and skips the reboot; a full sweep clears first and reboots for a clean render server.
+  # A UIKit control (switch/segmented/slider/stepper/progress/datepicker) only paints in the SIM's appearance — no in-app override repaints it — so sweep twice, sim light then dark.
   if [[ -z "${ONLY}" ]]; then
     err "clearing previous catalog on serve ..."
     curl -sf -X DELETE "${SERVE}/catalog" >/dev/null
@@ -145,8 +137,6 @@ PY
   err "capturing ${#ids[@]} components (dark) ..."
   xcrun simctl ui "${UDID}" appearance dark >/dev/null 2>&1 || true
   capture_round "${ids[@]}"
-  # Graft the dark render's pixels/fills onto the saved light document (matched by position, same view)
-  # and re-push the merged entry, so every node — controls included — carries both appearances.
   err "merging light + dark ..."
   python3 - "${SERVE}" "${light_dir}" "${ids[@]}" <<'PY'
 import json, sys, os, urllib.request
@@ -187,7 +177,7 @@ run_preview() {
   mkdir -p "${light_out}" "${dark_out}"
   rm -f "${light_out}"/*.png "${dark_out}"/*.png
 
-  # <preview-id> <output-name> [tweak-title] — reads ${dest} from the enclosing loop.
+  # Reads ${dest} from the enclosing loop.
   snapshot() {
     local id="$1" name="$2" tweak="${3:-}"
     xcrun simctl terminate "${UDID}" "${BUNDLE_ID}" >/dev/null 2>&1 || true

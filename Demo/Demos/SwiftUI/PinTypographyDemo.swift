@@ -11,8 +11,7 @@ struct PinTypographyDemo: SwiftUI.View {
         ("Caption", .caption)
     ]
 
-    // Rows live in a VStack, not a List: a List's UIKit-backed cells don't render off-screen, so the
-    // Figma capture reads them as an empty background; a VStack renders into SwiftUI's own tree.
+    // VStack, not List: a List's UIKit-backed cells don't render off-screen, so Figma capture reads them empty.
     var body: some SwiftUI.View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
