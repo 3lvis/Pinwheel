@@ -103,7 +103,6 @@ async function makeText(run: any, font: any): Promise<TextNode> {
   const text = figma.createText()
   const style = plan.styleName ? textStyles[plan.styleName] : undefined
   if (style) {
-    // Load the font before writing characters — a fresh text node's default font is unloaded.
     await figma.loadFontAsync(style.fontName as FontName)
     text.fontName = style.fontName as FontName
     text.characters = plan.characters
@@ -219,7 +218,6 @@ async function build(node: any, parent: BaseNode & ChildrenMixin, parentX: numbe
   }
 
   let frame: FrameNode | ComponentNode
-  // Figma forbids a component inside a component, so a component-tagged node nested in one becomes a frame.
   if (node.component && !insideComponent) {
     const component = figma.createComponent()
     masters[node.component] = component

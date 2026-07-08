@@ -26,19 +26,37 @@ export function loadPlugin() {
     addMode(name) { this.modes.push({ modeId: 'dark', name }); return 'dark' },
   }
   const variablesByName = new Map()
+  // Model Figma's rule that a text node's font must be loaded before its characters are written — a fresh
+  // node's default font (Inter Regular) is unloaded, so writing characters first throws (as it does in
+  // Figma). This is what lets a test catch a reordered makeText.
+  const loadedFonts = new Set()
+  const fontKey = (font) => font && `${font.family}|${font.style}`
+  const createText = () => {
+    const made = node('TEXT', { fontSize: 12, fills: [], fontName: { family: 'Inter', style: 'Regular' } })
+    let characters = ''
+    Object.defineProperty(made, 'characters', {
+      enumerable: true,
+      get: () => characters,
+      set: (value) => {
+        if (!loadedFonts.has(fontKey(made.fontName))) throw new Error('characters written before font ' + fontKey(made.fontName) + ' was loaded')
+        characters = value
+      },
+    })
+    return made
+  }
   const api = {
     mixed: Symbol('mixed'),
     showUI() {},
     notify() {},
     ui: { onmessage: null, postMessage() {} },
-    createText: () => node('TEXT', { characters: '', fontSize: 12, fills: [] }),
+    createText,
     createFrame: () => node('FRAME', { fills: [] }),
     createRectangle: () => node('RECT', { fills: [] }),
     createComponent: () => node('COMPONENT'),
     createTextStyle: () => node('TEXTSTYLE'),
     createImage: () => ({ hash: 'image' }),
     base64Decode: () => new Uint8Array(),
-    loadFontAsync: async () => {},
+    loadFontAsync: async (fontName) => { loadedFonts.add(fontKey(fontName)) },
     variables: {
       getLocalVariableCollectionsAsync: async () => [],
       createVariableCollection: (name) => { collection.name = name; return collection },
