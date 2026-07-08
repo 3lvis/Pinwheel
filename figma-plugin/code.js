@@ -75,8 +75,9 @@ var PW = (() => {
     items.sort((a, b) => Math.abs(a.y - b.y) > ROW_TOLERANCE ? a.y - b.y : a.x - b.x);
     return items.map(({ child, run }) => child ? { child } : { run });
   }
+  var MULTILINE_HEIGHT_RATIO = 1.5;
   function planText(run, font) {
-    const multiline = typeof run.w === "number" && run.w > 0 && typeof run.h === "number" && run.h > font.size * 1.5;
+    const multiline = typeof run.w === "number" && run.w > 0 && typeof run.h === "number" && run.h > font.size * MULTILINE_HEIGHT_RATIO;
     return {
       characters: run.text,
       fontSize: font.size,
@@ -361,17 +362,20 @@ var PW = (() => {
     if (base.indexOf("font-") === 0) return "type/family/" + base.slice(5);
     return "other/" + base;
   }
+  var TOKEN_COLLECTION = "Pinwheel Tokens";
+  var LIGHT_MODE = "Light";
+  var DARK_MODE = "Dark";
   async function syncTokens(tokens) {
     const collections = await figma.variables.getLocalVariableCollectionsAsync();
-    let collection = collections.find((c) => c.name === "Pinwheel Tokens");
-    if (!collection) collection = figma.variables.createVariableCollection("Pinwheel Tokens");
+    let collection = collections.find((c) => c.name === TOKEN_COLLECTION);
+    if (!collection) collection = figma.variables.createVariableCollection(TOKEN_COLLECTION);
     const lightModeId = collection.modes[0].modeId;
-    collection.renameMode(lightModeId, "Light");
-    let darkModeId = (collection.modes.find((m) => m.name === "Dark") || {}).modeId || null;
+    collection.renameMode(lightModeId, LIGHT_MODE);
+    let darkModeId = (collection.modes.find((m) => m.name === DARK_MODE) || {}).modeId || null;
     if (!darkModeId) {
       darkModeId = (() => {
         try {
-          return collection.addMode("Dark");
+          return collection.addMode(DARK_MODE);
         } catch (e) {
           return null;
         }
@@ -483,17 +487,32 @@ var PW = (() => {
     }
     return result;
   }
+  var DEVICE_WIDTH = 402;
+  var SAFE_AREA_TOP = 62;
+  var SAFE_AREA_BOTTOM = 34;
+  var MIN_DEVICE_HEIGHT = 874;
+  var DEVICE_CORNER_RADIUS = 55;
+  var STATUS_BAR_PAD_TOP = 2;
+  var STATUS_BAR_PAD_LEFT = 52;
+  var STATUS_BAR_PAD_RIGHT = 32;
+  var CLOCK_FONT_SIZE = 17;
+  var CLOCK_MIN_WIDTH = 44;
+  var ISLAND_WIDTH = 124;
+  var ISLAND_HEIGHT = 37;
+  var ISLAND_CORNER_RADIUS = 19;
+  var ISLAND_TOP = 13.5;
+  var HOME_INDICATOR_WIDTH = 140;
+  var HOME_INDICATOR_HEIGHT = 5;
+  var HOME_INDICATOR_CORNER_RADIUS = 2.5;
+  var HOME_INDICATOR_BOTTOM_GAP = 10;
   async function wrapInDeviceFrame(content, screenName) {
-    const WIDTH = 402;
-    const CONTENT_TOP = 62;
-    const HOME_H = 34;
-    const height = Math.max(874, CONTENT_TOP + content.height + HOME_H);
+    const height = Math.max(MIN_DEVICE_HEIGHT, SAFE_AREA_TOP + content.height + SAFE_AREA_BOTTOM);
     const chrome = darkMode ? { r: 1, g: 1, b: 1 } : { r: 0, g: 0, b: 0 };
     const device = figma.createFrame();
     device.name = screenName + " \u2014 iPhone 17";
     figma.currentPage.appendChild(device);
-    device.resize(WIDTH, height);
-    device.cornerRadius = 55;
+    device.resize(DEVICE_WIDTH, height);
+    device.cornerRadius = DEVICE_CORNER_RADIUS;
     device.clipsContent = true;
     device.fills = content.fills;
     device.layoutMode = "VERTICAL";
@@ -508,7 +527,7 @@ var PW = (() => {
     const statusBar = figma.createFrame();
     device.appendChild(statusBar);
     statusBar.name = "Status Bar";
-    statusBar.resize(WIDTH, CONTENT_TOP);
+    statusBar.resize(DEVICE_WIDTH, SAFE_AREA_TOP);
     statusBar.fills = [];
     statusBar.clipsContent = false;
     statusBar.layoutMode = "HORIZONTAL";
@@ -517,18 +536,18 @@ var PW = (() => {
     statusBar.primaryAxisAlignItems = "SPACE_BETWEEN";
     statusBar.counterAxisAlignItems = "CENTER";
     statusBar.itemSpacing = 0;
-    statusBar.paddingTop = 2;
+    statusBar.paddingTop = STATUS_BAR_PAD_TOP;
     statusBar.paddingBottom = 0;
-    statusBar.paddingLeft = 52;
-    statusBar.paddingRight = 32;
+    statusBar.paddingLeft = STATUS_BAR_PAD_LEFT;
+    statusBar.paddingRight = STATUS_BAR_PAD_RIGHT;
     const time = figma.createText();
     statusBar.appendChild(time);
     time.name = "Time";
     time.fontName = await resolveFont("SF Pro", 500, false);
     time.characters = "9:41";
-    time.fontSize = 17;
+    time.fontSize = CLOCK_FONT_SIZE;
     time.fills = [{ type: "SOLID", color: chrome }];
-    time.minWidth = 44;
+    time.minWidth = CLOCK_MIN_WIDTH;
     time.textAlignHorizontal = "RIGHT";
     time.leadingTrim = "CAP_HEIGHT";
     const indicators = figma.createNodeFromSvg(statusIndicatorsSvg(chrome));
@@ -537,12 +556,12 @@ var PW = (() => {
     const island = figma.createRectangle();
     statusBar.appendChild(island);
     island.name = "Dynamic Island";
-    island.resize(124, 37);
-    island.cornerRadius = 19;
+    island.resize(ISLAND_WIDTH, ISLAND_HEIGHT);
+    island.cornerRadius = ISLAND_CORNER_RADIUS;
     island.fills = [{ type: "SOLID", color: { r: 0, g: 0, b: 0 } }];
     island.layoutPositioning = "ABSOLUTE";
-    island.x = (WIDTH - 124) / 2;
-    island.y = 13.5;
+    island.x = (DEVICE_WIDTH - ISLAND_WIDTH) / 2;
+    island.y = ISLAND_TOP;
     device.appendChild(content);
     content.layoutSizingHorizontal = "FILL";
     device.itemSpacing = 0;
@@ -550,10 +569,10 @@ var PW = (() => {
     device.appendChild(home);
     home.layoutPositioning = "ABSOLUTE";
     home.name = "Home Indicator";
-    home.resize(140, 5);
-    home.x = (WIDTH - 140) / 2;
-    home.y = height - 10;
-    home.cornerRadius = 2.5;
+    home.resize(HOME_INDICATOR_WIDTH, HOME_INDICATOR_HEIGHT);
+    home.x = (DEVICE_WIDTH - HOME_INDICATOR_WIDTH) / 2;
+    home.y = height - HOME_INDICATOR_BOTTOM_GAP;
+    home.cornerRadius = HOME_INDICATOR_CORNER_RADIUS;
     home.fills = [{ type: "SOLID", color: chrome }];
     return device;
   }

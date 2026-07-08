@@ -80,8 +80,10 @@ export function orderChildren(node: any): Array<{ child?: any; run?: any }> {
   return items.map(({ child, run }) => (child ? { child } : { run }))
 }
 
+const MULTILINE_HEIGHT_RATIO = 1.5
+
 export function planText(run: any, font: any): TextPlan {
-  const multiline = typeof run.w === 'number' && run.w > 0 && typeof run.h === 'number' && run.h > font.size * 1.5
+  const multiline = typeof run.w === 'number' && run.w > 0 && typeof run.h === 'number' && run.h > font.size * MULTILINE_HEIGHT_RATIO
   return {
     characters: run.text,
     fontSize: font.size,
