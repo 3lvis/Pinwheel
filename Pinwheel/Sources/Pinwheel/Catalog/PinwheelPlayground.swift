@@ -208,15 +208,7 @@ private struct PinwheelHostedItem: SwiftUI.View {
 
     var body: some SwiftUI.View {
         if let captureSink {
-            view
-                .environment(\.pinCapturing, true)
-                .backgroundPreferenceValue(PinCaptureKey.self) { captured in
-                    GeometryReader { proxy in
-                        Color.clear
-                            .onAppear { captureSink(id, captured, proxy) }
-                            .onChange(of: captured.count) { captureSink(id, captured, proxy) }
-                    }
-                }
+            view.onAppear { captureSink(id) }
         } else {
             view
         }

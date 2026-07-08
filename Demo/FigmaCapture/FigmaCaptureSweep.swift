@@ -32,9 +32,7 @@ enum FigmaCatalog {
         entries.first { $0.id == id }
     }
 
-    static func autoPush(id: String, captured: [PinCapturedComponent], proxy: GeometryProxy) {
-        // Ignore the passed-in descriptors and rebuild off a fresh hosted copy, so the app push is the
-        // same marker-free IR as the -PinwheelCapture path.
+    static func autoPush(id: String) {
         guard let entry = entry(id: id),
               let document = PinDisplayListCapture.document(entry.item.swiftUIView(), name: entry.title, size: FigmaCatalog.captureCanvas, screenHeight: FigmaCatalog.oneScreen)
         else { return }
@@ -96,7 +94,7 @@ private struct LiveCaptureHost: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIViewController {
         let container = UIViewController()
         container.view.backgroundColor = .clear
-        let host = UIHostingController(rootView: AnyView(entry.item.swiftUIView().environment(\.pinCapturing, true)))
+        let host = UIHostingController(rootView: AnyView(entry.item.swiftUIView()))
         container.addChild(host)
         host.view.translatesAutoresizingMaskIntoConstraints = false
         container.view.addSubview(host.view)

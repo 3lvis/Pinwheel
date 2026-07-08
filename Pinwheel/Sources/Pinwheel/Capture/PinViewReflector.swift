@@ -43,7 +43,6 @@ enum PinViewReflector {
         }
         if typeName.hasPrefix("ModifiedContent") {
             let modifier = property(value, "modifier")
-            if isCaptureMarker(modifier) { return .leaf(text: nil, isButton: false, fillWidth: false) }
             let node = property(value, "content").flatMap(walk)
             if isFillWidthFrame(modifier), case .leaf(let text, let isButton, _) = node {
                 return .leaf(text: text, isButton: isButton, fillWidth: true)
@@ -69,11 +68,6 @@ enum PinViewReflector {
     private static let leafTypes = ["PinButton", "PinLabel", "PinList", "PinStateView"]
     private static func isLeaf(_ typeName: String) -> Bool {
         leafTypes.contains { typeName == $0 || typeName.hasPrefix($0 + "<") }
-    }
-
-    private static func isCaptureMarker(_ modifier: Any?) -> Bool {
-        guard let modifier else { return false }
-        return String(describing: type(of: modifier)).contains("PinCaptureKey")
     }
 
     private static func isFillWidthFrame(_ modifier: Any?) -> Bool {

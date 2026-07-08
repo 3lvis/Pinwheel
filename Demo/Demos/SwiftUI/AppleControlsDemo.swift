@@ -37,7 +37,7 @@ struct AppleControlsDemo: SwiftUI.View {
     private func control(_ name: String, @ViewBuilder _ content: () -> some SwiftUI.View) -> some SwiftUI.View {
         VStack(alignment: .leading, spacing: .spacingXS) {
             PinLabel(name).font(.caption).color(.secondary)
-            content().pinCapturedRasterized(name: name)
+            content()
         }
     }
 }
