@@ -106,40 +106,11 @@ public struct PinButton: SwiftUI.View {
         }
         .buttonStyle(PinButtonStyle(style: style, hasTitle: title != nil))
         .sensoryFeedback(.impact(weight: style.isPrimary ? .medium : .light), trigger: tapCount)
-        .pinCapturedContainer(
-            name: captureName, fillTokenName: style.captureFillToken, fillColor: style.captureFillColor,
-            cornerRadius: .radiusM, enabled: isEnabled,
-            // Auto-layout so a reused Figma master re-flows to each instance's text, not the master's fixed frame.
-            layout: PinCaptureLayout(
-                axis: .row, spacing: .spacingS,
-                padding: EdgeInsets(top: .spacingM, leading: .spacingL, bottom: .spacingM, trailing: .spacingL),
-                alignment: .center, mainAxisAlignment: .center,
-                minWidth: title != nil ? Self.minTitledWidth : nil
-            )
-        )
     }
 
     private var captureForegroundColor: SwiftUI.Color {
         if case let .custom(text, _) = style { return text }
         return style.textColorToken?.color ?? .primaryText
-    }
-
-    private var labelStyle: PinComponentStyle {
-        PinComponentStyle(
-            name: "Label", text: title, textStyle: typography,
-            textColorTokenName: style.captureTextColorToken, fillTokenName: nil,
-            textColor: style.captureTextColor, cornerRadius: nil, centersText: false,
-            underline: style.isTertiary
-        )
-    }
-
-    private var captureName: String {
-        var name = "PinButton-\(style.captureVariant)"
-        if let systemImage { name += "-icon-\(systemImage)" }
-        if title == nil { name += "-symbol" }
-        if isLoading { name += "-loading" }
-        if !isEnabled { name += "-disabled" }
-        return name
     }
 
     @ViewBuilder
@@ -150,16 +121,13 @@ public struct PinButton: SwiftUI.View {
                     .font(typography.font)
                     .underline(style.isTertiary)
                     .lineLimit(1)
-                    .pinCaptured(labelStyle)
             }
 
             if let systemImage {
-                // Cropping the symbol from the live window races layout and blanks it; rasterize off-screen instead.
                 if pinCapturing {
                     Image(systemName: systemImage)
                         .font(typography.font)
                         .foregroundStyle(captureForegroundColor)
-                        .pinCapturedRendered(name: "Icon")
                 } else {
                     Image(systemName: systemImage)
                         .font(typography.font)
@@ -167,11 +135,9 @@ public struct PinButton: SwiftUI.View {
             }
 
             if isLoading {
-                // ProgressView is UIKit-backed; cropping it from the window blanks a thin spinner, so capture renders a static one off-screen while the app animates the real one.
                 if pinCapturing {
                     CaptureSpinner()
                         .foregroundStyle(captureForegroundColor)
-                        .pinCapturedRendered(name: "Spinner")
                 } else {
                     ProgressView().controlSize(.small)
                 }
