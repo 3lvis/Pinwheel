@@ -87,6 +87,22 @@ final class CaptureFidelityTests: XCTestCase {
         XCTAssertNil(PinFloatTokens.radiusName(for: 20), "an off-scale radius stays raw, never snapped to a token")
     }
 
+    // The screen wrapper recomputes its padding tokens from the computed pad, per side — a real spacing
+    // edge references the token, a positioning-geometry edge stays raw. It must never inherit a stale
+    // token from the content's own padding (the bug: a spacing-xl left on a geometry side that no longer
+    // measures 24).
+    func testScreenPaddingTokensMatchTheirValuesNeverInheritingStale() throws {
+        let layout = try XCTUnwrap(try captureRoot().layout, "the screen must have an auto-layout")
+        let tokens = try XCTUnwrap(layout.padTokens, "the screen must carry per-side padding tokens")
+        XCTAssertEqual(tokens.count, layout.pad.count)
+        for (value, token) in zip(layout.pad, tokens) {
+            XCTAssertEqual(token, PinFloatTokens.spacingName(for: value),
+                           "each padding side must reference its value-matched token, not an inherited stale one")
+        }
+        XCTAssertTrue(tokens.contains { $0 != nil }, "a real spacing edge should tokenize")
+        XCTAssertTrue(tokens.contains { $0 == nil }, "a positioning-geometry edge should stay raw")
+    }
+
     func testCornerAndSpacingReferenceDesignTokens() throws {
         let root = try captureRoot()
         let card = try XCTUnwrap(firstNode(in: root) { $0.fillToken == "secondaryBackground" },
