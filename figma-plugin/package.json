@@ -11,6 +11,7 @@
   "devDependencies": {
     "@figma/plugin-typings": "^1.130.0",
     "esbuild": "^0.28.1",
+    "quickjs-emscripten": "^0.32.0",
     "typescript": "~5.6.0"
   }
 }
