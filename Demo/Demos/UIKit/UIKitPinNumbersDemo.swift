@@ -40,16 +40,14 @@ class UIKitPinNumbersDemo: UIKitPinView {
         }
         stackView.addArrangedSubview(concentricStack())
 
-        let scrollView = UIScrollView(withAutoLayout: true)
-        addSubview(scrollView)
-        scrollView.addSubview(stackView)
-        scrollView.fillInSuperview()
-
+        // Pinned directly to the view (not wrapped in a UIScrollView): a scroll view lays its content
+        // out lazily/deferred, so an off-screen capture host sometimes reads zero-frame labels and falls
+        // back to a flat image. A pinned stack always lays out, so every row captures.
+        addSubview(stackView)
         NSLayoutConstraint.activate([
-            stackView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: .spacingXXL),
-            stackView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -.spacingL),
-            stackView.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor, constant: .spacingL),
-            stackView.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor, constant: -.spacingL)
+            stackView.topAnchor.constraint(equalTo: topAnchor, constant: .spacingXXL),
+            stackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingL),
+            stackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingL)
         ])
     }
 
