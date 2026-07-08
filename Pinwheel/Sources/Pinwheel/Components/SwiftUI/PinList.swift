@@ -15,11 +15,18 @@ public struct PinList: SwiftUI.View {
         switch state {
         case .loaded:
             // No per-row id to key on; positional identity is stable because rows are a fixed value array per render.
-            List(Array(rows.enumerated()), id: \.offset) { _, row in
-                row.listRowBackground(Color.primaryBackground)
+            ScrollView {
+                VStack(spacing: 0) {
+                    ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
+                        row
+                            .padding(.horizontal, .spacingM)
+                            .padding(.vertical, .spacingS)
+                        if index < rows.count - 1 {
+                            Divider().padding(.leading, .spacingM)
+                        }
+                    }
+                }
             }
-            .listStyle(.plain)
-            .scrollContentBackground(.hidden)
             .background(.primaryBackground)
         default:
             PinStateView(state, onAction: onRetry)
