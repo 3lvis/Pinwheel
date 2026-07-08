@@ -35,16 +35,19 @@ readonly BUILD_LOG="/tmp/pinwheel-sweep-build.log"
 # Set once in main(); the EXIT trap and helpers read them.
 UDID=""
 CONTAINER=""
+ONLY=""
 
 err() { echo "sweep: $*" >&2; }
 die() { err "$*"; exit 1; }
 
 usage() {
   cat >&2 <<'EOF'
-Usage: Scripts/sweep.sh [--capture] [--preview] [--no-build]
+Usage: Scripts/sweep.sh [--capture] [--preview] [--no-build] [--only=<id>]
   --capture    render each component to Figma JSON and push it to the serve
   --preview    screenshot each component (+ tweak variants, light + dark) to PNGs
   --no-build   reuse the last build
+  --only=<id>  capture just one component (e.g. swiftui-numbers) without clearing the
+               rest of the catalog — a fast spot-check; still resolves the booted sim
   (no mode)    do both
 EOF
 }
@@ -110,27 +113,31 @@ run_capture() {
   local count light_dir="/tmp/pinwheel-sweep-light"
   curl -sf -o /dev/null "${SERVE}/manifest.json" \
     || die "--capture needs the serve at ${SERVE} — run 'npm run serve' in figma-plugin/"
-  err "clearing previous catalog on serve ..."
-  curl -sf -X DELETE "${SERVE}/catalog" >/dev/null
   # A UIKit control (switch/segmented/slider/stepper/progress/datepicker) only renders in the SIM's
   # appearance — no in-app override repaints it — so capture the whole sweep twice, sim light then sim
-  # dark, and merge the dark crops in as each node's dark variant. Reboot first: a batch of heavy
-  # captures exhausts the render server and it starts dropping controls; a fresh boot is the reset.
-  err "rebooting simulator for a clean render server ..."
-  xcrun simctl shutdown "${UDID}" >/dev/null 2>&1 || true
-  xcrun simctl boot "${UDID}" >/dev/null 2>&1 || true
-  xcrun simctl bootstatus "${UDID}" -b >/dev/null 2>&1 || true
+  # dark, and merge the dark crops in as each node's dark variant. A --only spot-check keeps the rest of
+  # the catalog and skips the reboot; a full sweep clears first and reboots for a clean render server.
+  if [[ -z "${ONLY}" ]]; then
+    err "clearing previous catalog on serve ..."
+    curl -sf -X DELETE "${SERVE}/catalog" >/dev/null
+    err "rebooting simulator for a clean render server ..."
+    xcrun simctl shutdown "${UDID}" >/dev/null 2>&1 || true
+    xcrun simctl boot "${UDID}" >/dev/null 2>&1 || true
+    xcrun simctl bootstatus "${UDID}" -b >/dev/null 2>&1 || true
+  fi
 
   rm -rf "${light_dir}"; mkdir -p "${light_dir}"
   err "capturing ${#ids[@]} components (light) ..."
   xcrun simctl ui "${UDID}" appearance light >/dev/null 2>&1 || true
   capture_round "${ids[@]}"
   # Save every light document before the dark round overwrites it on the serve.
-  python3 - "${SERVE}" "${light_dir}" <<'PY'
+  python3 - "${SERVE}" "${light_dir}" "${ids[@]}" <<'PY'
 import json, sys, os, urllib.request
-serve, out = sys.argv[1], sys.argv[2]
+serve, out, captured = sys.argv[1], sys.argv[2], set(sys.argv[3:])
 items = json.load(urllib.request.urlopen(serve + '/manifest.json'))['items']
 for item in items:
+    if item['id'] not in captured:
+        continue
     data = urllib.request.urlopen(serve + '/' + item['file']).read()
     open(os.path.join(out, item['id'] + '.json'), 'wb').write(data)
 PY
@@ -141,9 +148,9 @@ PY
   # Graft the dark render's pixels/fills onto the saved light document (matched by position, same view)
   # and re-push the merged entry, so every node — controls included — carries both appearances.
   err "merging light + dark ..."
-  python3 - "${SERVE}" "${light_dir}" <<'PY'
+  python3 - "${SERVE}" "${light_dir}" "${ids[@]}" <<'PY'
 import json, sys, os, urllib.request
-serve, saved = sys.argv[1], sys.argv[2]
+serve, saved, captured = sys.argv[1], sys.argv[2], set(sys.argv[3:])
 def graft(light, dark):
     if dark is not None:
         if light.get('image') is not None: light['imageDark'] = dark.get('image')
@@ -153,6 +160,8 @@ def graft(light, dark):
         graft(child, darkKids[i] if i < len(darkKids) else None)
 items = json.load(urllib.request.urlopen(serve + '/manifest.json'))['items']
 for item in items:
+    if item['id'] not in captured:
+        continue
     path = os.path.join(saved, item['id'] + '.json')
     if not os.path.exists(path):
         continue
@@ -229,6 +238,7 @@ main() {
       --capture) do_capture=true ;;
       --preview) do_preview=true ;;
       --no-build) no_build=true ;;
+      --only=*) ONLY="${arg#--only=}"; do_capture=true ;;
       -h|--help) usage; return 0 ;;
       *) usage; die "unknown argument '${arg}'" ;;
     esac
@@ -251,6 +261,11 @@ main() {
     [[ -n "${line}" ]] && ids+=("${line}")
   done < <(dump_ids)
   [[ "${#ids[@]}" -gt 0 ]] || die "no component ids in the catalog skeleton"
+
+  if [[ -n "${ONLY}" ]]; then
+    printf '%s\n' "${ids[@]}" | grep -qx "${ONLY}" || die "no component '${ONLY}' in the catalog (ids: ${ids[*]})"
+    ids=("${ONLY}")
+  fi
 
   if "${do_capture}"; then run_capture "${ids[@]}"; fi
   if "${do_preview}"; then run_preview "${ids[@]}"; fi
