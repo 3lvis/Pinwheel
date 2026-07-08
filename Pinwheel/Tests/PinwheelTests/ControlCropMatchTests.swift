@@ -25,4 +25,40 @@ final class ControlCropMatchTests: XCTestCase {
         let leaves: [(index: Int, frame: CGRect)] = [(index: 0, frame: CGRect(x: 0, y: 0, width: 60, height: 30))]
         XCTAssertTrue(PinDisplayList.matchedControlCrops(wideLeaves: leaves, crops: []).isEmpty)
     }
+
+    func testControlCropsAssignByRankWhenBothInputsShuffled() {
+        let leaves: [(index: Int, frame: CGRect)] = [
+            (index: 8, frame: CGRect(x: 16, y: 355, width: 51, height: 31)),
+            (index: 2, frame: CGRect(x: 16, y: 250, width: 51, height: 31)),
+            (index: 5, frame: CGRect(x: 16, y: 303, width: 51, height: 31)),
+        ]
+        let crops: [(frame: CGRect, image: String)] = [
+            (frame: CGRect(x: 16, y: 539, width: 61, height: 28), image: "bottom"),
+            (frame: CGRect(x: 16, y: 407, width: 61, height: 28), image: "top"),
+            (frame: CGRect(x: 16, y: 473, width: 61, height: 28), image: "middle"),
+        ]
+        let matches = PinDisplayList.matchedControlCrops(wideLeaves: leaves, crops: crops)
+        XCTAssertEqual(matches[2]?.image, "top")
+        XCTAssertEqual(matches[5]?.image, "middle")
+        XCTAssertEqual(matches[8]?.image, "bottom")
+        XCTAssertEqual(matches.count, 3)
+    }
+
+    func testNoCropsAssignedWhenWideLeavesEmpty() {
+        let crops: [(frame: CGRect, image: String)] = [
+            (frame: CGRect(x: 0, y: 0, width: 60, height: 30), image: "orphan"),
+        ]
+        XCTAssertTrue(PinDisplayList.matchedControlCrops(wideLeaves: [], crops: crops).isEmpty)
+    }
+
+    func testNoCropsAssignedWhenNonZeroCountsDiffer() {
+        let leaves: [(index: Int, frame: CGRect)] = [
+            (index: 0, frame: CGRect(x: 0, y: 0, width: 60, height: 30)),
+            (index: 1, frame: CGRect(x: 0, y: 40, width: 60, height: 30)),
+        ]
+        let crops: [(frame: CGRect, image: String)] = [
+            (frame: CGRect(x: 0, y: 0, width: 61, height: 28), image: "only"),
+        ]
+        XCTAssertTrue(PinDisplayList.matchedControlCrops(wideLeaves: leaves, crops: crops).isEmpty)
+    }
 }
