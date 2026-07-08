@@ -83,6 +83,20 @@ export interface TextPlan {
 // re-wraps it the same way); a single-line run hugs and pins its line box to the captured height (vertical
 // centering lands where iOS drew it — Figma's SF Pro line box is a hair taller). The apply step resolves
 // the font, binds the fill, and writes these onto a real node.
+// The order to place an auto-layout frame's children. A reflection-synthesized stack already carries its
+// children in declaration order (and a zero-origin Spacer would sort to the front), so an ordered node
+// keeps the given order. Otherwise sort children and text runs top-to-bottom by row, then left-to-right
+// within a row — a single-axis sort scrambles wrapped flex rows (a step wizard wrapping to a second line
+// came out 1,2,4,3).
+export function orderChildren(node: any): Array<{ child?: any; run?: any }> {
+  if (node.ordered) return (node.children || []).map((child: any) => ({ child }))
+  const ROW_TOLERANCE = 8
+  const items: Array<{ x: number; y: number; child?: any; run?: any }> = (node.children || []).map((child: any) => ({ x: child.x, y: child.y, child }))
+  if (node.texts) for (const run of node.texts) items.push({ x: run.x, y: run.y, run })
+  items.sort((a, b) => (Math.abs(a.y - b.y) > ROW_TOLERANCE ? a.y - b.y : a.x - b.x))
+  return items.map(({ child, run }) => (child ? { child } : { run }))
+}
+
 export function planText(run: any, font: any): TextPlan {
   const multiline = typeof run.w === 'number' && run.w > 0 && typeof run.h === 'number' && run.h > font.size * 1.5
   return {

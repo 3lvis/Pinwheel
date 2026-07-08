@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { planText, planAutoLayout } from '../plan.ts'
+import { planText, planAutoLayout, orderChildren } from '../plan.ts'
 
 // The pure core imported directly — no Figma, no mock, no vm. Node strips the TS types on import.
 const plan = (run, font) => planText(run, font)
@@ -55,4 +55,24 @@ test('planAutoLayout: a wrapping row carries WRAP and the row gap as counter spa
   assert.equal(p.layoutWrap, 'WRAP')
   assert.equal(p.counterAxisSpacing, 8)
   assert.equal(p.itemSpacing, 4)
+})
+
+test('orderChildren: an ordered stack keeps declaration order, never sorting by geometry', () => {
+  const items = orderChildren({ ordered: true, children: [{ y: 100, name: 'a' }, { y: 0, name: 'b' }] })
+  assert.deepEqual(items.map((i) => i.child.name), ['a', 'b'])
+})
+
+test('orderChildren: an unordered row sorts by row then column, not one axis (the 1,2,4,3 scramble)', () => {
+  // Same visual row (y within tolerance) but y non-monotonic vs x — a pure-y sort would swap 1 and 2.
+  const node = { children: [
+    { name: '1', x: 0, y: 3 }, { name: '2', x: 100, y: 0 },
+    { name: '3', x: 200, y: 6 }, { name: '4', x: 0, y: 50 },
+  ] }
+  assert.deepEqual(orderChildren(node).map((i) => i.child.name), ['1', '2', '3', '4'])
+})
+
+test('orderChildren: unordered interleaves child nodes and text runs by position', () => {
+  const items = orderChildren({ children: [{ name: 'child', x: 0, y: 20 }], texts: [{ text: 'run', x: 0, y: 0 }] })
+  assert.equal(items[0].run.text, 'run')
+  assert.equal(items[1].child.name, 'child')
 })

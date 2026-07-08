@@ -3,7 +3,7 @@
 // them with esbuild (target ES2017, one classic script — no module keywords the plugin VM rejects). The
 // pure decision logic lives in plan.ts; this file is the thin shell that writes those plans onto real
 // Figma nodes.
-import { planText, planAutoLayout } from './plan'
+import { planText, planAutoLayout, orderChildren } from './plan'
 
 figma.showUI(__html__, { width: 340, height: 520 })
 
@@ -280,21 +280,9 @@ async function build(node: any, parent: BaseNode & ChildrenMixin, parentX: numbe
   const childInside = insideComponent || Boolean(node.component)
   if (node.layout) {
     applyAutoLayout(frame, node.layout)
-    if (node.ordered) {
-      // A reflection-synthesized stack already carries its children in declaration order (and a
-      // zero-origin Spacer would sort to the front) — keep the given order, don't sort by geometry.
-      for (const child of node.children) await build(child, frame, node.x, node.y, true, childInside)
-    } else {
-      // Sort children and text runs top-to-bottom by row, then left-to-right within a row: sorting by
-      // a single axis scrambles wrapped flex rows (a step wizard wrapping to a second line came out 1,2,4,3).
-      const ROW_TOLERANCE = 8
-      const items: any[] = node.children.map((child: any) => ({ x: child.x, y: child.y, child }))
-      if (node.texts) for (const run of node.texts) items.push({ x: run.x, y: run.y, run })
-      items.sort((a, b) => (Math.abs(a.y - b.y) > ROW_TOLERANCE ? a.y - b.y : a.x - b.x))
-      for (const item of items) {
-        if (item.child) await build(item.child, frame, node.x, node.y, true, childInside)
-        else frame.appendChild(await makeText(item.run, node.font))
-      }
+    for (const item of orderChildren(node)) {
+      if (item.child) await build(item.child, frame, node.x, node.y, true, childInside)
+      else frame.appendChild(await makeText(item.run, node.font))
     }
     // A growing child (Spacer), or a `.frame(maxWidth: .infinity)` leaf, needs to span the parent's
     // width — fill it (a reflection-synthesized row hugs at w=0, so resizing wouldn't help).

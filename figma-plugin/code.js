@@ -69,6 +69,14 @@ var PW = (() => {
       minWidth: typeof layout.minWidth === "number" ? layout.minWidth : null
     };
   }
+  function orderChildren(node) {
+    if (node.ordered) return (node.children || []).map((child) => ({ child }));
+    const ROW_TOLERANCE = 8;
+    const items = (node.children || []).map((child) => ({ x: child.x, y: child.y, child }));
+    if (node.texts) for (const run of node.texts) items.push({ x: run.x, y: run.y, run });
+    items.sort((a, b) => Math.abs(a.y - b.y) > ROW_TOLERANCE ? a.y - b.y : a.x - b.x);
+    return items.map(({ child, run }) => child ? { child } : { run });
+  }
   function planText(run, font) {
     const multiline = typeof run.w === "number" && run.w > 0 && typeof run.h === "number" && run.h > font.size * 1.5;
     return {
@@ -315,17 +323,9 @@ var PW = (() => {
     const childInside = insideComponent || Boolean(node.component);
     if (node.layout) {
       applyAutoLayout(frame, node.layout);
-      if (node.ordered) {
-        for (const child of node.children) await build(child, frame, node.x, node.y, true, childInside);
-      } else {
-        const ROW_TOLERANCE = 8;
-        const items = node.children.map((child) => ({ x: child.x, y: child.y, child }));
-        if (node.texts) for (const run of node.texts) items.push({ x: run.x, y: run.y, run });
-        items.sort((a, b) => Math.abs(a.y - b.y) > ROW_TOLERANCE ? a.y - b.y : a.x - b.x);
-        for (const item of items) {
-          if (item.child) await build(item.child, frame, node.x, node.y, true, childInside);
-          else frame.appendChild(await makeText(item.run, node.font));
-        }
+      for (const item of orderChildren(node)) {
+        if (item.child) await build(item.child, frame, node.x, node.y, true, childInside);
+        else frame.appendChild(await makeText(item.run, node.font));
       }
       const parentIsAutoLayout = frame.parent && "layoutMode" in frame.parent && frame.parent.layoutMode !== "NONE";
       if ((node.children.some((child) => child.grow) || node.fillWidth) && parentIsAutoLayout) {
