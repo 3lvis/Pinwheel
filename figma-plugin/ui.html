@@ -122,6 +122,13 @@
   onmessage = (event) => {
     const message = event.data.pluginMessage
     if (!message) return
+    if (message.type === 'debug') {
+      fetch(SERVE + '/debug.json', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(message.trace),
+      }).catch(() => {})
+    }
     if (message.type === 'done') status.textContent = 'done ✓'
     if (message.type === 'error') status.textContent = 'error: ' + message.message
     if (message.type === 'inspected') {

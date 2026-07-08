@@ -131,6 +131,7 @@ var PW = (() => {
   var floatVarsByName = {};
   var textStyles = {};
   var boundTextStyleCount = 0;
+  var debugTrace = [];
   var darkMode = false;
   var darkByToken = {};
   function colorKey(c) {
@@ -203,6 +204,7 @@ var PW = (() => {
     const plan = planText(run, font);
     const text = figma.createText();
     const style = plan.styleName ? textStyles[plan.styleName] : void 0;
+    debugTrace.push({ step: "makeText", chars: (plan.characters || "").slice(0, 16), styleName: plan.styleName || null, styleKeys: Object.keys(textStyles), found: Boolean(style) });
     if (style) {
       await figma.loadFontAsync(style.fontName);
       text.fontName = style.fontName;
@@ -609,7 +611,9 @@ var PW = (() => {
       for (const token of data.tokens) if (token.dark) darkByToken[token.name] = token.dark;
     }
     if (data.tokens) await syncTokens(data.tokens);
+    debugTrace.push({ step: "doc", textStyles: (data.textStyles || []).map((s) => s.name) });
     if (data.textStyles) await syncTextStyles(data.textStyles);
+    debugTrace.push({ step: "afterSync", styleKeys: Object.keys(textStyles) });
     await loadColorVars();
   }
   async function importFramed(data, version, dark, tags) {
@@ -644,9 +648,11 @@ var PW = (() => {
           figma.notify("Stale capture: v" + data.version + ", plugin expects v" + EXPECTED_CAPTURE_VERSION + " \u2014 re-capture", { error: true });
         }
         boundTextStyleCount = 0;
+        debugTrace = [];
         await syncFromDocument(data);
         const framed = await importFramed(data, message.version, Boolean(message.dark), message.tags);
         figma.viewport.scrollAndZoomIntoView([framed]);
+        figma.ui.postMessage({ type: "debug", trace: debugTrace });
         figma.ui.postMessage({ type: "done" });
         figma.notify("Imported " + data.width + "\xD7" + data.height + " \xB7 " + Object.keys(textStyles).length + " text styles, " + boundTextStyleCount + " bound");
         return;
@@ -659,6 +665,7 @@ var PW = (() => {
           return;
         }
         boundTextStyleCount = 0;
+        debugTrace = [];
         await syncFromDocument(entries[0].data);
         const GAP = 80;
         const placed = [];
@@ -684,6 +691,7 @@ var PW = (() => {
           }
         }
         figma.viewport.scrollAndZoomIntoView(placed);
+        figma.ui.postMessage({ type: "debug", trace: debugTrace });
         figma.ui.postMessage({ type: "done" });
         figma.notify("Imported " + entries.length + " components" + (message.includeDark ? " \xD7 light + dark" : "") + " \xB7 " + boundTextStyleCount + " text styles bound");
         return;

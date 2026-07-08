@@ -65,6 +65,17 @@ createServer((request, response) => {
     return
   }
 
+  if (request.url === '/debug.json' && request.method === 'POST') {
+    const chunks = []
+    request.on('data', (chunk) => chunks.push(chunk))
+    request.on('end', () => {
+      writeFileSync(resolve(here, 'debug.json'), Buffer.concat(chunks))
+      response.setHeader('Content-Type', 'application/json')
+      response.end(JSON.stringify({ ok: true }))
+    })
+    return
+  }
+
   if (request.url === '/capture.json' && request.method === 'POST') {
     const chunks = []
     request.on('data', (chunk) => chunks.push(chunk))
@@ -80,6 +91,7 @@ createServer((request, response) => {
   const inspectMatch = /^\/(inspect-[a-z0-9-]+\.json)$/.exec(request.url)
   const catalogMatch = /^\/(catalog-[a-z0-9-]+\.json)$/.exec(request.url)
   const file = request.url === '/capture.json' ? captureFile
+    : request.url === '/debug.json' ? resolve(here, 'debug.json')
     : catalogMatch ? resolve(here, catalogMatch[1])
     : inspectMatch ? resolve(here, inspectMatch[1])
     : null
