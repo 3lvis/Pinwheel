@@ -2,82 +2,83 @@ import UIKit
 import Pinwheel
 
 class UIKitPinNumbersDemo: UIKitPinView {
-    func makeLabel(text: String) -> UIKitPinLabel {
-        let label = UIKitPinLabel(font: .body)
+    private let spacings: [(String, CGFloat)] = [
+        ("spacingXXS", .spacingXXS),
+        ("spacingXS", .spacingXS),
+        ("spacingXM", .spacingXM),
+        ("spacingS", .spacingS),
+        ("spacingM", .spacingM),
+        ("spacingL", .spacingL),
+        ("spacingXL", .spacingXL),
+        ("spacingXXL", .spacingXXL)
+    ]
+
+    private let radii: [(String, CGFloat)] = [
+        ("radiusM", .radiusM),
+        ("radiusL", .radiusL)
+    ]
+
+    override func setup() {
+        let stackView = UIStackView(withAutoLayout: true)
+        stackView.axis = .vertical
+        stackView.spacing = .spacingXXL
+
+        stackView.addArrangedSubview(header("Spacing"))
+        for (title, spacing) in spacings {
+            stackView.addArrangedSubview(spacingBar(title: title, inset: spacing))
+        }
+        stackView.addArrangedSubview(header("Radius"))
+        for (title, radius) in radii {
+            stackView.addArrangedSubview(radiusBar(title: title, radius: radius))
+        }
+
+        let scrollView = UIScrollView(withAutoLayout: true)
+        addSubview(scrollView)
+        scrollView.addSubview(stackView)
+        scrollView.fillInSuperview()
+
+        NSLayoutConstraint.activate([
+            stackView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: .spacingXXL),
+            stackView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -.spacingL),
+            stackView.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor, constant: .spacingL),
+            stackView.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor, constant: -.spacingL)
+        ])
+    }
+
+    private func header(_ text: String) -> UIKitPinLabel {
+        let label = UIKitPinLabel(font: .title)
         label.text = text
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.backgroundColor = .tertiaryText
-        label.textColor = .primaryText
-        label.textAlignment = .center
         return label
     }
 
-    override func setup() {
-        let spacingXXSView = makeLabel(text: "👈      spacingXXS \(CGFloat.spacingXXS)    👉")
-        addSubview(spacingXXSView)
-
-        let spacingXSView = makeLabel(text: "👈      spacingXS \(CGFloat.spacingXS)    👉")
-        addSubview(spacingXSView)
-
-        let spacingXMView = makeLabel(text: "👈      spacingXM \(CGFloat.spacingXM)    👉")
-        addSubview(spacingXMView)
-
-        let spacingSView = makeLabel(text: "👈        spacingS \(CGFloat.spacingS)    👉")
-        addSubview(spacingSView)
-
-        let spacingMView = makeLabel(text: "👈        spacingM \(CGFloat.spacingM)    👉")
-        addSubview(spacingMView)
-
-        let spacingLView = makeLabel(text: "👈        spacingL \(CGFloat.spacingL)    👉")
-        addSubview(spacingLView)
-
-        let spacingXLView = makeLabel(text: "👈        spacingXL \(CGFloat.spacingXL)    👉")
-        addSubview(spacingXLView)
-
-        let spacingXXLView = makeLabel(text: "👈        spacingXXL \(CGFloat.spacingXXL)    👉")
-        addSubview(spacingXXLView)
-
-        let radiusMView = makeLabel(text: "radiusM \(CGFloat.radiusM)")
-        radiusMView.layer.cornerRadius = .radiusM
-        radiusMView.layer.masksToBounds = true
-        addSubview(radiusMView)
-
+    // The colored bar is inset horizontally by the spacing value, so the gap on each side is the token.
+    private func spacingBar(title: String, inset: CGFloat) -> UIView {
+        let container = UIView(withAutoLayout: true)
+        let label = makeBarLabel(text: "\(title) \(Int(inset))")
+        container.addSubview(label)
         NSLayoutConstraint.activate([
-            spacingXXSView.topAnchor.constraint(equalTo: topAnchor, constant: .spacingXXL),
-            spacingXXSView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingXXS),
-            spacingXXSView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingXXS),
-
-            spacingXSView.topAnchor.constraint(equalTo: spacingXXSView.bottomAnchor, constant: .spacingXXL),
-            spacingXSView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingXS),
-            spacingXSView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingXS),
-
-            spacingXMView.topAnchor.constraint(equalTo: spacingXSView.bottomAnchor, constant: .spacingXXL),
-            spacingXMView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingXM),
-            spacingXMView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingXM),
-
-            spacingSView.topAnchor.constraint(equalTo: spacingXMView.bottomAnchor, constant: .spacingXXL),
-            spacingSView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingS),
-            spacingSView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingS),
-
-            spacingMView.topAnchor.constraint(equalTo: spacingSView.bottomAnchor, constant: .spacingXXL),
-            spacingMView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingM),
-            spacingMView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingM),
-
-            spacingLView.topAnchor.constraint(equalTo: spacingMView.bottomAnchor, constant: .spacingXXL),
-            spacingLView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingL),
-            spacingLView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingL),
-
-            spacingXLView.topAnchor.constraint(equalTo: spacingLView.bottomAnchor, constant: .spacingXXL),
-            spacingXLView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingXL),
-            spacingXLView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingXL),
-
-            spacingXXLView.topAnchor.constraint(equalTo: spacingXLView.bottomAnchor, constant: .spacingXXL),
-            spacingXXLView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingXXL),
-            spacingXXLView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingXXL),
-
-            radiusMView.topAnchor.constraint(equalTo: spacingXXLView.bottomAnchor, constant: .spacingXXL),
-            radiusMView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingL),
-            radiusMView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingL)
+            label.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: inset),
+            label.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -inset),
+            label.topAnchor.constraint(equalTo: container.topAnchor, constant: .spacingS),
+            label.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -.spacingS)
         ])
+        return container
+    }
+
+    private func radiusBar(title: String, radius: CGFloat) -> UIView {
+        let label = makeBarLabel(text: "\(title) \(Int(radius))")
+        label.layer.cornerRadius = radius
+        label.layer.masksToBounds = true
+        label.heightAnchor.constraint(equalToConstant: 56).isActive = true
+        return label
+    }
+
+    private func makeBarLabel(text: String) -> UIKitPinLabel {
+        let label = UIKitPinLabel(font: .body)
+        label.text = text
+        label.textAlignment = .center
+        label.backgroundColor = .tertiaryText
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
     }
 }
