@@ -14,8 +14,8 @@
 </style>
 
 <button id="catalog">Load catalog</button>
-<button id="importAll">Import all (light + dark)</button>
-<label class="dark"><input type="checkbox" id="dark"> Dark version (single import)</label>
+<button id="importAll">Import all</button>
+<label class="dark"><input type="checkbox" id="dark"> Dark mode</label>
 <div id="status"></div>
 <div id="list"></div>
 
@@ -106,8 +106,8 @@
           entries.push({ data: entry.document, version: item.version != null ? item.version : entry.version, tags: item.tags || entry.tags })
         }
       }
-      status.textContent = 'importing ' + entries.length + ' components (light + dark)…'
-      parent.postMessage({ pluginMessage: { type: 'importAll', entries, includeDark: true } }, '*')
+      status.textContent = 'importing ' + entries.length + ' components (' + (isDark() ? 'dark' : 'light') + ')…'
+      parent.postMessage({ pluginMessage: { type: 'importAll', entries, dark: isDark() } }, '*')
     } catch (error) {
       status.textContent = 'import all failed: ' + error.message + ' (is the serve script running?)'
     }

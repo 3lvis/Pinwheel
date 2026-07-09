@@ -559,35 +559,23 @@ figma.ui.onmessage = async (message: any) => {
       }
       boundTextStyleCount = 0
       importTrace = []
+      const dark = Boolean(message.dark)
       await syncFromDocument(entries[0].data)
       const GAP = 80
       const placed: any[] = []
-      const columnX: number[] = []
       let cursor = 0
       for (const entry of entries) {
-        const frame = await importFramed(entry.data, entry.version, false, entry.tags)
+        const frame = await importFramed(entry.data, entry.version, dark, entry.tags)
         frame.x = cursor
         frame.y = 0
-        columnX.push(cursor)
         cursor += frame.width + GAP
         placed.push(frame)
         traceComponent((entry.data.root && entry.data.root.name) || 'Screen', entry.data.root)
       }
-      if (message.includeDark) {
-        const darkRowY = Math.max(...placed.map((frame) => frame.height)) + GAP
-        let index = 0
-        for (const entry of entries) {
-          const frame = await importFramed(entry.data, entry.version, true, entry.tags)
-          frame.x = columnX[index]
-          frame.y = darkRowY
-          placed.push(frame)
-          index++
-        }
-      }
       flushTrace()
       figma.viewport.scrollAndZoomIntoView(placed)
       figma.ui.postMessage({ type: 'done' })
-      figma.notify('Imported ' + entries.length + ' components' + (message.includeDark ? ' × light + dark' : '') + ' · ' + boundTextStyleCount + ' text styles bound')
+      figma.notify('Imported ' + entries.length + ' components (' + (dark ? 'dark' : 'light') + ') · ' + boundTextStyleCount + ' text styles bound')
       return
     }
   } catch (error) {
