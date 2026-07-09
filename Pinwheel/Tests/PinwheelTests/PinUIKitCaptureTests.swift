@@ -200,7 +200,10 @@ final class PinUIKitCaptureTests: XCTestCase {
 
     // A colored label captures as an auto-layout frame, so the plugin renders its text inline instead of
     // wrapping it in an extra frame (one less nesting level per bar).
-    func testColoredLabelIsAnAutoLayoutFrame() throws {
+    // A wide centered colored label (a spacing bar) is an auto-layout frame that KEEPS its captured
+    // width and centers the text inside — not one that hugs the text. Hugging collapses the bar to the
+    // glyphs and, keeping its leading origin, left-drifts every row (the spacing-demo regression).
+    func testColoredLabelKeepsItsWidthCenteredNotHuggingTheText() throws {
         let host = UIView()
         let label = UILabel()
         label.text = "Bar"
@@ -217,6 +220,9 @@ final class PinUIKitCaptureTests: XCTestCase {
         let document = try XCTUnwrap(capture(host))
         let bar = try XCTUnwrap(firstNode(document.root) { $0.fillToken == "tertiaryText" })
         XCTAssertNotNil(bar.layout, "a colored label is an auto-layout frame so its text renders inline")
+        XCTAssertEqual(bar.w, 200, accuracy: 1, "the bar keeps its captured width")
+        XCTAssertEqual(bar.layout?.primarySizing, "FIXED", "the bar's width is fixed so the plugin holds it instead of hugging the text")
+        XCTAssertEqual(bar.layout?.justify, "center", "centered text stays centered within the fixed-width bar")
     }
 
     // A UIStackView maps directly to Figma auto-layout — it must capture as an auto-layout frame, not

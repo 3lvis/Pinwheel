@@ -171,7 +171,7 @@ public enum PinUIKitCapture {
             fill: RGBA(background), fillToken: PinDisplayListCapture.tokenName(for: background),
             radius: radius > 0.5 ? Double(radius) : nil,
             radiusToken: radius > 0.5 ? PinFloatTokens.radiusName(for: Double(radius)) : nil,
-            layout: FigmaLayout(PinCaptureLayout(axis: .row, spacing: 0, alignment: .center, mainAxisAlignment: justify)),
+            layout: FigmaLayout(PinCaptureLayout(axis: .row, spacing: 0, alignment: .center, mainAxisAlignment: justify, primaryAxisFixed: true)),
             ordered: true,
             children: [textNode]
         )

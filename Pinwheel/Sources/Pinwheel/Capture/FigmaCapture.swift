@@ -83,7 +83,7 @@ struct FigmaLayout: Encodable {
         }
         justify = layout.spaceBetween ? "space-between" : css(layout.mainAxisAlignment)
         align = css(layout.alignment)
-        primarySizing = layout.spaceBetween ? "FIXED" : "AUTO"
+        primarySizing = layout.spaceBetween || layout.primaryAxisFixed ? "FIXED" : "AUTO"
         counterSizing = "AUTO"
         minWidth = layout.minWidth.map(Double.init)
     }
