@@ -32,41 +32,28 @@ async function resolveFont(family: string, weight: number, italic: boolean): Pro
   return { family: 'Inter', style: 'Regular' }
 }
 
-let colorVars: Record<string, Variable> = {}
 let colorVarsByName: Record<string, Variable> = {}
 let floatVarsByName: Record<string, Variable> = {}
 let textStyles: Record<string, TextStyle> = {}
 let boundTextStyleCount = 0
 let importTrace: any[] = []
 let darkMode = false
-let darkByToken: Record<string, { r: number; g: number; b: number; a: number }> = {}
-
-function colorKey(c: { r: number; g: number; b: number; a?: number }): string {
-  const to255 = (x: number) => Math.round(x * 255)
-  return `${to255(c.r)},${to255(c.g)},${to255(c.b)},${Math.round((c.a ?? 1) * 100)}`
-}
 
 async function loadColorVars(): Promise<void> {
-  colorVars = {}
   colorVarsByName = {}
   for (const variable of await figma.variables.getLocalVariablesAsync('COLOR')) {
     colorVarsByName[variable.name] = variable
-    const value = variable.valuesByMode[Object.keys(variable.valuesByMode)[0]]
-    if (value && typeof value === 'object' && 'r' in value) colorVars[colorKey(value as RGBA)] = variable
   }
 }
 
 function solid(color: { r: number; g: number; b: number; a: number }, token?: string): SolidPaint {
-  // Dark imports bake the token's dark value as a literal, NOT a variable binding: a Figma variable
-  // collection can't hold more than one mode without a paid plan, so there's no "Dark" mode to reference
-  // (collection.addMode throws). A binding would resolve the only mode (light) and render light. Verified
-  // via the DARK MODE PROBE — darkModeId came back null. Don't "fix" this to bind; it needs a paid plan.
-  if (darkMode && token && darkByToken[token]) {
-    const d = darkByToken[token]
-    return { type: 'SOLID', color: { r: d.r, g: d.g, b: d.b }, opacity: d.a }
-  }
   const paint: SolidPaint = { type: 'SOLID', color: { r: color.r, g: color.g, b: color.b }, opacity: color.a }
-  const variable = (token && colorVarsByName['color/' + token]) || colorVars[colorKey(color)]
+  // Bind the per-theme token variable: dark imports reference color/dark/<token>, light color/light/<token>,
+  // so both themes stay editable tokens (not raw hex). No variable mode is involved — the theme is chosen
+  // by which variable is bound, which is why this works without a paid plan. Only an explicit token binds;
+  // a literal colour with no token (a .custom contrast black/white) stays a static paint — value-matching
+  // it to a token would bind the wrong one (a white label to primaryBackground) and the wrong theme.
+  const variable = token ? colorVarsByName[(darkMode ? 'color/dark/' : 'color/light/') + token] : undefined
   return variable ? figma.variables.setBoundVariableForPaint(paint, 'color', variable) : paint
 }
 
@@ -327,20 +314,13 @@ function variableName(token: any): string {
 
 const TOKEN_COLLECTION = 'Pinwheel Tokens'
 const LIGHT_MODE = 'Light'
-const DARK_MODE = 'Dark'
 
 async function syncTokens(tokens: any[]): Promise<void> {
   const collections = await figma.variables.getLocalVariableCollectionsAsync()
   let collection = collections.find((c) => c.name === TOKEN_COLLECTION)
   if (!collection) collection = figma.variables.createVariableCollection(TOKEN_COLLECTION)
-  const lightModeId = collection.modes[0].modeId
-  collection.renameMode(lightModeId, LIGHT_MODE)
-  // A second (Dark) mode needs a paid plan — free/starter throws "Limited to 1 modes only" (confirmed via
-  // probe). Without it, tokens carry only their light value and dark colors are baked static (see solid()).
-  let darkModeId: string | null = (collection.modes.find((m) => m.name === DARK_MODE) || {}).modeId || null
-  if (!darkModeId) {
-    darkModeId = ((): string | null => { try { return collection.addMode(DARK_MODE) } catch { return null } })()
-  }
+  const mode = collection.modes[0].modeId
+  collection.renameMode(mode, LIGHT_MODE)
   const existing = await figma.variables.getLocalVariablesAsync()
   const byName: Record<string, Variable> = {}
   for (const v of existing) if (v.variableCollectionId === collection.id) byName[v.name] = v
@@ -348,20 +328,32 @@ async function syncTokens(tokens: any[]): Promise<void> {
   let created = 0
   let updated = 0
   floatVarsByName = {}
-  for (const token of tokens) {
-    const name = variableName(token)
-    const type: VariableResolvedDataType = token.type === 'color' ? 'COLOR' : token.type === 'float' ? 'FLOAT' : 'STRING'
-    let variable: Variable | undefined = byName[name]
-    if (variable && variable.resolvedType !== type) { variable.remove(); variable = undefined }
-    if (!variable) { variable = figma.variables.createVariable(name, collection, type); created += 1 } else { updated += 1 }
-    if (token.type === 'float') floatVarsByName[token.name] = variable
-    const light = token.type === 'float' ? token.float : token.value
-    const dark = token.type === 'float' ? token.float : (token.dark || token.value)
-    if (light === undefined || light === null) continue
-    variable.setValueForMode(lightModeId, light)
-    if (darkModeId) variable.setValueForMode(darkModeId, dark)
+  // Adaptive light/dark modes on one variable need a paid plan (addMode throws "Limited to 1 modes only"
+  // on free/starter). So keep dark tokenized WITHOUT modes: a color token becomes two variables,
+  // color/light/<name> and color/dark/<name>, each holding its own value in the single mode. Non-colour
+  // tokens (spacing/radius/type) aren't themed — one variable each, as before.
+  const upsert = (name: string, type: VariableResolvedDataType): Variable => {
+    let variable = byName[name]
+    if (variable && variable.resolvedType !== type) { variable.remove(); variable = undefined as any; delete byName[name] }
+    if (!variable) { variable = figma.variables.createVariable(name, collection, type); byName[name] = variable; created += 1 } else { updated += 1 }
+    return variable
   }
-  figma.notify('Tokens: ' + created + ' created, ' + updated + ' updated' + (darkModeId ? ' (light + dark)' : ' (light only)'))
+  for (const token of tokens) {
+    if (token.type === 'color') {
+      if (token.value === undefined || token.value === null) continue
+      const base = token.name.replace(/^--/, '')
+      upsert('color/light/' + base, 'COLOR').setValueForMode(mode, token.value)
+      upsert('color/dark/' + base, 'COLOR').setValueForMode(mode, token.dark || token.value)
+      continue
+    }
+    const type: VariableResolvedDataType = token.type === 'float' ? 'FLOAT' : 'STRING'
+    const value = token.type === 'float' ? token.float : token.value
+    if (value === undefined || value === null) continue
+    const variable = upsert(variableName(token), type)
+    if (token.type === 'float') floatVarsByName[token.name] = variable
+    variable.setValueForMode(mode, value)
+  }
+  figma.notify('Tokens: ' + created + ' created, ' + updated + ' updated (light + dark variables)')
 }
 
 async function syncTextStyles(styles: any[]): Promise<void> {
@@ -497,8 +489,6 @@ function statusIndicatorsSvg(color: RGB): string {
 }
 
 async function syncFromDocument(data: any): Promise<void> {
-  darkByToken = {}
-  if (data.tokens) for (const token of data.tokens) if (token.dark) darkByToken[token.name] = token.dark
   if (data.tokens) await syncTokens(data.tokens)
   if (data.textStyles) await syncTextStyles(data.textStyles)
   await loadColorVars()

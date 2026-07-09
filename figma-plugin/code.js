@@ -128,35 +128,21 @@ var PW = (() => {
     await figma.loadFontAsync({ family: "Inter", style: "Regular" });
     return { family: "Inter", style: "Regular" };
   }
-  var colorVars = {};
   var colorVarsByName = {};
   var floatVarsByName = {};
   var textStyles = {};
   var boundTextStyleCount = 0;
   var importTrace = [];
   var darkMode = false;
-  var darkByToken = {};
-  function colorKey(c) {
-    var _a;
-    const to255 = (x) => Math.round(x * 255);
-    return `${to255(c.r)},${to255(c.g)},${to255(c.b)},${Math.round(((_a = c.a) != null ? _a : 1) * 100)}`;
-  }
   async function loadColorVars() {
-    colorVars = {};
     colorVarsByName = {};
     for (const variable of await figma.variables.getLocalVariablesAsync("COLOR")) {
       colorVarsByName[variable.name] = variable;
-      const value = variable.valuesByMode[Object.keys(variable.valuesByMode)[0]];
-      if (value && typeof value === "object" && "r" in value) colorVars[colorKey(value)] = variable;
     }
   }
   function solid(color, token) {
-    if (darkMode && token && darkByToken[token]) {
-      const d = darkByToken[token];
-      return { type: "SOLID", color: { r: d.r, g: d.g, b: d.b }, opacity: d.a };
-    }
     const paint = { type: "SOLID", color: { r: color.r, g: color.g, b: color.b }, opacity: color.a };
-    const variable = token && colorVarsByName["color/" + token] || colorVars[colorKey(color)];
+    const variable = token ? colorVarsByName[(darkMode ? "color/dark/" : "color/light/") + token] : void 0;
     return variable ? figma.variables.setBoundVariableForPaint(paint, "color", variable) : paint;
   }
   function applyAutoLayout(frame, layout) {
@@ -393,51 +379,50 @@ var PW = (() => {
   }
   var TOKEN_COLLECTION = "Pinwheel Tokens";
   var LIGHT_MODE = "Light";
-  var DARK_MODE = "Dark";
   async function syncTokens(tokens) {
     const collections = await figma.variables.getLocalVariableCollectionsAsync();
     let collection = collections.find((c) => c.name === TOKEN_COLLECTION);
     if (!collection) collection = figma.variables.createVariableCollection(TOKEN_COLLECTION);
-    const lightModeId = collection.modes[0].modeId;
-    collection.renameMode(lightModeId, LIGHT_MODE);
-    let darkModeId = (collection.modes.find((m) => m.name === DARK_MODE) || {}).modeId || null;
-    if (!darkModeId) {
-      darkModeId = (() => {
-        try {
-          return collection.addMode(DARK_MODE);
-        } catch (e) {
-          return null;
-        }
-      })();
-    }
+    const mode = collection.modes[0].modeId;
+    collection.renameMode(mode, LIGHT_MODE);
     const existing = await figma.variables.getLocalVariablesAsync();
     const byName = {};
     for (const v of existing) if (v.variableCollectionId === collection.id) byName[v.name] = v;
     let created = 0;
     let updated = 0;
     floatVarsByName = {};
-    for (const token of tokens) {
-      const name = variableName(token);
-      const type = token.type === "color" ? "COLOR" : token.type === "float" ? "FLOAT" : "STRING";
+    const upsert = (name, type) => {
       let variable = byName[name];
       if (variable && variable.resolvedType !== type) {
         variable.remove();
         variable = void 0;
+        delete byName[name];
       }
       if (!variable) {
         variable = figma.variables.createVariable(name, collection, type);
+        byName[name] = variable;
         created += 1;
       } else {
         updated += 1;
       }
+      return variable;
+    };
+    for (const token of tokens) {
+      if (token.type === "color") {
+        if (token.value === void 0 || token.value === null) continue;
+        const base = token.name.replace(/^--/, "");
+        upsert("color/light/" + base, "COLOR").setValueForMode(mode, token.value);
+        upsert("color/dark/" + base, "COLOR").setValueForMode(mode, token.dark || token.value);
+        continue;
+      }
+      const type = token.type === "float" ? "FLOAT" : "STRING";
+      const value = token.type === "float" ? token.float : token.value;
+      if (value === void 0 || value === null) continue;
+      const variable = upsert(variableName(token), type);
       if (token.type === "float") floatVarsByName[token.name] = variable;
-      const light = token.type === "float" ? token.float : token.value;
-      const dark = token.type === "float" ? token.float : token.dark || token.value;
-      if (light === void 0 || light === null) continue;
-      variable.setValueForMode(lightModeId, light);
-      if (darkModeId) variable.setValueForMode(darkModeId, dark);
+      variable.setValueForMode(mode, value);
     }
-    figma.notify("Tokens: " + created + " created, " + updated + " updated" + (darkModeId ? " (light + dark)" : " (light only)"));
+    figma.notify("Tokens: " + created + " created, " + updated + " updated (light + dark variables)");
   }
   async function syncTextStyles(styles) {
     textStyles = {};
@@ -549,10 +534,6 @@ var PW = (() => {
     return '<svg width="80" height="13" viewBox="0 0 80 13" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="7" width="3" height="6" rx="1" fill="' + c + '"/><rect x="4.5" y="5" width="3" height="8" rx="1" fill="' + c + '"/><rect x="9" y="2.5" width="3" height="10.5" rx="1" fill="' + c + '"/><rect x="13.5" y="0" width="3" height="13" rx="1" fill="' + c + '"/><path d="M30 3.2c2.2 0 4.3.85 5.85 2.35l-1.05 1.05C33.5 5.4 31.8 4.7 30 4.7s-3.5.7-4.8 1.9L24.15 5.55C25.7 4.05 27.8 3.2 30 3.2zm0 3.1c1.35 0 2.6.52 3.55 1.4l-1.05 1.05C31.85 8.15 30.95 7.8 30 7.8s-1.85.35-2.5.95L26.45 7.7C27.4 6.82 28.65 6.3 30 6.3zm0 3.05c.55 0 1.05.2 1.45.55L30 10.9l-1.45-1c.4-.35.9-.55 1.45-.55z" fill="' + c + '"/><rect x="46.5" y="1" width="24" height="11" rx="3" fill="none" stroke="' + c + '" stroke-opacity="0.35"/><rect x="48" y="2.5" width="19" height="8" rx="1.5" fill="' + c + '"/><path d="M72 4.3v4.4c.9-.35 1.5-1.15 1.5-2.2s-.6-1.85-1.5-2.2z" fill="' + c + '"/></svg>';
   }
   async function syncFromDocument(data) {
-    darkByToken = {};
-    if (data.tokens) {
-      for (const token of data.tokens) if (token.dark) darkByToken[token.name] = token.dark;
-    }
     if (data.tokens) await syncTokens(data.tokens);
     if (data.textStyles) await syncTextStyles(data.textStyles);
     await loadColorVars();

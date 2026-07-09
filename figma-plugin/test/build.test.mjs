@@ -27,9 +27,8 @@ test('a fillWidth centered text stretches to fill, so centering is visible (UIKi
   assert.equal(text.layoutSizingHorizontal, 'FILL', 'a fillWidth text must stretch to fill; a tight box centers to no visible effect and sits at the column leading edge (left)')
 })
 
-test('a dark import bakes the token dark value statically (a Figma variable collection cannot add a Dark mode without a paid plan)', async () => {
-  const { syncFromDocument, importFramed, created } = loadPlugin()
-  const doc = {
+function themeDoc() {
+  return {
     tokens: [{ name: 'primaryText', type: 'color', value: { r: 0, g: 0, b: 0, a: 1 }, dark: { r: 1, g: 1, b: 1, a: 1 } }],
     root: {
       tag: 'frame', name: 'Screen', x: 0, y: 0, w: 402, h: 100, ordered: true,
@@ -42,13 +41,50 @@ test('a dark import bakes the token dark value statically (a Figma variable coll
       }],
     },
   }
+}
+
+test('a dark import binds the color/dark/<token> variable (tokenized, not baked raw hex)', async () => {
+  const { syncFromDocument, importFramed, created } = loadPlugin()
+  const doc = themeDoc()
   await syncFromDocument(doc)
   await importFramed(doc, 1, true, [])
   const text = created.find((n) => n.type === 'TEXT' && n.characters === 'Hello')
-  const fill = text.fills[0]
-  assert.ok(!(fill.boundVariables && fill.boundVariables.color),
-    'a dark fill must be a static color, not a variable binding — there is no Dark mode to reference, so a binding resolves the light value')
-  assert.equal(Math.round(fill.color.r), 1, 'it bakes the token dark value (primaryText dark = white)')
+  const bound = text.fills[0].boundVariables && text.fills[0].boundVariables.color
+  assert.ok(bound, 'a dark fill must bind a token variable, not a static hex color')
+  assert.equal(bound.id, 'color/dark/primaryText', 'it binds the dark-theme variable, so dark colours stay editable tokens')
+})
+
+test('an untokenized literal colour stays a static paint, not value-matched to a token variable', async () => {
+  const { syncFromDocument, importFramed, created } = loadPlugin()
+  const doc = {
+    // primaryBackground's light value is white; a literal white contrast label must NOT bind it by value.
+    tokens: [{ name: 'primaryBackground', type: 'color', value: { r: 1, g: 1, b: 1, a: 1 }, dark: { r: 0, g: 0, b: 0, a: 1 } }],
+    root: {
+      tag: 'frame', name: 'Screen', x: 0, y: 0, w: 402, h: 100, ordered: true,
+      layout: { mode: 'column', rowGap: 0, columnGap: 0, pad: [0, 0, 0, 0], justify: 'flex-start', align: 'flex-start', primarySizing: 'FIXED', counterSizing: 'FIXED' },
+      children: [{
+        tag: 'text', x: 0, y: 0, w: 200, h: 20,
+        font: { family: 'SF Pro Rounded', size: 17, weight: 500, color: { r: 1, g: 1, b: 1, a: 1 } },
+        texts: [{ text: 'Contrast', x: 0, y: 0, w: 200, h: 20 }],
+        children: [],
+      }],
+    },
+  }
+  await syncFromDocument(doc)
+  await importFramed(doc, 1, true, [])
+  const text = created.find((n) => n.type === 'TEXT' && n.characters === 'Contrast')
+  assert.ok(!(text.fills[0].boundVariables && text.fills[0].boundVariables.color),
+    'a literal colour with no token stays static — value-matching would bind the wrong token (and wrong theme)')
+})
+
+test('a light import binds the color/light/<token> variable', async () => {
+  const { syncFromDocument, importFramed, created } = loadPlugin()
+  const doc = themeDoc()
+  await syncFromDocument(doc)
+  await importFramed(doc, 1, false, [])
+  const text = created.find((n) => n.type === 'TEXT' && n.characters === 'Hello')
+  const bound = text.fills[0].boundVariables && text.fills[0].boundVariables.color
+  assert.equal(bound && bound.id, 'color/light/primaryText', 'a light fill binds the light-theme variable')
 })
 
 test('a natural-alignment label is left by default (no over-centering)', async () => {
