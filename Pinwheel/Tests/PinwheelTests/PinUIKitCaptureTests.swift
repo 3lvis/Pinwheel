@@ -300,6 +300,33 @@ final class PinUIKitCaptureTests: XCTestCase {
         XCTAssertEqual(frame.layout?.counterSizing, "FIXED", "a centered stack keeps its cross-axis width so its children stay centered, not hug to the widest child")
     }
 
+    // A colored UIStackView (a color-demo row) must carry its background as the frame's fill and its
+    // layoutMargins as padding, so it captures like the SwiftUI row instead of a fill-less frame.
+    func testColoredStackCapturesItsBackgroundFillAndMargins() throws {
+        let host = UIView()
+        let row = UIStackView()
+        row.axis = .horizontal
+        row.backgroundColor = .actionBackground
+        row.isLayoutMarginsRelativeArrangement = true
+        row.insetsLayoutMarginsFromSafeArea = false
+        row.layoutMargins = UIEdgeInsets(top: .spacingM, left: .spacingL, bottom: .spacingM, right: .spacingL)
+        let label = UILabel()
+        label.text = "Action"
+        label.textColor = .black
+        row.addArrangedSubview(label)
+        row.translatesAutoresizingMaskIntoConstraints = false
+        host.addSubview(row)
+        NSLayoutConstraint.activate([
+            row.topAnchor.constraint(equalTo: host.topAnchor, constant: 40),
+            row.leadingAnchor.constraint(equalTo: host.leadingAnchor),
+            row.trailingAnchor.constraint(equalTo: host.trailingAnchor)
+        ])
+        let document = try XCTUnwrap(capture(host))
+        let frame = try XCTUnwrap(firstNode(document.root) { $0.layout?.mode == "row" && $0.children.count == 1 })
+        XCTAssertEqual(frame.fillToken, "actionBackground", "a UIStackView's background color captures as the frame's fill")
+        XCTAssertEqual(frame.layout?.pad.first ?? -1, Double(CGFloat.spacingM), accuracy: 0.5, "layoutMargins capture as the frame's padding")
+    }
+
     private func firstNode(_ node: FigmaNode, where predicate: (FigmaNode) -> Bool) -> FigmaNode? {
         if predicate(node) { return node }
         for child in node.children { if let found = firstNode(child, where: predicate) { return found } }

@@ -7,61 +7,52 @@ struct ColorItem {
 }
 
 class UIKitPinColorDemo: UIKitPinView {
-    lazy var tableView: UITableView = {
-        let view = UITableView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.separatorStyle = .none
-        view.rowHeight = 30
-        return view
-    }()
+    private let items: [ColorItem] = [
+        ColorItem(color: .primaryText, title: "Primary Text"),
+        ColorItem(color: .secondaryText, title: "Secondary Text"),
+        ColorItem(color: .tertiaryText, title: "Tertiary Text"),
+        ColorItem(color: .actionText, title: "Action Text"),
+        ColorItem(color: .criticalText, title: "Critical Text"),
+        ColorItem(color: .primaryBackground, title: "Primary Background"),
+        ColorItem(color: .secondaryBackground, title: "Secondary Background"),
+        ColorItem(color: .actionBackground, title: "Action Background"),
+        ColorItem(color: .criticalBackground, title: "Critical Background")
+    ]
 
-    lazy var items: [ColorItem] = {
-        return [
-            ColorItem(color: .primaryText, title: "Primary Text"),
-            ColorItem(color: .secondaryText, title: "Secondary Text"),
-            ColorItem(color: .tertiaryText, title: "Tertiary Text"),
-            ColorItem(color: .actionText, title: "Action Text"),
-            ColorItem(color: .criticalText, title: "Critical Text"),
-            ColorItem(color: .primaryBackground, title: "Primary Background"),
-            ColorItem(color: .secondaryBackground, title: "Secondary Background"),
-            ColorItem(color: .actionBackground, title: "Action Background"),
-            ColorItem(color: .criticalBackground, title: "Critical Background")
-        ]
-    }()
-
+    // A VStack of colored rows (not a UITableView): eager and fully in the view tree, so every row
+    // captures as auto-layout — the UIKit counterpart of the SwiftUI Color demo. The table demos
+    // (uikit-tableview, dataSource-tableview) cover the UITableView capture path.
     override func setup() {
-        addSubview(tableView)
-        tableView.dataSource = self
+        let stack = UIStackView(withAutoLayout: true)
+        stack.axis = .vertical
+        stack.alignment = .fill
+        stack.spacing = 0
+        items.forEach { stack.addArrangedSubview(row($0)) }
+
+        addSubview(stack)
         NSLayoutConstraint.activate([
-            tableView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            tableView.topAnchor.constraint(equalTo: topAnchor),
-            tableView.bottomAnchor.constraint(equalTo: bottomAnchor)
+            stack.topAnchor.constraint(equalTo: topAnchor),
+            stack.leadingAnchor.constraint(equalTo: leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: trailingAnchor)
         ])
-
-        tableView.register(UITableViewCell.self)
-    }
-}
-
-extension UIKitPinColorDemo: UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return items.count
     }
 
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeue(UITableViewCell.self, for: indexPath)
-        let item = items[indexPath.row]
-        cell.backgroundColor = item.color
-        let title = item.title.capitalizingFirstLetter + "  "
-        let attributedTitle = NSMutableAttributedString(string: title)
-        attributedTitle.addAttribute(NSAttributedString.Key.foregroundColor, value: UIColor.black, range: NSRange(location: 0, length: title.count))
-        let whiteTitle = NSMutableAttributedString(string: title)
-        whiteTitle.addAttribute(NSAttributedString.Key.foregroundColor, value: UIColor.white, range: NSRange(location: 0, length: title.count))
-        attributedTitle.append(whiteTitle)
-        cell.textLabel?.attributedText = attributedTitle
-        cell.textLabel?.font = UIFont.body
-        cell.selectionStyle = .none
+    // The title in black and white, so it stays readable whatever the bar's color.
+    private func row(_ item: ColorItem) -> UIView {
+        let row = UIStackView(arrangedSubviews: [label(item.title, color: .black), label(item.title, color: .white)])
+        row.axis = .horizontal
+        row.spacing = .spacingS
+        row.backgroundColor = item.color
+        row.isLayoutMarginsRelativeArrangement = true
+        row.insetsLayoutMarginsFromSafeArea = false
+        row.layoutMargins = UIEdgeInsets(top: .spacingM, left: .spacingL, bottom: .spacingM, right: .spacingL)
+        return row
+    }
 
-        return cell
+    private func label(_ text: String, color: UIColor) -> UILabel {
+        let label = UIKitPinLabel(font: .body)
+        label.text = text
+        label.textColor = color
+        return label
     }
 }

@@ -1,3 +1,4 @@
+import SwiftUI
 import UIKit
 
 // Captures a hosted UIKit component into the Figma IR by reading the real UIView tree — no DisplayList,
@@ -110,8 +111,10 @@ public enum PinUIKitCapture {
             if stretches { node.fillWidth = true }
             return node
         }
+        let fill = stack.backgroundColor.flatMap { $0.cgColor.alpha > 0.01 ? $0 : nil }
         return FigmaNode(
             tag: "frame", x: Double(frame.minX), y: Double(frame.minY), w: Double(frame.width), h: Double(frame.height),
+            fill: fill.map(RGBA.init), fillToken: fill.flatMap(PinDisplayListCapture.tokenName(for:)),
             name: stack.axis == .vertical ? "VStack" : "HStack",
             layout: FigmaLayout(stackLayout(stack)), ordered: true, children: children
         )
@@ -125,9 +128,11 @@ public enum PinUIKitCapture {
         case .center: alignment = .center
         default: alignment = .leading
         }
+        let margins = stack.isLayoutMarginsRelativeArrangement ? stack.layoutMargins : .zero
+        let padding = EdgeInsets(top: margins.top, leading: margins.left, bottom: margins.bottom, trailing: margins.right)
         // Keep the stack's real cross-axis width so `.center`/`.trailing` alignment (and `.fill` children)
         // position within it — a hugged cross axis collapses to the widest child and drifts off-center.
-        return PinCaptureLayout(axis: axis, spacing: stack.spacing, alignment: alignment, mainAxisAlignment: .leading, counterAxisFixed: true)
+        return PinCaptureLayout(axis: axis, spacing: stack.spacing, padding: padding, alignment: alignment, mainAxisAlignment: .leading, counterAxisFixed: true)
     }
 
     private static func isHostingView(_ view: UIView) -> Bool {
