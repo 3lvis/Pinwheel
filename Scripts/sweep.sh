@@ -17,7 +17,7 @@
 #   Scripts/sweep.sh --capture --no-build  # reuse the last build (faster)
 #
 # Env overrides:
-#   PINWHEEL_SIM="iPhone 17 Pro"           # simulator device (else the booted one)
+#   PINWHEEL_SIM="Pinwheel Sweep"          # name of the dedicated sweep simulator (created if missing)
 #   PINWHEEL_SERVE="http://localhost:8787"
 #   PINWHEEL_PREVIEW_OUT=/tmp/...          # preview PNG output directory
 #
@@ -55,17 +55,32 @@ cleanup() {
   [[ -n "${UDID}" ]] && xcrun simctl ui "${UDID}" appearance light >/dev/null 2>&1 || true
 }
 
+# Resolve (or create) a persistent, dedicated sweep simulator by UDID — never "whichever device is
+# booted", which silently grabs the wrong sim and captures/builds against it. Reusing one named sim keeps
+# it warm across runs. Created on the newest available iOS runtime + newest iPhone (a capability, not a
+# pinned model, so it survives runner/Xcode bumps). Override the name with PINWHEEL_SIM.
 resolve_udid() {
-  local udid device
-  udid="$(xcrun simctl list devices | awk -F '[()]' '/Booted/ {print $2; exit}')"
+  local name="${PINWHEEL_SIM:-Pinwheel Sweep}" udid
+  udid="$(xcrun simctl list devices available | grep -m1 "    ${name} (" | grep -oE '[0-9A-F-]{36}' || true)"
   if [[ -z "${udid}" ]]; then
-    device="${PINWHEEL_SIM:-iPhone 17 Pro}"
-    err "booting ${device} ..."
-    udid="$(xcrun simctl list devices available | grep -m1 "${device} (" | grep -oE '[0-9A-F-]{36}' || true)"
-    [[ -n "${udid}" ]] || die "no available simulator named '${device}'"
-    xcrun simctl boot "${udid}" >/dev/null 2>&1 || true
-    xcrun simctl bootstatus "${udid}" -b >/dev/null 2>&1 || true
+    err "creating dedicated sweep simulator '${name}' ..."
+    local pair runtime device_type
+    pair="$(xcrun simctl list -j runtimes | python3 -c "
+import json, re, sys
+runtimes = [r for r in json.load(sys.stdin)['runtimes'] if r['platform'] == 'iOS' and r['isAvailable']]
+runtime = sorted(runtimes, key=lambda r: [int(x) for x in r['version'].split('.')])[-1]
+phones = [d for d in runtime['supportedDeviceTypes'] if 'iPhone' in d['identifier']]
+def newest(device):
+    match = re.search(r'iPhone (\d+)', device['name'])
+    return (int(match.group(1)) if match else 0, -len(device['name']))
+print(runtime['identifier']); print(sorted(phones, key=newest)[-1]['identifier'])
+")"
+    runtime="$(head -1 <<<"${pair}")"
+    device_type="$(tail -1 <<<"${pair}")"
+    [[ -n "${runtime}" && -n "${device_type}" ]] || die "no available iOS runtime/iPhone to create '${name}'"
+    udid="$(xcrun simctl create "${name}" "${device_type}" "${runtime}")"
   fi
+  xcrun simctl bootstatus "${udid}" -b >/dev/null 2>&1 || true
   echo "${udid}"
 }
 
