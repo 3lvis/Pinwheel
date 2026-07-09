@@ -22,6 +22,8 @@ var PW = (() => {
   var code_exports = {};
   __export(code_exports, {
     build: () => build,
+    importFramed: () => importFramed,
+    syncFromDocument: () => syncFromDocument,
     syncTextStyles: () => syncTextStyles,
     syncTokens: () => syncTokens
   });
@@ -133,7 +135,8 @@ var PW = (() => {
   var boundTextStyleCount = 0;
   var importTrace = [];
   var darkMode = false;
-  var darkByToken = {};
+  var tokenCollection = null;
+  var darkModeId = null;
   function colorKey(c) {
     var _a;
     const to255 = (x) => Math.round(x * 255);
@@ -149,10 +152,6 @@ var PW = (() => {
     }
   }
   function solid(color, token) {
-    if (darkMode && token && darkByToken[token]) {
-      const d = darkByToken[token];
-      return { type: "SOLID", color: { r: d.r, g: d.g, b: d.b }, opacity: d.a };
-    }
     const paint = { type: "SOLID", color: { r: color.r, g: color.g, b: color.b }, opacity: color.a };
     const variable = token && colorVarsByName["color/" + token] || colorVars[colorKey(color)];
     return variable ? figma.variables.setBoundVariableForPaint(paint, "color", variable) : paint;
@@ -398,7 +397,7 @@ var PW = (() => {
     if (!collection) collection = figma.variables.createVariableCollection(TOKEN_COLLECTION);
     const lightModeId = collection.modes[0].modeId;
     collection.renameMode(lightModeId, LIGHT_MODE);
-    let darkModeId = (collection.modes.find((m) => m.name === DARK_MODE) || {}).modeId || null;
+    darkModeId = (collection.modes.find((m) => m.name === DARK_MODE) || {}).modeId || null;
     if (!darkModeId) {
       darkModeId = (() => {
         try {
@@ -408,6 +407,7 @@ var PW = (() => {
         }
       })();
     }
+    tokenCollection = collection;
     const existing = await figma.variables.getLocalVariablesAsync();
     const byName = {};
     for (const v of existing) if (v.variableCollectionId === collection.id) byName[v.name] = v;
@@ -547,10 +547,6 @@ var PW = (() => {
     return '<svg width="80" height="13" viewBox="0 0 80 13" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="7" width="3" height="6" rx="1" fill="' + c + '"/><rect x="4.5" y="5" width="3" height="8" rx="1" fill="' + c + '"/><rect x="9" y="2.5" width="3" height="10.5" rx="1" fill="' + c + '"/><rect x="13.5" y="0" width="3" height="13" rx="1" fill="' + c + '"/><path d="M30 3.2c2.2 0 4.3.85 5.85 2.35l-1.05 1.05C33.5 5.4 31.8 4.7 30 4.7s-3.5.7-4.8 1.9L24.15 5.55C25.7 4.05 27.8 3.2 30 3.2zm0 3.1c1.35 0 2.6.52 3.55 1.4l-1.05 1.05C31.85 8.15 30.95 7.8 30 7.8s-1.85.35-2.5.95L26.45 7.7C27.4 6.82 28.65 6.3 30 6.3zm0 3.05c.55 0 1.05.2 1.45.55L30 10.9l-1.45-1c.4-.35.9-.55 1.45-.55z" fill="' + c + '"/><rect x="46.5" y="1" width="24" height="11" rx="3" fill="none" stroke="' + c + '" stroke-opacity="0.35"/><rect x="48" y="2.5" width="19" height="8" rx="1.5" fill="' + c + '"/><path d="M72 4.3v4.4c.9-.35 1.5-1.15 1.5-2.2s-.6-1.85-1.5-2.2z" fill="' + c + '"/></svg>';
   }
   async function syncFromDocument(data) {
-    darkByToken = {};
-    if (data.tokens) {
-      for (const token of data.tokens) if (token.dark) darkByToken[token.name] = token.dark;
-    }
     if (data.tokens) await syncTokens(data.tokens);
     if (data.textStyles) await syncTextStyles(data.textStyles);
     await loadColorVars();
@@ -563,7 +559,14 @@ var PW = (() => {
     if (typeof version === "number") parts.push("v" + version);
     if (dark) parts.push("Dark");
     const root = await build(data.root, figma.currentPage, 0, 0, false);
-    return root.type === "FRAME" ? await wrapInDeviceFrame(root, parts.join(" \xB7 ")) : root;
+    const framed = root.type === "FRAME" ? await wrapInDeviceFrame(root, parts.join(" \xB7 ")) : root;
+    if (dark && tokenCollection && darkModeId) {
+      try {
+        framed.setExplicitVariableModeForCollection(tokenCollection, darkModeId);
+      } catch (e) {
+      }
+    }
+    return framed;
   }
   function traceComponent(name, root) {
     let nodes = 0;

@@ -14,6 +14,7 @@ export function loadPlugin() {
       resize(width, height) { this.width = width; this.height = height },
       setBoundVariable(field, variable) { this.boundVariables[field] = variable },
       setTextStyleIdAsync(id) { this.textStyleId = id; return Promise.resolve() },
+      setExplicitVariableModeForCollection(collection, modeId) { this.explicitModes = { ...(this.explicitModes || {}), [collection.id]: modeId } },
       ...extra,
     }
     created.push(made)
@@ -68,6 +69,8 @@ export function loadPlugin() {
     createText,
     createFrame: () => node('FRAME', { fills: [] }),
     createRectangle: () => node('RECT', { fills: [] }),
+    createNodeFromSvg: () => node('SVG'),
+    currentPage: node('PAGE'),
     createComponent: () => node('COMPONENT'),
     createTextStyle: () => node('TEXTSTYLE'),
     getLocalTextStylesAsync: async () => [],
@@ -80,14 +83,14 @@ export function loadPlugin() {
       getLocalVariablesAsync: async () => [...variablesByName.values()],
       createVariable: (name, coll, resolvedType) => {
         const variable = {
-          name, resolvedType, variableCollectionId: coll.id, values: {},
-          setValueForMode(modeId, value) { this.values[modeId] = value; variableWrites.push({ name, modeId, value }) },
+          name, resolvedType, variableCollectionId: coll.id, valuesByMode: {},
+          setValueForMode(modeId, value) { this.valuesByMode[modeId] = value; variableWrites.push({ name, modeId, value }) },
           remove() { variablesByName.delete(name) },
         }
         variablesByName.set(name, variable)
         return variable
       },
-      setBoundVariableForPaint: (paint) => paint,
+      setBoundVariableForPaint: (paint, field, variable) => ({ ...paint, boundVariables: { ...(paint.boundVariables || {}), [field]: { type: 'VARIABLE_ALIAS', id: variable.name } } }),
     },
   }
   const figma = new Proxy(api, { get: (target, prop) => (prop in target ? target[prop] : () => {}) })
@@ -95,7 +98,7 @@ export function loadPlugin() {
   sandbox.globalThis = sandbox
   vm.createContext(sandbox)
   vm.runInContext(code, sandbox)
-  return { build: sandbox.PW.build, syncTokens: sandbox.PW.syncTokens, syncTextStyles: sandbox.PW.syncTextStyles, created, variableWrites }
+  return { build: sandbox.PW.build, syncTokens: sandbox.PW.syncTokens, syncTextStyles: sandbox.PW.syncTextStyles, syncFromDocument: sandbox.PW.syncFromDocument, importFramed: sandbox.PW.importFramed, created, variableWrites }
 }
 
 export function rootParent() {
