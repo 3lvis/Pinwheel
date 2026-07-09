@@ -28,7 +28,7 @@ class UIKitPinNumbersDemo: UIKitPinView {
 
         stackView.addArrangedSubview(header("Spacing"))
         for (title, spacing) in spacings {
-            stackView.addArrangedSubview(spacingBar(title: title, inset: spacing))
+            stackView.addArrangedSubview(spacingBox(title: title, margin: spacing))
         }
         stackView.addArrangedSubview(header("Radius"))
         for (title, radius) in radii {
@@ -57,18 +57,13 @@ class UIKitPinNumbersDemo: UIKitPinView {
         return label
     }
 
-    // The colored bar is inset horizontally by the spacing value, so the gap on each side is the token.
-    private func spacingBar(title: String, inset: CGFloat) -> UIView {
-        let container = UIView(withAutoLayout: true)
-        let label = makeBarLabel(text: "\(title) \(Int(inset))")
-        container.addSubview(label)
-        NSLayoutConstraint.activate([
-            label.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: inset),
-            label.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -inset),
-            label.topAnchor.constraint(equalTo: container.topAnchor, constant: .spacingS),
-            label.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -.spacingS)
-        ])
-        return container
+    // A box inset inside a container on every side by the spacing value, so the visible margin is the token.
+    private func spacingBox(title: String, margin: CGFloat) -> UIView {
+        let container = roundedView(color: .tertiaryText, radius: .radiusM)
+        let box = roundedView(color: .actionBackground, radius: .radiusM)
+        box.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        embed(box, in: container, inset: margin)
+        return column([captionLabel("\(title) \(Int(margin))"), container])
     }
 
     private func radiusBar(title: String, radius: CGFloat) -> UIView {

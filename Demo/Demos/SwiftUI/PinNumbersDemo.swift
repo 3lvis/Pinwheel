@@ -26,11 +26,14 @@ struct PinNumbersDemo: SwiftUI.View {
             VStack(alignment: .leading, spacing: .spacingXXL) {
                 PinLabel("Spacing").font(.title)
                 ForEach(spacings, id: \.0) { title, spacing in
-                    PinLabel("\(title) \(Int(spacing))")
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, .spacingS)
-                        .background(.tertiaryText)
-                        .padding(.horizontal, spacing)
+                    VStack(alignment: .leading, spacing: .spacingS) {
+                        PinLabel("\(title) \(Int(spacing))").font(.caption).color(.secondary)
+                        Color.clear
+                            .frame(height: 44)
+                            .background(.actionBackground, in: .rect(cornerRadius: .radiusM))
+                            .padding(spacing)
+                            .background(.tertiaryText, in: .rect(cornerRadius: .radiusM))
+                    }
                 }
 
                 PinLabel("Radius").font(.title)
