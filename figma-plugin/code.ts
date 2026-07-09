@@ -508,8 +508,25 @@ async function importFramed(data: any, version: any, dark: boolean, tags?: strin
   const framed = root.type === 'FRAME' ? await wrapInDeviceFrame(root as FrameNode, parts.join(' · ')) : root
   // Resolve bound token variables in their Dark values for a dark import (the variables carry both modes),
   // instead of baking static dark colors that lose the token binding.
-  if (dark && tokenCollection && darkModeId) {
-    try { framed.setExplicitVariableModeForCollection(tokenCollection, darkModeId) } catch { /* older Figma */ }
+  if (dark) {
+    const probe: any = {
+      darkModeSet: 'skipped',
+      hasCollection: Boolean(tokenCollection),
+      collection: tokenCollection ? tokenCollection.name : null,
+      darkModeId,
+    }
+    if (tokenCollection && darkModeId) {
+      try {
+        framed.setExplicitVariableModeForCollection(tokenCollection, darkModeId)
+        probe.darkModeSet = 'ok'
+        probe.explicitModes = JSON.stringify((framed as any).explicitVariableModes || {})
+        probe.resolvedModes = JSON.stringify((framed as any).resolvedVariableModes || {})
+      } catch (error) {
+        probe.darkModeSet = 'threw'
+        probe.error = String((error as any) && (error as any).message ? (error as any).message : error)
+      }
+    }
+    importTrace.push({ name: 'DARK MODE PROBE — ' + parts.join(' · '), ...probe })
   }
   return framed
 }
