@@ -20,6 +20,7 @@ class UIKitPinFullscreenViewDemo: UIKitPinFullscreenView {
         let textView = UITextView(withAutoLayout: true)
         textView.returnKeyType = .done
         textView.delegate = self
+        textView.font = .body
         textView.textColor = .primaryText
         textView.backgroundColor = .clear
         textView.text = """
