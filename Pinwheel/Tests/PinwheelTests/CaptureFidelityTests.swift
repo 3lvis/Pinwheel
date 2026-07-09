@@ -65,6 +65,16 @@ final class CaptureFidelityTests: XCTestCase {
                        "a host shorter than the content drops rows into the containment fallback — the regression LiveCaptureHost's content-height sizing avoids")
     }
 
+    // A literal white text color (the color demo's contrast label) must not bind to a background token:
+    // primaryBackground is white in light but near-black in dark, which would flip the text dark on import.
+    func testLiteralWhiteTextDoesNotBindABackgroundToken() {
+        let white = PinDisplayListCapture.figmaFont(.body, color: .white, underline: false)
+        XCTAssertNil(white.colorToken, "literal white text must stay untokenized, not bind primaryBackground (which flips dark)")
+        // A genuine text-role token still tokenizes.
+        let action = PinDisplayListCapture.figmaFont(.body, color: .actionText, underline: false)
+        XCTAssertEqual(action.colorToken, "actionText", "a text-role token still binds")
+    }
+
     // A row that fills the width (the color demo's full-bleed rows) must keep that width, not hug its
     // labels — an AUTO primary size makes the plugin shrink each row to its text.
     func testFullWidthRowKeepsItsWidthNotHuggingItsContent() throws {

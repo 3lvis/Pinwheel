@@ -506,9 +506,17 @@ public enum PinDisplayListCapture {
         FigmaFont(
             family: "SF Pro Rounded", size: Double(font?.pointSize ?? 17), weight: cssWeight(font),
             color: color.map(RGBA.init) ?? RGBA(r: 0, g: 0, b: 0, a: 1),
-            colorToken: color.flatMap(tokenName(for:)),
+            colorToken: color.flatMap(textColorToken(for:)),
             style: font.flatMap { PinTextStyle.matching($0)?.captureName }, underline: underline
         )
+    }
+
+    // A text color binds only to a text-role token. A background token matched purely by value — a literal
+    // white equals primaryBackground's light value — would flip the text dark on a dark-mode import, so a
+    // contrast literal stays untokenized (static) instead.
+    private static func textColorToken(for color: UIColor) -> String? {
+        guard let name = tokenName(for: color), !name.hasSuffix("Background") else { return nil }
+        return name
     }
 
     static let textStyles: [FigmaTextStyle] = PinTextStyle.allCapturable.map { FigmaTextStyle($0) }
