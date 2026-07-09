@@ -188,13 +188,12 @@ run_preview() {
   local -a ids=("$@")
   local light_out="${PREVIEW_OUT}" dark_out="${PREVIEW_OUT}/dark"
   local tweaks_file="${CONTAINER}/Documents/pinwheel-preview-tweaks.txt"
-  local appearance id tweak tweak_list dest
-  mkdir -p "${light_out}" "${dark_out}"
-  rm -f "${light_out}"/*.png "${dark_out}"/*.png
+  local appearance id tweak tweak_list dest tweaks_dest
+  mkdir -p "${light_out}" "${dark_out}" "${light_out}/tweaks" "${dark_out}/tweaks"
+  rm -f "${light_out}"/*.png "${dark_out}"/*.png "${light_out}"/tweaks/*.png "${dark_out}"/tweaks/*.png
 
-  # Reads ${dest} from the enclosing loop.
   snapshot() {
-    local id="$1" name="$2" tweak="${3:-}"
+    local out_dir="$1" id="$2" name="$3" tweak="${4:-}"
     xcrun simctl terminate "${UDID}" "${BUNDLE_ID}" >/dev/null 2>&1 || true
     if [[ -n "${tweak}" ]]; then
       xcrun simctl launch "${UDID}" "${BUNDLE_ID}" -PinwheelPreview "${id}" -PinwheelPreviewTweak "${tweak}" >/dev/null 2>&1
@@ -202,37 +201,31 @@ run_preview() {
       xcrun simctl launch "${UDID}" "${BUNDLE_ID}" -PinwheelPreview "${id}" >/dev/null 2>&1
     fi
     sleep 2
-    xcrun simctl io "${UDID}" screenshot "${dest}/${name}.png" >/dev/null 2>&1
+    xcrun simctl io "${UDID}" screenshot "${out_dir}/${name}.png" >/dev/null 2>&1
   }
 
   for appearance in light dark; do
     xcrun simctl ui "${UDID}" appearance "${appearance}" >/dev/null 2>&1 || true
-    [[ "${appearance}" == "dark" ]] && dest="${dark_out}" || dest="${light_out}"
-    err "snapshotting ${#ids[@]} components (${appearance}) → ${dest} ..."
+    if [[ "${appearance}" == "dark" ]]; then dest="${dark_out}"; else dest="${light_out}"; fi
+    tweaks_dest="${dest}/tweaks"
+    err "snapshotting ${#ids[@]} components (${appearance}) → ${dest} (tweaks in ./tweaks) ..."
     for id in "${ids[@]}"; do
       rm -f "${tweaks_file}"
-      snapshot "${id}" "${id}"
+      snapshot "${dest}" "${id}" "${id}"
       echo "  ok: ${id}"
       # A variant launch re-dumps the tweaks file, so read it into memory before looping.
       if [[ -f "${tweaks_file}" ]]; then
         tweak_list="$(cat "${tweaks_file}")"
         while IFS= read -r tweak; do
           [[ -n "${tweak}" ]] || continue
-          snapshot "${id}" "${id}__$(tr '[:upper:]' '[:lower:]' <<<"${tweak}" | tr ' ' '-')" "${tweak}"
+          snapshot "${tweaks_dest}" "${id}" "${id}__$(tr '[:upper:]' '[:lower:]' <<<"${tweak}" | tr ' ' '-')" "${tweak}"
           echo "    ok: ${id} / ${tweak}"
         done <<<"${tweak_list}"
       fi
     done
   done
 
-  if command -v montage >/dev/null 2>&1; then
-    local dir
-    for dir in "${light_out}" "${dark_out}"; do
-      montage "${dir}"/*.png -tile 5x -geometry 240x+6+6 -title "Pinwheel ($(basename "${dir}"))" \
-        "${dir}/_contact-sheet.png" 2>/dev/null && err "contact sheet: ${dir}/_contact-sheet.png"
-    done
-  fi
-  err "previews — light: ${light_out}  |  dark: ${dark_out}"
+  err "previews — light: ${light_out}  |  dark: ${dark_out}  (tweak variants in each ./tweaks)"
   open "${PREVIEW_OUT}" 2>/dev/null || true
 }
 
