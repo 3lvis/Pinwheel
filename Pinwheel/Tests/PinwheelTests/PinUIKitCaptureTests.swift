@@ -243,6 +243,28 @@ final class PinUIKitCaptureTests: XCTestCase {
         XCTAssertEqual(frame.layout?.rowGap ?? -1, Double(CGFloat.spacingM), accuracy: 0.5, "the stack spacing becomes the row gap")
     }
 
+    // Figma's createImage rejects any crop over 4096px per side and aborts the whole import; a tall
+    // control/hosting island must be scaled down to fit rather than take the batch out with it.
+    func testTallCropIsScaledUnderFigmaImageLimit() throws {
+        let host = UIView()
+        let tall = UIImageView(image: UIImage(systemName: "star.fill"))
+        tall.backgroundColor = .actionText
+        tall.translatesAutoresizingMaskIntoConstraints = false
+        host.addSubview(tall)
+        NSLayoutConstraint.activate([
+            tall.topAnchor.constraint(equalTo: host.topAnchor),
+            tall.leadingAnchor.constraint(equalTo: host.leadingAnchor),
+            tall.widthAnchor.constraint(equalToConstant: 402),
+            tall.heightAnchor.constraint(equalToConstant: 5000),
+        ])
+        let document = try XCTUnwrap(capture(host))
+        let node = try XCTUnwrap(firstNode(document.root) { $0.image != nil }, "the tall image view should capture as a crop")
+        let data = try XCTUnwrap(Data(base64Encoded: try XCTUnwrap(node.image)))
+        let decoded = try XCTUnwrap(UIImage(data: data))
+        XCTAssertLessThanOrEqual(decoded.size.width, 4096, "crop width must stay within Figma's image limit")
+        XCTAssertLessThanOrEqual(decoded.size.height, 4096, "crop height must stay within Figma's image limit")
+    }
+
     private func firstNode(_ node: FigmaNode, where predicate: (FigmaNode) -> Bool) -> FigmaNode? {
         if predicate(node) { return node }
         for child in node.children { if let found = firstNode(child, where: predicate) { return found } }

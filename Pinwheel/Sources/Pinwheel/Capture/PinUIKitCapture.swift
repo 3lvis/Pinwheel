@@ -132,6 +132,12 @@ public enum PinUIKitCapture {
         String(describing: type(of: view)).contains("HostingView")
     }
 
+    // Figma's createImage rejects a crop over 4096px per side and aborts the whole import, so cap the
+    // raster scale at whatever keeps the longer side within the limit — never upscaling past the device.
+    static func captureScale(for size: CGSize, deviceScale: CGFloat) -> CGFloat {
+        min(deviceScale, 4096 / max(size.width, size.height, 1))
+    }
+
     // A colored view with a corner radius is an intentional shape (concentric layer, card); a plain
     // colored container (radius 0) is just layout and would clutter the capture, so require a radius.
     private static func shapeFillNode(_ view: UIView, host: UIView) -> FigmaNode? {
@@ -226,7 +232,9 @@ public enum PinUIKitCapture {
         guard view.bounds.width > 1, view.bounds.height > 1 else { return nil }
         let frame = view.convert(view.bounds, to: host)
         let image = autoreleasepool { () -> String? in
-            let renderer = UIGraphicsImageRenderer(bounds: view.bounds)
+            let format = UIGraphicsImageRendererFormat.preferred()
+            format.scale = captureScale(for: view.bounds.size, deviceScale: format.scale)
+            let renderer = UIGraphicsImageRenderer(bounds: view.bounds, format: format)
             let rendered = renderer.image { _ in view.drawHierarchy(in: view.bounds, afterScreenUpdates: false) }
             return rendered.pngData()?.base64EncodedString()
         }
