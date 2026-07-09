@@ -335,6 +335,8 @@ async function syncTokens(tokens: any[]): Promise<void> {
   if (!collection) collection = figma.variables.createVariableCollection(TOKEN_COLLECTION)
   const lightModeId = collection.modes[0].modeId
   collection.renameMode(lightModeId, LIGHT_MODE)
+  // A second (Dark) mode needs a paid plan — free/starter throws "Limited to 1 modes only" (confirmed via
+  // probe). Without it, tokens carry only their light value and dark colors are baked static (see solid()).
   let darkModeId: string | null = (collection.modes.find((m) => m.name === DARK_MODE) || {}).modeId || null
   if (!darkModeId) {
     darkModeId = ((): string | null => { try { return collection.addMode(DARK_MODE) } catch { return null } })()
