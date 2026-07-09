@@ -69,18 +69,25 @@ final class CaptureFidelityTests: XCTestCase {
     // labels — an AUTO primary size makes the plugin shrink each row to its text.
     func testFullWidthRowKeepsItsWidthNotHuggingItsContent() throws {
         struct FullWidthRows: SwiftUI.View {
+            let colors: [(String, UIColor)] = [
+                ("Primary Text", .primaryText), ("Secondary Text", .secondaryText),
+                ("Tertiary Text", .tertiaryText), ("Action Text", .actionText),
+                ("Critical Text", .criticalText), ("Primary Background", .primaryBackground),
+                ("Secondary Background", .secondaryBackground), ("Action Background", .actionBackground),
+                ("Critical Background", .criticalBackground)
+            ]
             var body: some SwiftUI.View {
                 ScrollView {
                     VStack(spacing: 0) {
-                        ForEach(0..<3, id: \.self) { index in
+                        ForEach(colors, id: \.0) { title, color in
                             HStack {
-                                PinLabel("Row \(index)").font(.body).color(.custom(.black))
-                                PinLabel("Row \(index)").font(.body).color(.custom(.white))
+                                PinLabel(title).font(.body).color(.custom(.black))
+                                PinLabel(title).font(.body).color(.custom(.white))
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, .spacingL)
                             .padding(.vertical, .spacingM)
-                            .background(.tertiaryText)
+                            .background(SwiftUI.Color(uiColor: color))
                         }
                     }
                 }
