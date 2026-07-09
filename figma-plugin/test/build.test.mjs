@@ -9,6 +9,24 @@ test('a .center multi-line label imports center-aligned, not left', async () => 
     'a .multilineTextAlignment(.center) label must import center-aligned (regressed to left when the bare-text flow path ignored textAlign)')
 })
 
+test('a fillWidth centered text stretches to fill, so centering is visible (UIKit Tweakable)', async () => {
+  const { build, created } = loadPlugin()
+  const doc = {
+    tag: 'frame', name: 'Screen', x: 0, y: 0, w: 402, h: 200, ordered: true,
+    layout: { mode: 'column', rowGap: 0, columnGap: 0, pad: [0, 0, 0, 0], justify: 'flex-start', align: 'flex-start', primarySizing: 'FIXED', counterSizing: 'FIXED' },
+    children: [{
+      tag: 'text', x: 59, y: 80, w: 284, h: 20, fillWidth: true, textAlign: 'center',
+      font: { family: 'SF Pro Rounded', size: 17, weight: 500, color: { r: 1, g: 1, b: 1, a: 1 } },
+      texts: [{ text: 'Tap the button and choose an option.', x: 59, y: 80, w: 284, h: 20 }],
+      children: [],
+    }],
+  }
+  await build(doc, rootParent(), 0, 0, false)
+  const text = created.find((n) => n.type === 'TEXT' && n.characters)
+  assert.equal(text.textAlignHorizontal, 'CENTER', 'centered text aligns center')
+  assert.equal(text.layoutSizingHorizontal, 'FILL', 'a fillWidth text must stretch to fill; a tight box centers to no visible effect and sits at the column leading edge (left)')
+})
+
 test('a natural-alignment label is left by default (no over-centering)', async () => {
   const label = await importedLabel({ textAlign: undefined })
   assert.ok(label)

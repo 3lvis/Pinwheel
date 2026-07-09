@@ -299,9 +299,11 @@ var PW = (() => {
     if (flow && node.font && node.texts && node.texts.length === 1 && !(node.children && node.children.length) && !node.image) {
       const text = await makeText(node.texts[0], node.font);
       parent.appendChild(text);
-      calibrateWidth(text, node.texts[0].w);
       if (node.textAlign === "center") text.textAlignHorizontal = "CENTER";
       else if (node.textAlign === "right") text.textAlignHorizontal = "RIGHT";
+      const parentIsAutoLayout = parent && "layoutMode" in parent && parent.layoutMode !== "NONE";
+      if (node.fillWidth && parentIsAutoLayout) text.layoutSizingHorizontal = "FILL";
+      else calibrateWidth(text, node.texts[0].w);
       return text;
     }
     if (node.component && masters[node.component]) {
