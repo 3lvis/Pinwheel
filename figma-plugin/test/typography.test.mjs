@@ -38,6 +38,19 @@ test('width calibration must not detach a bound style (it writes letterSpacing a
   assert.ok(text.textStyleId, 'the style must survive width calibration, not be detached by its letterSpacing write')
 })
 
+test('an underlined link button keeps its underline even though its font carries a style', async () => {
+  const { build, syncTextStyles, created } = loadPlugin()
+  await syncTextStyles(textStyles)
+  const node = {
+    tag: 'text', x: 0, y: 0, w: 60, h: 20, children: [],
+    font: { family: 'SF Pro Rounded', size: 20, weight: 500, style: 'subtitle', underline: true, color: { r: 0, g: 0, b: 0, a: 1 } },
+    texts: [{ text: 'Back', x: 0, y: 0, w: 60, h: 20 }],
+  }
+  await build(node, rootParent(), 0, 0, false)
+  const text = created.find((n) => n.type === 'TEXT')
+  assert.equal(text.textDecoration, 'UNDERLINE', 'the link underline must survive; binding a plain typography style must not wipe it')
+})
+
 test('the bound style is the one matching the font.style name', async () => {
   const { build, syncTextStyles, created } = loadPlugin()
   await syncTextStyles(textStyles)

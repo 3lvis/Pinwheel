@@ -204,7 +204,7 @@ var PW = (() => {
   async function makeText(run, font) {
     const plan = planText(run, font);
     const text = figma.createText();
-    const style = plan.styleName ? textStyles[plan.styleName] : void 0;
+    const style = plan.styleName && !plan.underline ? textStyles[plan.styleName] : void 0;
     if (style) {
       await figma.loadFontAsync(style.fontName);
       text.fontName = style.fontName;

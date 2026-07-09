@@ -49,6 +49,15 @@ export function loadPlugin() {
         set: (value) => { owned[prop] = value; if (made.textStyleId) made.textStyleId = '' },
       })
     }
+    // Applying a text style overwrites the node's style-owned properties with the style's own, so a
+    // plain style (no underline) clears a textDecoration set before the bind — write owned directly
+    // (not through the setter) so this counts as the style applying, not a detaching manual edit.
+    made.setTextStyleIdAsync = (id) => {
+      made.textStyleId = id
+      const style = created.find((n) => n.id === id)
+      owned.textDecoration = (style && style.textDecoration) || 'NONE'
+      return Promise.resolve()
+    }
     return made
   }
   const api = {

@@ -118,7 +118,9 @@ function calibrateWidth(text: TextNode, targetWidth: number): void {
 async function makeText(run: any, font: any): Promise<TextNode> {
   const plan = planText(run, font)
   const text = figma.createText()
-  const style = plan.styleName ? textStyles[plan.styleName] : undefined
+  // A bound style dictates textDecoration, so it would wipe the underline; underlined text (the link
+  // button) keeps its raw font and its underline instead of the typography-token binding.
+  const style = plan.styleName && !plan.underline ? textStyles[plan.styleName] : undefined
   if (style) {
     await figma.loadFontAsync(style.fontName as FontName)
     text.fontName = style.fontName as FontName
