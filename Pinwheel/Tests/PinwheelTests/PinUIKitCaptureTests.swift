@@ -271,6 +271,35 @@ final class PinUIKitCaptureTests: XCTestCase {
         XCTAssertLessThanOrEqual(decoded.size.height, 4096, "crop height must stay within Figma's image limit")
     }
 
+    // A center-aligned stack wider than its children must keep its width, or the plugin hugs it to the
+    // widest child and — keeping its left origin — shifts the whole stack off-center (the UIKit buttons).
+    func testCenteredStackKeepsItsWidthSoChildrenStayCentered() throws {
+        let host = UIView()
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.alignment = .center
+        stack.spacing = .spacingM
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        for title in ["A", "B"] {
+            let label = UILabel()
+            label.text = title
+            label.backgroundColor = .actionBackground
+            label.widthAnchor.constraint(equalToConstant: 80).isActive = true
+            stack.addArrangedSubview(label)
+        }
+        host.addSubview(stack)
+        NSLayoutConstraint.activate([
+            stack.topAnchor.constraint(equalTo: host.topAnchor, constant: 40),
+            stack.leadingAnchor.constraint(equalTo: host.leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: host.trailingAnchor)
+        ])
+        let document = try XCTUnwrap(capture(host))
+        let frame = try XCTUnwrap(firstNode(document.root) { $0.layout?.mode == "column" && $0.children.count == 2 })
+        XCTAssertGreaterThan(frame.w, 380, "the stack spans the width")
+        XCTAssertEqual(frame.layout?.align, "center")
+        XCTAssertEqual(frame.layout?.counterSizing, "FIXED", "a centered stack keeps its cross-axis width so its children stay centered, not hug to the widest child")
+    }
+
     private func firstNode(_ node: FigmaNode, where predicate: (FigmaNode) -> Bool) -> FigmaNode? {
         if predicate(node) { return node }
         for child in node.children { if let found = firstNode(child, where: predicate) { return found } }

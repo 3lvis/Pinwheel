@@ -125,7 +125,9 @@ public enum PinUIKitCapture {
         case .center: alignment = .center
         default: alignment = .leading
         }
-        return PinCaptureLayout(axis: axis, spacing: stack.spacing, alignment: alignment, mainAxisAlignment: .leading)
+        // Keep the stack's real cross-axis width so `.center`/`.trailing` alignment (and `.fill` children)
+        // position within it — a hugged cross axis collapses to the widest child and drifts off-center.
+        return PinCaptureLayout(axis: axis, spacing: stack.spacing, alignment: alignment, mainAxisAlignment: .leading, counterAxisFixed: true)
     }
 
     private static func isHostingView(_ view: UIView) -> Bool {

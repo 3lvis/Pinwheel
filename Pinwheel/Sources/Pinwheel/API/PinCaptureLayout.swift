@@ -13,8 +13,11 @@ public struct PinCaptureLayout {
     // Hold the captured main-axis size instead of hugging the content — a fixed-width colored bar whose
     // text is centered inside, not shrink-wrapped to the glyphs.
     public let primaryAxisFixed: Bool
+    // Hold the captured cross-axis size so `.center`/`.trailing` alignment positions within the real
+    // width — a hugged cross axis collapses to the widest child and drifts off-center.
+    public let counterAxisFixed: Bool
 
-    public init(axis: Axis, spacing: CGFloat, padding: EdgeInsets = EdgeInsets(), spaceBetween: Bool = false, alignment: CrossAxis = .center, mainAxisAlignment: CrossAxis = .leading, minWidth: CGFloat? = nil, primaryAxisFixed: Bool = false) {
+    public init(axis: Axis, spacing: CGFloat, padding: EdgeInsets = EdgeInsets(), spaceBetween: Bool = false, alignment: CrossAxis = .center, mainAxisAlignment: CrossAxis = .leading, minWidth: CGFloat? = nil, primaryAxisFixed: Bool = false, counterAxisFixed: Bool = false) {
         self.axis = axis
         self.spacing = spacing
         self.padding = padding
@@ -23,6 +26,7 @@ public struct PinCaptureLayout {
         self.mainAxisAlignment = mainAxisAlignment
         self.minWidth = minWidth
         self.primaryAxisFixed = primaryAxisFixed
+        self.counterAxisFixed = counterAxisFixed
     }
 }
 
