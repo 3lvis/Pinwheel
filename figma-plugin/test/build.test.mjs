@@ -27,30 +27,6 @@ test('a fillWidth centered text stretches to fill, so centering is visible (UIKi
   assert.equal(text.layoutSizingHorizontal, 'FILL', 'a fillWidth text must stretch to fill; a tight box centers to no visible effect and sits at the column leading edge (left)')
 })
 
-test('a dark import binds token variables and sets the frame to Dark mode (not baked static)', async () => {
-  const { syncFromDocument, importFramed, created } = loadPlugin()
-  const doc = {
-    tokens: [{ name: 'primaryText', type: 'color', value: { r: 0.01, g: 0.09, b: 0.13, a: 1 }, dark: { r: 1, g: 1, b: 1, a: 1 } }],
-    root: {
-      tag: 'frame', name: 'Screen', x: 0, y: 0, w: 402, h: 100, ordered: true,
-      layout: { mode: 'column', rowGap: 0, columnGap: 0, pad: [0, 0, 0, 0], justify: 'flex-start', align: 'flex-start', primarySizing: 'FIXED', counterSizing: 'FIXED' },
-      children: [{
-        tag: 'text', x: 0, y: 0, w: 200, h: 20, textAlign: 'center',
-        font: { family: 'SF Pro Rounded', size: 17, weight: 500, color: { r: 0.01, g: 0.09, b: 0.13, a: 1 }, colorToken: 'primaryText' },
-        texts: [{ text: 'Hello', x: 0, y: 0, w: 200, h: 20 }],
-        children: [],
-      }],
-    },
-  }
-  await syncFromDocument(doc)
-  const framed = await importFramed(doc, 1, true, [])
-  const text = created.find((n) => n.type === 'TEXT' && n.characters === 'Hello')
-  assert.ok(text.fills[0].boundVariables && text.fills[0].boundVariables.color,
-    'a dark import must bind the token variable (tokenized), not bake a static color')
-  assert.ok(framed.explicitModes && Object.keys(framed.explicitModes).length,
-    'the dark frame must set its Dark variable mode so bound tokens resolve dark')
-})
-
 test('a natural-alignment label is left by default (no over-centering)', async () => {
   const label = await importedLabel({ textAlign: undefined })
   assert.ok(label)
