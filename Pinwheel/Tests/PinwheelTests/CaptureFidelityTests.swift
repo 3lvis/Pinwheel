@@ -65,6 +65,36 @@ final class CaptureFidelityTests: XCTestCase {
                        "a host shorter than the content drops rows into the containment fallback — the regression LiveCaptureHost's content-height sizing avoids")
     }
 
+    // A row that fills the width (the color demo's full-bleed rows) must keep that width, not hug its
+    // labels — an AUTO primary size makes the plugin shrink each row to its text.
+    func testFullWidthRowKeepsItsWidthNotHuggingItsContent() throws {
+        struct FullWidthRows: SwiftUI.View {
+            var body: some SwiftUI.View {
+                ScrollView {
+                    VStack(spacing: 0) {
+                        ForEach(0..<3, id: \.self) { index in
+                            HStack {
+                                PinLabel("Row \(index)").font(.body).color(.custom(.black))
+                                PinLabel("Row \(index)").font(.body).color(.custom(.white))
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, .spacingL)
+                            .padding(.vertical, .spacingM)
+                            .background(.tertiaryText)
+                        }
+                    }
+                }
+                .background(.primaryBackground)
+            }
+        }
+        let root = try XCTUnwrap(PinDisplayListCapture.document(FullWidthRows(), name: "Rows", size: CGSize(width: 402, height: 900), screenHeight: 778)).root
+        let row = try XCTUnwrap(firstNode(in: root) { $0.fillToken == "tertiaryText" && $0.layout != nil }, "a full-width colored row should capture as an auto-layout frame")
+        XCTAssertGreaterThan(row.w, 380, "the row spans the width")
+        let layout = try XCTUnwrap(row.layout)
+        let widthSizing = layout.mode == "row" ? layout.primarySizing : layout.counterSizing
+        XCTAssertEqual(widthSizing, "FIXED", "a width-filling row must keep its width fixed so the plugin holds it instead of hugging the labels")
+    }
+
     func testLargeConcentricRadiusResolvesToItsToken() {
         XCTAssertEqual(PinFloatTokens.radiusName(for: 24), "radius-l")
         XCTAssertNil(PinFloatTokens.radiusName(for: 20), "an off-scale radius stays raw, never snapped to a token")

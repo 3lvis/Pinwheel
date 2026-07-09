@@ -186,6 +186,16 @@ public enum PinDisplayListCapture {
         )
     }
 
+    // Pin the width-controlling axis to FIXED so the plugin keeps the captured width instead of hugging
+    // the frame's content — width is the primary axis for a row, the counter axis for a column.
+    private static func fixingWidth(_ node: FigmaNode) -> FigmaNode {
+        guard var layout = node.layout else { return node }
+        if layout.mode == "row" { layout.primarySizing = "FIXED" } else { layout.counterSizing = "FIXED" }
+        var fixed = node
+        fixed.layout = layout
+        return fixed
+    }
+
     // `.frame(maxWidth: .infinity)` centers the button at its own width rather than stretching it, so wrap it in a parent-filling centering frame.
     private static func fillWidthCentered(_ content: FigmaNode) -> FigmaNode {
         let layout = PinCaptureLayout(axis: .column, spacing: 0, padding: EdgeInsets(), alignment: .center, mainAxisAlignment: .center)
@@ -369,7 +379,10 @@ public enum PinDisplayListCapture {
         // A leading column pins children left, so a child centered on the axis but inset from the leading edge (a spacing bar sharing the column with a header) gets a full-width centering slot.
         let contentMinX = orderedChildren.map { $0.leaf.frame.minX }.min() ?? frame.minX
         let childNodes = orderedChildren.map { child -> FigmaNode in
-            let node = emit(child, host: host)
+            var node = emit(child, host: host)
+            // A child that spans the parent's width fills it (the color demo's full-bleed rows); keep that
+            // width fixed so the plugin holds it rather than hugging the frame to its content.
+            if child.leaf.frame.width >= frame.width - 0.5 { node = fixingWidth(node) }
             guard layout.axis == .column, layout.alignment == .leading else { return node }
             let centeredOnAxis = abs(child.leaf.frame.midX - frame.midX) < 2
             let insetFromLeading = child.leaf.frame.minX - contentMinX > 1
