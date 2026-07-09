@@ -100,6 +100,7 @@ public struct PinwheelItem {
     public let constrainToBottomSafeArea: Bool
     public let tabletDisplayMode: TabletDisplayMode
     public let tags: [PinTag]
+    public let isUIKitHosted: Bool
     private let makeSwiftUIView: () -> AnyView
 
     /// Slugified title prefixed by tags, so same-titled items in different worlds
@@ -126,6 +127,7 @@ public struct PinwheelItem {
         constrainToBottomSafeArea: Bool,
         tabletDisplayMode: TabletDisplayMode,
         tags: [PinTag] = [],
+        isUIKitHosted: Bool,
         makeSwiftUIView: @escaping () -> AnyView
     ) {
         self.title = title
@@ -135,6 +137,7 @@ public struct PinwheelItem {
         self.constrainToBottomSafeArea = constrainToBottomSafeArea
         self.tabletDisplayMode = tabletDisplayMode
         self.tags = tags
+        self.isUIKitHosted = isUIKitHosted
         self.makeSwiftUIView = makeSwiftUIView
     }
 
@@ -146,6 +149,7 @@ public struct PinwheelItem {
             constrainToTopSafeArea: true,
             constrainToBottomSafeArea: true,
             tabletDisplayMode: tabletDisplayMode,
+            isUIKitHosted: true,
             makeSwiftUIView: {
                 let tweaks = (viewController as? Tweakable)?.tweaks.compactMap { PinwheelTweak($0) } ?? []
                 return AnyView(
@@ -168,6 +172,7 @@ public struct PinwheelItem {
             constrainToTopSafeArea: true,
             constrainToBottomSafeArea: true,
             tabletDisplayMode: .fullscreen,
+            isUIKitHosted: true,
             makeSwiftUIView: {
                 // Reuse the same view across renders. The tweak controls hold onto it, so a
                 // fresh one each render would leave them driving a hidden, discarded copy.
@@ -198,6 +203,7 @@ public struct PinwheelItem {
             constrainToTopSafeArea: true,
             constrainToBottomSafeArea: true,
             tabletDisplayMode: .fullscreen,
+            isUIKitHosted: false,
             makeSwiftUIView: {
                 AnyView(content())
             }
@@ -218,6 +224,7 @@ public struct PinwheelItem {
             constrainToTopSafeArea: true,
             constrainToBottomSafeArea: true,
             tabletDisplayMode: .fullscreen,
+            isUIKitHosted: true,
             makeSwiftUIView: {
                 let controller = sharedViewController ?? {
                     let created = viewController()
@@ -304,6 +311,7 @@ public extension PinwheelItem {
             constrainToBottomSafeArea: constrainToBottomSafeArea,
             tabletDisplayMode: tabletDisplayMode,
             tags: tags ?? self.tags,
+            isUIKitHosted: isUIKitHosted,
             makeSwiftUIView: makeSwiftUIView
         )
     }

@@ -27,4 +27,13 @@ final class PinwheelIdentityTests: XCTestCase {
         let item = PinwheelItem("🎉") { SwiftUI.Text("x") }
         XCTAssertEqual(item.id, item.id, "a computed id must not change between reads")
     }
+
+    @MainActor
+    func testCaptureWorldFollowsHostedContentNotDisplayTag() {
+        let figma = PinTag(rawValue: "Figma")
+        let uiKitHosted = PinwheelItem("Grid", view: UIView.self).tags(figma)
+        let swiftUIHosted = PinwheelItem("Card") { SwiftUI.Text("x") }.tags(figma)
+        XCTAssertTrue(uiKitHosted.isUIKitHosted, "a view:-hosted item captures via the UIKit engine regardless of its display tag")
+        XCTAssertFalse(swiftUIHosted.isUIKitHosted, "a SwiftUI content: item captures via the DisplayList engine regardless of its display tag")
+    }
 }

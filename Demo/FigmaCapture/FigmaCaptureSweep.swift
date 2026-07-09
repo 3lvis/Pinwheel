@@ -127,8 +127,7 @@ private struct LiveCaptureHost: UIViewControllerRepresentable {
         // real pills/text never capture. (UIKit controls render only in the sim's own appearance, so the
         // sweep runs twice — sim light, then dark — and merges the two single-appearance documents.)
         let displayList = { PinDisplayListCapture.document(entry.item.swiftUIView(), name: entry.title, size: size, screenHeight: FigmaCatalog.oneScreen, liveHost: host.view) }
-        let isUIKit = entry.tags.contains(PinTag.uiKit.rawValue)
-        guard let document = isUIKit
+        guard let document = entry.item.isUIKitHosted
             ? (PinUIKitCapture.document(host: host.view, name: entry.title, size: size, screenHeight: FigmaCatalog.oneScreen) ?? displayList())
             : displayList()
         else { return }

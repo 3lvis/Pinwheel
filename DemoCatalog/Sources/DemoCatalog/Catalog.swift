@@ -10,6 +10,7 @@ public enum Catalog: String, PinwheelComponent {
     case stateView = "StateView"
     case tableView = "TableView"
     case dataSourceTableView = "DataSource TableView"
+    case collectionView = "CollectionView"
     case fullscreenView = "FullscreenView"
     case viewController = "ViewController"
     case appleControls = "Apple Controls"
