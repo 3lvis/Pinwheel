@@ -39,7 +39,8 @@ let textStyles: Record<string, TextStyle> = {}
 let boundTextStyleCount = 0
 let importTrace: any[] = []
 let darkMode = false
-let darkByToken: Record<string, { r: number; g: number; b: number; a: number }> = {}
+let tokenCollection: VariableCollection | null = null
+let darkModeId: string | null = null
 
 function colorKey(c: { r: number; g: number; b: number; a?: number }): string {
   const to255 = (x: number) => Math.round(x * 255)
@@ -56,11 +57,10 @@ async function loadColorVars(): Promise<void> {
   }
 }
 
+// Bind the token variable (it carries both light and dark values) in every mode; the dark frame gets its
+// Dark variable mode set (importFramed) so the binding resolves dark. Baking a static dark value here
+// instead would drop the token binding — the color would import as a literal, not a token reference.
 function solid(color: { r: number; g: number; b: number; a: number }, token?: string): SolidPaint {
-  if (darkMode && token && darkByToken[token]) {
-    const d = darkByToken[token]
-    return { type: 'SOLID', color: { r: d.r, g: d.g, b: d.b }, opacity: d.a }
-  }
   const paint: SolidPaint = { type: 'SOLID', color: { r: color.r, g: color.g, b: color.b }, opacity: color.a }
   const variable = (token && colorVarsByName['color/' + token]) || colorVars[colorKey(color)]
   return variable ? figma.variables.setBoundVariableForPaint(paint, 'color', variable) : paint
@@ -331,10 +331,11 @@ async function syncTokens(tokens: any[]): Promise<void> {
   if (!collection) collection = figma.variables.createVariableCollection(TOKEN_COLLECTION)
   const lightModeId = collection.modes[0].modeId
   collection.renameMode(lightModeId, LIGHT_MODE)
-  let darkModeId: string | null = (collection.modes.find((m) => m.name === DARK_MODE) || {}).modeId || null
+  darkModeId = (collection.modes.find((m) => m.name === DARK_MODE) || {}).modeId || null
   if (!darkModeId) {
     darkModeId = ((): string | null => { try { return collection.addMode(DARK_MODE) } catch { return null } })()
   }
+  tokenCollection = collection
   const existing = await figma.variables.getLocalVariablesAsync()
   const byName: Record<string, Variable> = {}
   for (const v of existing) if (v.variableCollectionId === collection.id) byName[v.name] = v
@@ -491,8 +492,6 @@ function statusIndicatorsSvg(color: RGB): string {
 }
 
 async function syncFromDocument(data: any): Promise<void> {
-  darkByToken = {}
-  if (data.tokens) for (const token of data.tokens) if (token.dark) darkByToken[token.name] = token.dark
   if (data.tokens) await syncTokens(data.tokens)
   if (data.textStyles) await syncTextStyles(data.textStyles)
   await loadColorVars()
@@ -506,7 +505,13 @@ async function importFramed(data: any, version: any, dark: boolean, tags?: strin
   if (typeof version === 'number') parts.push('v' + version)
   if (dark) parts.push('Dark')
   const root = await build(data.root, figma.currentPage, 0, 0, false)
-  return root.type === 'FRAME' ? await wrapInDeviceFrame(root as FrameNode, parts.join(' · ')) : root
+  const framed = root.type === 'FRAME' ? await wrapInDeviceFrame(root as FrameNode, parts.join(' · ')) : root
+  // Resolve bound token variables in their Dark values for a dark import (the variables carry both modes),
+  // instead of baking static dark colors that lose the token binding.
+  if (dark && tokenCollection && darkModeId) {
+    try { framed.setExplicitVariableModeForCollection(tokenCollection, darkModeId) } catch { /* older Figma */ }
+  }
+  return framed
 }
 
 // Always-on debug path: every import records a compact summary of what it received (the captured IR),
@@ -589,4 +594,4 @@ figma.ui.onmessage = async (message: any) => {
   }
 }
 
-export { build, syncTokens, syncTextStyles }
+export { build, syncTokens, syncTextStyles, syncFromDocument, importFramed }
