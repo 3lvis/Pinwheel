@@ -203,6 +203,7 @@ public enum PinUIKitCapture {
             tag: "text", x: Double(box.minX), y: Double(box.minY), w: Double(box.width), h: Double(box.height),
             font: PinDisplayListCapture.figmaFont(label.font, color: label.textColor, underline: false),
             texts: [FigmaText(text: text, x: Double(box.minX), y: Double(box.minY), w: Double(box.width), h: Double(box.height))],
+            textAlign: PinDisplayListCapture.textAlignName(label.textAlignment),
             children: []
         )
     }
@@ -223,6 +224,7 @@ public enum PinUIKitCapture {
             tag: "text", x: Double(box.minX), y: Double(box.minY), w: Double(box.width), h: Double(box.height),
             font: PinDisplayListCapture.figmaFont(textView.font, color: textView.textColor, underline: false),
             texts: [FigmaText(text: text, x: Double(box.minX), y: Double(box.minY), w: Double(box.width), h: Double(box.height))],
+            textAlign: PinDisplayListCapture.textAlignName(textView.textAlignment),
             children: []
         )
     }

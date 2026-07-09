@@ -271,6 +271,26 @@ final class PinUIKitCaptureTests: XCTestCase {
         XCTAssertLessThanOrEqual(decoded.size.height, 4096, "crop height must stay within Figma's image limit")
     }
 
+    // A centered label's text node must carry center alignment — otherwise a full-width (fillWidth) text
+    // node left-aligns in the plugin, so the centered label (Tweakable) drifts left.
+    func testCenteredLabelTextCarriesCenterAlignment() throws {
+        let host = UIView()
+        let label = UILabel()
+        label.text = "Centered"
+        label.textAlignment = .center
+        label.numberOfLines = 0
+        label.translatesAutoresizingMaskIntoConstraints = false
+        host.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.topAnchor.constraint(equalTo: host.topAnchor, constant: 40),
+            label.leadingAnchor.constraint(equalTo: host.leadingAnchor),
+            label.trailingAnchor.constraint(equalTo: host.trailingAnchor)
+        ])
+        let document = try XCTUnwrap(capture(host))
+        let text = try XCTUnwrap(firstText(document.root, "Centered"))
+        XCTAssertEqual(text.textAlign, "center", "a centered label's text node must carry center alignment")
+    }
+
     // A center-aligned stack wider than its children must keep its width, or the plugin hugs it to the
     // widest child and — keeping its left origin — shifts the whole stack off-center (the UIKit buttons).
     func testCenteredStackKeepsItsWidthSoChildrenStayCentered() throws {

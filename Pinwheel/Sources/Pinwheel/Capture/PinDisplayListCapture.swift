@@ -428,7 +428,7 @@ public enum PinDisplayListCapture {
     }
 
     // Left/natural are the plugin's default, so leave them unset; only center/right are emitted.
-    private static func textAlignName(_ alignment: NSTextAlignment) -> String? {
+    static func textAlignName(_ alignment: NSTextAlignment) -> String? {
         switch alignment {
         case .center: return "center"
         case .right: return "right"
