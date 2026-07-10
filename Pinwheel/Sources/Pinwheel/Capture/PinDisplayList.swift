@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import ObjectiveC
 
 // Reads SwiftUI's private, undocumented DisplayList via reflection — the internals shift across
 // toolchains, so all of it is contained to this file. Never ships.
@@ -129,11 +130,20 @@ enum PinDisplayList {
     }
 
     private static func displayList(of hostingView: Any) -> Any? {
-        guard let base = child(hostingView, "_base"),
+        // The root `_UIHostingView` exposes `_base` via Mirror; a `List` cell's `CellHostingView` stores it
+        // as an ObjC ivar Mirror hides — read it through the runtime so per-cell capture reaches the same
+        // `viewGraph → renderer → lastList` path.
+        guard let base = child(hostingView, "_base") ?? ivarObject(hostingView, "_base"),
               let graphHost = child(base, "viewGraph"),
               let rendererBox = child(graphHost, "renderer"),
               let updater = unwrap(child(rendererBox, "renderer")) else { return nil }
         return child(updater, "lastList")
+    }
+
+    private static func ivarObject(_ value: Any, _ name: String) -> Any? {
+        guard let object = value as AnyObject?,
+              let ivar = class_getInstanceVariable(type(of: object), name) else { return nil }
+        return object_getIvar(object, ivar)
     }
 
     private static func walk(_ list: Any, origin: CGPoint) -> [DisplayLeaf] {

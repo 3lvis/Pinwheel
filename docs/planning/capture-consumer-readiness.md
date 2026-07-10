@@ -26,21 +26,26 @@ Measured on the on-screen sweep host (demos in Screens, `.figma`):
   makes the outer ScrollView's viewport == content, so every row realizes into the DisplayList.
 - **`LazyVGrid` — SOLVED.** 12/12 tiles captured (`figma-lazy-grid`). (Per-tile fill fidelity is a
   follow-up — labels all present; the containment path flattened the tile backgrounds.)
-- **`List` — editable capture BLOCKED (investigated, `SectionedListDemo`).** A SwiftUI `List` is a
-  recycled `UICollectionView` (`UpdateCoalescingCollectionView`). Force-realizing *works* — sizing the
-  collection to its `contentSize` realizes every cell (confirmed 14→20). But each row is its own opaque
-  SwiftUI hosting boundary (`ListCollectionViewCell → _UICollectionViewListCellContentView →
-  CellHostingView`), and none of the editable routes reach it: (1) the root host's DisplayList excludes
-  the cells (separate graphs) → captures flat; (2) `CellHostingView` reflects to an **empty Mirror** (no
-  `_base`/`viewGraph`), so the per-cell DisplayList extraction that works on the root can't run; (3) cell
-  accessibility labels are **empty** (computed lazily). Only per-cell **pixel crops** remain — non-editable
-  rows, barely better than the flat image. So editable `List` capture isn't achievable with the current
-  DisplayList technique. Options: (a) accept `List` screens capture flat (a documented limitation, like the
-  old UIKit-`List` case); (b) per-cell image crops (non-editable but per-row, individually replaceable);
-  (c) future non-Mirror extraction into `CellHostingView`'s graph via the ObjC runtime — fragile and
-  iOS-version-specific. Recommendation: (a) for now — `List`'s value to the consumer is its *features*
-  (sections/swipe/edit), and those screens (Cart, Favorites) can capture flat until (b)/(c) is justified;
-  the editable wins are the lazy stacks/grids, which already work.
+- **`List` — editable capture WORKING (partial for rich rows), via `PinSwiftUIListCapture`.** A SwiftUI
+  `List` is a recycled `UICollectionView` (`UpdateCoalescingCollectionView`); each row is its own SwiftUI
+  hosting boundary (`ListCollectionViewCell → _UICollectionViewListCellContentView → CellHostingView`).
+  Two moves crack it: (1) **force-realize** — size the collection to its `contentSize` so every cell exists
+  (14→20 confirmed); (2) **read each cell's own DisplayList** — `CellHostingView` reflects to an empty
+  `Mirror`, but its `_base` (a `UIHostingViewBase` with the full `viewGraph`) is reachable via the **ObjC
+  runtime** (`class_getInstanceVariable`/`object_getIvar`). So `displayList(of:)` fetches `_base` via Mirror
+  *or* the ObjC ivar, and per-cell capture composes the rows into a screen.
+  - **Text-dominant rows: full** — proven, a plain-text `List` captures every row as editable text
+    (`testListRowsCaptureAsEditableText`, `Row 1…Row 12`).
+  - **Rich rows: partial** — `ProductListDemo` (image + title + SALE pill + was/now price + stepper) goes
+    from a **blank box** to **structured rows** with the image placeholder + one text fragment each (title
+    or stepper). SwiftUI scatters a rich row across several nested hosting views and only some expose a
+    readable DisplayList (a `Button`'s label, an inline stepper's text can host in a form that yields
+    nothing). Capturing every hosting view didn't recover them — a genuine long-tail internals gap.
+  - Wired ahead of the DisplayList path for SwiftUI items (`PinSwiftUIListCapture.document(...) ?? displayList()`);
+    returns nil (falls through) for non-`List` screens. The `_base`-via-ObjC change is regression-free for
+    the root `_UIHostingView` path (it still finds `_base` via Mirror first).
+  - Follow-up: recover the missing rich-row fragments (map SwiftUI's control/image hosting forms) if full
+    fidelity on Cart-style rows is needed; today they capture as structured-but-partial rather than blank.
 - Layout-fidelity follow-up: the lazy demos fell to the containment path (`root=frame`, not `screen`),
   so auto-layout/component-grouping is lossier than the reflection path. Investigate matching the
   reflection path for large lazy trees.
