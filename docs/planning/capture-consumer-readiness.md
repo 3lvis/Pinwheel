@@ -64,18 +64,20 @@ Measured on the on-screen sweep host (demos in Screens, `.figma`):
 - Tall content beyond one screen: scroll-and-stitch the live container as a fallback.
 
 ## Blocker 2 — Consumer-supplied token & font registry
-Engine value-matches colors/spacing/radius against fixed library enums and hardcodes the font
-family → a consumer's tokens/fonts don't bind; text imports under the wrong family.
-- A capture-time registry the consumer supplies: named color tokens (light/dark), float tokens
-  (spacing/radius), text styles (family, size, weight, line-height). Multiple theme variants,
-  selectable per capture. Built-ins become the default registry.
-- Refactor value-matchers (tokenName / spacingName / radiusName / text-style matching) to consult
-  the registry.
-- Read the ACTUAL rendered font family instead of hardcoding it; emit it; bind a consumer text
-  style when matched.
-- Emit the registry as Figma variables/text styles (mechanism exists; feed consumer tokens).
-- Consumer side: a thin adapter mapping their tokens in + uploading their fonts to the Figma file.
-- Tests: a custom registry binds a custom color/spacing/text-style; the actual family is emitted.
+Engine value-matched colors/spacing/radius against fixed library enums and hardcoded the font family.
+- **Phase 1 — DONE (`PinCaptureTokens`).** A consumer-supplied registry the matchers consult:
+  `PinCaptureTokens.current` (defaults to `.pinwheel`) holds color tokens (name + light/dark + a
+  `textEligible` flag so a text color doesn't bind a background token), spacing + radius float tokens, and
+  a `systemFontFamily`. The color/float matchers (`tokenName`, `spacingName`/`radiusName`/`gapName`) and
+  the Figma-variable emitters (`figmaColorTokens`/`figmaFloatTokens`) route through `.current`; captured
+  text reads its **actual** font family (custom fonts carry through; the system font falls back to
+  `systemFontFamily`). Default preserves current behavior — full suite green. Tests: a custom color binds
+  a custom name, a custom spacing binds, a custom font family is emitted, and the default still binds
+  Pinwheel tokens.
+- **Phase 2 — remaining.** Text-*style* name matching still maps to Pinwheel's `PinTextStyle`; a consumer's
+  named text styles (sizes/weights/line-heights) should match + emit from the registry too. Plus a
+  consumer adapter (map their tokens into `PinCaptureTokens`) and uploading their fonts to the Figma file
+  so text doesn't fall back. Multi-brand: swap `.current` per brand.
 
 ## Fidelity gaps
 3. Async images — on-screen host + await image load (readiness signal); note blend modes.

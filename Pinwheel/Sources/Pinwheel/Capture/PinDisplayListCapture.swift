@@ -546,19 +546,25 @@ public enum PinDisplayListCapture {
 
     static func figmaFont(_ font: UIFont?, color: UIColor?, underline: Bool) -> FigmaFont {
         FigmaFont(
-            family: "SF Pro Rounded", size: Double(font?.pointSize ?? 17), weight: cssWeight(font),
+            family: fontFamily(font), size: Double(font?.pointSize ?? 17), weight: cssWeight(font),
             color: color.map(RGBA.init) ?? RGBA(r: 0, g: 0, b: 0, a: 1),
             colorToken: color.flatMap(textColorToken(for:)),
             style: font.flatMap { PinTextStyle.matching($0)?.captureName }, underline: underline
         )
     }
 
-    // A text color binds only to a text-role token. A background token matched purely by value — a literal
-    // white equals primaryBackground's light value — would flip the text dark on a dark-mode import, so a
-    // contrast literal stays untokenized (static) instead.
+    // A custom font's real family is Figma-loadable and should carry through; the system font's internal
+    // family name (prefixed ".") is not, so it falls back to the registry's design-face name.
+    static func fontFamily(_ font: UIFont?) -> String {
+        guard let family = font?.familyName, !family.hasPrefix(".") else { return PinCaptureTokens.current.systemFontFamily }
+        return family
+    }
+
+    // A text color binds only to a text-role token (the registry's `textEligible`): a background token
+    // matched purely by value — a literal white equals a light background's value — would flip the text
+    // dark on a dark-mode import, so a contrast literal stays untokenized (static) instead.
     private static func textColorToken(for color: UIColor) -> String? {
-        guard let name = tokenName(for: color), !name.hasSuffix("Background") else { return nil }
-        return name
+        PinCaptureTokens.current.colorName(for: color, textRoleOnly: true)
     }
 
     static let textStyles: [FigmaTextStyle] = PinTextStyle.allCapturable.map { FigmaTextStyle($0) }
@@ -577,20 +583,10 @@ public enum PinDisplayListCapture {
         }
     }
 
-    static let colorTokens: [FigmaToken] = PinColorToken.allCases.map {
-        FigmaToken(name: $0.rawValue, type: "color", value: RGBA($0.color, style: .light), dark: RGBA($0.color, style: .dark))
-    }
+    static var colorTokens: [FigmaToken] { PinCaptureTokens.current.figmaColorTokens }
 
     static func tokenName(for color: UIColor) -> String? {
-        let target = RGBA(color)
-        for token in PinColorToken.allCases {
-            let candidate = RGBA(token.color, style: .light)
-            if abs(candidate.r - target.r) < 0.02, abs(candidate.g - target.g) < 0.02,
-               abs(candidate.b - target.b) < 0.02, abs(candidate.a - target.a) < 0.05 {
-                return token.rawValue
-            }
-        }
-        return nil
+        PinCaptureTokens.current.colorName(for: color)
     }
 
 }
