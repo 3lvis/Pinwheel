@@ -440,9 +440,14 @@ public enum PinDisplayListCapture {
         )
     }
 
-    // Drop intermediate containment groups so a pre-grouped two-line row's leaves rejoin their band.
+    // Dissolve transparent grouping boxes so a pre-grouped two-line row's leaves rejoin their band, but keep
+    // a fill/radius-bearing box (the SALE pill) whole — flattening through it drops its capsule fill.
     private static func flattenLeaves(_ boxes: [Box]) -> [Box] {
-        boxes.flatMap { $0.children.isEmpty ? [$0] : flattenLeaves($0.children) }
+        boxes.flatMap { box in
+            box.children.isEmpty || fillColor(box.leaf.kind) != nil || cornerRadius(box.leaf.kind) != nil
+                ? [box]
+                : flattenLeaves(box.children)
+        }
     }
 
     // Cluster leaves into non-overlapping vertical bands (one visual row each) so the parent is unambiguously a column.
