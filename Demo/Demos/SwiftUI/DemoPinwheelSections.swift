@@ -41,6 +41,9 @@ enum DemoPinwheelSections {
             PinwheelItem(Catalog.appleControls) { AppleControlsDemo() }.presentation(.fullscreen).tags(.figma)
             PinwheelItem(Catalog.collectionView, view: CollectionViewGridDemo.self).tags(.figma)
             PinwheelItem(Catalog.cards) { CardsDemo() }.tags(.figma)
+            PinwheelItem(Catalog.lazyCards) { LazyCardsDemo() }.tags(.figma)
+            PinwheelItem(Catalog.lazyGrid) { LazyGridDemo() }.tags(.figma)
+            PinwheelItem(Catalog.plainList) { PlainListDemo() }.tags(.figma)
         }
     }
 }
