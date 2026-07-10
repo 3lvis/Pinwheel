@@ -5,6 +5,8 @@ struct PinwheelFloatingControlsHost: UIViewRepresentable {
     let chrome: PinwheelChrome
     let tweakCount: Int
     let fabVisible: Bool
+    // The FAB lives in its own window, which `.preferredColorScheme` doesn't reach, so it carries its own style override.
+    var colorScheme: ColorScheme?
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -20,7 +22,8 @@ struct PinwheelFloatingControlsHost: UIViewRepresentable {
             context.coordinator.attach(scene: scene, chrome: chrome)
             context.coordinator.update(
                 fabVisible: chrome.isFloatingControlsVisible,
-                tweakCount: chrome.tweakCount
+                tweakCount: chrome.tweakCount,
+                colorScheme: chrome.colorScheme
             )
         }
         return probe
@@ -30,7 +33,7 @@ struct PinwheelFloatingControlsHost: UIViewRepresentable {
         if let scene = uiView.window?.windowScene {
             context.coordinator.attach(scene: scene, chrome: chrome)
         }
-        context.coordinator.update(fabVisible: fabVisible, tweakCount: tweakCount)
+        context.coordinator.update(fabVisible: fabVisible, tweakCount: tweakCount, colorScheme: colorScheme)
     }
 
     static func dismantleUIView(_ uiView: ProbeView, coordinator: Coordinator) {
@@ -62,9 +65,14 @@ struct PinwheelFloatingControlsHost: UIViewRepresentable {
             self.window = window
         }
 
-        func update(fabVisible: Bool, tweakCount: Int) {
+        func update(fabVisible: Bool, tweakCount: Int, colorScheme: ColorScheme?) {
             guard let window else { return }
             window.controller.itemsCount = tweakCount
+            switch colorScheme {
+            case .light: window.overrideUserInterfaceStyle = .light
+            case .dark: window.overrideUserInterfaceStyle = .dark
+            default: window.overrideUserInterfaceStyle = .unspecified
+            }
 
             if fabVisible { window.isHidden = false }
 

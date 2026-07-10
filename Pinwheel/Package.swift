@@ -14,11 +14,9 @@ let package = Package(
             name: "Pinwheel",
             targets: ["Pinwheel"]),
     ],
-    dependencies: [],
     targets: [
         .target(
             name: "Pinwheel",
-            dependencies: [],
             swiftSettings: [
                 .swiftLanguageMode(.v6),
                 .defaultIsolation(MainActor.self),

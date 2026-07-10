@@ -1,0 +1,129 @@
+<style>
+  body { font: 12px -apple-system, sans-serif; margin: 12px; color: #1c1917; }
+  button { width: 100%; padding: 8px; margin: 4px 0; border: 0; border-radius: 6px;
+           background: #14313b; color: #fff; font-weight: 600; cursor: pointer; }
+  button.secondary { background: #e7e5e4; color: #1c1917; }
+  #status { margin-top: 6px; color: #57534e; }
+  label.dark { display: flex; align-items: center; gap: 6px; margin: 6px 0; color: #1c1917; cursor: pointer; }
+  #list { margin-top: 8px; }
+  .section { margin: 10px 0 2px; font-weight: 700; color: #57534e; text-transform: uppercase;
+             font-size: 10px; letter-spacing: 0.04em; }
+  button.row { background: #f5f5f4; color: #1c1917; font-weight: 500; text-align: left;
+               display: flex; justify-content: space-between; gap: 8px; }
+  button.row .tags { color: #a8a29e; font-weight: 400; }
+</style>
+
+<button id="catalog">Load catalog</button>
+<button id="importAll">Import all</button>
+<label class="dark"><input type="checkbox" id="dark"> Dark mode</label>
+<div id="status"></div>
+<div id="list"></div>
+
+<script>
+  const status = document.getElementById('status')
+  const SERVE = 'http://localhost:8787'
+
+  const fetchJSON = async (path) => {
+    const response = await fetch(SERVE + path, { cache: 'no-store' })
+    return response.json()
+  }
+
+  const isDark = () => document.getElementById('dark').checked
+  const importDocument = (data, version, tags) => parent.postMessage({ pluginMessage: { type: 'import', data, dark: isDark(), version, tags } }, '*')
+
+  const catalogButton = document.getElementById('catalog')
+
+  async function loadCatalog({ auto = false } = {}) {
+    if (!auto) status.textContent = 'loading catalog…'
+    try {
+      const { items } = await fetchJSON('/manifest.json')
+      if (!items || !items.length) {
+        if (!auto) status.textContent = 'no components on the serve yet — run the capture sweep'
+        return
+      }
+      renderCatalog(items)
+      status.textContent = items.length + ' components — pick one to import'
+      catalogButton.textContent = 'Reload catalog'
+    } catch (error) {
+      if (!auto) status.textContent = 'catalog failed: ' + error.message + ' (is the serve script running?)'
+    }
+  }
+
+  catalogButton.onclick = () => loadCatalog()
+
+  loadCatalog({ auto: true })
+
+  function renderCatalog(items) {
+    const list = document.getElementById('list')
+    list.innerHTML = ''
+    const bySection = {}
+    for (const item of items) (bySection[item.section] = bySection[item.section] || []).push(item)
+    for (const section of Object.keys(bySection).sort()) {
+      const heading = document.createElement('div')
+      heading.className = 'section'
+      heading.textContent = section
+      list.appendChild(heading)
+      for (const item of bySection[section]) {
+        const row = document.createElement('button')
+        row.className = 'row'
+        const title = document.createElement('span')
+        title.textContent = item.title
+        const tags = document.createElement('span')
+        tags.className = 'tags'
+        const version = typeof item.version === 'number' ? 'v' + item.version : ''
+        tags.textContent = [version, (item.tags || []).join(', ')].filter(Boolean).join(' · ')
+        row.appendChild(title)
+        row.appendChild(tags)
+        row.onclick = () => importCatalogItem(item.file, item.title, item.version, item.tags)
+        list.appendChild(row)
+      }
+    }
+  }
+
+  async function importCatalogItem(file, title, version, tags) {
+    status.textContent = 'importing ' + title + '…'
+    try {
+      const entry = await fetchJSON('/' + file)
+      if (!entry || !entry.document) throw new Error('no document in ' + file)
+      importDocument(entry.document, version != null ? version : entry.version, tags || entry.tags)
+    } catch (error) {
+      status.textContent = 'import failed: ' + error.message
+    }
+  }
+
+  document.getElementById('importAll').onclick = async () => {
+    status.textContent = 'loading all components…'
+    try {
+      const { items } = await fetchJSON('/manifest.json')
+      if (!items || !items.length) {
+        status.textContent = 'no components on the serve yet — run the capture sweep'
+        return
+      }
+      const entries = []
+      for (const item of items) {
+        const entry = await fetchJSON('/' + item.file)
+        if (entry && entry.document) {
+          entries.push({ data: entry.document, version: item.version != null ? item.version : entry.version, tags: item.tags || entry.tags })
+        }
+      }
+      status.textContent = 'importing ' + entries.length + ' components (' + (isDark() ? 'dark' : 'light') + ')…'
+      parent.postMessage({ pluginMessage: { type: 'importAll', entries, dark: isDark() } }, '*')
+    } catch (error) {
+      status.textContent = 'import all failed: ' + error.message + ' (is the serve script running?)'
+    }
+  }
+
+  onmessage = (event) => {
+    const message = event.data.pluginMessage
+    if (!message) return
+    if (message.type === 'debug') {
+      fetch(SERVE + '/debug.json', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(message.trace),
+      }).catch(() => {})
+    }
+    if (message.type === 'done') status.textContent = 'done ✓'
+    if (message.type === 'error') status.textContent = 'error: ' + message.message
+  }
+</script>

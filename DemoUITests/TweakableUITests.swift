@@ -72,14 +72,14 @@ final class TweakableUITests: XCTestCase {
         let option1 = app.buttons["Option 1"]
         XCTAssertTrue(option1.waitForExistence(timeout: defaultTimeout))
         option1.tap()
-        XCTAssertTrue(app.staticTexts["Chosen Option 1"].waitForExistence(timeout: defaultTimeout))
+        XCTAssertTrue(app.staticTexts["You chose Option 1."].waitForExistence(timeout: defaultTimeout))
 
         openSettings()
         // A described row's accessibility label is the combined "title, description".
         let option2 = app.buttons["Option 2, Description 2"]
         XCTAssertTrue(option2.waitForExistence(timeout: defaultTimeout), "Option 2 should still be listed on reopen")
         option2.tap()
-        XCTAssertTrue(app.staticTexts["Chosen Option 2"].waitForExistence(timeout: defaultTimeout),
+        XCTAssertTrue(app.staticTexts["You chose Option 2."].waitForExistence(timeout: defaultTimeout),
                       "A second tweak selection should still update the example label")
     }
 
@@ -96,7 +96,7 @@ final class TweakableUITests: XCTestCase {
         XCTAssertTrue(option1.waitForExistence(timeout: defaultTimeout), "Option 1 should be listed")
         option1.tap()
 
-        XCTAssertTrue(app.staticTexts["Chosen Option 1"].waitForExistence(timeout: defaultTimeout),
+        XCTAssertTrue(app.staticTexts["You chose Option 1."].waitForExistence(timeout: defaultTimeout),
                       "Choosing a tweak from the catalog (nested presentation) should update the label")
     }
 
@@ -113,7 +113,7 @@ final class TweakableUITests: XCTestCase {
         XCTAssertTrue(option1.waitForExistence(timeout: defaultTimeout), "Option 1 should be listed")
         option1.tap()
 
-        XCTAssertTrue(app.staticTexts["Chosen Option 1!\n\nYou can drag the button too :D"].waitForExistence(timeout: defaultTimeout),
+        XCTAssertTrue(app.staticTexts["You chose Option 1."].waitForExistence(timeout: defaultTimeout),
                       "A UIKit tweak chosen from the catalog should update the hosted view's label")
     }
 

@@ -1,0 +1,18 @@
+{
+  "name": "pinwheel-figma-capture",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pinwheel's Figma capture plugin and the local serve it reads from.",
+  "scripts": {
+    "build": "esbuild code.ts --bundle --format=iife --global-name=PW --target=es2017 --outfile=code.js",
+    "serve": "node serve.mjs",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "verify": "node verify.mjs"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.130.0",
+    "esbuild": "^0.28.1",
+    "quickjs-emscripten": "^0.32.0",
+    "typescript": "~5.6.0"
+  }
+}

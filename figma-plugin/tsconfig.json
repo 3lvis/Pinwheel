@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["ES2017"],
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmitOnError": true,
+    "types": []
+  },
+  "include": ["code.ts"]
+}

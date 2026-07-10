@@ -115,11 +115,18 @@ Available presentations:
 
 ## Tags
 
-Tag an item with the world it belongs to. Tags render as a filter of pills under the section picker, and they fold into the item's id — so the SwiftUI and UIKit takes on the same component get distinct ids without a manual one, and share one section:
+Tag an item with an axis it belongs to. Tags render as a filter of pills under the section picker, and they fold into the item's id — so the SwiftUI and UIKit takes on the same component get distinct ids without a manual one, and share one section:
 
 ```swift
 PinwheelItem("Button") { PinButtonDemo() }.tags(.swiftUI)    // id "swiftui-button"
 PinwheelItem("Button", view: ButtonView.self).tags(.uiKit)   // id "uikit-button"
+```
+
+`PinTag` is open — the library ships `.swiftUI`/`.uiKit`, and you add your own axis with a static extension:
+
+```swift
+extension PinTag { static let figma = PinTag(rawValue: "Figma") }
+PinwheelItem("Apple Controls") { AppleControlsDemo() }.tags(.figma)   // id "figma-apple-controls"
 ```
 
 ## Typed component names
@@ -205,7 +212,7 @@ let host = PinHostView(rootView: PinButton("Save") { save() })
 stackView.addArrangedSubview(host)
 ```
 
-Components that already ship a UIKit-friendly shell — `UIKitPinButton`, `UIKitPinStateView` — are thin hosts over their single SwiftUI implementation (`PinButton`, `PinStateView`), so a hybrid app keeps the imperative ergonomics (`title` / `isEnabled` / `state` mutation, target-action / delegate) it expects.
+Components that already ship a UIKit-friendly shell — `UIPinButton`, `UIPinStateView` — are thin hosts over their single SwiftUI implementation (`PinButton`, `PinStateView`), so a hybrid app keeps the imperative ergonomics (`title` / `isEnabled` / `state` mutation, target-action / delegate) it expects.
 
 ## Device Simulation
 

@@ -3,20 +3,28 @@ import UIKit
 
 public enum PinTextStyle {
     case title
+    case titleSemibold
     case subtitle
     case subtitleSemibold
     case body
+    case bodySemibold
     case footnote
+    case footnoteSemibold
     case caption
+    case captionSemibold
 
     var font: SwiftUI.Font {
         switch self {
         case .title: return PinwheelTheme.Typography.title
+        case .titleSemibold: return PinwheelTheme.Typography.titleSemibold
         case .subtitle: return PinwheelTheme.Typography.subtitle
         case .subtitleSemibold: return PinwheelTheme.Typography.subtitleSemibold
         case .body: return PinwheelTheme.Typography.body
+        case .bodySemibold: return PinwheelTheme.Typography.bodySemibold
         case .footnote: return PinwheelTheme.Typography.footnote
+        case .footnoteSemibold: return PinwheelTheme.Typography.footnoteSemibold
         case .caption: return PinwheelTheme.Typography.caption
+        case .captionSemibold: return PinwheelTheme.Typography.captionSemibold
         }
     }
 }
@@ -24,11 +32,15 @@ public enum PinTextStyle {
 public enum PinwheelTheme {
     public enum Typography {
         public static var title: Font { Font(UIFont.title) }
+        public static var titleSemibold: Font { Font(UIFont.titleSemibold) }
         public static var subtitle: Font { Font(UIFont.subtitle) }
         public static var subtitleSemibold: Font { Font(UIFont.subtitleSemibold) }
         public static var body: Font { Font(UIFont.body) }
+        public static var bodySemibold: Font { Font(UIFont.bodySemibold) }
         public static var footnote: Font { Font(UIFont.footnote) }
+        public static var footnoteSemibold: Font { Font(UIFont.footnoteSemibold) }
         public static var caption: Font { Font(UIFont.caption) }
+        public static var captionSemibold: Font { Font(UIFont.captionSemibold) }
     }
 
     public enum Colors {

@@ -8,6 +8,6 @@ public struct Config {
 
 public extension Bundle {
     static var pinwheel: Bundle {
-        return Bundle(for: UIKitPinTableViewCell.self)
+        return Bundle(for: UIPinTableViewCell.self)
     }
 }

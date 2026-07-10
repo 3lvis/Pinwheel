@@ -11,6 +11,10 @@ final class PinwheelChrome {
     var showsSettings: Bool = false
     var selectedDeviceIndex: Int?
     var onClose: (() -> Void)?
+    var componentName: String?
+    var componentID: String?
+    var componentVariant: String?
+    var colorScheme: ColorScheme?
 
     var tweakCount: Int { tweaks.count }
 

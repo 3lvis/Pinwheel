@@ -27,7 +27,7 @@ struct PinwheelPlayground: SwiftUI.View {
             // device pick). The pill rides the playground, not the FAB window, so
             // its transition scales in place instead of collapsing.
             .overlay(alignment: .top) {
-                PinwheelDevicePill()
+                PinwheelDevicePill(previewMode: previewMode)
                     .padding(.top, .spacingS)
             }
             .onAppear {
@@ -38,6 +38,9 @@ struct PinwheelPlayground: SwiftUI.View {
                 }
                 chrome.onClose = onClose
                 chrome.isPresentingItem = true
+                chrome.componentName = item.title
+                chrome.componentID = selection.itemID
+                chrome.componentVariant = autoApplyTweak
             }
             .onChange(of: chrome.selectedDeviceIndex) { _, newValue in
                 guard !previewMode else { return }
@@ -49,6 +52,9 @@ struct PinwheelPlayground: SwiftUI.View {
                 chrome.selectedDeviceIndex = nil
                 chrome.tweaks = []
                 chrome.onClose = nil
+                chrome.componentName = nil
+                chrome.componentID = nil
+                chrome.componentVariant = nil
             }
             .sheet(isPresented: $chrome.showsSettings) {
                 PinwheelSettingsView(
@@ -97,7 +103,7 @@ struct PinwheelPlayground: SwiftUI.View {
     }
 
     // Writes tweak titles (one per line) to Documents/pinwheel-preview-tweaks.txt;
-    // `Scripts/preview-all.sh` reads that file to enumerate a component's variants.
+    // `Scripts/sweep.sh --preview` reads that file to enumerate a component's variants.
     private func writePreviewTweakTitles(_ titles: [String]) {
         guard let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
             return
@@ -129,30 +135,53 @@ struct PinwheelPlayground: SwiftUI.View {
 }
 
 private struct PinwheelDevicePill: SwiftUI.View {
+    let previewMode: Bool
     @Environment(PinwheelChrome.self) private var chrome
+    @SwiftUI.State private var versionFaded = false
+
+    private var isVisible: Bool {
+        guard chrome.isPresentingItem, chrome.componentName != nil else { return false }
+        if previewMode || chrome.simulatedDevice != nil { return true }
+        return !versionFaded
+    }
 
     var body: some SwiftUI.View {
         ZStack {
-            if chrome.isDevicePillVisible, let device = chrome.simulatedDevice {
-                pill(for: device)
+            if isVisible, let name = chrome.componentName {
+                pill(name: name)
                     .transition(.scale.combined(with: .opacity))
+                    // The playground is constructed a beat before it's presented, so time the fade from
+                    // the pill appearing, not from construction (which spends the window unseen).
+                    .task {
+                        try? await Task.sleep(for: .seconds(4))
+                        versionFaded = true
+                    }
             }
         }
-        .animation(.easeOut(duration: 0.22), value: chrome.isDevicePillVisible)
+        .animation(.easeOut(duration: 0.35), value: isVisible)
+        .onChange(of: chrome.componentID) { versionFaded = false }
     }
 
-    private func pill(for device: Device) -> some SwiftUI.View {
+    private func pill(name: String) -> some SwiftUI.View {
         HStack(spacing: .spacingS) {
-            Image(systemName: "iphone.gen3")
-            PinLabel(device.title).font(.caption)
-
-            SwiftUI.Button {
-                chrome.selectedDeviceIndex = nil
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundStyle(.secondaryText)
+            PinLabel(name).font(.caption)
+            if let variant = chrome.componentVariant {
+                PinLabel("· \(variant)").font(.caption).color(.secondary)
             }
-            .buttonStyle(.plain)
+            if let id = chrome.componentID, let version = PinCaptureVersions.shared.version(for: id) {
+                PinLabel("v\(version)").font(.caption).color(.secondary)
+            }
+            if chrome.isDevicePillVisible, let device = chrome.simulatedDevice {
+                Image(systemName: "iphone.gen3")
+                PinLabel(device.title).font(.caption)
+                SwiftUI.Button {
+                    chrome.selectedDeviceIndex = nil
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondaryText)
+                }
+                .buttonStyle(.plain)
+            }
         }
         .foregroundStyle(.primaryText)
         .padding(.horizontal, .spacingM)
@@ -168,14 +197,21 @@ private struct PinwheelDevicePill: SwiftUI.View {
 // Builds the item's view once (in `@State`) so playground re-renders don't
 // recreate it and reset its emitted tweak preference to empty.
 private struct PinwheelHostedItem: SwiftUI.View {
+    private let id: String
     @SwiftUI.State private var view: AnyView
+    @Environment(\.pinCaptureSink) private var captureSink
 
     init(item: PinwheelItem) {
+        id = item.id
         _view = SwiftUI.State(initialValue: item.swiftUIView())
     }
 
     var body: some SwiftUI.View {
-        view
+        if let captureSink {
+            view.onAppear { captureSink(id) }
+        } else {
+            view
+        }
     }
 }
 

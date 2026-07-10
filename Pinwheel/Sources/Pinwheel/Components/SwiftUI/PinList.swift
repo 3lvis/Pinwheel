@@ -15,11 +15,18 @@ public struct PinList: SwiftUI.View {
         switch state {
         case .loaded:
             // No per-row id to key on; positional identity is stable because rows are a fixed value array per render.
-            List(Array(rows.enumerated()), id: \.offset) { _, row in
-                row.listRowBackground(Color.primaryBackground)
+            ScrollView {
+                VStack(spacing: 0) {
+                    ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
+                        row
+                            .padding(.horizontal, .spacingM)
+                            .padding(.vertical, .spacingS)
+                        if index < rows.count - 1 {
+                            Divider().padding(.leading, .spacingM)
+                        }
+                    }
+                }
             }
-            .listStyle(.plain)
-            .scrollContentBackground(.hidden)
             .background(.primaryBackground)
         default:
             PinStateView(state, onAction: onRetry)
@@ -35,26 +42,29 @@ public extension PinList {
         }
 
         private let title: String
+        private let icon: Image?
         private let kind: Kind
 
-        private init(title: String, kind: Kind) {
+        private init(title: String, icon: Image?, kind: Kind) {
             self.title = title
+            self.icon = icon
             self.kind = kind
         }
 
         public static func text(
             _ title: String,
+            icon: Image? = nil,
             subtitle: String? = nil,
             detail: String? = nil,
             chevron: Bool = false,
             enabled: Bool = true,
             action: (() -> Void)? = nil
         ) -> Row {
-            Row(title: title, kind: .text(subtitle: subtitle, detail: detail, chevron: chevron, enabled: enabled, action: action))
+            Row(title: title, icon: icon, kind: .text(subtitle: subtitle, detail: detail, chevron: chevron, enabled: enabled, action: action))
         }
 
-        public static func toggle(_ title: String, subtitle: String? = nil, enabled: Bool = true, isOn: Binding<Bool>) -> Row {
-            Row(title: title, kind: .toggle(subtitle: subtitle, enabled: enabled, isOn: isOn))
+        public static func toggle(_ title: String, icon: Image? = nil, subtitle: String? = nil, enabled: Bool = true, isOn: Binding<Bool>) -> Row {
+            Row(title: title, icon: icon, kind: .toggle(subtitle: subtitle, enabled: enabled, isOn: isOn))
         }
 
         public var body: some SwiftUI.View {
@@ -62,9 +72,20 @@ public extension PinList {
             case let .text(subtitle, detail, chevron, enabled, action):
                 textRow(subtitle: subtitle, detail: detail, chevron: chevron, enabled: enabled, action: action)
             case let .toggle(subtitle, enabled, isOn):
-                Toggle(isOn: isOn) { labels(subtitle: subtitle, enabled: enabled) }
-                    .disabled(!enabled)
+                Toggle(isOn: isOn) {
+                    HStack(spacing: .spacingS) {
+                        if let icon { iconView(icon, enabled: enabled) }
+                        labels(subtitle: subtitle, enabled: enabled)
+                    }
+                }
+                .disabled(!enabled)
             }
+        }
+
+        private func iconView(_ image: Image, enabled: Bool) -> some SwiftUI.View {
+            image
+                .foregroundStyle(enabled ? PinwheelTheme.Colors.actionText : PinwheelTheme.Colors.secondaryText)
+                .frame(width: .spacingXL)
         }
 
         private func labels(subtitle: String?, enabled: Bool) -> some SwiftUI.View {
@@ -85,6 +106,7 @@ public extension PinList {
             action: (() -> Void)?
         ) -> some SwiftUI.View {
             let content = HStack(spacing: .spacingS) {
+                if let icon { iconView(icon, enabled: enabled) }
                 labels(subtitle: subtitle, enabled: enabled)
                 Spacer()
                 if let detail {

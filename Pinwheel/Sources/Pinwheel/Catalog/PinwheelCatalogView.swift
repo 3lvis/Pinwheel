@@ -28,11 +28,13 @@ struct PinwheelCatalogView: SwiftUI.View {
             }
         }
         .environment(chrome)
+        .preferredColorScheme(chrome.colorScheme)
         .background(
             PinwheelFloatingControlsHost(
                 chrome: chrome,
                 tweakCount: chrome.tweakCount,
-                fabVisible: chrome.isFloatingControlsVisible
+                fabVisible: chrome.isFloatingControlsVisible,
+                colorScheme: chrome.colorScheme
             )
         )
         .onAppear {
@@ -52,6 +54,7 @@ struct PinwheelCatalogView: SwiftUI.View {
                 closePresentedItem()
             }
             .environment(chrome)
+            .preferredColorScheme(chrome.colorScheme)
             .presentationDetents(detents(for: item.item.presentation))
         }
         .fullScreenCover(item: $fullscreenItem) { item in
@@ -59,6 +62,7 @@ struct PinwheelCatalogView: SwiftUI.View {
                 closePresentedItem()
             }
             .environment(chrome)
+            .preferredColorScheme(chrome.colorScheme)
         }
     }
 
@@ -81,8 +85,27 @@ struct PinwheelCatalogView: SwiftUI.View {
                     .foregroundStyle(.actionText)
                     .accessibilityIdentifier("pinwheel.sectionPicker")
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Button { chrome.colorScheme = nil } label: { Label("System", systemImage: "circle.lefthalf.filled") }
+                        Button { chrome.colorScheme = .light } label: { Label("Light", systemImage: "sun.max") }
+                        Button { chrome.colorScheme = .dark } label: { Label("Dark", systemImage: "moon") }
+                    } label: {
+                        Image(systemName: appearanceIcon)
+                    }
+                    .tint(.actionText)
+                    .accessibilityIdentifier("pinwheel.appearance")
+                }
             }
             .background(.primaryBackground)
+    }
+
+    private var appearanceIcon: String {
+        switch chrome.colorScheme {
+        case .light: return "sun.max"
+        case .dark: return "moon.fill"
+        default: return "circle.lefthalf.filled"
+        }
     }
 
     private var sectionPicker: some SwiftUI.View {

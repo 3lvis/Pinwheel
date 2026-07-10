@@ -1,0 +1,12 @@
+{
+  "name": "Pinwheel Capture Import",
+  "id": "pinwheel-capture-import",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": ["http://localhost:8787"],
+    "reasoning": "Pulls the captured layer tree from the local capture server."
+  }
+}
