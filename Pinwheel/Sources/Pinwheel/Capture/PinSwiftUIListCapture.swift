@@ -40,7 +40,11 @@ public enum PinSwiftUIListCapture {
         let lifted = rows.map { shift($0, dx: 0, dy: -top) }
         let width = Double(size.width)
         let contentBottom = lifted.map { $0.y + $0.h }.max() ?? Double(screenHeight)
+        // A `.plain` List's collection is transparent, so its screen would capture with no background; fall
+        // back to the opaque surface actually rendered behind it (walking up to the window). Light and dark
+        // sweep rounds each read their own surface, so the merge gives the screen an adapting background.
         let background = collection.backgroundColor.flatMap { $0.cgColor.alpha > 0 ? $0 : nil }
+            ?? opaqueBackground(above: collection)
         let root = FigmaNode(
             tag: "screen", x: 0, y: 0, w: width, h: max(Double(screenHeight), contentBottom),
             fill: background.map(RGBA.init), fillToken: background.flatMap(PinDisplayListCapture.tokenName(for:)),
@@ -49,6 +53,17 @@ public enum PinSwiftUIListCapture {
         return FigmaDocument(width: width, height: root.h, root: root,
                              tokens: PinDisplayListCapture.colorTokens + PinFloatTokens.tokens,
                              textStyles: PinDisplayListCapture.textStyles)
+    }
+
+    // The first opaque backgroundColor up the superview chain (including the window) — the surface a
+    // transparent collection is drawn on.
+    static func opaqueBackground(above view: UIView) -> UIColor? {
+        var current: UIView? = view.superview
+        while let candidate = current {
+            if let color = candidate.backgroundColor, color.cgColor.alpha > 0 { return color }
+            current = candidate.superview
+        }
+        return nil
     }
 
     private static func firstCollection(in view: UIView) -> UIScrollView? {

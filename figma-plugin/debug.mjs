@@ -15,6 +15,8 @@ const trace = await getJSON('/debug.json')
 const { items } = await getJSON('/manifest.json')
 const fileById = new Map(items.map((item) => [item.id, item.file]))
 
+const luminance = (c) => (c ? 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b : null)
+
 function countIR(doc) {
   let nodes = 0, texts = 0, images = 0
   const walk = (node) => {
@@ -24,7 +26,15 @@ function countIR(doc) {
     for (const child of node.children || []) walk(child)
   }
   walk(doc.root)
-  return { nodes, texts, images }
+  const root = doc.root
+  // Visual health the node counts can't see: a screen must have a background, and a light capture's
+  // background must actually be light + tokenized (a dark, untokenized root = the sweep captured the
+  // wrong appearance and it's baked, so it won't adapt).
+  const rootFill = root.fill || null
+  const issues = []
+  if (!rootFill && !root.fillToken) issues.push('NO-BG')
+  else if (rootFill && luminance(rootFill) < 0.3 && !root.fillToken) issues.push('DARK-BG(untokenized)')
+  return { nodes, texts, images, issues }
 }
 
 const idsPresent = trace.every((entry) => entry.id)
@@ -49,6 +59,7 @@ for (const { entry, id } of rows) {
   if (!cap) verdict = 'NO CAPTURE'
   else if (entry.nodes !== cap.nodes || entry.texts !== cap.texts || entry.images !== cap.images) verdict = 'DIFF'
   if (entry.rootTag === 'image') verdict = 'FLAT-IMAGE'
+  if (cap && cap.issues.length) verdict = cap.issues.join(',')
   if (verdict !== 'ok') mismatches.push(id)
   const ic = (a, b) => `${a}/${b ?? '?'}`
   console.log(
