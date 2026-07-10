@@ -104,6 +104,7 @@ struct FigmaFont: Encodable {
     let colorToken: String?
     let style: String?
     let underline: Bool
+    var strikethrough: Bool = false
 }
 
 struct FigmaTextStyle: Encodable {

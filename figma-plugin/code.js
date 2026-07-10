@@ -88,6 +88,7 @@ var PW = (() => {
       fontRequest: { family: font.family, weight: font.weight, italic: font.italic },
       fill: font.color ? { color: font.color, token: font.colorToken } : null,
       underline: Boolean(font.underline),
+      strikethrough: Boolean(font.strikethrough),
       letterSpacing: typeof font.letterSpacing === "number" ? font.letterSpacing : null,
       autoResize: multiline ? "HEIGHT" : "WIDTH_AND_HEIGHT",
       width: multiline ? run.w : null,
@@ -192,7 +193,7 @@ var PW = (() => {
   async function makeText(run, font) {
     const plan = planText(run, font);
     const text = figma.createText();
-    const style = plan.styleName && !plan.underline ? textStyles[plan.styleName] : void 0;
+    const style = plan.styleName && !plan.underline && !plan.strikethrough ? textStyles[plan.styleName] : void 0;
     if (style) {
       await figma.loadFontAsync(style.fontName);
       text.fontName = style.fontName;
@@ -206,6 +207,8 @@ var PW = (() => {
     if (plan.underline) {
       text.textDecoration = "UNDERLINE";
       text.textDecorationOffset = { value: 2, unit: "PIXELS" };
+    } else if (plan.strikethrough) {
+      text.textDecoration = "STRIKETHROUGH";
     }
     if (!style && plan.letterSpacing !== null) text.letterSpacing = { value: plan.letterSpacing, unit: "PIXELS" };
     text.textAutoResize = plan.autoResize;

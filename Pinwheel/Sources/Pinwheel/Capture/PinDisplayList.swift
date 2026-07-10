@@ -7,7 +7,7 @@ import ObjectiveC
 
 struct DisplayLeaf {
     enum Kind {
-        case text(String, font: UIFont?, color: UIColor?, underline: Bool, alignment: NSTextAlignment)
+        case text(String, font: UIFont?, color: UIColor?, underline: Bool, strikethrough: Bool, alignment: NSTextAlignment)
         case roundedRect(radius: CGFloat, color: UIColor?)
         case rasterizable
         case color(UIColor)
@@ -275,16 +275,21 @@ enum PinDisplayList {
         return image.pngData()?.base64EncodedString()
     }
 
+    static func textKind(from attributed: NSAttributedString?, fallback: String?) -> DisplayLeaf.Kind {
+        let string = attributed?.string ?? fallback ?? ""
+        let attributes = attributed.flatMap { $0.length > 0 ? $0.attributes(at: 0, effectiveRange: nil) : nil }
+        let underline = (attributes?[.underlineStyle] as? Int).map { $0 != 0 } ?? false
+        let strikethrough = (attributes?[.strikethroughStyle] as? Int).map { $0 != 0 } ?? false
+        let alignment = (attributes?[.paragraphStyle] as? NSParagraphStyle)?.alignment ?? .natural
+        return .text(string, font: attributes?[.font] as? UIFont, color: attributes?[.foregroundColor] as? UIColor,
+                     underline: underline, strikethrough: strikethrough, alignment: alignment)
+    }
+
     private static func contentKind(_ value: Any) -> DisplayLeaf.Kind? {
         guard let (kind, payload) = enumCase(value) else { return .unknown(String(describing: type(of: value))) }
         switch kind {
         case "text":
-            let attributed = deepAttributed(payload)
-            let string = attributed?.string ?? deepString(payload) ?? ""
-            let attributes = attributed.flatMap { $0.length > 0 ? $0.attributes(at: 0, effectiveRange: nil) : nil }
-            let underline = (attributes?[.underlineStyle] as? Int).map { $0 != 0 } ?? false
-            let alignment = (attributes?[.paragraphStyle] as? NSParagraphStyle)?.alignment ?? .natural
-            return .text(string, font: attributes?[.font] as? UIFont, color: attributes?[.foregroundColor] as? UIColor, underline: underline, alignment: alignment)
+            return textKind(from: deepAttributed(payload), fallback: deepString(payload))
         case "shape":
             let mirror = Mirror(reflecting: payload).children.map(\.value)
             let color = mirror.count > 1 ? deepColor(mirror[1]) : nil

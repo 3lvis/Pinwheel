@@ -160,7 +160,7 @@ public enum PinDisplayListCapture {
     }
 
     private static func componentText(_ box: Box) -> String? {
-        if case .text(let string, _, _, _, _) = box.leaf.kind { return string }
+        if case .text(let string, _, _, _, _, _) = box.leaf.kind { return string }
         for child in box.children { if let text = componentText(child) { return text } }
         return nil
     }
@@ -269,7 +269,7 @@ public enum PinDisplayListCapture {
 
     private static func boxTexts(_ box: Box) -> Set<String> {
         var texts = Set<String>()
-        if case .text(let string, _, _, _, _) = box.leaf.kind { texts.insert(string) }
+        if case .text(let string, _, _, _, _, _) = box.leaf.kind { texts.insert(string) }
         box.children.forEach { texts.formUnion(boxTexts($0)) }
         return texts
     }
@@ -284,10 +284,10 @@ public enum PinDisplayListCapture {
         let frame = box.leaf.frame
         if box.children.isEmpty {
             switch box.leaf.kind {
-            case .text(let string, let font, let color, let underline, let alignment):
+            case .text(let string, let font, let color, let underline, let strikethrough, let alignment):
                 return FigmaNode(
                     tag: "text", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
-                    font: figmaFont(font, color: color, underline: underline),
+                    font: figmaFont(font, color: color, underline: underline, strikethrough: strikethrough),
                     texts: [FigmaText(text: string, x: frame.minX, y: frame.minY, w: frame.width, h: frame.height)],
                     textAlign: textAlignName(alignment),
                     children: []
@@ -378,10 +378,10 @@ public enum PinDisplayListCapture {
         let frame = box.leaf.frame
         if box.children.isEmpty {
             switch box.leaf.kind {
-            case .text(let string, let font, let color, let underline, let alignment):
+            case .text(let string, let font, let color, let underline, let strikethrough, let alignment):
                 return FigmaNode(
                     tag: "text", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
-                    font: figmaFont(font, color: color, underline: underline),
+                    font: figmaFont(font, color: color, underline: underline, strikethrough: strikethrough),
                     texts: [FigmaText(text: string, x: frame.minX, y: frame.minY, w: frame.width, h: frame.height)],
                     textAlign: textAlignName(alignment),
                     children: []
@@ -544,12 +544,13 @@ public enum PinDisplayListCapture {
         accumulated.map { $0.union(next) } ?? next
     }
 
-    static func figmaFont(_ font: UIFont?, color: UIColor?, underline: Bool) -> FigmaFont {
+    static func figmaFont(_ font: UIFont?, color: UIColor?, underline: Bool, strikethrough: Bool = false) -> FigmaFont {
         FigmaFont(
             family: fontFamily(font), size: Double(font?.pointSize ?? 17), weight: cssWeight(font),
             color: color.map(RGBA.init) ?? RGBA(r: 0, g: 0, b: 0, a: 1),
             colorToken: color.flatMap(textColorToken(for:)),
-            style: font.flatMap { PinCaptureTokens.current.textStyleName(for: $0) }, underline: underline
+            style: font.flatMap { PinCaptureTokens.current.textStyleName(for: $0) }, underline: underline,
+            strikethrough: strikethrough
         )
     }
 
