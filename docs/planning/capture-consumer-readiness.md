@@ -88,11 +88,54 @@ Engine value-matched colors/spacing/radius against fixed library enums and hardc
 
 ## Fidelity gaps
 3. Async images — on-screen host + await image load (readiness signal); note blend modes.
-4. Mixed-run text — per-run font/color/decoration in one text node; add strikethrough (underline
-   exists).
-5. Shadows & borders — emit shadow effect + stroke (incl. dashed); plugin already draws strokes.
-6. Blur/materials — low fidelity: translucent fill or crop.
-7. Gradients / page dots / custom shapes — low priority; gradient paint when detectable.
+4. Text decoration + mixed runs.
+   - **Strikethrough — DONE.** `textKind` reads `.strikethroughStyle` alongside `.underlineStyle`,
+     threads it through `FigmaFont.strikethrough`, and the plugin draws `STRIKETHROUGH` (skipping the
+     style binding that would wipe it, same as underline). Verified end-to-end: the capturable
+     `PricingDemo` (eager `ScrollView`/`VStack`) serializes all four struck "was" prices as
+     `strikethrough:true` with their caption style + `secondaryText` token intact. A raw `List`
+     still can't (the struck price never enters its partial capture — known List limitation).
+   - **Mixed-run text — remaining.** Per-run font/color within one text node: `textKind` reads only
+     run 0's attributes, so a `Text("A") + Text("B").bold()` captures as one uniform run.
+5. Borders / strokes.
+   - **Editable stroke — HARD WALL.** SwiftUI resolves `.stroke(color, lineWidth:)` to a *filled ring
+     path* before it reaches the DisplayList: the shape payload is `(Path, AnyResolvedPaint, FillStyle)`
+     — a `FillStyle`, never a `StrokeStyle`, so there is **no `lineWidth`** to read (probe-confirmed on
+     a `Capsule().stroke(_, lineWidth: 1)`). The width is baked into the ring geometry. So the plugin's
+     `node.stroke`/`strokeWeight` (which it already supports) can't be driven from the capture — the
+     border can only be *rasterized* (the ring already captures as a `.rasterizable` bitmap leaf). To
+     emit an editable stroke we'd have to infer width+radius from the ring's Path geometry (fragile).
+   - **Enclosing-rasterizable image dropped.** Even the rasterized border is lost today: the ring image
+     *encloses* the stepper's contents, so `containmentTree` makes it the parent Box and `emit`'s
+     container branch drops the parent's own image (a `.roundedRect` parent keeps its fill; a
+     `.rasterizable` parent doesn't). Fixing that (emit the enclosing image behind its children) would
+     render the border as a bitmap, at the cost of turning that frame absolute — low value (non-editable)
+     vs regression risk, so deferred.
+6. **SALE-pill fill drops in the on-screen sweep (not off-screen).** A `.background(_, in: Capsule())`
+   wrapping a single label captures fine through the off-screen `document(_:)` path (the pill is a
+   `frame fill=criticalBackground`), but the on-screen live-host sweep (`document(_:liveHost:)`, what the
+   real sweep + auto-push use) drops the pill's fill — the label survives as bare text (white-on-light,
+   invisible), and the thumbnail rasterizes. So the loss is in the *on-screen leaf read* for a full
+   multi-card screen, not the emit logic. Reproduces only through the on-screen path (the Demo target's
+   `LiveCaptureHost`), so a fix needs a `DemoUITest`, not a fast unit — next real target once the UI
+   tier is stable (see below).
+7. Blur/materials — low fidelity: translucent fill or crop.
+8. Gradients / page dots / custom shapes — low priority; gradient paint when detectable.
+
+## CartDemo — complex-example status (on-screen sweep)
+`figma-cart` (image thumbnail + title + SALE pill + now/was-struck price + bordered stepper, ×4 rows,
+`ScrollView`/`VStack`) captures the large majority editably: card backgrounds (`secondaryBackground` +
+`radius-m`), component/instance grouping (the 3 sale rows group; the non-sale row stays separate),
+titles, prices, quantities as editable text, **strikethrough on the was-prices**, and thumbnail + ±
+stepper icons as images. Two gaps remain — the stepper border (§5, hard wall for editable) and the SALE
+pill fill (§6, on-screen-only drop).
+
+## UI-tier note (environment)
+The `DemoUITests` catalog navigation uses a SwiftUI `Menu` section picker that **does not open under UI
+automation on iOS 26.5** (the menu never presents; `Tokens`/`Screens` buttons never appear) — the
+baseline `b008fec` fails the same tests on 26.5, so it's a runtime issue, not a regression. The suite is
+green on iOS 18.3. Harden the picker interaction (or the picker) so the tier runs on the newest runtime
+per the durability principle (a test pins a capability, not a snapshot OS).
 
 ## Perf follow-up
 The SwiftUI grouping signature is O(n²) on large trees (recomputes each subtree at every level).
