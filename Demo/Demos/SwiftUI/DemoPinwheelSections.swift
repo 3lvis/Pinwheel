@@ -40,6 +40,7 @@ enum DemoPinwheelSections {
             PinwheelItem(Catalog.viewController, viewController: { UIPinViewControllerDemo() }).tags(.uiKit)
             PinwheelItem(Catalog.appleControls) { AppleControlsDemo() }.presentation(.fullscreen).tags(.figma)
             PinwheelItem(Catalog.collectionView, view: CollectionViewGridDemo.self).tags(.figma)
+            PinwheelItem(Catalog.cards) { CardsDemo() }.tags(.figma)
         }
     }
 }

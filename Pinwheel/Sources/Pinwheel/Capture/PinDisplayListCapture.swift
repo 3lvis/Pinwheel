@@ -62,7 +62,7 @@ public enum PinDisplayListCapture {
             if let content {
                 var rootNode = screen(content, width: size.width, fill: screenFill, components: components, canvasHeight: size.height, oneScreen: screenHeight, safeAreaTop: host.safeAreaInsets.top)
                 rootNode.name = name
-                return FigmaDocument(width: size.width, height: rootNode.h, root: rootNode, tokens: colorTokens + PinFloatTokens.tokens, textStyles: textStyles)
+                return FigmaDocument(width: size.width, height: rootNode.h, root: componentizeRepeatedChildren(rootNode), tokens: colorTokens + PinFloatTokens.tokens, textStyles: textStyles)
             }
         }
 
@@ -74,7 +74,49 @@ public enum PinDisplayListCapture {
             rootNode = screen(rootNode, width: size.width, fill: screenFill, components: components, canvasHeight: size.height, oneScreen: screenHeight, safeAreaTop: host.safeAreaInsets.top)
         }
         rootNode.name = name
-        return FigmaDocument(width: size.width, height: rootNode.h, root: rootNode, tokens: colorTokens + PinFloatTokens.tokens, textStyles: textStyles)
+        return FigmaDocument(width: size.width, height: rootNode.h, root: componentizeRepeatedChildren(rootNode), tokens: colorTokens + PinFloatTokens.tokens, textStyles: textStyles)
+    }
+
+    // Sibling frames with an identical structural signature (everything but text content and per-instance
+    // fill) are one template: stamp them a shared key so the plugin imports the first as a Figma component
+    // and the rest as instances. There's no cell class as on the UIKit side, so the signature carries the
+    // discrimination — it includes size, so a grouping is faithful (an instance overrides only text/fill,
+    // which is all that differs). Subtrees with an image leaf are excluded — a crop can't be reproduced.
+    private static func componentizeRepeatedChildren(_ node: FigmaNode) -> FigmaNode {
+        var node = node
+        node.children = node.children.map(componentizeRepeatedChildren)
+        let signatures = node.children.map { child -> String? in
+            (child.tag == "frame" && child.component == nil && !hasImageLeaf(child)) ? signature(child) : nil
+        }
+        var counts: [String: Int] = [:]
+        for case let signature? in signatures { counts[signature, default: 0] += 1 }
+        node.children = zip(node.children, signatures).map { child, signature in
+            guard let signature, counts[signature, default: 0] >= 2 else { return child }
+            var componentized = child
+            componentized.component = signature
+            return componentized
+        }
+        return node
+    }
+
+    private static func signature(_ node: FigmaNode) -> String {
+        if node.tag == "text" { return "T:\(node.font?.style ?? "-"):\(node.textAlign ?? "-")" }
+        // Bucket size to ~4pt so sub-pixel text-height differences don't split identical cards, while a real
+        // size difference (a 120 vs 240 card) still lands in distinct buckets.
+        func bucket(_ value: Double) -> Int { Int((value / 4).rounded()) }
+        var parts = ["\(node.tag):w\(bucket(node.w)):h\(bucket(node.h))"]
+        // Only the axis is stable — justify/align/gap are inferred from rendered geometry and wobble with
+        // text width across otherwise-identical cards, so they'd falsely split one template. Instances
+        // inherit the master's layout regardless.
+        if let layout = node.layout { parts.append("L\(layout.mode)") }
+        parts.append("F:\(node.fillToken ?? (node.fill != nil ? "#" : "-"))")
+        parts.append("R:\(node.radiusToken ?? (node.radius != nil ? "#" : "-"))")
+        parts.append("[\(node.children.map(signature).joined(separator: ","))]")
+        return parts.joined(separator: "|")
+    }
+
+    private static func hasImageLeaf(_ node: FigmaNode) -> Bool {
+        node.image != nil || node.children.contains(where: hasImageLeaf)
     }
 
     private static func leafCount(_ node: ReflectedNode) -> Int {

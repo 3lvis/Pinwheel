@@ -312,6 +312,64 @@ final class CaptureFidelityTests: XCTestCase {
                       "a symmetrically-inset bar must capture wrapped in a centering slot, not pinned to the left")
     }
 
+    // Repeated identical SwiftUI cards (a ForEach of same-shaped subtrees) share one component key, so the
+    // plugin imports the first as a Figma component and the rest as instances — the SwiftUI counterpart of
+    // the UIKit cell grouping. There's no cell class here, so grouping is by structural signature.
+    func testRepeatedSwiftUICardsShareOneComponentKey() throws {
+        struct Cards: SwiftUI.View {
+            var body: some SwiftUI.View {
+                ScrollView {
+                    VStack(spacing: .spacingM) {
+                        ForEach(["Revenue", "Orders", "Users"], id: \.self) { title in
+                            VStack(alignment: .leading, spacing: .spacingXS) {
+                                PinLabel(title).font(.caption).color(.secondary)
+                                PinLabel("123").font(.title)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.spacingL)
+                            .background(.secondaryBackground)
+                            .cornerRadius(.radiusM)
+                        }
+                    }
+                    .padding(.spacingL)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .background(.primaryBackground)
+            }
+        }
+        let root = try XCTUnwrap(PinDisplayListCapture.document(Cards(), name: "Cards", size: CGSize(width: 402, height: 1600), screenHeight: 778)).root
+        let componentized = allFrameNodes(in: root).filter { $0.component != nil }
+        XCTAssertEqual(componentized.count, 3, "three identical cards are each componentized")
+        XCTAssertEqual(Set(componentized.compactMap { $0.component }).count, 1, "they share one key, so the plugin makes one master + two instances")
+    }
+
+    // Subtrees that differ in width can't be reproduced by an instance (which overrides only text/fill), so
+    // same-shaped-but-different-size cards must not be grouped.
+    func testDifferentlySizedCardsAreNotComponentized() throws {
+        struct Boxes: SwiftUI.View {
+            var body: some SwiftUI.View {
+                ScrollView {
+                    VStack(spacing: .spacingM) {
+                        ForEach([CGFloat(120), CGFloat(240)], id: \.self) { width in
+                            VStack { PinLabel("Box").font(.title); PinLabel("sub").font(.caption) }
+                                .frame(width: width)
+                                .padding(.spacingL)
+                                .background(.secondaryBackground)
+                                .cornerRadius(.radiusM)
+                        }
+                    }
+                    .padding(.spacingL)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .background(.primaryBackground)
+            }
+        }
+        let root = try XCTUnwrap(PinDisplayListCapture.document(Boxes(), name: "Boxes", size: CGSize(width: 402, height: 1600), screenHeight: 778)).root
+        let cards = allFrameNodes(in: root).filter { $0.fillToken == "secondaryBackground" }
+        XCTAssertGreaterThanOrEqual(cards.count, 2, "both differently-sized cards capture")
+        XCTAssertTrue(cards.allSatisfy { $0.component == nil }, "cards of different widths must not be grouped — an instance can't override width")
+    }
+
     private func hasCenteringSlot(_ node: FigmaNode) -> Bool {
         if node.name == "Center", node.children.contains(where: { $0.fill != nil }) { return true }
         return node.children.contains { hasCenteringSlot($0) }
