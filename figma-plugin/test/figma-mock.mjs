@@ -15,6 +15,12 @@ export function loadPlugin() {
       setBoundVariable(field, variable) { this.boundVariables[field] = variable },
       setTextStyleIdAsync(id) { this.textStyleId = id; return Promise.resolve() },
       setExplicitVariableModeForCollection(collection, modeId) { this.explicitModes = { ...(this.explicitModes || {}), [collection.id]: modeId } },
+      findAllWithCriteria({ types }) {
+        const found = []
+        const walk = (parent) => { for (const child of parent.children) { if (types.includes(child.type)) found.push(child); walk(child) } }
+        walk(this)
+        return found
+      },
       ...extra,
     }
     created.push(made)
@@ -71,7 +77,7 @@ export function loadPlugin() {
     createRectangle: () => node('RECT', { fills: [] }),
     createNodeFromSvg: () => node('SVG'),
     currentPage: node('PAGE'),
-    createComponent: () => node('COMPONENT'),
+    createComponent: () => node('COMPONENT', { createInstance() { const clone = node('INSTANCE'); clone.children = this.children.map((child) => ({ ...child })); return clone } }),
     createTextStyle: () => node('TEXTSTYLE'),
     getLocalTextStylesAsync: async () => [],
     createImage: () => ({ hash: 'image' }),

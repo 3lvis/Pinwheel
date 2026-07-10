@@ -121,3 +121,15 @@ test('a component nested in a component imports as a frame (Figma forbids compon
   assert.ok(inner, 'the inner node should be created')
   assert.equal(inner.type, 'FRAME', 'a component inside a component must become a frame, not a nested component')
 })
+
+test('repeated same-key cells import as one main component and the rest as instances', async () => {
+  const { build, created } = loadPlugin()
+  const card = (name) => ({
+    tag: 'frame', component: 'Card', name: 'Row', x: 0, y: 0, w: 100, h: 40,
+    texts: [{ text: name, x: 0, y: 0, w: 40, h: 20 }], font: { family: 'Inter', size: 12, weight: 400 }, children: [],
+  })
+  const doc = { tag: 'screen', name: 'Grid', x: 0, y: 0, w: 200, h: 200, children: [card('A'), card('B'), card('C')] }
+  await build(doc, rootParent(), 0, 0, false)
+  assert.equal(created.filter((n) => n.type === 'COMPONENT').length, 1, 'the first cell of a template becomes one main component')
+  assert.equal(created.filter((n) => n.type === 'INSTANCE').length, 2, 'the other identical cells become instances of it, so editing the master updates them')
+})
