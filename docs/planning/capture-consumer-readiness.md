@@ -119,14 +119,15 @@ Engine value-matched colors/spacing/radius against fixed library enums and hardc
      `.rasterizable` parent doesn't). Fixing that (emit the enclosing image behind its children) would
      render the border as a bitmap, at the cost of turning that frame absolute — low value (non-editable)
      vs regression risk, so deferred.
-6. **SALE-pill fill drops in the on-screen sweep (not off-screen).** A `.background(_, in: Capsule())`
-   wrapping a single label captures fine through the off-screen `document(_:)` path (the pill is a
-   `frame fill=criticalBackground`), but the on-screen live-host sweep (`document(_:liveHost:)`, what the
-   real sweep + auto-push use) drops the pill's fill — the label survives as bare text (white-on-light,
-   invisible), and the thumbnail rasterizes. So the loss is in the *on-screen leaf read* for a full
-   multi-card screen, not the emit logic. Reproduces only through the on-screen path (the Demo target's
-   `LiveCaptureHost`), so a fix needs a `DemoUITest`, not a fast unit — next real target once the UI
-   tier is stable (see below).
+6. **SALE-pill fill — FIXED.** A `.background(_, in: Capsule())` wrapping a single label (a SALE badge)
+   lost its fill whenever the card split into a title-row band + a price band: `emit`'s containment
+   vertical-list path ran `flattenLeaves`, which dissolved the fill-bearing pill wrapper down to its bare
+   label, so `absoluteRowGroup` rebuilt the row without the capsule — white text, invisible on a light
+   card. (Single-row fixtures took a different path and hid it; the multi-row/full-screen case triggers
+   it — reproducible at the unit layer, no DemoUITest needed.) `flattenLeaves` now keeps a fill/radius
+   box whole and only dissolves transparent groups. Red-first (`SalePillCaptureTests`); verified through
+   the real sweep with `figma-plugin/render_ir.py` (renders the captured IR to a PNG for diffing against
+   a `-PinwheelPreview` sim screenshot) — the pink pills are back on all three sale rows.
 7. Blur/materials — low fidelity: translucent fill or crop.
 8. Gradients / page dots / custom shapes — low priority; gradient paint when detectable.
 
