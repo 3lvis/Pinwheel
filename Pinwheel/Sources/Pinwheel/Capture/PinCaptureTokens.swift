@@ -38,18 +38,33 @@ public struct PinCaptureTokens {
         }
     }
 
+    public struct TextStyleToken {
+        let name: String
+        let family: String
+        let size: Double
+        let weight: Int
+        public init(name: String, family: String, size: Double, weight: Int) {
+            self.name = name
+            self.family = family
+            self.size = size
+            self.weight = weight
+        }
+    }
+
     public var colors: [ColorToken]
     public var spacings: [FloatToken]
     public var radii: [FloatToken]
+    public var textStyles: [TextStyleToken]
     /// The design-face name for the system font (whose internal family name isn't Figma-loadable). Custom
     /// (non-system) fonts capture their real family, so this only names the fallback.
     public var systemFontFamily: String
 
-    public init(colors: [ColorToken], spacings: [FloatToken], radii: [FloatToken], systemFontFamily: String) {
+    public init(colors: [ColorToken], spacings: [FloatToken], radii: [FloatToken], systemFontFamily: String, textStyles: [TextStyleToken] = []) {
         self.colors = colors
         self.spacings = spacings
         self.radii = radii
         self.systemFontFamily = systemFontFamily
+        self.textStyles = textStyles
     }
 
     /// The active registry the capture matchers consult. A consumer assigns their own at launch.
@@ -63,7 +78,11 @@ public struct PinCaptureTokens {
             },
             spacings: PinFloatTokens.spacing.map { FloatToken(name: $0.name, value: Double($0.value)) },
             radii: PinFloatTokens.radius.map { FloatToken(name: $0.name, value: Double($0.value)) },
-            systemFontFamily: "SF Pro Rounded"
+            systemFontFamily: "SF Pro Rounded",
+            textStyles: PinTextStyle.allCapturable.map {
+                let metrics = $0.captureMetrics
+                return TextStyleToken(name: $0.captureName, family: metrics.family, size: metrics.size, weight: metrics.weight)
+            }
         )
     }
 
@@ -78,6 +97,26 @@ public struct PinCaptureTokens {
 
     func spacingName(for value: Double) -> String? { exactFloat(value, in: spacings) }
     func radiusName(for value: Double) -> String? { exactFloat(value, in: radii) }
+
+    // Match a rendered font to a text style by size + weight (the same size/weight a Figma text style
+    // carries), so captured text binds the consumer's named style.
+    func textStyleName(for font: UIFont) -> String? {
+        let weight = Self.cssWeight(font)
+        return textStyles.first { abs($0.size - Double(font.pointSize)) < 0.5 && $0.weight == weight }?.name
+    }
+
+    static func cssWeight(_ font: UIFont) -> Int {
+        let traits = font.fontDescriptor.object(forKey: .traits) as? [UIFontDescriptor.TraitKey: Any]
+        switch (traits?[.weight] as? CGFloat) ?? 0 {
+        case ..<(-0.5): return 200
+        case ..<(-0.2): return 300
+        case ..<0.15: return 400
+        case ..<0.28: return 500
+        case ..<0.37: return 600
+        case ..<0.5: return 700
+        default: return 800
+        }
+    }
 
     // A measured gap reads a hair wider than the declared spacing (glyph/SF Symbol bearing insets the
     // frame), so round down to the token at or just below it.
@@ -104,5 +143,8 @@ public struct PinCaptureTokens {
     }
     var figmaFloatTokens: [FigmaToken] {
         (spacings + radii).map { FigmaToken(name: $0.name, type: "float", float: $0.value) }
+    }
+    var figmaTextStyles: [FigmaTextStyle] {
+        textStyles.map { FigmaTextStyle(name: $0.name, family: $0.family, size: $0.size, weight: $0.weight) }
     }
 }

@@ -549,7 +549,7 @@ public enum PinDisplayListCapture {
             family: fontFamily(font), size: Double(font?.pointSize ?? 17), weight: cssWeight(font),
             color: color.map(RGBA.init) ?? RGBA(r: 0, g: 0, b: 0, a: 1),
             colorToken: color.flatMap(textColorToken(for:)),
-            style: font.flatMap { PinTextStyle.matching($0)?.captureName }, underline: underline
+            style: font.flatMap { PinCaptureTokens.current.textStyleName(for: $0) }, underline: underline
         )
     }
 
@@ -567,7 +567,7 @@ public enum PinDisplayListCapture {
         PinCaptureTokens.current.colorName(for: color, textRoleOnly: true)
     }
 
-    static let textStyles: [FigmaTextStyle] = PinTextStyle.allCapturable.map { FigmaTextStyle($0) }
+    static var textStyles: [FigmaTextStyle] { PinCaptureTokens.current.figmaTextStyles }
 
     private static func cssWeight(_ font: UIFont?) -> Int {
         guard let font,

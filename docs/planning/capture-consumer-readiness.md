@@ -74,10 +74,17 @@ Engine value-matched colors/spacing/radius against fixed library enums and hardc
   `systemFontFamily`). Default preserves current behavior — full suite green. Tests: a custom color binds
   a custom name, a custom spacing binds, a custom font family is emitted, and the default still binds
   Pinwheel tokens.
-- **Phase 2 — remaining.** Text-*style* name matching still maps to Pinwheel's `PinTextStyle`; a consumer's
-  named text styles (sizes/weights/line-heights) should match + emit from the registry too. Plus a
-  consumer adapter (map their tokens into `PinCaptureTokens`) and uploading their fonts to the Figma file
-  so text doesn't fall back. Multi-brand: swap `.current` per brand.
+- **Phase 2 — DONE (text styles).** A consumer's named text styles now match + emit from the registry:
+  `PinCaptureTokens.textStyles` (name/family/size/weight); `textStyleName(for:)` matches a rendered font by
+  size + weight, `figmaFont.style` and the document's emitted `textStyles` route through `.current`.
+  Default preserves the Pinwheel style names (existing typography tests green). Consumer "adapter" is just
+  building a `PinCaptureTokens` from their design system — the public init *is* the seam, no extra API.
+- **Font availability is the consumer's job (not ours).** Figma renders a family only if it's a Google
+  Font, installed on the designer's machine (desktop app), or a shared Org font — and the plugin API can't
+  install fonts. The pipeline emits the family name; the consumer makes their brand fonts available in
+  Figma. The plugin already **falls back to Inter** (`resolveFont`) when a family isn't loadable, so a
+  missing font never breaks the import.
+- Multi-brand: swap `PinCaptureTokens.current` per brand before capture.
 
 ## Fidelity gaps
 3. Async images — on-screen host + await image load (readiness signal); note blend modes.

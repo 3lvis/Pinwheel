@@ -36,6 +36,17 @@ final class PinCaptureTokensTests: XCTestCase {
         XCTAssertEqual(font.family, "Georgia", "a custom font captures its real family, not the system design name")
     }
 
+    // A consumer's named text style (its size + weight) must bind, not Pinwheel's style names.
+    func testCustomTextStyleRegistryBindsConsumerStyleName() {
+        let font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        PinCaptureTokens.current = PinCaptureTokens(
+            colors: [], spacings: [], radii: [], systemFontFamily: "Inter",
+            textStyles: [PinCaptureTokens.TextStyleToken(name: "bodyM", family: "Inter", size: 16, weight: 400)]
+        )
+        let captured = PinDisplayListCapture.figmaFont(font, color: .black, underline: false)
+        XCTAssertEqual(captured.style, "bodyM", "captured text binds the consumer's text-style name")
+    }
+
     // Regression: the default registry still binds Pinwheel's own tokens.
     func testDefaultRegistryStillBindsPinwheelTokens() {
         let actionBackground = UIColor(PinColorToken.actionBackground.color).resolvedColor(with: UITraitCollection(userInterfaceStyle: .light))
