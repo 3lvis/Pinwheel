@@ -1,12 +1,21 @@
 name: CI
 
+# CI on GitHub-hosted runners is PAUSED (manual-dispatch only). GitHub's macOS
+# runners flake on the hostless capture tests — a UIWindow activated inside a
+# hostless XCTest process crashes only there, never on any local simulator (warm
+# or cold: the exact CI command passes 24/24 in ~3.6s) — and Actions minutes are
+# scarce. The gate is now LOCAL: a commit may merge only if it states unit + UI
+# tests ran green via `xcodebuild` locally (see AGENTS.md → "Local green-commit
+# gate"). Re-enable the push/pull_request triggers once the runner issue is fixed
+# (a test host for PinwheelTests) or CI moves off Actions minutes.
 on:
-  push:
-    branches: [main]
-    paths-ignore: ['**.md', 'docs/**']
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-    paths-ignore: ['**.md', 'docs/**']
+  workflow_dispatch:
+  # push:
+  #   branches: [main]
+  #   paths-ignore: ['**.md', 'docs/**']
+  # pull_request:
+  #   types: [opened, synchronize, reopened, ready_for_review]
+  #   paths-ignore: ['**.md', 'docs/**']
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

@@ -20,6 +20,10 @@ Pinwheel-specific guidance: how we work here, testing, and the decisions log. Th
   - When matching SwiftUI to UIKit, the UIKit example (or `main`) is the parity source of truth.
 - **Build/verify via the Xcode MCP** — `BuildProject` after every change, `RenderPreview` to look, `RunSomeTests` for the regression tests (`tabIdentifier: "windowtab1"`). Setup + the session-restart gotcha live in the `xcode-mcp` skill; `xcodebuild`/`simctl` are the fallback.
 - **Keep the decisions log current** as components change, and name build-contract dirs freely (`Scripts/`, `DemoUITests`); the canonical folder map is in Decisions › Project layout.
+- **Local green-commit gate — GitHub Actions CI is paused.** GitHub's macOS runners flake on the hostless capture tests (a `UIWindow` activated inside a hostless `XCTest` process crashes *only* there — never on any local simulator; the exact CI command passes 24/24 in ~3.6s locally), and Actions minutes are scarce, so `.github/workflows/ci.yml`'s `push`/`pull_request` triggers are commented out (manual `workflow_dispatch` only). The merge gate is now **local**: before merging, run both tiers with `xcodebuild` —
+  - unit: `xcodebuild test -project Demo.xcodeproj -scheme PinwheelTests -destination "platform=iOS Simulator,id=<udid>" CODE_SIGNING_ALLOWED=NO`
+  - UI: `xcodebuild test -project Demo.xcodeproj -scheme Demo -only-testing:DemoUITests -parallel-testing-enabled NO -retry-tests-on-failure -test-iterations 3 CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY=''`
+  — and only merge a commit whose message **states they ran green** (a `Tests: unit NN/NN + UI green (local xcodebuild)` trailer). That claim is the merge signal. Re-enable the Actions triggers once `PinwheelTests` gets a test host (which should fix the runner-only flake) or CI moves off Actions minutes.
 
 ## Pinwheel — testing
 
