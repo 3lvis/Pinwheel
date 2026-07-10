@@ -31,5 +31,5 @@ public struct PinCaptureLayout {
 }
 
 public extension EnvironmentValues {
-    @Entry var pinCaptureSink: (@MainActor (String) -> Void)? = nil
+    @Entry var pinCaptureSink: (@MainActor @Sendable (String) -> Void)? = nil
 }

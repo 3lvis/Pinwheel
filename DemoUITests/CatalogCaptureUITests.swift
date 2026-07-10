@@ -29,7 +29,7 @@ final class CatalogCaptureUITests: XCTestCase {
         openCatalogItem(.numbers, .swiftUI, in: .tokens)
         // The demo renders — so the catalog opened it and the auto-push capture ran
         // without the reflector trapping and taking the app down.
-        XCTAssertTrue(app.staticTexts["spacingXXS 2"].waitForExistence(timeout: defaultTimeout),
+        XCTAssertTrue(app.staticTexts["Spacing"].waitForExistence(timeout: defaultTimeout),
                       "Numbers demo should render after the catalog opens it and runs capture")
     }
 

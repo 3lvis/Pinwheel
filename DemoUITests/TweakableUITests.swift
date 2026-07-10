@@ -96,7 +96,7 @@ final class TweakableUITests: XCTestCase {
         XCTAssertTrue(option1.waitForExistence(timeout: defaultTimeout), "Option 1 should be listed")
         option1.tap()
 
-        XCTAssertTrue(app.staticTexts["Chosen Option 1"].waitForExistence(timeout: defaultTimeout),
+        XCTAssertTrue(app.staticTexts["You chose Option 1."].waitForExistence(timeout: defaultTimeout),
                       "Choosing a tweak from the catalog (nested presentation) should update the label")
     }
 
@@ -113,7 +113,7 @@ final class TweakableUITests: XCTestCase {
         XCTAssertTrue(option1.waitForExistence(timeout: defaultTimeout), "Option 1 should be listed")
         option1.tap()
 
-        XCTAssertTrue(app.staticTexts["Chosen Option 1!\n\nYou can drag the button too :D"].waitForExistence(timeout: defaultTimeout),
+        XCTAssertTrue(app.staticTexts["You chose Option 1."].waitForExistence(timeout: defaultTimeout),
                       "A UIKit tweak chosen from the catalog should update the hosted view's label")
     }
 
