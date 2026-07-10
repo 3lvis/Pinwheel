@@ -1,7 +1,7 @@
 import UIKit
 import Pinwheel
 
-class UIKitPinNumbersDemo: UIKitPinView {
+class UIPinNumbersDemo: UIPinView {
     private let spacings: [(String, CGFloat)] = [
         ("spacingXXS", .spacingXXS),
         ("spacingXS", .spacingXS),
@@ -51,8 +51,8 @@ class UIKitPinNumbersDemo: UIKitPinView {
         ])
     }
 
-    private func header(_ text: String) -> UIKitPinLabel {
-        let label = UIKitPinLabel(font: .title)
+    private func header(_ text: String) -> UIPinLabel {
+        let label = UIPinLabel(font: .title)
         label.text = text
         return label
     }
@@ -74,8 +74,8 @@ class UIKitPinNumbersDemo: UIKitPinView {
         return label
     }
 
-    private func makeBarLabel(text: String) -> UIKitPinLabel {
-        let label = UIKitPinLabel(font: .body)
+    private func makeBarLabel(text: String) -> UIPinLabel {
+        let label = UIPinLabel(font: .body)
         label.text = text
         label.textAlignment = .center
         label.backgroundColor = .tertiaryText
@@ -133,8 +133,8 @@ class UIKitPinNumbersDemo: UIKitPinView {
         ])
     }
 
-    private func captionLabel(_ text: String) -> UIKitPinLabel {
-        let label = UIKitPinLabel(font: .caption, textColor: .secondaryText)
+    private func captionLabel(_ text: String) -> UIPinLabel {
+        let label = UIPinLabel(font: .caption, textColor: .secondaryText)
         label.text = text
         return label
     }

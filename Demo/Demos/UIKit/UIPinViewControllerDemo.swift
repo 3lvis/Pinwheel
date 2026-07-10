@@ -1,7 +1,7 @@
 import UIKit
 import Pinwheel
 
-class UIKitPinStateViewDemo: UIKitPinView, Tweakable {
+class UIPinViewControllerDemo: UIViewController, Tweakable {
     lazy var tweaks: [Tweak] = {
         return [
             TextTweak(title: "Loading") {
@@ -19,21 +19,23 @@ class UIKitPinStateViewDemo: UIKitPinView, Tweakable {
         ]
     }()
 
-    lazy var stateView: UIKitPinStateView = {
-        let view = UIKitPinStateView()
+    lazy var stateView: UIPinStateView = {
+        let view = UIPinStateView()
         view.delegate = self
         view.state = .empty(title: DemoStateFixture.emptyTitle, subtitle: DemoStateFixture.emptySubtitle)
         return view
     }()
 
-    override func setup() {
-        addSubview(stateView)
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .primaryBackground
+        view.addSubview(stateView)
         stateView.fillInSuperview()
     }
 }
 
-extension UIKitPinStateViewDemo: UIKitPinStateViewDelegate {
-    func stateViewDidSelectAction(_ stateView: Pinwheel.UIKitPinStateView) {
+extension UIPinViewControllerDemo: UIPinStateViewDelegate {
+    func stateViewDidSelectAction(_ stateView: UIPinStateView) {
         stateView.state = .loading(title: DemoStateFixture.loadingTitle, subtitle: DemoStateFixture.loadingSubtitle)
     }
 }

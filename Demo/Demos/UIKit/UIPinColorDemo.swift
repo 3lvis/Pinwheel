@@ -6,7 +6,7 @@ struct ColorItem {
     let title: String
 }
 
-class UIKitPinColorDemo: UIKitPinView {
+class UIPinColorDemo: UIPinView {
     private let items: [ColorItem] = [
         ColorItem(color: .primaryText, title: "Primary Text"),
         ColorItem(color: .secondaryText, title: "Secondary Text"),
@@ -50,7 +50,7 @@ class UIKitPinColorDemo: UIKitPinView {
     }
 
     private func label(_ text: String, color: UIColor) -> UILabel {
-        let label = UIKitPinLabel(font: .body)
+        let label = UIPinLabel(font: .body)
         label.text = text
         label.textColor = color
         return label

@@ -1,7 +1,7 @@
 import UIKit
 
 /// Base view for open subclassing; override `setup()` for post-init configuration.
-open class UIKitPinView: UIView {
+open class UIPinView: UIView {
     public override init(frame: CGRect) {
         super.init(frame: frame)
         baseSetup()

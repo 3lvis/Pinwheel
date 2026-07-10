@@ -1,16 +1,16 @@
 import UIKit
 import Pinwheel
 
-class UIKitPinFullscreenViewDemo: UIKitPinFullscreenView {
-    lazy var rightAnchoredLabel: UIKitPinLabel = {
-        let label = UIKitPinLabel()
+class UIPinFullscreenViewDemo: UIPinFullscreenView {
+    lazy var rightAnchoredLabel: UIPinLabel = {
+        let label = UIPinLabel()
         label.text = "Right Label"
         label.textAlignment = .right
         return label
     }()
 
-    lazy var leftAnchoredLabel: UIKitPinLabel = {
-        let label = UIKitPinLabel()
+    lazy var leftAnchoredLabel: UIPinLabel = {
+        let label = UIPinLabel()
         label.text = "Left Label"
         label.textAlignment = .right
         return label
@@ -24,7 +24,7 @@ class UIKitPinFullscreenViewDemo: UIKitPinFullscreenView {
         textView.textColor = .primaryText
         textView.backgroundColor = .clear
         textView.text = """
-        UIKitPinFullscreenView is a UIKit base class for keyboard-aware full-screen \
+        UIPinFullscreenView is a UIKit base class for keyboard-aware full-screen \
         screens (forms, composers, editors). Subclass it, override setup(), and anchor \
         bottom content with safeAnchorToKeyboardTopAndSafeAreaBottom(subview:).
 
@@ -57,7 +57,7 @@ class UIKitPinFullscreenViewDemo: UIKitPinFullscreenView {
     }
 }
 
-extension UIKitPinFullscreenViewDemo: UITextViewDelegate {
+extension UIPinFullscreenViewDemo: UITextViewDelegate {
     func textViewShouldEndEditing(_ textView: UITextView) -> Bool {
         return true
     }

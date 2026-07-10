@@ -53,7 +53,7 @@ final class StateViewUITests: XCTestCase {
                       "Tapping Retry should switch the SwiftUI state view to loading")
     }
 
-    // KEEP: app-layer wiring — the UIKitPinStateView shell hosts PinStateView and
+    // KEEP: app-layer wiring — the UIPinStateView shell hosts PinStateView and
     // bridges the retry action to its delegate.
     @MainActor
     func testUIKitStateViewBridgesTweaksAndRetry() {

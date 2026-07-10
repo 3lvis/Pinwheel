@@ -47,7 +47,7 @@ public enum PinUIKitCapture {
         return lifted
     }
 
-    // The demo's own background (the full-bleed UIKitPinView), not the clear hosting layers above it.
+    // The demo's own background (the full-bleed UIPinView), not the clear hosting layers above it.
     private static func hostedBackground(_ host: UIView) -> UIColor? {
         var best: UIColor?
         func scan(_ view: UIView) {

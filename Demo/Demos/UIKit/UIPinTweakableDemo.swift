@@ -1,7 +1,7 @@
 import UIKit
 import Pinwheel
 
-class UIKitPinTweakableDemo: UIKitPinView, Tweakable {
+class UIPinTweakableDemo: UIPinView, Tweakable {
     lazy var tweaks: [Tweak] = {
         let option1 = TextTweak(title: "Option 1") {
             self.titleLabel.text = "You chose Option 1."
@@ -18,8 +18,8 @@ class UIKitPinTweakableDemo: UIKitPinView, Tweakable {
         return [option1, option2, option3]
     }()
 
-    lazy var titleLabel: UIKitPinLabel = {
-        let label = UIKitPinLabel(font: .body)
+    lazy var titleLabel: UIPinLabel = {
+        let label = UIPinLabel(font: .body)
         label.text = "Tap the button and choose an option."
         label.textAlignment = .center
         label.numberOfLines = 0

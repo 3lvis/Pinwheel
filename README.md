@@ -212,7 +212,7 @@ let host = PinHostView(rootView: PinButton("Save") { save() })
 stackView.addArrangedSubview(host)
 ```
 
-Components that already ship a UIKit-friendly shell — `UIKitPinButton`, `UIKitPinStateView` — are thin hosts over their single SwiftUI implementation (`PinButton`, `PinStateView`), so a hybrid app keeps the imperative ergonomics (`title` / `isEnabled` / `state` mutation, target-action / delegate) it expects.
+Components that already ship a UIKit-friendly shell — `UIPinButton`, `UIPinStateView` — are thin hosts over their single SwiftUI implementation (`PinButton`, `PinStateView`), so a hybrid app keeps the imperative ergonomics (`title` / `isEnabled` / `state` mutation, target-action / delegate) it expects.
 
 ## Device Simulation
 

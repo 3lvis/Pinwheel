@@ -1,14 +1,14 @@
 import UIKit
 import Pinwheel
 
-class UIKitPinTableViewDemo: UIKitPinView, Tweakable {
+class UIPinTableViewDemo: UIPinView, Tweakable {
     lazy var tweaks: [Tweak] = {
         return [
             TextTweak(title: "Loading") {
                 self.tableView.state = .loading(title: DemoStateFixture.loadingTitle, subtitle: DemoStateFixture.loadingSubtitle)
             },
             TextTweak(title: "Loaded") {
-                self.tableView.state = .loaded([UIKitPinTextTableViewItem(title: "Only value")])
+                self.tableView.state = .loaded([UIPinTextTableViewItem(title: "Only value")])
             },
             TextTweak(title: "Empty") {
                 self.tableView.state = .empty(title: DemoStateFixture.emptyTitle, subtitle: DemoStateFixture.emptySubtitle)
@@ -19,23 +19,23 @@ class UIKitPinTableViewDemo: UIKitPinView, Tweakable {
         ]
     }()
 
-    lazy var tableView: UIKitPinTableView = {
-        let view = UIKitPinTableView(items: items, usingShadowWhenScrolling: true)
+    lazy var tableView: UIPinTableView = {
+        let view = UIPinTableView(items: items, usingShadowWhenScrolling: true)
         view.delegate = self
         return view
     }()
 
-    lazy var items: [UIKitPinTableViewItem] = {
-        @MainActor func text(_ title: String, icon: String? = nil, subtitle: String? = nil, detail: String? = nil, chevron: Bool = false, enabled: Bool = true) -> UIKitPinTextTableViewItem {
-            let item = UIKitPinTextTableViewItem(title: title, subtitle: subtitle)
+    lazy var items: [UIPinTableViewItem] = {
+        @MainActor func text(_ title: String, icon: String? = nil, subtitle: String? = nil, detail: String? = nil, chevron: Bool = false, enabled: Bool = true) -> UIPinTextTableViewItem {
+            let item = UIPinTextTableViewItem(title: title, subtitle: subtitle)
             item.icon = icon.flatMap { UIImage(systemName: $0) }
             item.detailText = detail
             item.hasChevron = chevron
             item.isEnabled = enabled
             return item
         }
-        @MainActor func toggle(_ title: String, icon: String, isOn: Bool) -> UIKitPinBoolTableViewItem {
-            let item = UIKitPinBoolTableViewItem(title: title)
+        @MainActor func toggle(_ title: String, icon: String, isOn: Bool) -> UIPinBoolTableViewItem {
+            let item = UIPinBoolTableViewItem(title: title)
             item.icon = UIImage(systemName: icon)
             item.isOn = isOn
             return item
@@ -61,18 +61,18 @@ class UIKitPinTableViewDemo: UIKitPinView, Tweakable {
     }
 }
 
-extension UIKitPinTableViewDemo: UIKitPinTableViewDelegate {
-    func tableView(_ tableView: Pinwheel.UIKitPinTableView, didSwitchItem boolTableViewItem: Pinwheel.UIKitPinBoolTableViewItem, atIndex index: Int) {
+extension UIPinTableViewDemo: UIPinTableViewDelegate {
+    func tableView(_ tableView: Pinwheel.UIPinTableView, didSwitchItem boolTableViewItem: Pinwheel.UIPinBoolTableViewItem, atIndex index: Int) {
         let title = "Changed \(boolTableViewItem.title) to \(boolTableViewItem.isOn ? "on" : "off")"
         print(title)
     }
     
-    func tableView(_ tableView: UIKitPinTableView, didSelectItemAtIndex index: Int) {
-        let title = "Selected \((items[index] as? UIKitPinTextTableViewItem)?.title ?? "")"
+    func tableView(_ tableView: UIPinTableView, didSelectItemAtIndex index: Int) {
+        let title = "Selected \((items[index] as? UIPinTextTableViewItem)?.title ?? "")"
         print(title)
     }
 
-    func tableViewDidSelectFailedStateAction(_ tableView: UIKitPinTableView) {
+    func tableViewDidSelectFailedStateAction(_ tableView: UIPinTableView) {
         print("tapped!")
     }
 }

@@ -1,6 +1,6 @@
 import UIKit
 
-open class UIKitPinFullscreenView: UIView {
+open class UIPinFullscreenView: UIView {
     public override init(frame: CGRect) {
         super.init(frame: frame)
         baseSetup()

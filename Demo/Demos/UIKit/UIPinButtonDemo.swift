@@ -1,55 +1,55 @@
 import UIKit
 import Pinwheel
 
-class UIKitPinButtonDemo: UIKitPinView {
-    var primary: UIKitPinButton!
-    var primaryDisabled: UIKitPinButton!
-    var primaryLoading: UIKitPinButton!
-    var primaryLoadingDisabled: UIKitPinButton!
-    var primaryTitleAndSymbol: UIKitPinButton!
-    var primarySymbolOnly: UIKitPinButton!
-    var secondary: UIKitPinButton!
-    var tertiary: UIKitPinButton!
-    var custom: UIKitPinButton!
-    var primaryFloating: UIKitPinButton!
+class UIPinButtonDemo: UIPinView {
+    var primary: UIPinButton!
+    var primaryDisabled: UIPinButton!
+    var primaryLoading: UIPinButton!
+    var primaryLoadingDisabled: UIPinButton!
+    var primaryTitleAndSymbol: UIPinButton!
+    var primarySymbolOnly: UIPinButton!
+    var secondary: UIPinButton!
+    var tertiary: UIPinButton!
+    var custom: UIPinButton!
+    var primaryFloating: UIPinButton!
 
     override func setup() {
-        primary = UIKitPinButton(title: "Press me")
+        primary = UIPinButton(title: "Press me")
         primary.addTarget(self, action: #selector(tapped), for: .touchUpInside)
 
-        primaryDisabled = UIKitPinButton(title: "Save")
+        primaryDisabled = UIPinButton(title: "Save")
         primaryDisabled.isEnabled = false
 
-        primaryLoading = UIKitPinButton(title: "Saving")
+        primaryLoading = UIPinButton(title: "Saving")
         primaryLoading.showActivityIndicator(true)
         primaryLoading.addTarget(self, action: #selector(loadingPressed(_:)), for: .touchUpInside)
 
-        primaryLoadingDisabled = UIKitPinButton(title: "Saving")
+        primaryLoadingDisabled = UIPinButton(title: "Saving")
         primaryLoadingDisabled.isEnabled = false
         primaryLoadingDisabled.showActivityIndicator(true)
 
-        primaryTitleAndSymbol = UIKitPinButton(title: "Continue", systemImage: "arrow.right")
-        primarySymbolOnly = UIKitPinButton(systemImage: "arrow.right")
+        primaryTitleAndSymbol = UIPinButton(title: "Continue", systemImage: "arrow.right")
+        primarySymbolOnly = UIPinButton(systemImage: "arrow.right")
 
-        secondary = UIKitPinButton(title: "Long toggle loading", style: .secondary)
+        secondary = UIPinButton(title: "Long toggle loading", style: .secondary)
         secondary.addTarget(self, action: #selector(loading), for: .touchUpInside)
 
-        let secondaryDisabled = UIKitPinButton(title: "Disabled", style: .secondary)
+        let secondaryDisabled = UIPinButton(title: "Disabled", style: .secondary)
         secondaryDisabled.isEnabled = false
 
-        tertiary = UIKitPinButton(title: "Update titles", style: .tertiary)
+        tertiary = UIPinButton(title: "Update titles", style: .tertiary)
         tertiary.addTarget(self, action: #selector(updateTitles), for: .touchUpInside)
 
-        let tertiaryDisabled = UIKitPinButton(title: "Disabled", style: .tertiary)
+        let tertiaryDisabled = UIPinButton(title: "Disabled", style: .tertiary)
         tertiaryDisabled.isEnabled = false
 
-        custom = UIKitPinButton(title: "Custom", font: .caption, style: .custom(textColor: .green, backgroundColor: .red))
+        custom = UIPinButton(title: "Custom", font: .caption, style: .custom(textColor: .green, backgroundColor: .red))
         custom.addTarget(self, action: #selector(shrinkTitles), for: .touchUpInside)
 
-        let customDisabled = UIKitPinButton(title: "Custom", font: .caption, style: .custom(textColor: .green, backgroundColor: .red))
+        let customDisabled = UIPinButton(title: "Custom", font: .caption, style: .custom(textColor: .green, backgroundColor: .red))
         customDisabled.isEnabled = false
 
-        primaryFloating = UIKitPinButton(title: "Continue")
+        primaryFloating = UIPinButton(title: "Continue")
 
         let stackView = UIStackView(axis: .vertical, spacing: .spacingM, alignment: .center)
         stackView.addArrangedSubviews([
@@ -77,7 +77,7 @@ class UIKitPinButtonDemo: UIKitPinView {
         ])
     }
 
-    @objc func loadingPressed(_ button: UIKitPinButton) {
+    @objc func loadingPressed(_ button: UIPinButton) {
         guard !button.isLoading else { return }
 
         print("Loading pressed")

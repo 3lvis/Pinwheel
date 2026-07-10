@@ -1,7 +1,7 @@
 import UIKit
 import Pinwheel
 
-class UIKitCollectionViewDemo: UIKitPinView {
+class CollectionViewGridDemo: UIPinView {
     private let items: [(title: String, color: UIColor)] = (1...8).map { index in
         let palette: [UIColor] = [.actionBackground, .secondaryBackground, .criticalBackground]
         return ("Item \(index)", palette[(index - 1) % palette.count])
@@ -27,7 +27,7 @@ class UIKitCollectionViewDemo: UIKitPinView {
     }
 }
 
-extension UIKitCollectionViewDemo: UICollectionViewDataSource {
+extension CollectionViewGridDemo: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         items.count
     }
@@ -40,7 +40,7 @@ extension UIKitCollectionViewDemo: UICollectionViewDataSource {
     }
 }
 
-extension UIKitCollectionViewDemo: UICollectionViewDelegateFlowLayout {
+extension CollectionViewGridDemo: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let columns: CGFloat = 2
         let available = collectionView.bounds.width - .spacingL * 2 - .spacingM * (columns - 1)
@@ -50,7 +50,7 @@ extension UIKitCollectionViewDemo: UICollectionViewDelegateFlowLayout {
 
 private final class CardCell: UICollectionViewCell {
     static let reuseIdentifier = "CardCell"
-    private let label = UIKitPinLabel(font: .body)
+    private let label = UIPinLabel(font: .body)
 
     override init(frame: CGRect) {
         super.init(frame: frame)

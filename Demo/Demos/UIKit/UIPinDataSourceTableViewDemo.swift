@@ -1,7 +1,7 @@
 import UIKit
 import Pinwheel
 
-class UIKitPinDataSourceTableViewDemo: UIKitPinView, Tweakable {
+class UIPinDataSourceTableViewDemo: UIPinView, Tweakable {
     private var rowCount = 6
 
     lazy var tweaks: [Tweak] = {
@@ -17,8 +17,8 @@ class UIKitPinDataSourceTableViewDemo: UIKitPinView, Tweakable {
         ]
     }()
 
-    lazy var tableView: UIKitPinTableView = {
-        let view = UIKitPinTableView(dataSource: self)
+    lazy var tableView: UIPinTableView = {
+        let view = UIPinTableView(dataSource: self)
         view.delegate = self
         return view
     }()
@@ -29,18 +29,18 @@ class UIKitPinDataSourceTableViewDemo: UIKitPinView, Tweakable {
     }
 }
 
-extension UIKitPinDataSourceTableViewDemo: UIKitPinTableViewDataSource {
-    func tableViewNumberOfItems(_ tableView: UIKitPinTableView) -> Int {
+extension UIPinDataSourceTableViewDemo: UIPinTableViewDataSource {
+    func tableViewNumberOfItems(_ tableView: UIPinTableView) -> Int {
         return rowCount
     }
 
-    func tableView(_ tableView: UIKitPinTableView, itemAtIndex index: Int) -> UIKitPinTableViewItem {
-        return UIKitPinTextTableViewItem(title: "Row \(index + 1)", subtitle: "Served by the data source")
+    func tableView(_ tableView: UIPinTableView, itemAtIndex index: Int) -> UIPinTableViewItem {
+        return UIPinTextTableViewItem(title: "Row \(index + 1)", subtitle: "Served by the data source")
     }
 }
 
-extension UIKitPinDataSourceTableViewDemo: UIKitPinTableViewDelegate {
-    func tableView(_ tableView: UIKitPinTableView, didSelectItemAtIndex index: Int) {
+extension UIPinDataSourceTableViewDemo: UIPinTableViewDelegate {
+    func tableView(_ tableView: UIPinTableView, didSelectItemAtIndex index: Int) {
         print("Selected row \(index + 1)")
     }
 }

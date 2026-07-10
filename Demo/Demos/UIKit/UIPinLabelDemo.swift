@@ -1,21 +1,21 @@
 import UIKit
 import Pinwheel
 
-class UIKitPinLabelDemo: UIKitPinView {
+class UIPinLabelDemo: UIPinView {
     override func setup() {
-        let title = UIKitPinLabel(font: .title)
+        let title = UIPinLabel(font: .title)
         title.text = "Title"
 
-        let subtitle = UIKitPinLabel(font: .subtitle)
+        let subtitle = UIPinLabel(font: .subtitle)
         subtitle.text = "Subtitle"
 
-        let body = UIKitPinLabel(font: .body)
+        let body = UIPinLabel(font: .body)
         body.text = "Body"
 
-        let footnote = UIKitPinLabel(font: .footnote)
+        let footnote = UIPinLabel(font: .footnote)
         footnote.text = "Footnote"
 
-        let caption = UIKitPinLabel(font: .caption)
+        let caption = UIPinLabel(font: .caption)
         caption.text = "Caption"
 
         let stackView = UIStackView(axis: .vertical, spacing: .spacingL)

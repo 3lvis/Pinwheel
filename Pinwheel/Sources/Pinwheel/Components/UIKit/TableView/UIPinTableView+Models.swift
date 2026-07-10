@@ -1,6 +1,6 @@
 import UIKit
 
-open class UIKitPinTextTableViewItem: UIKitPinTableViewItem {
+open class UIPinTextTableViewItem: UIPinTableViewItem {
     open var title: String
     open var subtitle: String?
     open var isEnabled: Bool = true
@@ -15,7 +15,7 @@ open class UIKitPinTextTableViewItem: UIKitPinTableViewItem {
     }
 }
 
-open class UIKitPinBoolTableViewItem: UIKitPinTableViewItem {
+open class UIPinBoolTableViewItem: UIPinTableViewItem {
     open var title: String
     open var subtitle: String?
     open var isEnabled: Bool = true

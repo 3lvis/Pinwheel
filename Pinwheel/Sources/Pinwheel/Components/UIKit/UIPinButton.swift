@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-public enum UIKitPinButtonStyle {
+public enum UIPinButtonStyle {
     case primary
     case secondary
     case tertiary
@@ -24,10 +24,10 @@ public enum UIKitPinButtonStyle {
     }
 }
 
-public final class UIKitPinButton: UIControl {
+public final class UIPinButton: UIControl {
     private let systemImage: String?
     private let font: PinTextStyle
-    private let style: UIKitPinButtonStyle
+    private let style: UIPinButtonStyle
     private var host: PinHostView<AnyView>!
 
     public var title: String? { didSet { reload() } }
@@ -41,7 +41,7 @@ public final class UIKitPinButton: UIControl {
         title: String? = nil,
         systemImage: String? = nil,
         font: PinTextStyle = .subtitleSemibold,
-        style: UIKitPinButtonStyle = .primary
+        style: UIPinButtonStyle = .primary
     ) {
         self.title = title
         self.systemImage = systemImage

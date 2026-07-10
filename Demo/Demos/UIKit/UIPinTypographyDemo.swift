@@ -6,7 +6,7 @@ struct FontItem {
     let title: String
 }
 
-class UIKitPinTypographyDemo: UIKitPinView {
+class UIPinTypographyDemo: UIPinView {
     private let items: [FontItem] = [
         FontItem(font: .title, title: "Title"),
         FontItem(font: .titleSemibold, title: "Title Semibold"),
@@ -32,7 +32,7 @@ class UIKitPinTypographyDemo: UIKitPinView {
         stack.insetsLayoutMarginsFromSafeArea = false
         stack.layoutMargins = UIEdgeInsets(top: .spacingM, left: .spacingL, bottom: .spacingM, right: .spacingL)
         for item in items {
-            let label = UIKitPinLabel(font: item.font)
+            let label = UIPinLabel(font: item.font)
             label.text = item.title
             stack.addArrangedSubview(label)
         }

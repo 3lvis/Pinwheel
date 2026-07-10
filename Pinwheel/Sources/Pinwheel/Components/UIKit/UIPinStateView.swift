@@ -1,11 +1,11 @@
 import SwiftUI
 import UIKit
 
-public protocol UIKitPinStateViewDelegate: AnyObject {
-    func stateViewDidSelectAction(_ stateView: UIKitPinStateView)
+public protocol UIPinStateViewDelegate: AnyObject {
+    func stateViewDidSelectAction(_ stateView: UIPinStateView)
 }
 
-public enum UIKitPinStateViewState {
+public enum UIPinStateViewState {
     case loading(title: String, subtitle: String)
     case loaded
     case empty(title: String, subtitle: String)
@@ -30,14 +30,14 @@ public enum UIKitPinStateViewState {
     }
 }
 
-public final class UIKitPinStateView: UIView {
-    public weak var delegate: UIKitPinStateViewDelegate?
+public final class UIPinStateView: UIView {
+    public weak var delegate: UIPinStateViewDelegate?
 
     /// The `delegate` also fires.
     public var onAction: (() -> Void)?
 
     // Hides itself in `.loaded`, so consumers pinning it over content reveal the content underneath without managing alpha.
-    public var state: UIKitPinStateViewState = .loaded {
+    public var state: UIPinStateViewState = .loaded {
         didSet {
             alpha = state.isLoaded ? 0 : 1
             reload()

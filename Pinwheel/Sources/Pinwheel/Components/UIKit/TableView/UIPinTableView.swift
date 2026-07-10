@@ -1,31 +1,31 @@
 import UIKit
 
-public protocol UIKitPinTableViewDelegate: AnyObject {
-    func tableView(_ tableView: UIKitPinTableView, didSelectItemAtIndex index: Int)
-    func tableView(_ tableView: UIKitPinTableView, didSwitchItem boolTableViewItem: UIKitPinBoolTableViewItem, atIndex index: Int)
-    func tableViewDidSelectFailedStateAction(_ tableView: UIKitPinTableView)
+public protocol UIPinTableViewDelegate: AnyObject {
+    func tableView(_ tableView: UIPinTableView, didSelectItemAtIndex index: Int)
+    func tableView(_ tableView: UIPinTableView, didSwitchItem boolTableViewItem: UIPinBoolTableViewItem, atIndex index: Int)
+    func tableViewDidSelectFailedStateAction(_ tableView: UIPinTableView)
 }
 
-public extension UIKitPinTableViewDelegate {
-    func tableView(_ tableView: UIKitPinTableView, didSwitchItem boolTableViewItem: UIKitPinBoolTableViewItem, atIndex index: Int) {}
-    func tableViewDidSelectFailedStateAction(_ tableView: UIKitPinTableView) { }
+public extension UIPinTableViewDelegate {
+    func tableView(_ tableView: UIPinTableView, didSwitchItem boolTableViewItem: UIPinBoolTableViewItem, atIndex index: Int) {}
+    func tableViewDidSelectFailedStateAction(_ tableView: UIPinTableView) { }
 }
 
-public protocol UIKitPinTableViewDataSource: AnyObject {
-    func tableViewNumberOfItems(_ tableView: UIKitPinTableView) -> Int
-    func tableView(_ tableView: UIKitPinTableView, itemAtIndex index: Int) -> UIKitPinTableViewItem
+public protocol UIPinTableViewDataSource: AnyObject {
+    func tableViewNumberOfItems(_ tableView: UIPinTableView) -> Int
+    func tableView(_ tableView: UIPinTableView, itemAtIndex index: Int) -> UIPinTableViewItem
 }
 
-public enum UIKitPinTableViewState {
+public enum UIPinTableViewState {
     case loading(title: String, subtitle: String)
-    case loaded([UIKitPinTableViewItem])
+    case loaded([UIPinTableViewItem])
     case empty(title: String, subtitle: String)
     case failed(title: String, subtitle: String, actionTitle: String)
 }
 
 /// Stays UIKit: cell recycling, the dataSource/delegate contract, `UISwitch` items
 /// and the A–Z section indexer have no `List` equivalent with comparable perf.
-open class UIKitPinTableView: ShadowScrollView {
+open class UIPinTableView: ShadowScrollView {
     public static let estimatedRowHeight: CGFloat = 60.0
     open var selectedIndexPath: IndexPath?
 
@@ -34,7 +34,7 @@ open class UIKitPinTableView: ShadowScrollView {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.backgroundColor = .primaryBackground
-        tableView.estimatedRowHeight = UIKitPinTableView.estimatedRowHeight
+        tableView.estimatedRowHeight = UIPinTableView.estimatedRowHeight
         tableView.separatorColor = .secondaryBackground
         tableView.separatorInset = .leadingInset(frame.width)
         return tableView
@@ -42,8 +42,8 @@ open class UIKitPinTableView: ShadowScrollView {
 
     private var usingShadowWhenScrolling: Bool = false
 
-    public weak var delegate: UIKitPinTableViewDelegate?
-    private weak var dataSource: UIKitPinTableViewDataSource?
+    public weak var delegate: UIPinTableViewDelegate?
+    private weak var dataSource: UIPinTableViewDataSource?
 
     public var isScrollEnabled: Bool = true {
         didSet {
@@ -51,7 +51,7 @@ open class UIKitPinTableView: ShadowScrollView {
         }
     }
 
-    public var state: UIKitPinTableViewState = .loaded([UIKitPinTableViewItem]()) {
+    public var state: UIPinTableViewState = .loaded([UIPinTableViewItem]()) {
         didSet {
             switch state {
             case .loading(let title, let subtitle):
@@ -72,22 +72,22 @@ open class UIKitPinTableView: ShadowScrollView {
         }
     }
 
-    lazy var stateView: UIKitPinStateView = {
-        let view = UIKitPinStateView()
+    lazy var stateView: UIPinStateView = {
+        let view = UIPinStateView()
         view.delegate = self
         view.alpha = 0
         return view
     }()
 
-    public init(dataSource: UIKitPinTableViewDataSource, usingShadowWhenScrolling: Bool = false) {
+    public init(dataSource: UIPinTableViewDataSource, usingShadowWhenScrolling: Bool = false) {
         self.usingShadowWhenScrolling = usingShadowWhenScrolling
         self.dataSource = dataSource
         super.init(frame: .zero)
         setup()
     }
 
-    private var items = [UIKitPinTableViewItem]()
-    public init(items: [UIKitPinTableViewItem] = [UIKitPinTableViewItem](), usingShadowWhenScrolling: Bool = false) {
+    private var items = [UIPinTableViewItem]()
+    public init(items: [UIPinTableViewItem] = [UIPinTableViewItem](), usingShadowWhenScrolling: Bool = false) {
         self.items = items
         self.usingShadowWhenScrolling = usingShadowWhenScrolling
         super.init(frame: .zero)
@@ -105,7 +105,7 @@ open class UIKitPinTableView: ShadowScrollView {
     private func setup() {
         translatesAutoresizingMaskIntoConstraints = false
         backgroundColor = .primaryBackground
-        tableView.register(UIKitPinTableViewCell.self)
+        tableView.register(UIPinTableViewCell.self)
         addSubview(stateView)
 
         if usingShadowWhenScrolling {
@@ -120,11 +120,11 @@ open class UIKitPinTableView: ShadowScrollView {
     }
 }
 
-extension UIKitPinTableView: UITableViewDelegate {
+extension UIPinTableView: UITableViewDelegate {
     public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
 
-        let item: UIKitPinTableViewItem
+        let item: UIPinTableViewItem
         if let dataSource = self.dataSource {
             item = dataSource.tableView(self, itemAtIndex: indexPath.row)
         } else {
@@ -140,7 +140,7 @@ extension UIKitPinTableView: UITableViewDelegate {
     }
 }
 
-extension UIKitPinTableView: UITableViewDataSource {
+extension UIPinTableView: UITableViewDataSource {
     public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if let dataSource = self.dataSource {
             return dataSource.tableViewNumberOfItems(self)
@@ -150,10 +150,10 @@ extension UIKitPinTableView: UITableViewDataSource {
     }
 
     public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeue(UIKitPinTableViewCell.self, for: indexPath)
+        let cell = tableView.dequeue(UIPinTableViewCell.self, for: indexPath)
         cell.delegate = self
 
-        let item: UIKitPinTableViewItem
+        let item: UIPinTableViewItem
         if let dataSource = self.dataSource {
             item = dataSource.tableView(self, itemAtIndex: indexPath.row)
         } else {
@@ -168,15 +168,15 @@ extension UIKitPinTableView: UITableViewDataSource {
     }
 }
 
-extension UIKitPinTableView: UIKitPinTableViewCellDelegate {
-    public func tableViewCell(_ tableViewCell: UIKitPinTableViewCell, didChangeBoolTableViewItem boolTableViewItem: UIKitPinBoolTableViewItem, atIndexPath indexPath: IndexPath) {
+extension UIPinTableView: UIPinTableViewCellDelegate {
+    public func tableViewCell(_ tableViewCell: UIPinTableViewCell, didChangeBoolTableViewItem boolTableViewItem: UIPinBoolTableViewItem, atIndexPath indexPath: IndexPath) {
         self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
         self.delegate?.tableView(self, didSwitchItem: boolTableViewItem, atIndex: indexPath.row)
     }
 }
 
-extension UIKitPinTableView: UIKitPinStateViewDelegate {
-    public func stateViewDidSelectAction(_ stateView: UIKitPinStateView) {
+extension UIPinTableView: UIPinStateViewDelegate {
+    public func stateViewDidSelectAction(_ stateView: UIPinStateView) {
         self.delegate?.tableViewDidSelectFailedStateAction(self)
     }
 }
