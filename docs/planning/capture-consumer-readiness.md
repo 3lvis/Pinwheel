@@ -45,7 +45,19 @@ Measured on the on-screen sweep host (demos in Screens, `.figma`):
     returns nil (falls through) for non-`List` screens. The `_base`-via-ObjC change is regression-free for
     the root `_UIHostingView` path (it still finds `_base` via Mirror first).
   - Follow-up: recover the missing rich-row fragments (map SwiftUI's control/image hosting forms) if full
-    fidelity on Cart-style rows is needed; today they capture as structured-but-partial rather than blank.
+    fidelity on raw-`List` Cart-style rows is needed; today they capture as structured-but-partial.
+- **The clean path for consumers: `PinList` with a capture switch (`pinCapturing`).** A raw `List`'s
+  rich rows only capture partially; but a consumer list built on `PinList` captures **fully**. `PinList`
+  renders a real `List` in production (recycling, native separators) and, under the `pinCapturing`
+  environment (set by the capture pipeline in `PinDisplayList.read` and the sweep host), renders the same
+  rows in an eager stack the DisplayList reads completely. Same `Row` in both — 1:1 cells. Result
+  (`PinListDemo`, 6 rows): **all row text editable + 1 component + 5 instances**, chevron included. So a
+  consumer routes lists through `PinList` (a small, non-structural change) and gets editable design +
+  component-as-rows + instances-on-repeat, sidestepping the raw-`List` wall entirely.
+- **Grouping signature handles images + width jitter.** Repeated-cell componentization keys an image node
+  by its **bytes** (identical icons/chevrons group; per-row photos stay distinct — an instance can't
+  override an image) and buckets size to ~16pt (content-driven width jitter, e.g. a longer price, doesn't
+  split one template; a real 120-vs-240 difference still does).
 - Layout-fidelity follow-up: the lazy demos fell to the containment path (`root=frame`, not `screen`),
   so auto-layout/component-grouping is lossier than the reflection path. Investigate matching the
   reflection path for large lazy trees.

@@ -86,7 +86,7 @@ public enum PinDisplayListCapture {
         var node = node
         node.children = node.children.map(componentizeRepeatedChildren)
         let signatures = node.children.map { child -> String? in
-            (child.tag == "frame" && child.component == nil && !hasImageLeaf(child)) ? signature(child) : nil
+            (child.tag == "frame" && child.component == nil) ? signature(child) : nil
         }
         var counts: [String: Int] = [:]
         for case let signature? in signatures { counts[signature, default: 0] += 1 }
@@ -101,9 +101,13 @@ public enum PinDisplayListCapture {
 
     private static func signature(_ node: FigmaNode) -> String {
         if node.tag == "text" { return "T:\(node.font?.style ?? "-"):\(node.textAlign ?? "-")" }
-        // Bucket size to ~4pt so sub-pixel text-height differences don't split identical cards, while a real
-        // size difference (a 120 vs 240 card) still lands in distinct buckets.
-        func bucket(_ value: Double) -> Int { Int((value / 4).rounded()) }
+        // Group an image row only when the image is byte-identical (a shared icon/chevron), keyed by its
+        // bytes. A per-row photo has different bytes, so it forms its own template and never collapses onto
+        // a master's crop (an instance overrides text/fill, not the image).
+        if node.tag == "image" { return "IMG:\(node.image.map { "\($0.count):\($0.prefix(16))" } ?? "-")" }
+        // Bucket size to ~16pt so content-driven width jitter (a longer price, a wider label) doesn't split
+        // one template, while a real size difference (a 120 vs 240 card) still lands in distinct buckets.
+        func bucket(_ value: Double) -> Int { Int((value / 16).rounded()) }
         var parts = ["\(node.tag):w\(bucket(node.w)):h\(bucket(node.h))"]
         // Only the axis is stable — justify/align/gap are inferred from rendered geometry and wobble with
         // text width across otherwise-identical cards, so they'd falsely split one template. Instances
@@ -113,10 +117,6 @@ public enum PinDisplayListCapture {
         parts.append("R:\(node.radiusToken ?? (node.radius != nil ? "#" : "-"))")
         parts.append("[\(node.children.map(signature).joined(separator: ","))]")
         return parts.joined(separator: "|")
-    }
-
-    private static func hasImageLeaf(_ node: FigmaNode) -> Bool {
-        node.image != nil || node.children.contains(where: hasImageLeaf)
     }
 
     private static func leafCount(_ node: ReflectedNode) -> Int {
