@@ -289,9 +289,37 @@ public enum PinUIKitCapture {
     }
 
     private static func realizedRows(_ scroll: UIScrollView, in host: UIView) -> [FigmaNode] {
-        cells(of: scroll)
+        let rows = cells(of: scroll)
             .sorted { $0.frame.minY < $1.frame.minY }
-            .compactMap { rowNode($0, in: host) }
+            .compactMap { cell in rowNode(cell, in: host).map { (cell: cell, node: $0) } }
+        // Cells of the same class and structure are one template: stamp them a shared key so the plugin
+        // imports the first as a Figma component and the rest as instances. A cell with a live crop (a
+        // switch/icon) can't be reproduced by an instance's text/fill override, so it stays independent.
+        let keys = rows.map { row in
+            hasImageLeaf(row.node) ? nil : "\(type(of: row.cell))#\(structureSignature(row.node))"
+        }
+        var counts: [String: Int] = [:]
+        for case let key? in keys { counts[key, default: 0] += 1 }
+        return zip(rows, keys).map { row, key in
+            var node = row.node
+            if let key, counts[key, default: 0] >= 2 { node.component = key }
+            return node
+        }
+    }
+
+    private static func structureSignature(_ node: FigmaNode) -> String {
+        var texts = 0, fills = 0
+        func walk(_ node: FigmaNode) {
+            if node.texts?.isEmpty == false { texts += 1 }
+            if node.fill != nil { fills += 1 }
+            node.children.forEach(walk)
+        }
+        node.children.forEach(walk)
+        return "t\(texts)f\(fills)"
+    }
+
+    private static func hasImageLeaf(_ node: FigmaNode) -> Bool {
+        node.image != nil || node.children.contains(where: hasImageLeaf)
     }
 
     private static func rowNode(_ cell: UIView, in host: UIView) -> FigmaNode? {

@@ -347,6 +347,58 @@ final class PinUIKitCaptureTests: XCTestCase {
         XCTAssertEqual(frame.layout?.pad.first ?? -1, Double(CGFloat.spacingM), accuracy: 0.5, "layoutMargins capture as the frame's padding")
     }
 
+    // Cells of the same class and structure are one template: the capture stamps them a shared component
+    // key so the plugin imports the first as a Figma component and the rest as instances — edit the
+    // master, the copies follow.
+    func testRepeatedIdenticalCellsShareAComponentKey() throws {
+        let source = ColorRowsSource(colors: Array(repeating: .primaryBackground, count: 3))
+        let host = tableHost(source)
+        let document = try withExtendedLifetime(source) { try XCTUnwrap(capture(host)) }
+        let rows = document.root.children.filter { $0.name == "Row" }
+        XCTAssertEqual(rows.count, 3)
+        let keys = Set(rows.compactMap { $0.component })
+        XCTAssertEqual(keys.count, 1, "three identical cells share one component key")
+        XCTAssertNotNil(rows.first?.component, "repeated identical cells are componentized")
+    }
+
+    // A lone cell has no copies, so componentizing it would only add noise — it stays a plain frame.
+    func testASingleCellIsNotComponentized() throws {
+        let source = ColorRowsSource(colors: [.primaryBackground])
+        let host = tableHost(source)
+        let document = try withExtendedLifetime(source) { try XCTUnwrap(capture(host)) }
+        let rows = document.root.children.filter { $0.name == "Row" }
+        XCTAssertEqual(rows.count, 1)
+        XCTAssertNil(rows.first?.component, "a single cell has no copies, so it isn't a component")
+    }
+
+    // A cell with a live crop (a switch/icon image) can't be reproduced by an instance's text/fill
+    // override, so it stays an independent frame rather than collapsing onto the master's crop.
+    func testCellsWithLiveCropsStayIndependent() throws {
+        let source = IconRowsSource(count: 3)
+        let host = tableHost(source)
+        let document = try withExtendedLifetime(source) { try XCTUnwrap(capture(host)) }
+        let rows = document.root.children.filter { $0.name == "Row" }
+        XCTAssertEqual(rows.count, 3)
+        XCTAssertTrue(rows.allSatisfy { $0.component == nil }, "image-bearing cells stay independent, not instances sharing one crop")
+    }
+
+    private func tableHost(_ source: UITableViewDataSource) -> UIView {
+        let table = UITableView()
+        table.dataSource = source
+        table.rowHeight = 44
+        table.reloadData()
+        let host = UIView()
+        table.translatesAutoresizingMaskIntoConstraints = false
+        host.addSubview(table)
+        NSLayoutConstraint.activate([
+            table.topAnchor.constraint(equalTo: host.topAnchor),
+            table.leadingAnchor.constraint(equalTo: host.leadingAnchor),
+            table.trailingAnchor.constraint(equalTo: host.trailingAnchor),
+            table.bottomAnchor.constraint(equalTo: host.bottomAnchor),
+        ])
+        return host
+    }
+
     private func firstNode(_ node: FigmaNode, where predicate: (FigmaNode) -> Bool) -> FigmaNode? {
         if predicate(node) { return node }
         for child in node.children { if let found = firstNode(child, where: predicate) { return found } }
@@ -362,6 +414,20 @@ private final class ColorRowsSource: NSObject, UITableViewDataSource {
         let cell = UITableViewCell()
         cell.backgroundColor = colors[indexPath.row]
         cell.textLabel?.text = "Row \(indexPath.row)"
+        return cell
+    }
+}
+
+private final class IconRowsSource: NSObject, UITableViewDataSource {
+    let count: Int
+    init(count: Int) { self.count = count }
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { count }
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = UITableViewCell()
+        cell.textLabel?.text = "Row \(indexPath.row)"
+        let icon = UIImageView(image: UIImage(systemName: "star.fill"))
+        icon.frame = CGRect(x: 320, y: 10, width: 24, height: 24)
+        cell.contentView.addSubview(icon)
         return cell
     }
 }
