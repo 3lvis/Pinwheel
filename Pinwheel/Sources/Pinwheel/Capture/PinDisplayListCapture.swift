@@ -196,11 +196,19 @@ public enum PinDisplayListCapture {
             // Reflection sees a card's filled shape as a transparent container — re-attach its fill/radius/padding by matching the text set it wraps.
             let texts = childNodes.reduce(into: Set<String>()) { $0.formUnion(nodeTexts($1)) }
             let background = backgrounds.first { $0.texts == texts }
+            var padding = background?.padding ?? EdgeInsets()
+            // A `.frame(maxWidth: .infinity)` card with left-aligned content hugs the leading edge, so its
+            // trailing gap is the frame being wider than its content, not real padding. Measured trailing is
+            // unusable (content never reaches the right), so assume symmetric padding and fill the parent
+            // width instead of baking the empty space in as a giant trailing inset.
+            let fillsWidth = container.axis == .column && container.alignment == .leading
+                && padding.trailing > padding.leading + 8
+            if fillsWidth { padding.trailing = padding.leading }
             let layout = PinCaptureLayout(
                 axis: container.axis, spacing: container.spacing ?? 8,
-                padding: background?.padding ?? EdgeInsets(), alignment: container.alignment, mainAxisAlignment: .leading
+                padding: padding, alignment: container.alignment, mainAxisAlignment: .leading
             )
-            return FigmaNode(
+            var node = FigmaNode(
                 tag: "frame", x: 0, y: 0, w: 0, h: 0,
                 fill: background?.fill.map(RGBA.init), fillToken: background?.fill.flatMap(tokenName(for:)),
                 radius: background?.radius.map(Double.init),
@@ -208,6 +216,8 @@ public enum PinDisplayListCapture {
                 name: container.axis == .row ? "HStack" : "VStack",
                 layout: FigmaLayout(layout), ordered: true, children: childNodes
             )
+            if fillsWidth { node.fillWidth = true }
+            return node
         }
     }
 
@@ -417,7 +427,18 @@ public enum PinDisplayListCapture {
             )
         }
         let orderedChildren = orderedForLayout(box.children)
-        let layout = inferLayout(orderedChildren.map(\.leaf.frame), in: frame)
+        var layout = inferLayout(orderedChildren.map(\.leaf.frame), in: frame)
+        // A left-aligned column's content hugs the leading edge, so a large trailing gap is the frame being
+        // wider than its content (a .frame(maxWidth:.infinity) card), not padding: drop the bogus inset to
+        // match leading and fill the parent width instead of baking the empty space in.
+        let fillsWidth = layout.axis == .column && layout.alignment == .leading
+            && layout.padding.trailing > layout.padding.leading + 8
+        if fillsWidth {
+            layout = PinCaptureLayout(axis: layout.axis, spacing: layout.spacing,
+                                      padding: EdgeInsets(top: layout.padding.top, leading: layout.padding.leading,
+                                                          bottom: layout.padding.bottom, trailing: layout.padding.leading),
+                                      alignment: layout.alignment, mainAxisAlignment: layout.mainAxisAlignment)
+        }
         // A leading column pins children left, so a child centered on the axis but inset from the leading edge (a spacing bar sharing the column with a header) gets a full-width centering slot.
         let contentMinX = orderedChildren.map { $0.leaf.frame.minX }.min() ?? frame.minX
         let childNodes = orderedChildren.map { child -> FigmaNode in
@@ -430,7 +451,7 @@ public enum PinDisplayListCapture {
             let insetFromLeading = child.leaf.frame.minX - contentMinX > 1
             return (centeredOnAxis && insetFromLeading) ? fillWidthCentered(node) : node
         }
-        return FigmaNode(
+        var node = FigmaNode(
             tag: "frame", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
             fill: fill.map(RGBA.init), fillToken: token,
             radius: cornerRadius(box.leaf.kind).map(Double.init),
@@ -438,6 +459,8 @@ public enum PinDisplayListCapture {
             name: layout.axis == .row ? "Row" : "Column",
             layout: FigmaLayout(layout), ordered: true, children: childNodes
         )
+        if fillsWidth { node.fillWidth = true }
+        return node
     }
 
     // Dissolve transparent grouping boxes so a pre-grouped two-line row's leaves rejoin their band, but keep
