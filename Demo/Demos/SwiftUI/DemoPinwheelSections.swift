@@ -43,7 +43,7 @@ enum DemoPinwheelSections {
             PinwheelItem(Catalog.cards) { CardsDemo() }.tags(.figma)
             PinwheelItem(Catalog.lazyCards) { LazyCardsDemo() }.tags(.figma)
             PinwheelItem(Catalog.lazyGrid) { LazyGridDemo() }.tags(.figma)
-            PinwheelItem(Catalog.plainList) { PlainListDemo() }.tags(.figma)
+            PinwheelItem(Catalog.sectionedList) { SectionedListDemo() }.tags(.figma)
         }
     }
 }

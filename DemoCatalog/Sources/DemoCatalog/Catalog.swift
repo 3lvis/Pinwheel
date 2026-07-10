@@ -14,7 +14,7 @@ public enum Catalog: String, PinwheelComponent {
     case cards = "Cards"
     case lazyCards = "Lazy Cards"
     case lazyGrid = "Lazy Grid"
-    case plainList = "Plain List"
+    case sectionedList = "Sectioned List"
     case fullscreenView = "FullscreenView"
     case viewController = "ViewController"
     case appleControls = "Apple Controls"

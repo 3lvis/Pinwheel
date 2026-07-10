@@ -26,13 +26,21 @@ Measured on the on-screen sweep host (demos in Screens, `.figma`):
   makes the outer ScrollView's viewport == content, so every row realizes into the DisplayList.
 - **`LazyVGrid` — SOLVED.** 12/12 tiles captured (`figma-lazy-grid`). (Per-tile fill fidelity is a
   follow-up — labels all present; the containment path flattened the tile backgrounds.)
-- **`List` — NOT YET.** Captured as one flat image, 0/20 rows (`figma-plain-list`). A SwiftUI `List`
-  is a *recycled* `UICollectionView` whose cells host *SwiftUI* content, so: the DisplayList never
-  sees the rows (unrealized in the UIKit layer), and the UIKit cell-walk finds no native `UILabel`s
-  (each cell hosts a `_UIHostingView`). Fix: force-realize the backing collection (size to
-  `contentSize`) so every cell exists, then re-read the DisplayList (the realized rows' SwiftUI
-  content is now in the tree). Risk: SwiftUI manages the collection's cell lifecycle and may fight a
-  forced resize — needs an experiment.
+- **`List` — editable capture BLOCKED (investigated, `SectionedListDemo`).** A SwiftUI `List` is a
+  recycled `UICollectionView` (`UpdateCoalescingCollectionView`). Force-realizing *works* — sizing the
+  collection to its `contentSize` realizes every cell (confirmed 14→20). But each row is its own opaque
+  SwiftUI hosting boundary (`ListCollectionViewCell → _UICollectionViewListCellContentView →
+  CellHostingView`), and none of the editable routes reach it: (1) the root host's DisplayList excludes
+  the cells (separate graphs) → captures flat; (2) `CellHostingView` reflects to an **empty Mirror** (no
+  `_base`/`viewGraph`), so the per-cell DisplayList extraction that works on the root can't run; (3) cell
+  accessibility labels are **empty** (computed lazily). Only per-cell **pixel crops** remain — non-editable
+  rows, barely better than the flat image. So editable `List` capture isn't achievable with the current
+  DisplayList technique. Options: (a) accept `List` screens capture flat (a documented limitation, like the
+  old UIKit-`List` case); (b) per-cell image crops (non-editable but per-row, individually replaceable);
+  (c) future non-Mirror extraction into `CellHostingView`'s graph via the ObjC runtime — fragile and
+  iOS-version-specific. Recommendation: (a) for now — `List`'s value to the consumer is its *features*
+  (sections/swipe/edit), and those screens (Cart, Favorites) can capture flat until (b)/(c) is justified;
+  the editable wins are the lazy stacks/grids, which already work.
 - Layout-fidelity follow-up: the lazy demos fell to the containment path (`root=frame`, not `screen`),
   so auto-layout/component-grouping is lossier than the reflection path. Investigate matching the
   reflection path for large lazy trees.
