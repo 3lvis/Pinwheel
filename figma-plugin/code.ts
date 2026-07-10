@@ -510,7 +510,9 @@ async function importFramed(data: any, version: any, dark: boolean, tags?: strin
 // Always-on debug path: every import records a compact summary of what it received (the captured IR),
 // flushed to the serve so an import can be diagnosed by reading http://localhost:8787/debug.json.
 // A rootTag of "image" means the capture produced no structured nodes (it fell back to a flat image).
-function traceComponent(name: string, root: any): void {
+// id is the stable catalog id (e.g. "swiftui-button"); name/title collides across the SwiftUI/UIKit
+// twins, so a diff against the captured IR must key on id, not name.
+function traceComponent(id: string, name: string, root: any): void {
   let nodes = 0
   let texts = 0
   let images = 0
@@ -521,7 +523,7 @@ function traceComponent(name: string, root: any): void {
     for (const child of node.children || []) walk(child)
   }
   walk(root)
-  const summary: any = { name, rootTag: root.tag, nodes, texts, images, boundStyles: boundTextStyleCount }
+  const summary: any = { id: id || null, name, rootTag: root.tag, nodes, texts, images, boundStyles: boundTextStyleCount }
   if (root.tag === 'image') summary.warning = 'flat image — the capture produced no structured nodes'
   importTrace.push(summary)
 }
@@ -545,7 +547,7 @@ figma.ui.onmessage = async (message: any) => {
       importTrace = []
       await syncFromDocument(data)
       const framed = await importFramed(data, message.version, Boolean(message.dark), message.tags)
-      traceComponent(data.root.name || 'Screen', data.root)
+      traceComponent(message.id, data.root.name || 'Screen', data.root)
       flushTrace()
       figma.viewport.scrollAndZoomIntoView([framed])
       figma.ui.postMessage({ type: 'done' })
@@ -572,7 +574,7 @@ figma.ui.onmessage = async (message: any) => {
         frame.y = 0
         cursor += frame.width + GAP
         placed.push(frame)
-        traceComponent((entry.data.root && entry.data.root.name) || 'Screen', entry.data.root)
+        traceComponent(entry.id, (entry.data.root && entry.data.root.name) || 'Screen', entry.data.root)
       }
       flushTrace()
       figma.viewport.scrollAndZoomIntoView(placed)

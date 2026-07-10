@@ -551,7 +551,7 @@ var PW = (() => {
     const root = await build(data.root, figma.currentPage, 0, 0, false);
     return root.type === "FRAME" ? await wrapInDeviceFrame(root, parts.join(" \xB7 ")) : root;
   }
-  function traceComponent(name, root) {
+  function traceComponent(id, name, root) {
     let nodes = 0;
     let texts = 0;
     let images = 0;
@@ -562,7 +562,7 @@ var PW = (() => {
       for (const child of node.children || []) walk(child);
     };
     walk(root);
-    const summary = { name, rootTag: root.tag, nodes, texts, images, boundStyles: boundTextStyleCount };
+    const summary = { id: id || null, name, rootTag: root.tag, nodes, texts, images, boundStyles: boundTextStyleCount };
     if (root.tag === "image") summary.warning = "flat image \u2014 the capture produced no structured nodes";
     importTrace.push(summary);
   }
@@ -584,7 +584,7 @@ var PW = (() => {
         importTrace = [];
         await syncFromDocument(data);
         const framed = await importFramed(data, message.version, Boolean(message.dark), message.tags);
-        traceComponent(data.root.name || "Screen", data.root);
+        traceComponent(message.id, data.root.name || "Screen", data.root);
         flushTrace();
         figma.viewport.scrollAndZoomIntoView([framed]);
         figma.ui.postMessage({ type: "done" });
@@ -611,7 +611,7 @@ var PW = (() => {
           frame.y = 0;
           cursor += frame.width + GAP;
           placed.push(frame);
-          traceComponent(entry.data.root && entry.data.root.name || "Screen", entry.data.root);
+          traceComponent(entry.id, entry.data.root && entry.data.root.name || "Screen", entry.data.root);
         }
         flushTrace();
         figma.viewport.scrollAndZoomIntoView(placed);

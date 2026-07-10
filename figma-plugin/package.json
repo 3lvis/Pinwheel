@@ -7,7 +7,8 @@
     "build": "esbuild code.ts --bundle --format=iife --global-name=PW --target=es2017 --outfile=code.js",
     "serve": "node serve.mjs",
     "test": "npm run build && node --test test/*.test.mjs",
-    "verify": "node verify.mjs"
+    "verify": "node verify.mjs",
+    "debug": "node debug.mjs"
   },
   "devDependencies": {
     "@figma/plugin-typings": "^1.130.0",
