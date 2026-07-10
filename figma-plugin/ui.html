@@ -5,6 +5,11 @@
   button.secondary { background: #e7e5e4; color: #1c1917; }
   #status { margin-top: 6px; color: #57534e; }
   label.dark { display: flex; align-items: center; gap: 6px; margin: 6px 0; color: #1c1917; cursor: pointer; }
+  #filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 2px; }
+  #filters:empty { display: none; }
+  .pill { width: auto; margin: 0; padding: 4px 10px; border: 1px solid #d6d3d1; border-radius: 999px;
+          background: #fff; color: #57534e; font-weight: 500; font-size: 11px; }
+  .pill.active { background: #14313b; border-color: #14313b; color: #fff; }
   #list { margin-top: 8px; }
   .section { margin: 10px 0 2px; font-weight: 700; color: #57534e; text-transform: uppercase;
              font-size: 10px; letter-spacing: 0.04em; }
@@ -16,12 +21,16 @@
 <button id="catalog">Load catalog</button>
 <button id="importAll">Import all</button>
 <label class="dark"><input type="checkbox" id="dark"> Dark mode</label>
+<div id="filters"></div>
 <div id="status"></div>
 <div id="list"></div>
 
 <script>
   const status = document.getElementById('status')
   const SERVE = 'http://localhost:8787'
+
+  let catalogItems = []
+  let activeTag = null // null = All
 
   const fetchJSON = async (path) => {
     const response = await fetch(SERVE + path, { cache: 'no-store' })
@@ -31,7 +40,11 @@
   const isDark = () => document.getElementById('dark').checked
   const importDocument = (data, version, tags) => parent.postMessage({ pluginMessage: { type: 'import', data, dark: isDark(), version, tags } }, '*')
 
+  // Items matching the active tag filter (all items when no tag is selected).
+  const filteredItems = () => activeTag ? catalogItems.filter((item) => (item.tags || []).includes(activeTag)) : catalogItems
+
   const catalogButton = document.getElementById('catalog')
+  const importAllButton = document.getElementById('importAll')
 
   async function loadCatalog({ auto = false } = {}) {
     if (!auto) status.textContent = 'loading catalog…'
@@ -41,8 +54,9 @@
         if (!auto) status.textContent = 'no components on the serve yet — run the capture sweep'
         return
       }
-      renderCatalog(items)
-      status.textContent = items.length + ' components — pick one to import'
+      catalogItems = items
+      renderFilters()
+      render()
       catalogButton.textContent = 'Reload catalog'
     } catch (error) {
       if (!auto) status.textContent = 'catalog failed: ' + error.message + ' (is the serve script running?)'
@@ -50,8 +64,32 @@
   }
 
   catalogButton.onclick = () => loadCatalog()
-
   loadCatalog({ auto: true })
+
+  // Distinct tags across the catalog, plus an "All" reset — mirrors the app's filter-pill bar.
+  function renderFilters() {
+    const filters = document.getElementById('filters')
+    filters.innerHTML = ''
+    const tags = [...new Set(catalogItems.flatMap((item) => item.tags || []))].sort()
+    if (!tags.length) return
+    if (activeTag && !tags.includes(activeTag)) activeTag = null
+    for (const label of ['All', ...tags]) {
+      const tag = label === 'All' ? null : label
+      const pill = document.createElement('button')
+      pill.className = 'pill' + (activeTag === tag ? ' active' : '')
+      pill.textContent = label
+      pill.onclick = () => { activeTag = tag; renderFilters(); render() }
+      filters.appendChild(pill)
+    }
+  }
+
+  function render() {
+    const items = filteredItems()
+    renderCatalog(items)
+    const scope = activeTag ? ' · ' + activeTag : ''
+    importAllButton.textContent = activeTag ? 'Import all ' + activeTag : 'Import all'
+    status.textContent = items.length + ' component' + (items.length === 1 ? '' : 's') + scope + ' — pick one to import'
+  }
 
   function renderCatalog(items) {
     const list = document.getElementById('list')
@@ -91,14 +129,15 @@
     }
   }
 
-  document.getElementById('importAll').onclick = async () => {
-    status.textContent = 'loading all components…'
+  importAllButton.onclick = async () => {
+    const items = filteredItems()
+    if (!items.length) {
+      status.textContent = catalogItems.length ? 'no components match ' + activeTag : 'no components on the serve yet — run the capture sweep'
+      return
+    }
+    const scope = activeTag ? ' ' + activeTag : ''
+    status.textContent = 'loading ' + items.length + scope + ' component' + (items.length === 1 ? '' : 's') + '…'
     try {
-      const { items } = await fetchJSON('/manifest.json')
-      if (!items || !items.length) {
-        status.textContent = 'no components on the serve yet — run the capture sweep'
-        return
-      }
       const entries = []
       for (const item of items) {
         const entry = await fetchJSON('/' + item.file)
@@ -106,7 +145,7 @@
           entries.push({ data: entry.document, version: item.version != null ? item.version : entry.version, tags: item.tags || entry.tags })
         }
       }
-      status.textContent = 'importing ' + entries.length + ' components (' + (isDark() ? 'dark' : 'light') + ')…'
+      status.textContent = 'importing ' + entries.length + scope + ' component' + (entries.length === 1 ? '' : 's') + ' (' + (isDark() ? 'dark' : 'light') + ')…'
       parent.postMessage({ pluginMessage: { type: 'importAll', entries, dark: isDark() } }, '*')
     } catch (error) {
       status.textContent = 'import all failed: ' + error.message + ' (is the serve script running?)'
