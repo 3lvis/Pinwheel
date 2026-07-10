@@ -18,6 +18,7 @@ public enum Catalog: String, PinwheelComponent {
     case productList = "Product List"
     case pricing = "Pricing"
     case cart = "Cart"
+    case imageGallery = "Image Gallery"
     case pinList = "Pin List"
     case fullscreenView = "FullscreenView"
     case viewController = "ViewController"

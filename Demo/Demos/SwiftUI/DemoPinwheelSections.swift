@@ -47,6 +47,7 @@ enum DemoPinwheelSections {
             PinwheelItem(Catalog.productList) { ProductListDemo() }.tags(.figma)
             PinwheelItem(Catalog.pricing) { PricingDemo() }.tags(.figma)
             PinwheelItem(Catalog.cart) { CartDemo() }.tags(.figma)
+            PinwheelItem(Catalog.imageGallery) { ImageGalleryDemo() }.tags(.figma)
             PinwheelItem(Catalog.pinList) { PinListDemo() }.tags(.figma)
         }
     }

@@ -87,7 +87,15 @@ Engine value-matched colors/spacing/radius against fixed library enums and hardc
 - Multi-brand: swap `PinCaptureTokens.current` per brand before capture.
 
 ## Fidelity gaps
-3. Async images — on-screen host + await image load (readiness signal); note blend modes.
+3. **Real / async images — DONE.** A raster image (`Image(uiImage:)`, a loaded `AsyncImage`) has
+   DisplayList content kind `image`, which was unhandled — `contentKind` returned `.unknown` and the
+   photo was dropped entirely (SF Symbols only worked because they're vector `shape` content).
+   `contentKind` now maps `image` → `.rasterizable`, so the existing host-layer crop fills it with real
+   pixels, same path as a symbol. Red-first (`RasterImageCaptureTests`); verified end-to-end via the
+   capturable `ImageGalleryDemo` — three `AsyncImage(url:)` photos capture as 64×64 image nodes with
+   pixels + dark variants. Readiness caveat: capture reads after the sweep's fixed 0.5s, so a
+   *local/fast* image (bundled, file-URL, cached) is loaded in time; a genuinely slow *remote* fetch
+   could still miss the window — a bounded load-await on the live host is the follow-up.
 4. Text decoration + mixed runs.
    - **Strikethrough — DONE.** `textKind` reads `.strikethroughStyle` alongside `.underlineStyle`,
      threads it through `FigmaFont.strikethrough`, and the plugin draws `STRIKETHROUGH` (skipping the

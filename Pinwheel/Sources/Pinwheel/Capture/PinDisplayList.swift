@@ -296,6 +296,9 @@ enum PinDisplayList {
             if let radius = roundedRectRadius(mirror.first) { return .roundedRect(radius: radius, color: color) }
             return .rasterizable
         case "color": return .color(deepColor(payload) ?? .clear)
+        // A raster image (a photo, a loaded AsyncImage) resolves its pixels only on a rendered layer, so
+        // mark it rasterizable and let the host-layer crop fill it — same path as an SF Symbol shape.
+        case "image": return .rasterizable
         case "platformView": return .rasterizable
         default: return .unknown(kind)
         }
