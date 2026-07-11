@@ -1,15 +1,14 @@
 import SwiftUI
 import Pinwheel
 
-// Built on PinList: each row is a 1-D value the capture reconstructs faithfully. A bespoke 2-D HStack row
-// (thumbnail | title/price column | stepper) scrambles under the geometry-based capture path — PinList's
-// value rows don't. Trade-off: the standalone SALE pill / ± stepper collapse into the row's text/detail.
 struct CartDemo: SwiftUI.View {
-    private struct Item {
+    private struct Item: Identifiable {
+        let id = UUID()
         let title: String
         let now: String
         let was: String?
         let quantity: Int
+        var onSale: Bool { was != nil }
     }
 
     private let items = [
@@ -20,13 +19,50 @@ struct CartDemo: SwiftUI.View {
     ]
 
     var body: some SwiftUI.View {
-        PinList(rows: items.map { item in
-            .text(
-                item.title,
-                icon: Image(systemName: "bag"),
-                subtitle: item.was.map { "\(item.now) · was \($0)" } ?? item.now,
-                detail: "×\(item.quantity)"
-            )
-        })
+        ScrollView {
+            VStack(spacing: .spacingM) {
+                ForEach(items) { item in
+                    HStack(spacing: .spacingM) {
+                        RoundedRectangle(cornerRadius: .radiusM)
+                            .fill(.secondaryBackground)
+                            .frame(width: 56, height: 56)
+                            .overlay(Image(systemName: "photo").foregroundStyle(.tertiaryText))
+                        VStack(alignment: .leading, spacing: .spacingXS) {
+                            HStack(spacing: .spacingS) {
+                                PinLabel(item.title).font(.body)
+                                if item.onSale {
+                                    PinLabel("SALE").font(.footnote).color(.custom(.white))
+                                        .padding(.horizontal, .spacingS)
+                                        .padding(.vertical, 2)
+                                        .background(.criticalBackground, in: Capsule())
+                                }
+                            }
+                            HStack(spacing: .spacingS) {
+                                PinLabel(item.now).font(.bodySemibold)
+                                if let was = item.was {
+                                    PinLabel(was).font(.caption).color(.secondary).strikethrough()
+                                }
+                            }
+                        }
+                        Spacer()
+                        HStack(spacing: .spacingM) {
+                            Image(systemName: "minus")
+                            PinLabel("\(item.quantity)").font(.body)
+                            Image(systemName: "plus")
+                        }
+                        .foregroundStyle(.actionText)
+                        .padding(.horizontal, .spacingM)
+                        .padding(.vertical, .spacingS)
+                        .overlay(Capsule().stroke(.tertiaryText, lineWidth: 1))
+                    }
+                    .padding(.spacingM)
+                    .background(.secondaryBackground)
+                    .cornerRadius(.radiusM)
+                }
+            }
+            .padding(.spacingL)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(.primaryBackground)
     }
 }

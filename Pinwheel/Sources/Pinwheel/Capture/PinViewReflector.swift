@@ -65,6 +65,9 @@ enum PinViewReflector {
             return .container(ReflectedContainer(axis: .column, spacing: nil, alignment: .leading), rows.compactMap(walk))
         }
         if isStructuralContainer(typeName) { return nil }
+        if isShape(typeName) {
+            return .leaf(text: nil, isButton: false, fillWidth: false)
+        }
         if isPrimitive(typeName) { return nil }
         // A SwiftUI primitive's or UIKit-bridge's `.body` traps if reached; skip so capture falls back to containment instead of crashing.
         if value is any UIViewRepresentable || value is any UIViewControllerRepresentable { return nil }
@@ -103,6 +106,14 @@ enum PinViewReflector {
         primitiveTypes.contains { typeName == $0 || typeName.hasPrefix($0 + "<") }
     }
 
+    // A standalone shape renders as a fill/stroke box the containment path keeps as a component, so it's a
+    // leaf; a filled/stroked shape is a `*ShapeView` (SwiftUI wraps `.fill()`/`.stroke()`). Image is NOT here
+    // — the containment path drops SF Symbols, so counting them would desync the reflected leaf total.
+    private static func isShape(_ typeName: String) -> Bool {
+        if typeName.contains("ShapeView") { return true }
+        return shapeTypes.contains { typeName == $0 || typeName.hasPrefix($0 + "<") }
+    }
+    private static let shapeTypes = ["RoundedRectangle", "Rectangle", "Circle", "Capsule", "Ellipse"]
     private static let structuralContainerTypes = ["ForEach", "List", "Section", "LazyVStack", "LazyHStack"]
     private static func isStructuralContainer(_ typeName: String) -> Bool {
         structuralContainerTypes.contains { typeName == $0 || typeName.hasPrefix($0 + "<") }

@@ -54,8 +54,8 @@ final class PinVariadicExpanderTests: XCTestCase {
         }
         let rows = try XCTUnwrap(PinVariadicExpander.expand(forEach))
         XCTAssertEqual(rows.count, 2)
-        // name + $10 + ×1 = 3 text leaves per row (the shape isn't a PinLabel leaf).
-        XCTAssertEqual(leaves(PinViewReflector.reflect(rows[0])), 3)
+        XCTAssertEqual(leaves(PinViewReflector.reflect(rows[0])), 4,
+                       "thumbnail shape + name + $10 + ×1 — the filled shape reflects as a leaf, matching the fill box containment keeps")
     }
 
     // A non-view returns nil (never crashes the caller).

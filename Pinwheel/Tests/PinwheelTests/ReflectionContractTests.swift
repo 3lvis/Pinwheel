@@ -127,6 +127,50 @@ final class ReflectionContractTests: XCTestCase {
     // rows via PinVariadicExpander, so it no longer reflects nil. Bare-leaf rows (ForEach { PinLabel }) have
     // a different graph-node shape the deref doesn't reach; those return nil and the screen falls back to the
     // containment path (their prior behavior — a simple 1-D list containment already handles).
+    // A standalone filled/stroked shape (a thumbnail's `RoundedRectangle().fill()`) renders as a fill box the
+    // containment path keeps as a component, so reflection must emit it as a leaf — else a rich row's reflected
+    // leaf count falls short of the rendered components and the whole screen drops to containment (Cart's
+    // 2-D card scramble). An Image (SF Symbol) must NOT be a leaf — containment drops symbols, so counting one
+    // would overshoot the other way.
+    func testFilledShapeReflectsToALeafButImageDoesNot() {
+        XCTAssertNotNil(PinViewReflector.reflect(RoundedRectangle(cornerRadius: 8).fill(.red).frame(width: 56, height: 56)),
+                        "a filled shape reflects to a leaf — the containment path keeps its fill box as a component")
+        XCTAssertNil(PinViewReflector.reflect(Image(systemName: "photo")),
+                     "an SF Symbol reflects nil — the containment path drops symbols, so counting it would desync the zip")
+    }
+
+    // The rich 2-D row (thumbnail | info column | stepper) reflects with the thumbnail shape leading, the
+    // info as a nested column, and the quantity trailing — the structure Cart needs so Figma auto-layout
+    // lays it left-to-right instead of ordering by Y (the v5 scramble).
+    func testTwoDimensionalRowReflectsThumbnailInfoColumnStepper() throws {
+        try XCTSkipUnless(PinVariadicExpander.isHealthy, "expander unavailable on this OS — falls back to containment")
+        let row = HStack {
+            RoundedRectangle(cornerRadius: 8).fill(.gray).frame(width: 56, height: 56)
+            VStack(alignment: .leading) {
+                PinLabel("Title").font(.body)
+                PinLabel("$129").font(.bodySemibold)
+            }
+            Spacer()
+            PinLabel("1").font(.body)
+        }
+        guard case .container(let outer, let top)? = PinViewReflector.reflect(row), outer.axis == .row else {
+            return XCTFail("the row reflects to a horizontal container")
+        }
+        func firstLeafText(_ n: ReflectedNode) -> String?? {
+            switch n {
+            case .leaf(let t, _, _): return .some(t)
+            case .container(_, let c): return c.compactMap(firstLeafText).first ?? nil
+            case .spacer: return nil
+            }
+        }
+        guard case .leaf(let leadingText, _, _) = top.first else {
+            return XCTFail("the row leads with the thumbnail shape leaf")
+        }
+        XCTAssertNil(leadingText, "the leading leaf is the thumbnail shape (no text)")
+        let texts = top.compactMap(firstLeafText).compactMap { $0 }
+        XCTAssertEqual(texts, ["Title", "1"], "the info column (Title) precedes the trailing quantity, in reading order")
+    }
+
     func testForEachOfContainerRowsExpands() throws {
         try XCTSkipUnless(PinVariadicExpander.isHealthy, "expander unavailable on this OS — ForEach falls back to containment")
         func leaves(_ n: ReflectedNode?) -> Int {
