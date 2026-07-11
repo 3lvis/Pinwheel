@@ -217,6 +217,17 @@ final class ReflectionContractTests: XCTestCase {
         XCTAssertEqual(text, "−  1  +", "the label text survives the wrap")
     }
 
+    // A fixed-size (framed) image is a deliberate thumbnail the containment path keeps as a component, so
+    // reflection must count it as a leaf — else a row like a gallery cell (thumbnail + text column) reflects
+    // short of the rendered components and drops to the containment path, which scrambles the 2-D row. An
+    // unframed intrinsic-size image (an SF Symbol) still reflects nil, since containment drops those.
+    func testFramedImageReflectsToALeafButUnframedDoesNot() {
+        XCTAssertNotNil(PinViewReflector.reflect(Image(systemName: "photo").resizable().frame(width: 64, height: 64)),
+                        "a fixed-size framed image reflects as a leaf")
+        XCTAssertNil(PinViewReflector.reflect(Image(systemName: "plus")),
+                     "an unframed image still reflects nil")
+    }
+
     func testForEachOfContainerRowsExpands() throws {
         try XCTSkipUnless(PinVariadicExpander.isHealthy, "expander unavailable on this OS — ForEach falls back to containment")
         func leaves(_ n: ReflectedNode?) -> Int {

@@ -50,19 +50,33 @@ public enum PinDisplayListCapture {
         let components = orderedComponents(root)
         let screenFill = fillColor(root.leaf.kind)
 
-        // Reflection supplies the semantic layout tree (native VStack/HStack leave no drawable to group by); zip it with the rendered leaves, falling back to containment if counts disagree.
-        if let structure = PinViewReflector.reflect(view), leafCount(structure) == components.count {
-            var pool = components
-            let backgrounds = collectBackgrounds(root)
-            let content = emitStructure(structure, host: host, backgrounds: backgrounds) { text in
-                // Match by text, not index — a 2D grid scrambles a positional zip; duplicates resolve first-unconsumed.
-                let matched = pool.firstIndex { componentText($0) == text } ?? (pool.isEmpty ? nil : 0)
-                return matched.map { pool.remove(at: $0) }
-            }
-            if let content {
-                var rootNode = screen(content, width: size.width, fill: screenFill, components: components, canvasHeight: size.height, oneScreen: screenHeight, safeAreaTop: host.safeAreaInsets.top)
-                rootNode.name = name
-                return FigmaDocument(width: size.width, height: rootNode.h, root: componentizeRepeatedChildren(rootNode), tokens: colorTokens + PinFloatTokens.tokens, textStyles: textStyles)
+        // Reflection supplies the semantic layout tree (native VStack/HStack leave no drawable to group by);
+        // zip it with the rendered leaves. Prefer the grouped components (their count usually matches the
+        // reflected leaves); fall back to the fully-flattened leaves when reflection is richer than
+        // containment's grouping — a plain image+text row collapses to one component, but reflection sees its
+        // parts, and the flattened leaves (image, title, subtitle) line back up. Fall through to containment
+        // only when neither count agrees.
+        if let structure = PinViewReflector.reflect(view) {
+            let reflectedLeaves = leafCount(structure)
+            let deepLeaves = components.flatMap(allLeaves)
+            // The flattened-leaf fallback is only for a genuinely 2-D row (a cross-axis nested stack — an
+            // HStack holding a VStack column) that containment collapses to one component and scrambles. A
+            // flat 1-D row (a colored bar of side-by-side labels) captures fine on containment and must keep
+            // its background fill, so it stays on the exact/containment path.
+            let pool: [Box]? = reflectedLeaves == components.count ? components
+                : (reflectedLeaves == deepLeaves.count && hasMixedRow(structure) ? deepLeaves : nil)
+            if var pool {
+                let backgrounds = collectBackgrounds(root)
+                let content = emitStructure(structure, host: host, backgrounds: backgrounds) { text in
+                    // Match by text, not index — a 2D grid scrambles a positional zip; duplicates resolve first-unconsumed.
+                    let matched = pool.firstIndex { componentText($0) == text } ?? (pool.isEmpty ? nil : 0)
+                    return matched.map { pool.remove(at: $0) }
+                }
+                if let content {
+                    var rootNode = screen(content, width: size.width, fill: screenFill, components: components, canvasHeight: size.height, oneScreen: screenHeight, safeAreaTop: host.safeAreaInsets.top)
+                    rootNode.name = name
+                    return FigmaDocument(width: size.width, height: rootNode.h, root: componentizeRepeatedChildren(rootNode), tokens: colorTokens + PinFloatTokens.tokens, textStyles: textStyles)
+                }
             }
         }
 
@@ -170,6 +184,19 @@ public enum PinDisplayListCapture {
         return parts.joined(separator: "|")
     }
 
+    // A 2-D cell is a container that MIXES a leaf and a sub-stack (a gallery row: an image leaf beside a
+    // VStack text column) — the shape containment collapses to one component and scrambles. A flat row of
+    // labels (all leaves) or a list column of rows (all containers) isn't mixed and captures fine as-is.
+    private static func hasMixedRow(_ node: ReflectedNode) -> Bool {
+        guard case .container(_, let children) = node else { return false }
+        var hasLeaf = false, hasContainer = false
+        for child in children {
+            if case .leaf = child { hasLeaf = true }
+            if case .container = child { hasContainer = true }
+        }
+        return (hasLeaf && hasContainer) || children.contains { hasMixedRow($0) }
+    }
+
     private static func leafCount(_ node: ReflectedNode) -> Int {
         switch node {
         case .leaf: return 1
@@ -182,6 +209,12 @@ public enum PinDisplayListCapture {
     private static func orderedComponents(_ box: Box) -> [Box] {
         let leaves = box.children.isEmpty ? [box] : orderedForLayout(box.children).flatMap(flatten)
         return groupOrphanIcons(leaves)
+    }
+
+    // Every leaf under a box (fully flattened, unlike `flatten` which stops at a cohesive box-of-leaves) — the
+    // tolerant-zip pool, so a row collapsed to one component still offers its image/title/subtitle to reflection.
+    private static func allLeaves(_ box: Box) -> [Box] {
+        box.children.isEmpty ? [box] : box.children.flatMap(allLeaves)
     }
 
     private static func flatten(_ box: Box) -> [Box] {
@@ -321,8 +354,11 @@ public enum PinDisplayListCapture {
     private static func collectBackgrounds(_ box: Box) -> [Background] {
         var result: [Background] = []
         func visit(_ box: Box) {
-            let groupsOthers = box.children.contains { !$0.children.isEmpty }
-            if groupsOthers, let fill = fillColor(box.leaf.kind) {
+            // A card's fill wraps its content: either a box with nested groups, or a flat box holding 2+
+            // children (a simple card — thumbnail + text column, or a title + price line). A single-child
+            // fill box is a pill (a SALE chip), captured through its own leaf, so it's not a card background.
+            let isCard = box.children.contains { !$0.children.isEmpty } || box.children.count >= 2
+            if isCard, let fill = fillColor(box.leaf.kind) {
                 let texts = box.children.reduce(into: Set<String>()) { $0.formUnion(boxTexts($1)) }
                 let union = box.children.map(\.leaf.frame).reduce(nil, unite) ?? box.leaf.frame
                 result.append(Background(

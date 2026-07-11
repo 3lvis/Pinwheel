@@ -56,7 +56,14 @@ enum PinViewReflector {
         }
         if typeName.hasPrefix("ModifiedContent") {
             let modifier = property(value, "modifier")
-            let node = property(value, "content").flatMap(walk)
+            let rawContent = property(value, "content")
+            // A fixed-size frame around an image is a sized thumbnail — a component the containment path keeps,
+            // so reflection counts it as a leaf. (An intrinsic-size image — an SF Symbol — has no such frame and
+            // stays dropped, matching containment which drops those.)
+            if isFixedFrame(modifier), let rawContent, isImageType(rawContent) {
+                return .leaf(text: nil, isButton: false, fillWidth: false)
+            }
+            let node = rawContent.flatMap(walk)
             if isFillWidthFrame(modifier), case .leaf(let text, let isButton, _) = node {
                 return .leaf(text: text, isButton: isButton, fillWidth: true)
             }
@@ -104,6 +111,19 @@ enum PinViewReflector {
     private static func isFillWidthFrame(_ modifier: Any?) -> Bool {
         guard let modifier, String(describing: type(of: modifier)).contains("FlexFrame") else { return false }
         return (Mirror(reflecting: modifier).children.first { $0.label == "maxWidth" }?.value as? CGFloat) == .infinity
+    }
+
+    private static func isFixedFrame(_ modifier: Any?) -> Bool {
+        guard let modifier, String(describing: type(of: modifier)) == "_FrameLayout" else { return false }
+        let mirror = Mirror(reflecting: modifier)
+        let width = mirror.children.first { $0.label == "width" }?.value as? CGFloat
+        let height = mirror.children.first { $0.label == "height" }?.value as? CGFloat
+        return width != nil && height != nil
+    }
+
+    private static func isImageType(_ value: Any) -> Bool {
+        let typeName = String(describing: type(of: value))
+        return typeName == "Image" || typeName.hasPrefix("AsyncImage")
     }
 
     // An `.overlay(shape.stroke(color, lineWidth:))` renders as a filled ring in the DisplayList (no readable
