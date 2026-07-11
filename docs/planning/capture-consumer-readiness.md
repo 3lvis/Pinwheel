@@ -131,7 +131,20 @@ Engine value-matched colors/spacing/radius against fixed library enums and hardc
 7. Blur/materials — low fidelity: translucent fill or crop.
 8. Gradients / page dots / custom shapes — low priority; gradient paint when detectable.
 
-## CartDemo — complex-example status (on-screen sweep)
+## Complex rows: use PinList, don't reverse-engineer ForEach
+A bespoke 2-D row (`HStack { thumbnail, VStack{title/price}, Spacer, stepper }` in a `ForEach`) can't
+capture faithfully: the reflector returns nil for `ForEach` (its content is an uncallable closure), so the
+screen falls to the geometry-based containment path, which linearizes the 2-D row and scrambles it. Spiked
+the escape hatches and hit a wall: `_VariadicView` *can* expand a `ForEach` (get the child count/handles),
+but each row's view is compiled into SwiftUI's AttributeGraph (`AGWeakAttribute` + `viewType` metatype) —
+recovering a reflectable row *structure* needs AttributeGraph private C API or generic-type-string parsing,
+a fragility jump not worth it. **Resolution:** complex rows go through `PinList`, whose rows are 1-D
+*values we own* — the existing capture reconstructs them faithfully (componentized), no new capture code.
+CartDemo is ported to PinList and captures cleanly (bag icon, title, price line, ×qty, dividers, one
+component + instances). Trade-off: a standalone SALE pill / ± stepper collapse into the row's text/detail;
+if a consumer needs that richness editable, the row model — not the capture engine — should grow.
+
+## CartDemo — historical note (pre-PinList, bespoke 2-D row)
 `figma-cart` (image thumbnail + title + SALE pill + now/was-struck price + bordered stepper, ×4 rows,
 `ScrollView`/`VStack`) captures the large majority editably: card backgrounds (`secondaryBackground` +
 `radius-m`), component/instance grouping (the 3 sale rows group; the non-sale row stays separate),
