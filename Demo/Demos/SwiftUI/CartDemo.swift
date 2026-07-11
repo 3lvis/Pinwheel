@@ -45,15 +45,10 @@ struct CartDemo: SwiftUI.View {
                             }
                         }
                         Spacer()
-                        HStack(spacing: .spacingM) {
-                            Image(systemName: "minus")
-                            PinLabel("\(item.quantity)").font(.body)
-                            Image(systemName: "plus")
-                        }
-                        .foregroundStyle(.actionText)
-                        .padding(.horizontal, .spacingM)
-                        .padding(.vertical, .spacingS)
-                        .overlay(Capsule().stroke(.tertiaryText, lineWidth: 1))
+                        PinLabel("−    \(item.quantity)    +").font(.body).color(.action)
+                            .padding(.horizontal, .spacingM)
+                            .padding(.vertical, .spacingS)
+                            .overlay(Capsule().stroke(.tertiaryText, lineWidth: 1))
                     }
                     .padding(.spacingM)
                     .background(.secondaryBackground)

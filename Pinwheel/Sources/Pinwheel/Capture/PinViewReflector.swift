@@ -12,6 +12,12 @@ struct ReflectedContainer {
     let axis: PinCaptureLayout.Axis
     let spacing: CGFloat?
     let alignment: PinCaptureLayout.CrossAxis
+    var border: ReflectedBorder?
+}
+
+struct ReflectedBorder {
+    let color: Color
+    let width: CGFloat
 }
 
 enum PinViewReflector {
@@ -52,6 +58,16 @@ enum PinViewReflector {
             if isFillWidthFrame(modifier), case .leaf(let text, let isButton, _) = node {
                 return .leaf(text: text, isButton: isButton, fillWidth: true)
             }
+            if let border = strokeBorder(modifier), let node {
+                if case .container(var container, let children) = node {
+                    container.border = border
+                    return .container(container, children)
+                }
+                // A bordered single element (a stepper drawn as one label) wraps into a bordered container so
+                // the border is carried and the leaf count stays 1 — matching containment, which groups a
+                // ring-enclosed control into one component.
+                return .container(ReflectedContainer(axis: .row, spacing: nil, alignment: .center, border: border), [node])
+            }
             return node
         }
         if typeName.hasPrefix("TupleView") || typeName.hasPrefix("Group") || typeName.hasPrefix("Optional")
@@ -86,6 +102,25 @@ enum PinViewReflector {
     private static func isFillWidthFrame(_ modifier: Any?) -> Bool {
         guard let modifier, String(describing: type(of: modifier)).contains("FlexFrame") else { return false }
         return (Mirror(reflecting: modifier).children.first { $0.label == "maxWidth" }?.value as? CGFloat) == .infinity
+    }
+
+    // An `.overlay(shape.stroke(color, lineWidth:))` renders as a filled ring in the DisplayList (no readable
+    // width), but the view value still holds the `StrokeStyle` and its `Color`. Pull them out so a bordered
+    // control captures its border editably. Gated to overlay modifiers so a fill/background stroke elsewhere
+    // isn't mistaken for a border.
+    private static func strokeBorder(_ modifier: Any?) -> ReflectedBorder? {
+        guard let modifier, String(describing: type(of: modifier)).contains("Overlay") else { return nil }
+        var width: CGFloat?
+        var color: Color?
+        func search(_ value: Any, _ depth: Int) {
+            if depth > 8 || (width != nil && color != nil) { return }
+            if let stroke = value as? StrokeStyle { width = stroke.lineWidth }
+            else if let strokeColor = value as? Color { color = strokeColor }
+            for child in Mirror(reflecting: value).children { search(child.value, depth + 1) }
+        }
+        search(modifier, 0)
+        guard let width, let color else { return nil }
+        return ReflectedBorder(color: color, width: width)
     }
 
     private static func leafText(_ value: Any) -> String? {

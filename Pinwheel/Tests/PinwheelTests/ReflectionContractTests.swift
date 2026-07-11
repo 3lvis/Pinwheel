@@ -171,6 +171,33 @@ final class ReflectionContractTests: XCTestCase {
         XCTAssertEqual(texts, ["Title", "1"], "the info column (Title) precedes the trailing quantity, in reading order")
     }
 
+    // An `.overlay(Capsule().stroke(color, lineWidth:))` border reflects onto the container. Reflection reads
+    // the StrokeStyle's lineWidth from the view value — unlike the DisplayList, which bakes the stroke to a
+    // filled ring with no readable width — so a bordered control (a stepper pill) captures its border editably.
+    func testOverlayStrokeReflectsAsTheContainerBorder() throws {
+        let bordered = HStack { PinLabel("−"); PinLabel("+") }
+            .overlay(Capsule().stroke(Color.red, lineWidth: 2))
+        guard case .container(let container, _)? = PinViewReflector.reflect(bordered) else {
+            return XCTFail("a bordered HStack reflects to a container")
+        }
+        let border = try XCTUnwrap(container.border, "the overlay stroke is captured as the container's border")
+        XCTAssertEqual(border.width, 2, "the border carries the stroke's lineWidth, read from the view value")
+    }
+
+    // A bordered single leaf (a stepper drawn as one "−  1  +" label with an overlay stroke) wraps into a
+    // bordered container so the border is carried and the leaf count stays 1 — matching containment, which
+    // groups the ring-enclosed control into a single component (its flatten treats a box of leaves as one).
+    func testBorderedLeafWrapsIntoABorderedContainer() throws {
+        let bordered = PinLabel("−  1  +").overlay(Capsule().stroke(Color.red, lineWidth: 1))
+        guard case .container(let container, let children)? = PinViewReflector.reflect(bordered) else {
+            return XCTFail("a bordered leaf wraps into a container carrying the border")
+        }
+        XCTAssertNotNil(container.border, "the wrapping container carries the stroke border")
+        XCTAssertEqual(children.count, 1, "the original leaf is the container's sole child")
+        guard case .leaf(let text, _, _) = children.first else { return XCTFail("the child is the label leaf") }
+        XCTAssertEqual(text, "−  1  +", "the label text survives the wrap")
+    }
+
     func testForEachOfContainerRowsExpands() throws {
         try XCTSkipUnless(PinVariadicExpander.isHealthy, "expander unavailable on this OS — ForEach falls back to containment")
         func leaves(_ n: ReflectedNode?) -> Int {

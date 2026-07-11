@@ -325,7 +325,7 @@ var PW = (() => {
     frame.fills = node.fill ? [solid(node.fill, node.fillToken)] : [];
     frame.clipsContent = false;
     if (node.stroke) {
-      frame.strokes = [solid(node.stroke)];
+      frame.strokes = [solid(node.stroke, node.strokeToken)];
       frame.strokeWeight = node.strokeWidth;
     }
     if (node.radius) frame.cornerRadius = node.radius;

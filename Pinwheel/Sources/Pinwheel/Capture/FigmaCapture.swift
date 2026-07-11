@@ -37,6 +37,9 @@ struct FigmaNode: Encodable {
     var fillDark: RGBA?
     var radius: Double?
     var radiusToken: String?
+    var stroke: RGBA?
+    var strokeToken: String?
+    var strokeWidth: Double?
     var component: String?
     var name: String?
     var font: FigmaFont?

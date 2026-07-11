@@ -217,6 +217,12 @@ public enum PinDisplayListCapture {
                 layout: FigmaLayout(layout), ordered: true, children: childNodes
             )
             if fillsWidth { node.fillWidth = true }
+            if let border = container.border {
+                let color = UIColor(border.color)
+                node.stroke = RGBA(color)
+                node.strokeToken = tokenName(for: color)
+                node.strokeWidth = Double(border.width)
+            }
             return node
         }
     }
