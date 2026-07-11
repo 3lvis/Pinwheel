@@ -77,7 +77,7 @@ export function loadPlugin() {
     createRectangle: () => node('RECT', { fills: [] }),
     createNodeFromSvg: () => node('SVG'),
     currentPage: node('PAGE'),
-    createComponent: () => node('COMPONENT', { createInstance() { const clone = node('INSTANCE'); clone.children = this.children.map((child) => ({ ...child })); return clone } }),
+    createComponent: () => node('COMPONENT', { createInstance() { const deep = (n) => ({ ...n, children: (n.children || []).map(deep) }); const clone = node('INSTANCE'); clone.children = this.children.map(deep); return clone } }),
     createTextStyle: () => node('TEXTSTYLE'),
     getLocalTextStylesAsync: async () => [],
     createImage: () => ({ hash: 'image' }),

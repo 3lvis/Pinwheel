@@ -82,7 +82,7 @@ public enum PinDisplayListCapture {
     // and the rest as instances. There's no cell class as on the UIKit side, so the signature carries the
     // discrimination — it includes size, so a grouping is faithful (an instance overrides only text/fill,
     // which is all that differs). Subtrees with an image leaf are excluded — a crop can't be reproduced.
-    private static func componentizeRepeatedChildren(_ node: FigmaNode) -> FigmaNode {
+    static func componentizeRepeatedChildren(_ node: FigmaNode) -> FigmaNode {
         var node = node
         node.children = node.children.map(componentizeRepeatedChildren)
         let signatures = node.children.map { child -> String? in
@@ -90,13 +90,64 @@ public enum PinDisplayListCapture {
         }
         var counts: [String: Int] = [:]
         for case let signature? in signatures { counts[signature, default: 0] += 1 }
-        node.children = zip(node.children, signatures).map { child, signature in
-            guard let signature, counts[signature, default: 0] >= 2 else { return child }
-            var componentized = child
-            componentized.component = signature
-            return componentized
+        // The master of each ≥2 group is its first member (the superset — real rows carry every optional
+        // child). A leftover row that's a *subset* of a master (a cart row without the optional SALE pill /
+        // was-price) joins that component as a variant, normalized to the master's structure with the
+        // missing children inserted as hidden placeholders.
+        let originalChildren = node.children
+        let masters = signatures.enumerated().reduce(into: [String: Int]()) { result, pair in
+            if let signature = pair.element, counts[signature, default: 0] >= 2, result[signature] == nil {
+                result[signature] = pair.offset
+            }
+        }
+        node.children = node.children.enumerated().map { index, child in
+            if let signature = signatures[index], counts[signature, default: 0] >= 2 {
+                var componentized = child
+                componentized.component = signature
+                return componentized
+            }
+            guard child.tag == "frame", child.component == nil else { return child }
+            for (signature, masterIndex) in masters.sorted(by: { $0.value < $1.value }) {
+                if let normalized = variantAlign(master: originalChildren[masterIndex], into: child) {
+                    var componentized = normalized
+                    componentized.component = signature
+                    return componentized
+                }
+            }
+            return child
         }
         return node
+    }
+
+    // Normalize a subset frame to a master's structure so it can be an instance of the same component: align
+    // children in order, inserting a hidden copy of any master child the subset lacks (an optional layer).
+    // Returns nil when the subset carries a child the master doesn't — then it isn't a variant of this master.
+    // A container matches by layout axis, not size (its size legitimately shrinks when it drops an optional
+    // child); a leaf matches by role (text style / same tag), since per-instance content is overridden later.
+    private static func variantAlign(master: FigmaNode, into subset: FigmaNode) -> FigmaNode? {
+        guard master.tag == subset.tag else { return nil }
+        switch master.tag {
+        case "text": return master.font?.style == subset.font?.style ? subset : nil
+        case "image", "spacer": return subset.children.isEmpty ? subset : nil
+        default: break
+        }
+        guard master.layout?.mode == subset.layout?.mode else { return nil }
+        var aligned: [FigmaNode] = []
+        var index = 0
+        for masterChild in master.children {
+            if index < subset.children.count, let child = variantAlign(master: masterChild, into: subset.children[index]) {
+                aligned.append(child)
+                index += 1
+            } else {
+                var placeholder = masterChild
+                placeholder.hidden = true
+                aligned.append(placeholder)
+            }
+        }
+        guard index == subset.children.count else { return nil }
+        var normalized = subset
+        normalized.children = aligned
+        return normalized
     }
 
     private static func signature(_ node: FigmaNode) -> String {

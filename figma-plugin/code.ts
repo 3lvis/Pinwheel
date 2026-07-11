@@ -189,6 +189,21 @@ async function applyInstanceContent(instance: InstanceNode, node: any): Promise<
   }
 }
 
+// An instance normalized to its component's structure carries hidden placeholders for the optional layers
+// it lacks (a cart row without the SALE pill / was-price). Walk the instance's layers in the same order
+// build created them (orderChildren) and hide those placeholders, so the instance shows only its own content.
+function applyHidden(layer: SceneNode, node: any): void {
+  if (!('children' in layer)) return
+  const layers = (layer as ChildrenMixin).children as SceneNode[]
+  const items = orderChildren(node)
+  for (let index = 0; index < items.length && index < layers.length; index += 1) {
+    const child = items[index].child
+    if (!child) continue
+    if (child.hidden) layers[index].visible = false
+    else applyHidden(layers[index], child)
+  }
+}
+
 async function build(node: any, parent: BaseNode & ChildrenMixin, parentX: number, parentY: number, flow: boolean, insideComponent: boolean = false): Promise<SceneNode> {
   if (node.grow) {
     const spacer = figma.createFrame()
@@ -244,6 +259,7 @@ async function build(node: any, parent: BaseNode & ChildrenMixin, parentX: numbe
       instance.y = node.y - parentY
     }
     await applyInstanceContent(instance, node)
+    applyHidden(instance, node)
     return instance
   }
 

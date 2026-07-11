@@ -52,6 +52,7 @@ struct FigmaNode: Encodable {
     var grow: Bool?
     var ordered: Bool?
     var fillWidth: Bool?
+    var hidden: Bool?
     var children: [FigmaNode]
 }
 

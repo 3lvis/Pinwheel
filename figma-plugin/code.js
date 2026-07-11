@@ -263,6 +263,17 @@ var PW = (() => {
       calibrateWidth(text, runs[index].w);
     }
   }
+  function applyHidden(layer, node) {
+    if (!("children" in layer)) return;
+    const layers = layer.children;
+    const items = orderChildren(node);
+    for (let index = 0; index < items.length && index < layers.length; index += 1) {
+      const child = items[index].child;
+      if (!child) continue;
+      if (child.hidden) layers[index].visible = false;
+      else applyHidden(layers[index], child);
+    }
+  }
   async function build(node, parent, parentX, parentY, flow, insideComponent = false) {
     if (node.grow) {
       const spacer = figma.createFrame();
@@ -311,6 +322,7 @@ var PW = (() => {
         instance.y = node.y - parentY;
       }
       await applyInstanceContent(instance, node);
+      applyHidden(instance, node);
       return instance;
     }
     let frame;
