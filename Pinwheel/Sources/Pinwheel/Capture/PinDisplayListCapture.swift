@@ -50,19 +50,33 @@ public enum PinDisplayListCapture {
         let components = orderedComponents(root)
         let screenFill = fillColor(root.leaf.kind)
 
-        // Reflection supplies the semantic layout tree (native VStack/HStack leave no drawable to group by); zip it with the rendered leaves, falling back to containment if counts disagree.
-        if let structure = PinViewReflector.reflect(view), leafCount(structure) == components.count {
-            var pool = components
-            let backgrounds = collectBackgrounds(root)
-            let content = emitStructure(structure, host: host, backgrounds: backgrounds) { text in
-                // Match by text, not index — a 2D grid scrambles a positional zip; duplicates resolve first-unconsumed.
-                let matched = pool.firstIndex { componentText($0) == text } ?? (pool.isEmpty ? nil : 0)
-                return matched.map { pool.remove(at: $0) }
-            }
-            if let content {
-                var rootNode = screen(content, width: size.width, fill: screenFill, components: components, canvasHeight: size.height, oneScreen: screenHeight, safeAreaTop: host.safeAreaInsets.top)
-                rootNode.name = name
-                return FigmaDocument(width: size.width, height: rootNode.h, root: componentizeRepeatedChildren(rootNode), tokens: colorTokens + PinFloatTokens.tokens, textStyles: textStyles)
+        // Reflection supplies the semantic layout tree (native VStack/HStack leave no drawable to group by);
+        // zip it with the rendered leaves. Prefer the grouped components (their count usually matches the
+        // reflected leaves); fall back to the fully-flattened leaves when reflection is richer than
+        // containment's grouping — a plain image+text row collapses to one component, but reflection sees its
+        // parts, and the flattened leaves (image, title, subtitle) line back up. Fall through to containment
+        // only when neither count agrees.
+        if let structure = PinViewReflector.reflect(view) {
+            let reflectedLeaves = leafCount(structure)
+            let deepLeaves = components.flatMap(allLeaves)
+            // The flattened-leaf fallback is only for a genuinely 2-D row (a cross-axis nested stack — an
+            // HStack holding a VStack column) that containment collapses to one component and scrambles. A
+            // flat 1-D row (a colored bar of side-by-side labels) captures fine on containment and must keep
+            // its background fill, so it stays on the exact/containment path.
+            let pool: [Box]? = reflectedLeaves == components.count ? components
+                : (reflectedLeaves == deepLeaves.count && hasMixedRow(structure) ? deepLeaves : nil)
+            if var pool {
+                let backgrounds = collectBackgrounds(root)
+                let content = emitStructure(structure, host: host, backgrounds: backgrounds) { text in
+                    // Match by text, not index — a 2D grid scrambles a positional zip; duplicates resolve first-unconsumed.
+                    let matched = pool.firstIndex { componentText($0) == text } ?? (pool.isEmpty ? nil : 0)
+                    return matched.map { pool.remove(at: $0) }
+                }
+                if let content {
+                    var rootNode = screen(content, width: size.width, fill: screenFill, components: components, canvasHeight: size.height, oneScreen: screenHeight, safeAreaTop: host.safeAreaInsets.top)
+                    rootNode.name = name
+                    return FigmaDocument(width: size.width, height: rootNode.h, root: componentizeRepeatedChildren(rootNode), tokens: colorTokens + PinFloatTokens.tokens, textStyles: textStyles)
+                }
             }
         }
 
@@ -82,28 +96,83 @@ public enum PinDisplayListCapture {
     // and the rest as instances. There's no cell class as on the UIKit side, so the signature carries the
     // discrimination — it includes size, so a grouping is faithful (an instance overrides only text/fill,
     // which is all that differs). Subtrees with an image leaf are excluded — a crop can't be reproduced.
-    private static func componentizeRepeatedChildren(_ node: FigmaNode) -> FigmaNode {
+    static func componentizeRepeatedChildren(_ node: FigmaNode) -> FigmaNode {
         var node = node
         node.children = node.children.map(componentizeRepeatedChildren)
         let signatures = node.children.map { child -> String? in
-            (child.tag == "frame" && child.component == nil && !hasImageLeaf(child)) ? signature(child) : nil
+            (child.tag == "frame" && child.component == nil) ? signature(child) : nil
         }
         var counts: [String: Int] = [:]
         for case let signature? in signatures { counts[signature, default: 0] += 1 }
-        node.children = zip(node.children, signatures).map { child, signature in
-            guard let signature, counts[signature, default: 0] >= 2 else { return child }
-            var componentized = child
-            componentized.component = signature
-            return componentized
+        // The master of each ≥2 group is its first member (the superset — real rows carry every optional
+        // child). A leftover row that's a *subset* of a master (a cart row without the optional SALE pill /
+        // was-price) joins that component as a variant, normalized to the master's structure with the
+        // missing children inserted as hidden placeholders.
+        let originalChildren = node.children
+        let masters = signatures.enumerated().reduce(into: [String: Int]()) { result, pair in
+            if let signature = pair.element, counts[signature, default: 0] >= 2, result[signature] == nil {
+                result[signature] = pair.offset
+            }
+        }
+        node.children = node.children.enumerated().map { index, child in
+            if let signature = signatures[index], counts[signature, default: 0] >= 2 {
+                var componentized = child
+                componentized.component = signature
+                return componentized
+            }
+            guard child.tag == "frame", child.component == nil else { return child }
+            for (signature, masterIndex) in masters.sorted(by: { $0.value < $1.value }) {
+                if let normalized = variantAlign(master: originalChildren[masterIndex], into: child) {
+                    var componentized = normalized
+                    componentized.component = signature
+                    return componentized
+                }
+            }
+            return child
         }
         return node
     }
 
+    // Normalize a subset frame to a master's structure so it can be an instance of the same component: align
+    // children in order, inserting a hidden copy of any master child the subset lacks (an optional layer).
+    // Returns nil when the subset carries a child the master doesn't — then it isn't a variant of this master.
+    // A container matches by layout axis, not size (its size legitimately shrinks when it drops an optional
+    // child); a leaf matches by role (text style / same tag), since per-instance content is overridden later.
+    private static func variantAlign(master: FigmaNode, into subset: FigmaNode) -> FigmaNode? {
+        guard master.tag == subset.tag else { return nil }
+        switch master.tag {
+        case "text": return master.font?.style == subset.font?.style ? subset : nil
+        case "image", "spacer": return subset.children.isEmpty ? subset : nil
+        default: break
+        }
+        guard master.layout?.mode == subset.layout?.mode else { return nil }
+        var aligned: [FigmaNode] = []
+        var index = 0
+        for masterChild in master.children {
+            if index < subset.children.count, let child = variantAlign(master: masterChild, into: subset.children[index]) {
+                aligned.append(child)
+                index += 1
+            } else {
+                var placeholder = masterChild
+                placeholder.hidden = true
+                aligned.append(placeholder)
+            }
+        }
+        guard index == subset.children.count else { return nil }
+        var normalized = subset
+        normalized.children = aligned
+        return normalized
+    }
+
     private static func signature(_ node: FigmaNode) -> String {
         if node.tag == "text" { return "T:\(node.font?.style ?? "-"):\(node.textAlign ?? "-")" }
-        // Bucket size to ~4pt so sub-pixel text-height differences don't split identical cards, while a real
-        // size difference (a 120 vs 240 card) still lands in distinct buckets.
-        func bucket(_ value: Double) -> Int { Int((value / 4).rounded()) }
+        // Bucket size to ~16pt so content-driven width jitter (a longer price, a wider label) doesn't split
+        // one template, while a real size difference (a 120 vs 240 card) still lands in distinct buckets.
+        func bucket(_ value: Double) -> Int { Int((value / 16).rounded()) }
+        // An image is a swappable slot keyed by size, not bytes: same-size images (a gallery's per-row
+        // photos, or a shared chevron) group so their rows share one component, and the plugin overrides each
+        // instance's image fill. A genuinely different size (an icon vs a hero photo) stays a distinct slot.
+        if node.tag == "image" { return "IMG:w\(bucket(node.w)):h\(bucket(node.h))" }
         var parts = ["\(node.tag):w\(bucket(node.w)):h\(bucket(node.h))"]
         // Only the axis is stable — justify/align/gap are inferred from rendered geometry and wobble with
         // text width across otherwise-identical cards, so they'd falsely split one template. Instances
@@ -115,8 +184,17 @@ public enum PinDisplayListCapture {
         return parts.joined(separator: "|")
     }
 
-    private static func hasImageLeaf(_ node: FigmaNode) -> Bool {
-        node.image != nil || node.children.contains(where: hasImageLeaf)
+    // A 2-D cell is a container that MIXES a leaf and a sub-stack (a gallery row: an image leaf beside a
+    // VStack text column) — the shape containment collapses to one component and scrambles. A flat row of
+    // labels (all leaves) or a list column of rows (all containers) isn't mixed and captures fine as-is.
+    private static func hasMixedRow(_ node: ReflectedNode) -> Bool {
+        guard case .container(_, let children) = node else { return false }
+        var hasLeaf = false, hasContainer = false
+        for child in children {
+            if case .leaf = child { hasLeaf = true }
+            if case .container = child { hasContainer = true }
+        }
+        return (hasLeaf && hasContainer) || children.contains { hasMixedRow($0) }
     }
 
     private static func leafCount(_ node: ReflectedNode) -> Int {
@@ -131,6 +209,12 @@ public enum PinDisplayListCapture {
     private static func orderedComponents(_ box: Box) -> [Box] {
         let leaves = box.children.isEmpty ? [box] : orderedForLayout(box.children).flatMap(flatten)
         return groupOrphanIcons(leaves)
+    }
+
+    // Every leaf under a box (fully flattened, unlike `flatten` which stops at a cohesive box-of-leaves) — the
+    // tolerant-zip pool, so a row collapsed to one component still offers its image/title/subtitle to reflection.
+    private static func allLeaves(_ box: Box) -> [Box] {
+        box.children.isEmpty ? [box] : box.children.flatMap(allLeaves)
     }
 
     private static func flatten(_ box: Box) -> [Box] {
@@ -160,7 +244,7 @@ public enum PinDisplayListCapture {
     }
 
     private static func componentText(_ box: Box) -> String? {
-        if case .text(let string, _, _, _, _) = box.leaf.kind { return string }
+        if case .text(let string, _, _, _, _, _) = box.leaf.kind { return string }
         for child in box.children { if let text = componentText(child) { return text } }
         return nil
     }
@@ -196,11 +280,19 @@ public enum PinDisplayListCapture {
             // Reflection sees a card's filled shape as a transparent container — re-attach its fill/radius/padding by matching the text set it wraps.
             let texts = childNodes.reduce(into: Set<String>()) { $0.formUnion(nodeTexts($1)) }
             let background = backgrounds.first { $0.texts == texts }
+            var padding = background?.padding ?? EdgeInsets()
+            // A `.frame(maxWidth: .infinity)` card with left-aligned content hugs the leading edge, so its
+            // trailing gap is the frame being wider than its content, not real padding. Measured trailing is
+            // unusable (content never reaches the right), so assume symmetric padding and fill the parent
+            // width instead of baking the empty space in as a giant trailing inset.
+            let fillsWidth = container.axis == .column && container.alignment == .leading
+                && padding.trailing > padding.leading + 8
+            if fillsWidth { padding.trailing = padding.leading }
             let layout = PinCaptureLayout(
                 axis: container.axis, spacing: container.spacing ?? 8,
-                padding: background?.padding ?? EdgeInsets(), alignment: container.alignment, mainAxisAlignment: .leading
+                padding: padding, alignment: container.alignment, mainAxisAlignment: .leading
             )
-            return FigmaNode(
+            var node = FigmaNode(
                 tag: "frame", x: 0, y: 0, w: 0, h: 0,
                 fill: background?.fill.map(RGBA.init), fillToken: background?.fill.flatMap(tokenName(for:)),
                 radius: background?.radius.map(Double.init),
@@ -208,6 +300,21 @@ public enum PinDisplayListCapture {
                 name: container.axis == .row ? "HStack" : "VStack",
                 layout: FigmaLayout(layout), ordered: true, children: childNodes
             )
+            // Fill-width propagates: a container whose child fills (a Spacer, or a sub-stack that itself
+            // fills) must fill too, or the chain breaks — a receipt row hugs and centres because the Spacer
+            // pushing its price sits two levels down (row → column → price HStack).
+            let propagatesFill = childNodes.contains { $0.grow == true || $0.fillWidth == true }
+            if fillsWidth || propagatesFill { node.fillWidth = true }
+            if let border = container.border {
+                // A bordered control that reflects to a single frame (a stepper: its ± Buttons drop, leaving
+                // the value leaf that matches the rendered box) is one bordered pill in code — put the border
+                // on that box rather than wrapping it in a second frame, so the capture matches the source.
+                if childNodes.count == 1, childNodes[0].tag == "frame" {
+                    return bordered(childNodes[0], border)
+                }
+                return bordered(node, border)
+            }
+            return node
         }
     }
 
@@ -251,8 +358,11 @@ public enum PinDisplayListCapture {
     private static func collectBackgrounds(_ box: Box) -> [Background] {
         var result: [Background] = []
         func visit(_ box: Box) {
-            let groupsOthers = box.children.contains { !$0.children.isEmpty }
-            if groupsOthers, let fill = fillColor(box.leaf.kind) {
+            // A card's fill wraps its content: either a box with nested groups, or a flat box holding 2+
+            // children (a simple card — thumbnail + text column, or a title + price line). A single-child
+            // fill box is a pill (a SALE chip), captured through its own leaf, so it's not a card background.
+            let isCard = box.children.contains { !$0.children.isEmpty } || box.children.count >= 2
+            if isCard, let fill = fillColor(box.leaf.kind) {
                 let texts = box.children.reduce(into: Set<String>()) { $0.formUnion(boxTexts($1)) }
                 let union = box.children.map(\.leaf.frame).reduce(nil, unite) ?? box.leaf.frame
                 result.append(Background(
@@ -269,7 +379,7 @@ public enum PinDisplayListCapture {
 
     private static func boxTexts(_ box: Box) -> Set<String> {
         var texts = Set<String>()
-        if case .text(let string, _, _, _, _) = box.leaf.kind { texts.insert(string) }
+        if case .text(let string, _, _, _, _, _) = box.leaf.kind { texts.insert(string) }
         box.children.forEach { texts.formUnion(boxTexts($0)) }
         return texts
     }
@@ -280,14 +390,30 @@ public enum PinDisplayListCapture {
         return texts
     }
 
+    private static func bordered(_ node: FigmaNode, _ border: ReflectedBorder) -> FigmaNode {
+        var node = node
+        let color = UIColor(border.color)
+        node.stroke = RGBA(color)
+        node.strokeToken = tokenName(for: color)
+        node.strokeWidth = Double(border.width)
+        // A Capsule border is a full pill; Figma clamps an oversized cornerRadius to half the shorter side,
+        // so a large value renders as a pill without needing the frame's measured height.
+        if border.isPill { node.radius = 1000 }
+        else if border.cornerRadius > 0 {
+            node.radius = Double(border.cornerRadius)
+            node.radiusToken = radiusTokenName(border.cornerRadius)
+        }
+        return node
+    }
+
     private static func componentNode(_ box: Box, host: UIView) -> FigmaNode {
         let frame = box.leaf.frame
         if box.children.isEmpty {
             switch box.leaf.kind {
-            case .text(let string, let font, let color, let underline, let alignment):
+            case .text(let string, let font, let color, let underline, let strikethrough, let alignment):
                 return FigmaNode(
                     tag: "text", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
-                    font: figmaFont(font, color: color, underline: underline),
+                    font: figmaFont(font, color: color, underline: underline, strikethrough: strikethrough),
                     texts: [FigmaText(text: string, x: frame.minX, y: frame.minY, w: frame.width, h: frame.height)],
                     textAlign: textAlignName(alignment),
                     children: []
@@ -351,7 +477,7 @@ public enum PinDisplayListCapture {
         return screenNode
     }
 
-    private final class Box {
+    final class Box {
         let leaf: DisplayLeaf
         var children: [Box] = []
         init(_ leaf: DisplayLeaf) { self.leaf = leaf }
@@ -378,10 +504,10 @@ public enum PinDisplayListCapture {
         let frame = box.leaf.frame
         if box.children.isEmpty {
             switch box.leaf.kind {
-            case .text(let string, let font, let color, let underline, let alignment):
+            case .text(let string, let font, let color, let underline, let strikethrough, let alignment):
                 return FigmaNode(
                     tag: "text", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
-                    font: figmaFont(font, color: color, underline: underline),
+                    font: figmaFont(font, color: color, underline: underline, strikethrough: strikethrough),
                     texts: [FigmaText(text: string, x: frame.minX, y: frame.minY, w: frame.width, h: frame.height)],
                     textAlign: textAlignName(alignment),
                     children: []
@@ -417,7 +543,18 @@ public enum PinDisplayListCapture {
             )
         }
         let orderedChildren = orderedForLayout(box.children)
-        let layout = inferLayout(orderedChildren.map(\.leaf.frame), in: frame)
+        var layout = inferLayout(orderedChildren.map(\.leaf.frame), in: frame)
+        // A left-aligned column's content hugs the leading edge, so a large trailing gap is the frame being
+        // wider than its content (a .frame(maxWidth:.infinity) card), not padding: drop the bogus inset to
+        // match leading and fill the parent width instead of baking the empty space in.
+        let fillsWidth = layout.axis == .column && layout.alignment == .leading
+            && layout.padding.trailing > layout.padding.leading + 8
+        if fillsWidth {
+            layout = PinCaptureLayout(axis: layout.axis, spacing: layout.spacing,
+                                      padding: EdgeInsets(top: layout.padding.top, leading: layout.padding.leading,
+                                                          bottom: layout.padding.bottom, trailing: layout.padding.leading),
+                                      alignment: layout.alignment, mainAxisAlignment: layout.mainAxisAlignment)
+        }
         // A leading column pins children left, so a child centered on the axis but inset from the leading edge (a spacing bar sharing the column with a header) gets a full-width centering slot.
         let contentMinX = orderedChildren.map { $0.leaf.frame.minX }.min() ?? frame.minX
         let childNodes = orderedChildren.map { child -> FigmaNode in
@@ -430,7 +567,7 @@ public enum PinDisplayListCapture {
             let insetFromLeading = child.leaf.frame.minX - contentMinX > 1
             return (centeredOnAxis && insetFromLeading) ? fillWidthCentered(node) : node
         }
-        return FigmaNode(
+        var node = FigmaNode(
             tag: "frame", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
             fill: fill.map(RGBA.init), fillToken: token,
             radius: cornerRadius(box.leaf.kind).map(Double.init),
@@ -438,11 +575,18 @@ public enum PinDisplayListCapture {
             name: layout.axis == .row ? "Row" : "Column",
             layout: FigmaLayout(layout), ordered: true, children: childNodes
         )
+        if fillsWidth { node.fillWidth = true }
+        return node
     }
 
-    // Drop intermediate containment groups so a pre-grouped two-line row's leaves rejoin their band.
+    // Dissolve transparent grouping boxes so a pre-grouped two-line row's leaves rejoin their band, but keep
+    // a fill/radius-bearing box (the SALE pill) whole — flattening through it drops its capsule fill.
     private static func flattenLeaves(_ boxes: [Box]) -> [Box] {
-        boxes.flatMap { $0.children.isEmpty ? [$0] : flattenLeaves($0.children) }
+        boxes.flatMap { box in
+            box.children.isEmpty || fillColor(box.leaf.kind) != nil || cornerRadius(box.leaf.kind) != nil
+                ? [box]
+                : flattenLeaves(box.children)
+        }
     }
 
     // Cluster leaves into non-overlapping vertical bands (one visual row each) so the parent is unambiguously a column.
@@ -498,10 +642,13 @@ public enum PinDisplayListCapture {
         return nil
     }
 
-    private static func orderedForLayout(_ children: [Box]) -> [Box] {
+    static func orderedForLayout(_ children: [Box]) -> [Box] {
+        // Compare vertical CENTRES, not top edges: glyphs on one row (a short minus bar, a tall value, a
+        // plus) share a centre but differ in top-edge y, so a top-edge sort reads them as stacked and
+        // scrambles the row (− 1 + → 1 + −).
         children.sorted {
-            abs($0.leaf.frame.minY - $1.leaf.frame.minY) > 4
-                ? $0.leaf.frame.minY < $1.leaf.frame.minY
+            abs($0.leaf.frame.midY - $1.leaf.frame.midY) > 4
+                ? $0.leaf.frame.midY < $1.leaf.frame.midY
                 : $0.leaf.frame.minX < $1.leaf.frame.minX
         }
     }
@@ -544,24 +691,31 @@ public enum PinDisplayListCapture {
         accumulated.map { $0.union(next) } ?? next
     }
 
-    static func figmaFont(_ font: UIFont?, color: UIColor?, underline: Bool) -> FigmaFont {
+    static func figmaFont(_ font: UIFont?, color: UIColor?, underline: Bool, strikethrough: Bool = false) -> FigmaFont {
         FigmaFont(
-            family: "SF Pro Rounded", size: Double(font?.pointSize ?? 17), weight: cssWeight(font),
+            family: fontFamily(font), size: Double(font?.pointSize ?? 17), weight: cssWeight(font),
             color: color.map(RGBA.init) ?? RGBA(r: 0, g: 0, b: 0, a: 1),
             colorToken: color.flatMap(textColorToken(for:)),
-            style: font.flatMap { PinTextStyle.matching($0)?.captureName }, underline: underline
+            style: font.flatMap { PinCaptureTokens.current.textStyleName(for: $0) }, underline: underline,
+            strikethrough: strikethrough
         )
     }
 
-    // A text color binds only to a text-role token. A background token matched purely by value — a literal
-    // white equals primaryBackground's light value — would flip the text dark on a dark-mode import, so a
-    // contrast literal stays untokenized (static) instead.
-    private static func textColorToken(for color: UIColor) -> String? {
-        guard let name = tokenName(for: color), !name.hasSuffix("Background") else { return nil }
-        return name
+    // A custom font's real family is Figma-loadable and should carry through; the system font's internal
+    // family name (prefixed ".") is not, so it falls back to the registry's design-face name.
+    static func fontFamily(_ font: UIFont?) -> String {
+        guard let family = font?.familyName, !family.hasPrefix(".") else { return PinCaptureTokens.current.systemFontFamily }
+        return family
     }
 
-    static let textStyles: [FigmaTextStyle] = PinTextStyle.allCapturable.map { FigmaTextStyle($0) }
+    // A text color binds only to a text-role token (the registry's `textEligible`): a background token
+    // matched purely by value — a literal white equals a light background's value — would flip the text
+    // dark on a dark-mode import, so a contrast literal stays untokenized (static) instead.
+    private static func textColorToken(for color: UIColor) -> String? {
+        PinCaptureTokens.current.colorName(for: color, textRoleOnly: true)
+    }
+
+    static var textStyles: [FigmaTextStyle] { PinCaptureTokens.current.figmaTextStyles }
 
     private static func cssWeight(_ font: UIFont?) -> Int {
         guard let font,
@@ -577,20 +731,10 @@ public enum PinDisplayListCapture {
         }
     }
 
-    static let colorTokens: [FigmaToken] = PinColorToken.allCases.map {
-        FigmaToken(name: $0.rawValue, type: "color", value: RGBA($0.color, style: .light), dark: RGBA($0.color, style: .dark))
-    }
+    static var colorTokens: [FigmaToken] { PinCaptureTokens.current.figmaColorTokens }
 
     static func tokenName(for color: UIColor) -> String? {
-        let target = RGBA(color)
-        for token in PinColorToken.allCases {
-            let candidate = RGBA(token.color, style: .light)
-            if abs(candidate.r - target.r) < 0.02, abs(candidate.g - target.g) < 0.02,
-               abs(candidate.b - target.b) < 0.02, abs(candidate.a - target.a) < 0.05 {
-                return token.rawValue
-            }
-        }
-        return nil
+        PinCaptureTokens.current.colorName(for: color)
     }
 
 }

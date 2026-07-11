@@ -88,6 +88,7 @@ var PW = (() => {
       fontRequest: { family: font.family, weight: font.weight, italic: font.italic },
       fill: font.color ? { color: font.color, token: font.colorToken } : null,
       underline: Boolean(font.underline),
+      strikethrough: Boolean(font.strikethrough),
       letterSpacing: typeof font.letterSpacing === "number" ? font.letterSpacing : null,
       autoResize: multiline ? "HEIGHT" : "WIDTH_AND_HEIGHT",
       width: multiline ? run.w : null,
@@ -192,7 +193,7 @@ var PW = (() => {
   async function makeText(run, font) {
     const plan = planText(run, font);
     const text = figma.createText();
-    const style = plan.styleName && !plan.underline ? textStyles[plan.styleName] : void 0;
+    const style = plan.styleName && !plan.underline && !plan.strikethrough ? textStyles[plan.styleName] : void 0;
     if (style) {
       await figma.loadFontAsync(style.fontName);
       text.fontName = style.fontName;
@@ -206,6 +207,8 @@ var PW = (() => {
     if (plan.underline) {
       text.textDecoration = "UNDERLINE";
       text.textDecorationOffset = { value: 2, unit: "PIXELS" };
+    } else if (plan.strikethrough) {
+      text.textDecoration = "STRIKETHROUGH";
     }
     if (!style && plan.letterSpacing !== null) text.letterSpacing = { value: plan.letterSpacing, unit: "PIXELS" };
     text.textAutoResize = plan.autoResize;
@@ -260,6 +263,33 @@ var PW = (() => {
       calibrateWidth(text, runs[index].w);
     }
   }
+  function applyImages(layer, node) {
+    if (!("children" in layer)) return;
+    const layers = layer.children;
+    const items = orderChildren(node);
+    for (let index = 0; index < items.length && index < layers.length; index += 1) {
+      const child = items[index].child;
+      if (!child) continue;
+      if (child.image) {
+        const source = darkMode && child.imageDark ? child.imageDark : child.image;
+        const image = figma.createImage(figma.base64Decode(source));
+        layers[index].fills = [{ type: "IMAGE", imageHash: image.hash, scaleMode: "FILL" }];
+      } else {
+        applyImages(layers[index], child);
+      }
+    }
+  }
+  function applyHidden(layer, node) {
+    if (!("children" in layer)) return;
+    const layers = layer.children;
+    const items = orderChildren(node);
+    for (let index = 0; index < items.length && index < layers.length; index += 1) {
+      const child = items[index].child;
+      if (!child) continue;
+      if (child.hidden) layers[index].visible = false;
+      else applyHidden(layers[index], child);
+    }
+  }
   async function build(node, parent, parentX, parentY, flow, insideComponent = false) {
     if (node.grow) {
       const spacer = figma.createFrame();
@@ -297,12 +327,19 @@ var PW = (() => {
     if (node.component && masters[node.component]) {
       const instance = masters[node.component].createInstance();
       parent.appendChild(instance);
-      instance.resize(Math.max(node.w, 0.01), Math.max(node.h, 0.01));
+      const parentIsAutoLayout = instance.parent && "layoutMode" in instance.parent && instance.parent.layoutMode !== "NONE";
+      if ((node.children.some((child) => child.grow) || node.fillWidth) && parentIsAutoLayout) {
+        instance.layoutSizingHorizontal = "FILL";
+      } else if (node.w > 1 && node.h > 1) {
+        instance.resize(node.w, node.h);
+      }
       if (!flow) {
         instance.x = node.x - parentX;
         instance.y = node.y - parentY;
       }
       await applyInstanceContent(instance, node);
+      applyHidden(instance, node);
+      applyImages(instance, node);
       return instance;
     }
     let frame;
@@ -317,7 +354,7 @@ var PW = (() => {
     frame.fills = node.fill ? [solid(node.fill, node.fillToken)] : [];
     frame.clipsContent = false;
     if (node.stroke) {
-      frame.strokes = [solid(node.stroke)];
+      frame.strokes = [solid(node.stroke, node.strokeToken)];
       frame.strokeWeight = node.strokeWidth;
     }
     if (node.radius) frame.cornerRadius = node.radius;
@@ -548,7 +585,7 @@ var PW = (() => {
     const root = await build(data.root, figma.currentPage, 0, 0, false);
     return root.type === "FRAME" ? await wrapInDeviceFrame(root, parts.join(" \xB7 ")) : root;
   }
-  function traceComponent(name, root) {
+  function traceComponent(id, name, root) {
     let nodes = 0;
     let texts = 0;
     let images = 0;
@@ -559,7 +596,7 @@ var PW = (() => {
       for (const child of node.children || []) walk(child);
     };
     walk(root);
-    const summary = { name, rootTag: root.tag, nodes, texts, images, boundStyles: boundTextStyleCount };
+    const summary = { id: id || null, name, rootTag: root.tag, nodes, texts, images, boundStyles: boundTextStyleCount };
     if (root.tag === "image") summary.warning = "flat image \u2014 the capture produced no structured nodes";
     importTrace.push(summary);
   }
@@ -581,7 +618,7 @@ var PW = (() => {
         importTrace = [];
         await syncFromDocument(data);
         const framed = await importFramed(data, message.version, Boolean(message.dark), message.tags);
-        traceComponent(data.root.name || "Screen", data.root);
+        traceComponent(message.id, data.root.name || "Screen", data.root);
         flushTrace();
         figma.viewport.scrollAndZoomIntoView([framed]);
         figma.ui.postMessage({ type: "done" });
@@ -608,7 +645,7 @@ var PW = (() => {
           frame.y = 0;
           cursor += frame.width + GAP;
           placed.push(frame);
-          traceComponent(entry.data.root && entry.data.root.name || "Screen", entry.data.root);
+          traceComponent(entry.id, entry.data.root && entry.data.root.name || "Screen", entry.data.root);
         }
         flushTrace();
         figma.viewport.scrollAndZoomIntoView(placed);

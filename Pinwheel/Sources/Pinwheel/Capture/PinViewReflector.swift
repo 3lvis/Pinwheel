@@ -12,6 +12,14 @@ struct ReflectedContainer {
     let axis: PinCaptureLayout.Axis
     let spacing: CGFloat?
     let alignment: PinCaptureLayout.CrossAxis
+    var border: ReflectedBorder?
+}
+
+struct ReflectedBorder {
+    let color: Color
+    let width: CGFloat
+    var isPill: Bool = false
+    var cornerRadius: CGFloat = 0
 }
 
 enum PinViewReflector {
@@ -22,10 +30,16 @@ enum PinViewReflector {
     private static func walk(_ value: Any) -> ReflectedNode? {
         let typeName = String(describing: type(of: value))
 
+        // An `if`-without-else yields an Optional view; unwrap `.some`, drop `.none`. Mirror is the only
+        // safe unwrap — matching the "Optional" type name and re-walking the same value loops forever.
+        if Mirror(reflecting: value).displayStyle == .optional {
+            return Mirror(reflecting: value).children.first.flatMap { walk($0.value) }
+        }
+
         if typeName.hasPrefix("VStack") || typeName.hasPrefix("HStack") {
             let axis: PinCaptureLayout.Axis = typeName.hasPrefix("VStack") ? .column : .row
             let (spacing, alignment, content) = stackFields(value)
-            let children = content.map { flatten($0).compactMap(walk) } ?? []
+            let children = content.map { expandedChildren($0) } ?? []
             return .container(ReflectedContainer(axis: axis, spacing: spacing, alignment: alignment), children)
         }
         if isLeaf(typeName) {
@@ -42,9 +56,26 @@ enum PinViewReflector {
         }
         if typeName.hasPrefix("ModifiedContent") {
             let modifier = property(value, "modifier")
-            let node = property(value, "content").flatMap(walk)
+            let rawContent = property(value, "content")
+            // A fixed-size frame around an image is a sized thumbnail — a component the containment path keeps,
+            // so reflection counts it as a leaf. (An intrinsic-size image — an SF Symbol — has no such frame and
+            // stays dropped, matching containment which drops those.)
+            if isFixedFrame(modifier), let rawContent, isImageType(rawContent) {
+                return .leaf(text: nil, isButton: false, fillWidth: false)
+            }
+            let node = rawContent.flatMap(walk)
             if isFillWidthFrame(modifier), case .leaf(let text, let isButton, _) = node {
                 return .leaf(text: text, isButton: isButton, fillWidth: true)
+            }
+            if let border = strokeBorder(modifier), let node {
+                if case .container(var container, let children) = node {
+                    container.border = border
+                    return .container(container, children)
+                }
+                // A bordered single element (a stepper drawn as one label) wraps into a bordered container so
+                // the border is carried and the leaf count stays 1 — matching containment, which groups a
+                // ring-enclosed control into one component.
+                return .container(ReflectedContainer(axis: .row, spacing: nil, alignment: .center, border: border), [node])
             }
             return node
         }
@@ -53,7 +84,15 @@ enum PinViewReflector {
             let children = flatten(value).compactMap(walk)
             return children.count == 1 ? children.first : (children.isEmpty ? nil : .container(ReflectedContainer(axis: .column, spacing: nil, alignment: .leading), children))
         }
+        // A ForEach not directly inside a stack (e.g. ScrollView { ForEach }) — expand its real rows into a
+        // column. Inside a stack, `expandedChildren` splices them as siblings instead.
+        if typeName.hasPrefix("ForEach"), let rows = PinVariadicExpander.expand(value) {
+            return .container(ReflectedContainer(axis: .column, spacing: nil, alignment: .leading), rows.compactMap(walk))
+        }
         if isStructuralContainer(typeName) { return nil }
+        if isShape(typeName) {
+            return .leaf(text: nil, isButton: false, fillWidth: false)
+        }
         if isPrimitive(typeName) { return nil }
         // A SwiftUI primitive's or UIKit-bridge's `.body` traps if reached; skip so capture falls back to containment instead of crashing.
         if value is any UIViewRepresentable || value is any UIViewControllerRepresentable { return nil }
@@ -74,6 +113,48 @@ enum PinViewReflector {
         return (Mirror(reflecting: modifier).children.first { $0.label == "maxWidth" }?.value as? CGFloat) == .infinity
     }
 
+    private static func isFixedFrame(_ modifier: Any?) -> Bool {
+        guard let modifier, String(describing: type(of: modifier)) == "_FrameLayout" else { return false }
+        let mirror = Mirror(reflecting: modifier)
+        let width = mirror.children.first { $0.label == "width" }?.value as? CGFloat
+        let height = mirror.children.first { $0.label == "height" }?.value as? CGFloat
+        return width != nil && height != nil
+    }
+
+    private static func isImageType(_ value: Any) -> Bool {
+        let typeName = String(describing: type(of: value))
+        return typeName == "Image" || typeName.hasPrefix("AsyncImage")
+    }
+
+    // An `.overlay(shape.stroke(color, lineWidth:))` renders as a filled ring in the DisplayList (no readable
+    // width), but the view value still holds the `StrokeStyle` and its `Color`. Pull them out so a bordered
+    // control captures its border editably. Gated to overlay modifiers so a fill/background stroke elsewhere
+    // isn't mistaken for a border.
+    private static func strokeBorder(_ modifier: Any?) -> ReflectedBorder? {
+        guard let modifier, String(describing: type(of: modifier)).contains("Overlay") else { return nil }
+        var width: CGFloat?
+        var color: Color?
+        var isPill = false
+        var cornerRadius: CGFloat = 0
+        func search(_ value: Any, _ depth: Int) {
+            if depth > 8 { return }
+            let typeName = String(describing: type(of: value))
+            if let stroke = value as? StrokeStyle { width = stroke.lineWidth }
+            else if let strokeColor = value as? Color { color = strokeColor }
+            // The stroked shape sets the border's rounding: a Capsule is a full pill; a RoundedRectangle
+            // carries its own radius (in a `cornerSize` CGSize). Read it so the imported frame isn't square.
+            if typeName == "Capsule" || typeName.hasPrefix("Capsule<") { isPill = true }
+            else if typeName.hasPrefix("RoundedRectangle"),
+                    let cornerSize = Mirror(reflecting: value).children.first(where: { $0.label == "cornerSize" })?.value as? CGSize {
+                cornerRadius = cornerSize.width
+            }
+            for child in Mirror(reflecting: value).children { search(child.value, depth + 1) }
+        }
+        search(modifier, 0)
+        guard let width, let color else { return nil }
+        return ReflectedBorder(color: color, width: width, isPill: isPill, cornerRadius: cornerRadius)
+    }
+
     private static func leafText(_ value: Any) -> String? {
         let mirror = Mirror(reflecting: value)
         for label in ["title", "text"] {
@@ -92,6 +173,14 @@ enum PinViewReflector {
         primitiveTypes.contains { typeName == $0 || typeName.hasPrefix($0 + "<") }
     }
 
+    // A standalone shape renders as a fill/stroke box the containment path keeps as a component, so it's a
+    // leaf; a filled/stroked shape is a `*ShapeView` (SwiftUI wraps `.fill()`/`.stroke()`). Image is NOT here
+    // — the containment path drops SF Symbols, so counting them would desync the reflected leaf total.
+    private static func isShape(_ typeName: String) -> Bool {
+        if typeName.contains("ShapeView") { return true }
+        return shapeTypes.contains { typeName == $0 || typeName.hasPrefix($0 + "<") }
+    }
+    private static let shapeTypes = ["RoundedRectangle", "Rectangle", "Circle", "Capsule", "Ellipse"]
     private static let structuralContainerTypes = ["ForEach", "List", "Section", "LazyVStack", "LazyHStack"]
     private static func isStructuralContainer(_ typeName: String) -> Bool {
         structuralContainerTypes.contains { typeName == $0 || typeName.hasPrefix($0 + "<") }
@@ -112,6 +201,18 @@ enum PinViewReflector {
             }
         }
         return (spacing, alignment, content)
+    }
+
+    // Flatten a stack's content, splicing any ForEach into its real rows (as siblings) so a ForEach-built
+    // list reflects as if written inline. If the private expander is unhealthy, the ForEach yields nothing
+    // and the whole screen falls to the containment path downstream (count mismatch) — never a crash.
+    private static func expandedChildren(_ content: Any) -> [ReflectedNode] {
+        flatten(content).flatMap { item -> [ReflectedNode] in
+            if String(describing: type(of: item)).hasPrefix("ForEach"), let rows = PinVariadicExpander.expand(item) {
+                return rows.compactMap(walk)
+            }
+            return [item].compactMap(walk)
+        }
     }
 
     private static func flatten(_ content: Any) -> [Any] {

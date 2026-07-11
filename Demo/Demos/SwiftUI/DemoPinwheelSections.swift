@@ -23,6 +23,7 @@ enum DemoPinwheelSections {
             PinwheelItem(Catalog.label) { PinLabelDemo() }.tags(.swiftUI)
             PinwheelItem(Catalog.tweakable) { PinTweakableDemo() }.tags(.swiftUI)
             PinwheelItem(Catalog.button) { PinButtonDemo() }.tags(.swiftUI)
+            PinwheelItem(Catalog.stepper) { PinStepperDemo() }.tags(.swiftUI)
             PinwheelItem(Catalog.stateView) { PinStateViewDemo() }.tags(.swiftUI)
             PinwheelItem(Catalog.tableView) { PinTableViewDemo() }.tags(.swiftUI)
             PinwheelItem(Catalog.label, view: UIPinLabelDemo.self).tags(.uiKit)
@@ -41,6 +42,15 @@ enum DemoPinwheelSections {
             PinwheelItem(Catalog.appleControls) { AppleControlsDemo() }.presentation(.fullscreen).tags(.figma)
             PinwheelItem(Catalog.collectionView, view: CollectionViewGridDemo.self).tags(.figma)
             PinwheelItem(Catalog.cards) { CardsDemo() }.tags(.figma)
+            PinwheelItem(Catalog.lazyCards) { LazyCardsDemo() }.tags(.figma)
+            PinwheelItem(Catalog.lazyGrid) { LazyGridDemo() }.tags(.figma)
+            PinwheelItem(Catalog.sectionedList) { SectionedListDemo() }.tags(.figma)
+            PinwheelItem(Catalog.productList) { ProductListDemo() }.tags(.figma)
+            PinwheelItem(Catalog.pricing) { PricingDemo() }.tags(.figma)
+            PinwheelItem(Catalog.cart) { CartDemo() }.tags(.figma)
+            PinwheelItem(Catalog.orderSummary) { OrderSummaryDemo() }.tags(.figma)
+            PinwheelItem(Catalog.imageGallery) { ImageGalleryDemo() }.tags(.figma)
+            PinwheelItem(Catalog.pinList) { PinListDemo() }.tags(.figma)
         }
     }
 }

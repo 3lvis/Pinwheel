@@ -65,6 +65,7 @@ export interface TextPlan {
   fontRequest: { family: string; weight: number; italic: boolean }
   fill: { color: { r: number; g: number; b: number; a: number }; token?: string } | null
   underline: boolean
+  strikethrough: boolean
   letterSpacing: number | null
   autoResize: 'HEIGHT' | 'WIDTH_AND_HEIGHT'
   width: number | null
@@ -91,6 +92,7 @@ export function planText(run: any, font: any): TextPlan {
     fontRequest: { family: font.family, weight: font.weight, italic: font.italic },
     fill: font.color ? { color: font.color, token: font.colorToken } : null,
     underline: Boolean(font.underline),
+    strikethrough: Boolean(font.strikethrough),
     letterSpacing: typeof font.letterSpacing === 'number' ? font.letterSpacing : null,
     autoResize: multiline ? 'HEIGHT' : 'WIDTH_AND_HEIGHT',
     width: multiline ? run.w : null,

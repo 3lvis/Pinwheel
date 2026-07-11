@@ -37,6 +37,9 @@ struct FigmaNode: Encodable {
     var fillDark: RGBA?
     var radius: Double?
     var radiusToken: String?
+    var stroke: RGBA?
+    var strokeToken: String?
+    var strokeWidth: Double?
     var component: String?
     var name: String?
     var font: FigmaFont?
@@ -49,6 +52,7 @@ struct FigmaNode: Encodable {
     var grow: Bool?
     var ordered: Bool?
     var fillWidth: Bool?
+    var hidden: Bool?
     var children: [FigmaNode]
 }
 
@@ -104,6 +108,7 @@ struct FigmaFont: Encodable {
     let colorToken: String?
     let style: String?
     let underline: Bool
+    var strikethrough: Bool = false
 }
 
 struct FigmaTextStyle: Encodable {
@@ -138,25 +143,12 @@ enum PinFloatTokens {
     }
     static var radius: [(name: String, value: CGFloat)] { [("radius-m", .radiusM), ("radius-l", .radiusL)] }
 
-    static func spacingName(for value: Double) -> String? { name(for: value, in: spacing) }
-    static func radiusName(for value: Double) -> String? { name(for: value, in: radius) }
-
-    // A measured gap reads a hair wider than the declared spacing (glyph/SF Symbol bearing insets the frame), so round down to the token at or just below it.
-    static func gapTokenName(for value: Double) -> String? {
-        guard value > 0.5 else { return nil }
-        guard let best = spacing.filter({ Double($0.value) <= value + 0.5 }).max(by: { $0.value < $1.value }),
-              value - Double(best.value) < 3 else { return nil }
-        return best.name
-    }
-
-    private static func name(for value: Double, in table: [(name: String, value: CGFloat)]) -> String? {
-        guard value > 0.5 else { return nil }
-        return table.first { abs(Double($0.value) - value) < 0.5 }?.name
-    }
-
-    static var tokens: [FigmaToken] {
-        (spacing + radius).map { FigmaToken(name: $0.name, type: "float", float: Double($0.value)) }
-    }
+    // Match/emit against the active registry (Pinwheel's by default). `spacing`/`radius` above stay the
+    // source the `.pinwheel` registry is built from.
+    @MainActor static func spacingName(for value: Double) -> String? { PinCaptureTokens.current.spacingName(for: value) }
+    @MainActor static func radiusName(for value: Double) -> String? { PinCaptureTokens.current.radiusName(for: value) }
+    @MainActor static func gapTokenName(for value: Double) -> String? { PinCaptureTokens.current.gapName(for: value) }
+    @MainActor static var tokens: [FigmaToken] { PinCaptureTokens.current.figmaFloatTokens }
 }
 
 extension RGBA {
