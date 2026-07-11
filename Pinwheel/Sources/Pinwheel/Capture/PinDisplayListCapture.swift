@@ -300,7 +300,11 @@ public enum PinDisplayListCapture {
                 name: container.axis == .row ? "HStack" : "VStack",
                 layout: FigmaLayout(layout), ordered: true, children: childNodes
             )
-            if fillsWidth { node.fillWidth = true }
+            // Fill-width propagates: a container whose child fills (a Spacer, or a sub-stack that itself
+            // fills) must fill too, or the chain breaks — a receipt row hugs and centres because the Spacer
+            // pushing its price sits two levels down (row → column → price HStack).
+            let propagatesFill = childNodes.contains { $0.grow == true || $0.fillWidth == true }
+            if fillsWidth || propagatesFill { node.fillWidth = true }
             if let border = container.border {
                 // A bordered control that reflects to a single frame (a stepper: its ± Buttons drop, leaving
                 // the value leaf that matches the rendered box) is one bordered pill in code — put the border
