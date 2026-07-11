@@ -230,7 +230,15 @@ async function build(node: any, parent: BaseNode & ChildrenMixin, parentX: numbe
   if (node.component && masters[node.component]) {
     const instance = masters[node.component].createInstance()
     parent.appendChild(instance)
-    instance.resize(Math.max(node.w, 0.01), Math.max(node.h, 0.01))
+    // A reflection-path row has no measured size (node.w/h ≈ 0) and fills its parent via a grow child, so
+    // it takes FILL like the master frame does — resizing it to node.w would collapse it to ~0 and the
+    // rows would overlap. Only pin an explicit size when the capture actually measured one.
+    const parentIsAutoLayout = instance.parent && 'layoutMode' in instance.parent && (instance.parent as FrameNode).layoutMode !== 'NONE'
+    if ((node.children.some((child: any) => child.grow) || node.fillWidth) && parentIsAutoLayout) {
+      instance.layoutSizingHorizontal = 'FILL'
+    } else if (node.w > 1 && node.h > 1) {
+      instance.resize(node.w, node.h)
+    }
     if (!flow) {
       instance.x = node.x - parentX
       instance.y = node.y - parentY

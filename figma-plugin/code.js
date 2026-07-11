@@ -300,7 +300,12 @@ var PW = (() => {
     if (node.component && masters[node.component]) {
       const instance = masters[node.component].createInstance();
       parent.appendChild(instance);
-      instance.resize(Math.max(node.w, 0.01), Math.max(node.h, 0.01));
+      const parentIsAutoLayout = instance.parent && "layoutMode" in instance.parent && instance.parent.layoutMode !== "NONE";
+      if ((node.children.some((child) => child.grow) || node.fillWidth) && parentIsAutoLayout) {
+        instance.layoutSizingHorizontal = "FILL";
+      } else if (node.w > 1 && node.h > 1) {
+        instance.resize(node.w, node.h);
+      }
       if (!flow) {
         instance.x = node.x - parentX;
         instance.y = node.y - parentY;
