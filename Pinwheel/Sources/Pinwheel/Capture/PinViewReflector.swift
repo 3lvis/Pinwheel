@@ -18,6 +18,8 @@ struct ReflectedContainer {
 struct ReflectedBorder {
     let color: Color
     let width: CGFloat
+    var isPill: Bool = false
+    var cornerRadius: CGFloat = 0
 }
 
 enum PinViewReflector {
@@ -112,15 +114,25 @@ enum PinViewReflector {
         guard let modifier, String(describing: type(of: modifier)).contains("Overlay") else { return nil }
         var width: CGFloat?
         var color: Color?
+        var isPill = false
+        var cornerRadius: CGFloat = 0
         func search(_ value: Any, _ depth: Int) {
-            if depth > 8 || (width != nil && color != nil) { return }
+            if depth > 8 { return }
+            let typeName = String(describing: type(of: value))
             if let stroke = value as? StrokeStyle { width = stroke.lineWidth }
             else if let strokeColor = value as? Color { color = strokeColor }
+            // The stroked shape sets the border's rounding: a Capsule is a full pill; a RoundedRectangle
+            // carries its own radius (in a `cornerSize` CGSize). Read it so the imported frame isn't square.
+            if typeName == "Capsule" || typeName.hasPrefix("Capsule<") { isPill = true }
+            else if typeName.hasPrefix("RoundedRectangle"),
+                    let cornerSize = Mirror(reflecting: value).children.first(where: { $0.label == "cornerSize" })?.value as? CGSize {
+                cornerRadius = cornerSize.width
+            }
             for child in Mirror(reflecting: value).children { search(child.value, depth + 1) }
         }
         search(modifier, 0)
         guard let width, let color else { return nil }
-        return ReflectedBorder(color: color, width: width)
+        return ReflectedBorder(color: color, width: width, isPill: isPill, cornerRadius: cornerRadius)
     }
 
     private static func leafText(_ value: Any) -> String? {

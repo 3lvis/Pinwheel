@@ -218,10 +218,13 @@ public enum PinDisplayListCapture {
             )
             if fillsWidth { node.fillWidth = true }
             if let border = container.border {
-                let color = UIColor(border.color)
-                node.stroke = RGBA(color)
-                node.strokeToken = tokenName(for: color)
-                node.strokeWidth = Double(border.width)
+                // A bordered control that reflects to a single frame (a stepper: its ± Buttons drop, leaving
+                // the value leaf that matches the rendered box) is one bordered pill in code — put the border
+                // on that box rather than wrapping it in a second frame, so the capture matches the source.
+                if childNodes.count == 1, childNodes[0].tag == "frame" {
+                    return bordered(childNodes[0], border)
+                }
+                return bordered(node, border)
             }
             return node
         }
@@ -294,6 +297,22 @@ public enum PinDisplayListCapture {
         var texts = Set(node.texts?.map(\.text) ?? [])
         node.children.forEach { texts.formUnion(nodeTexts($0)) }
         return texts
+    }
+
+    private static func bordered(_ node: FigmaNode, _ border: ReflectedBorder) -> FigmaNode {
+        var node = node
+        let color = UIColor(border.color)
+        node.stroke = RGBA(color)
+        node.strokeToken = tokenName(for: color)
+        node.strokeWidth = Double(border.width)
+        // A Capsule border is a full pill; Figma clamps an oversized cornerRadius to half the shorter side,
+        // so a large value renders as a pill without needing the frame's measured height.
+        if border.isPill { node.radius = 1000 }
+        else if border.cornerRadius > 0 {
+            node.radius = Double(border.cornerRadius)
+            node.radiusToken = radiusTokenName(border.cornerRadius)
+        }
+        return node
     }
 
     private static func componentNode(_ box: Box, host: UIView) -> FigmaNode {

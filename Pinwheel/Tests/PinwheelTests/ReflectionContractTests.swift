@@ -184,6 +184,25 @@ final class ReflectionContractTests: XCTestCase {
         XCTAssertEqual(border.width, 2, "the border carries the stroke's lineWidth, read from the view value")
     }
 
+    // A Capsule stroke border captures as a pill so the imported frame is fully rounded, not a square
+    // rectangle; a RoundedRectangle stroke carries its own corner radius.
+    func testCapsuleStrokeBorderCapturesAsPill() throws {
+        let capsule = HStack { PinLabel("x") }.overlay(Capsule().stroke(Color.red, lineWidth: 1))
+        guard case .container(let capsuleContainer, _)? = PinViewReflector.reflect(capsule),
+              let capsuleBorder = capsuleContainer.border else {
+            return XCTFail("the capsule-bordered container carries a border")
+        }
+        XCTAssertTrue(capsuleBorder.isPill, "a Capsule stroke border is a pill (fully rounded)")
+
+        let rounded = HStack { PinLabel("x") }.overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.red, lineWidth: 1))
+        guard case .container(let roundedContainer, _)? = PinViewReflector.reflect(rounded),
+              let roundedBorder = roundedContainer.border else {
+            return XCTFail("the rounded-rect-bordered container carries a border")
+        }
+        XCTAssertFalse(roundedBorder.isPill, "a RoundedRectangle stroke is not a pill")
+        XCTAssertEqual(roundedBorder.cornerRadius, 8, "the RoundedRectangle border carries its corner radius")
+    }
+
     // A bordered single leaf (a stepper drawn as one "−  1  +" label with an overlay stroke) wraps into a
     // bordered container so the border is carried and the leaf count stays 1 — matching containment, which
     // groups the ring-enclosed control into a single component (its flatten treats a box of leaves as one).
