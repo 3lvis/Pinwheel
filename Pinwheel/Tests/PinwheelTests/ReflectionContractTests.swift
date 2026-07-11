@@ -117,11 +117,26 @@ final class ReflectionContractTests: XCTestCase {
     }
 
     func testStructuralContainersReflectNil() {
-        XCTAssertNil(PinViewReflector.reflect(ForEach(0..<3, id: \.self) { PinLabel("row \($0)") }),
-                     "a ForEach reflects nil so capture uses the containment fallback")
         XCTAssertNil(PinViewReflector.reflect(List { PinLabel("row") }),
                      "a List reflects nil — its lazy UIKit-backed rows aren't in the reflected tree")
         XCTAssertNil(PinViewReflector.reflect(Section { PinLabel("row") }),
                      "a Section reflects nil, falling back to containment")
+    }
+
+    // A ForEach of *container* rows (the rich/2-D case the deref targets — Cart etc.) expands into its real
+    // rows via PinVariadicExpander, so it no longer reflects nil. Bare-leaf rows (ForEach { PinLabel }) have
+    // a different graph-node shape the deref doesn't reach; those return nil and the screen falls back to the
+    // containment path (their prior behavior — a simple 1-D list containment already handles).
+    func testForEachOfContainerRowsExpands() throws {
+        try XCTSkipUnless(PinVariadicExpander.isHealthy, "expander unavailable on this OS — ForEach falls back to containment")
+        func leaves(_ n: ReflectedNode?) -> Int {
+            switch n {
+            case .container(_, let c): return c.reduce(0) { $0 + leaves($1) }
+            case .leaf: return 1
+            default: return 0
+            }
+        }
+        XCTAssertEqual(leaves(PinViewReflector.reflect(ForEach(["r0", "r1"], id: \.self) { name in HStack { PinLabel(name) } })), 2,
+                       "ForEach of HStack rows expands → 2 leaves")
     }
 }

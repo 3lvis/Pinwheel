@@ -22,10 +22,16 @@ enum PinViewReflector {
     private static func walk(_ value: Any) -> ReflectedNode? {
         let typeName = String(describing: type(of: value))
 
+        // An `if`-without-else yields an Optional view; unwrap `.some`, drop `.none`. Mirror is the only
+        // safe unwrap — matching the "Optional" type name and re-walking the same value loops forever.
+        if Mirror(reflecting: value).displayStyle == .optional {
+            return Mirror(reflecting: value).children.first.flatMap { walk($0.value) }
+        }
+
         if typeName.hasPrefix("VStack") || typeName.hasPrefix("HStack") {
             let axis: PinCaptureLayout.Axis = typeName.hasPrefix("VStack") ? .column : .row
             let (spacing, alignment, content) = stackFields(value)
-            let children = content.map { flatten($0).compactMap(walk) } ?? []
+            let children = content.map { expandedChildren($0) } ?? []
             return .container(ReflectedContainer(axis: axis, spacing: spacing, alignment: alignment), children)
         }
         if isLeaf(typeName) {
@@ -52,6 +58,11 @@ enum PinViewReflector {
             || typeName.hasPrefix("_ConditionalContent") {
             let children = flatten(value).compactMap(walk)
             return children.count == 1 ? children.first : (children.isEmpty ? nil : .container(ReflectedContainer(axis: .column, spacing: nil, alignment: .leading), children))
+        }
+        // A ForEach not directly inside a stack (e.g. ScrollView { ForEach }) — expand its real rows into a
+        // column. Inside a stack, `expandedChildren` splices them as siblings instead.
+        if typeName.hasPrefix("ForEach"), let rows = PinVariadicExpander.expand(value) {
+            return .container(ReflectedContainer(axis: .column, spacing: nil, alignment: .leading), rows.compactMap(walk))
         }
         if isStructuralContainer(typeName) { return nil }
         if isPrimitive(typeName) { return nil }
@@ -112,6 +123,18 @@ enum PinViewReflector {
             }
         }
         return (spacing, alignment, content)
+    }
+
+    // Flatten a stack's content, splicing any ForEach into its real rows (as siblings) so a ForEach-built
+    // list reflects as if written inline. If the private expander is unhealthy, the ForEach yields nothing
+    // and the whole screen falls to the containment path downstream (count mismatch) — never a crash.
+    private static func expandedChildren(_ content: Any) -> [ReflectedNode] {
+        flatten(content).flatMap { item -> [ReflectedNode] in
+            if String(describing: type(of: item)).hasPrefix("ForEach"), let rows = PinVariadicExpander.expand(item) {
+                return rows.compactMap(walk)
+            }
+            return [item].compactMap(walk)
+        }
     }
 
     private static func flatten(_ content: Any) -> [Any] {
