@@ -131,26 +131,27 @@ Engine value-matched colors/spacing/radius against fixed library enums and hardc
 7. Blur/materials — low fidelity: translucent fill or crop.
 8. Gradients / page dots / custom shapes — low priority; gradient paint when detectable.
 
-## Complex rows: use PinList, don't reverse-engineer ForEach
-A bespoke 2-D row (`HStack { thumbnail, VStack{title/price}, Spacer, stepper }` in a `ForEach`) can't
-capture faithfully: the reflector returns nil for `ForEach` (its content is an uncallable closure), so the
-screen falls to the geometry-based containment path, which linearizes the 2-D row and scrambles it. Spiked
-the escape hatches and hit a wall: `_VariadicView` *can* expand a `ForEach` (get the child count/handles),
-but each row's view is compiled into SwiftUI's AttributeGraph (`AGWeakAttribute` + `viewType` metatype) —
-recovering a reflectable row *structure* needs AttributeGraph private C API or generic-type-string parsing,
-a fragility jump not worth it. **Resolution:** complex rows go through `PinList`, whose rows are 1-D
-*values we own* — the existing capture reconstructs them faithfully (componentized), no new capture code.
-CartDemo is ported to PinList and captures cleanly (bag icon, title, price line, ×qty, dividers, one
-component + instances). Trade-off: a standalone SALE pill / ± stepper collapse into the row's text/detail;
-if a consumer needs that richness editable, the row model — not the capture engine — should grow.
+## Complex rows: bespoke 2-D `ForEach` captures via reflection (SHIPPED)
+A bespoke 2-D row (`HStack { thumbnail, VStack{title/price}, Spacer, stepper }` in a `ForEach`) now
+captures faithfully through the reflection path — no `PinList` required. Two pieces:
+1. **The ForEach expander** (`PinVariadicExpander`, `elvis/foreach-fold`) reverse-engineers SwiftUI's
+   AttributeGraph: expand the `ForEach` via `_VariadicView.Tree(MultiViewRoot)` (its `body(children:)`
+   MUST return the children), then deref each row's `TypedUnaryViewGenerator` through the private
+   `AGGraphGetValue` C ABI (dlsym'd, called inside `body`) to recover the real row instance for the
+   reflector. Guarded by a cached `isHealthy` self-test canary + graceful containment fallback, so a
+   future iOS breaking the private ABI is caught (a red canary test) and never crashes.
+2. **Shape leaves close the zip.** The reflection→containment zip gate is exact-count, and a rich row's
+   reflected leaves must match the rendered components. The reflector now emits filled/stroked shapes
+   (`*ShapeView`, `RoundedRectangle`, …) as leaves but NOT `Image` — containment keeps a shape's fill
+   box as a component and drops SF Symbols, so counting `Image` would desync the count the other way.
 
-## CartDemo — historical note (pre-PinList, bespoke 2-D row)
-`figma-cart` (image thumbnail + title + SALE pill + now/was-struck price + bordered stepper, ×4 rows,
-`ScrollView`/`VStack`) captures the large majority editably: card backgrounds (`secondaryBackground` +
-`radius-m`), component/instance grouping (the 3 sale rows group; the non-sale row stays separate),
-titles, prices, quantities as editable text, **strikethrough on the was-prices**, and thumbnail + ±
-stepper icons as images. Two gaps remain — the stepper border (§5, hard wall for editable) and the SALE
-pill fill (§6, on-screen-only drop).
+CartDemo is the bespoke 2-D `ForEach` (restored from PinList) and captures as `root=screen` with the
+correct nested `HStack[thumbnail | VStack(title/SALE, now/was) | spacer | stepper]` — no Y-order
+scramble. Verified regression-clean: a full-catalog before/after root-tag diff (fix off vs on, clean
+builds, light + dark) changed exactly one line — `figma-cart` `frame→screen`; the other 29 demos
+byte-identical. `ForEach`-of-*bare-leaf* rows (`ForEach { PinLabel }`) still fall back to containment
+(different graph shape; 1-D containment already handles them). Remaining Cart gaps are the stepper
+border (§5, hard wall for editable) and the SALE pill fill (§6, on-screen-only drop).
 
 ## UI-tier note (environment)
 The `DemoUITests` catalog navigation uses a SwiftUI `Menu` section picker that **does not open under UI
