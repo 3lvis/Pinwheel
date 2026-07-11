@@ -80,8 +80,8 @@ export function loadPlugin() {
     createComponent: () => node('COMPONENT', { createInstance() { const deep = (n) => ({ ...n, children: (n.children || []).map(deep) }); const clone = node('INSTANCE'); clone.children = this.children.map(deep); return clone } }),
     createTextStyle: () => node('TEXTSTYLE'),
     getLocalTextStylesAsync: async () => [],
-    createImage: () => ({ hash: 'image' }),
-    base64Decode: () => new Uint8Array(),
+    createImage: (data) => ({ hash: `img-${data}` }),
+    base64Decode: (source) => source,
     loadFontAsync: async (fontName) => { loadedFonts.add(fontKey(fontName)) },
     variables: {
       getLocalVariableCollectionsAsync: async () => [],

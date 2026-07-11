@@ -166,13 +166,13 @@ public enum PinDisplayListCapture {
 
     private static func signature(_ node: FigmaNode) -> String {
         if node.tag == "text" { return "T:\(node.font?.style ?? "-"):\(node.textAlign ?? "-")" }
-        // Group an image row only when the image is byte-identical (a shared icon/chevron), keyed by its
-        // bytes. A per-row photo has different bytes, so it forms its own template and never collapses onto
-        // a master's crop (an instance overrides text/fill, not the image).
-        if node.tag == "image" { return "IMG:\(node.image.map { "\($0.count):\($0.prefix(16))" } ?? "-")" }
         // Bucket size to ~16pt so content-driven width jitter (a longer price, a wider label) doesn't split
         // one template, while a real size difference (a 120 vs 240 card) still lands in distinct buckets.
         func bucket(_ value: Double) -> Int { Int((value / 16).rounded()) }
+        // An image is a swappable slot keyed by size, not bytes: same-size images (a gallery's per-row
+        // photos, or a shared chevron) group so their rows share one component, and the plugin overrides each
+        // instance's image fill. A genuinely different size (an icon vs a hero photo) stays a distinct slot.
+        if node.tag == "image" { return "IMG:w\(bucket(node.w)):h\(bucket(node.h))" }
         var parts = ["\(node.tag):w\(bucket(node.w)):h\(bucket(node.h))"]
         // Only the axis is stable — justify/align/gap are inferred from rendered geometry and wobble with
         // text width across otherwise-identical cards, so they'd falsely split one template. Instances

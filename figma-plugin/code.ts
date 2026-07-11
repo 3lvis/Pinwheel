@@ -192,6 +192,26 @@ async function applyInstanceContent(instance: InstanceNode, node: any): Promise<
 // An instance normalized to its component's structure carries hidden placeholders for the optional layers
 // it lacks (a cart row without the SALE pill / was-price). Walk the instance's layers in the same order
 // build created them (orderChildren) and hide those placeholders, so the instance shows only its own content.
+// A component groups rows that share a structure but each carry a different photo; override every image
+// fill per instance (walking the instance's layers in build order) so each row shows its own image, not
+// the master's.
+function applyImages(layer: SceneNode, node: any): void {
+  if (!('children' in layer)) return
+  const layers = (layer as ChildrenMixin).children as SceneNode[]
+  const items = orderChildren(node)
+  for (let index = 0; index < items.length && index < layers.length; index += 1) {
+    const child = items[index].child
+    if (!child) continue
+    if (child.image) {
+      const source = darkMode && child.imageDark ? child.imageDark : child.image
+      const image = figma.createImage(figma.base64Decode(source))
+      ;(layers[index] as GeometryMixin).fills = [{ type: 'IMAGE', imageHash: image.hash, scaleMode: 'FILL' }]
+    } else {
+      applyImages(layers[index], child)
+    }
+  }
+}
+
 function applyHidden(layer: SceneNode, node: any): void {
   if (!('children' in layer)) return
   const layers = (layer as ChildrenMixin).children as SceneNode[]
@@ -260,6 +280,7 @@ async function build(node: any, parent: BaseNode & ChildrenMixin, parentX: numbe
     }
     await applyInstanceContent(instance, node)
     applyHidden(instance, node)
+    applyImages(instance, node)
     return instance
   }
 

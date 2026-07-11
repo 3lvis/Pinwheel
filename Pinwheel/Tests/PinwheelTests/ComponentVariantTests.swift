@@ -16,6 +16,22 @@ final class ComponentVariantTests: XCTestCase {
         return FigmaNode(tag: "frame", x: 0, y: 0, w: 300, h: 60, children: [title, price])
     }
 
+    // A gallery of rows that share a structure but each carry a different photo should group as one
+    // component with the image as a per-instance override — not stay three plain frames, since a Figma
+    // instance can swap an image fill.
+    func testSameStructureRowsWithDifferentImagesGroup() {
+        func imageRow(_ bytes: String) -> FigmaNode {
+            FigmaNode(tag: "frame", x: 0, y: 0, w: 300, h: 80,
+                      children: [FigmaNode(tag: "image", x: 0, y: 0, w: 64, h: 64, image: bytes, children: []), text()])
+        }
+        let parent = FigmaNode(tag: "frame", x: 0, y: 0, w: 300, h: 240,
+                               children: [imageRow("AAAA"), imageRow("BBBB"), imageRow("CCCC")])
+        let result = PinDisplayListCapture.componentizeRepeatedChildren(parent)
+        let keys = result.children.map { $0.component }
+        XCTAssertTrue(keys.allSatisfy { $0 != nil }, "every row is part of the component")
+        XCTAssertEqual(Set(keys.compactMap { $0 }).count, 1, "same-structure rows group as ONE component even though each has a different image")
+    }
+
     // Three identical sale rows and one no-sale row: the no-sale row differs only by the optional SALE pill
     // and was-price, so it must join the same component as an instance, with those two layers inserted as
     // hidden placeholders — not stay a separate frame.

@@ -263,6 +263,22 @@ var PW = (() => {
       calibrateWidth(text, runs[index].w);
     }
   }
+  function applyImages(layer, node) {
+    if (!("children" in layer)) return;
+    const layers = layer.children;
+    const items = orderChildren(node);
+    for (let index = 0; index < items.length && index < layers.length; index += 1) {
+      const child = items[index].child;
+      if (!child) continue;
+      if (child.image) {
+        const source = darkMode && child.imageDark ? child.imageDark : child.image;
+        const image = figma.createImage(figma.base64Decode(source));
+        layers[index].fills = [{ type: "IMAGE", imageHash: image.hash, scaleMode: "FILL" }];
+      } else {
+        applyImages(layers[index], child);
+      }
+    }
+  }
   function applyHidden(layer, node) {
     if (!("children" in layer)) return;
     const layers = layer.children;
@@ -323,6 +339,7 @@ var PW = (() => {
       }
       await applyInstanceContent(instance, node);
       applyHidden(instance, node);
+      applyImages(instance, node);
       return instance;
     }
     let frame;
