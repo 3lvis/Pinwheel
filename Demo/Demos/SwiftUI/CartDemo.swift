@@ -45,10 +45,7 @@ struct CartDemo: SwiftUI.View {
                             }
                         }
                         Spacer()
-                        PinLabel("−    \(item.quantity)    +").font(.body).color(.action)
-                            .padding(.horizontal, .spacingM)
-                            .padding(.vertical, .spacingS)
-                            .overlay(Capsule().stroke(.tertiaryText, lineWidth: 1))
+                        PinStepper(value: item.quantity)
                     }
                     .padding(.spacingM)
                     .background(.secondaryBackground)

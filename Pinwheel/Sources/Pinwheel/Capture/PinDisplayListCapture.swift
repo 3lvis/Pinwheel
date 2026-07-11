@@ -367,7 +367,7 @@ public enum PinDisplayListCapture {
         return screenNode
     }
 
-    private final class Box {
+    final class Box {
         let leaf: DisplayLeaf
         var children: [Box] = []
         init(_ leaf: DisplayLeaf) { self.leaf = leaf }
@@ -532,10 +532,13 @@ public enum PinDisplayListCapture {
         return nil
     }
 
-    private static func orderedForLayout(_ children: [Box]) -> [Box] {
+    static func orderedForLayout(_ children: [Box]) -> [Box] {
+        // Compare vertical CENTRES, not top edges: glyphs on one row (a short minus bar, a tall value, a
+        // plus) share a centre but differ in top-edge y, so a top-edge sort reads them as stacked and
+        // scrambles the row (− 1 + → 1 + −).
         children.sorted {
-            abs($0.leaf.frame.minY - $1.leaf.frame.minY) > 4
-                ? $0.leaf.frame.minY < $1.leaf.frame.minY
+            abs($0.leaf.frame.midY - $1.leaf.frame.midY) > 4
+                ? $0.leaf.frame.midY < $1.leaf.frame.midY
                 : $0.leaf.frame.minX < $1.leaf.frame.minX
         }
     }

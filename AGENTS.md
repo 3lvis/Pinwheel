@@ -42,6 +42,7 @@ Durable design decisions and why they were made.
 - Add a SwiftUI `Pin*` (with a thin `UIPin*` shell) **only when** SwiftUI lacks a first-class primitive, so styling would be hand-rolled anyway (`PinButton` — pill, variants, loading, symbol, haptics), **or** there's real imperative / UIKit-hosting value to bridge (`PinStateView` as a state machine a UIKit table can drive). If SwiftUI's primitive + `PinwheelTheme` already covers it and nothing needs to host it in UIKit, don't wrap it.
 - **Exception — theme footguns get a wrapper anyway.** `Label → PinLabel` because raw `Text(...).font(.body)` silently resolves to Apple's system style (see Theme below). The test is "does the raw primitive bypass the theme?", not just "does a primitive exist?".
 - **Switch → `Toggle`** (no standalone `PinSwitch`; the only switch lives inside the `UIPinTableView` family). **Tokens (Font/Color/Spacing)** are *tokens*, never components, in either world.
+- **`Stepper → PinStepper`** (a `−`/value/`+` pill). SwiftUI's `Stepper` renders a system `±` control that bypasses the theme and can't be the pill shape a design system wants — a theme footgun, same test as `PinLabel`. `PinStepper(value:)` + `.onDecrement/.onIncrement` modifiers; bordered capsule, SF-Symbol `±` (mirrors `PinButton`'s `systemImage:`), themed value. Migrated from tienda-ios's Kolibri `KStepper`. No `UIPinStepper` — no UIKit-hosting need yet.
 
 ### Bridging
 
