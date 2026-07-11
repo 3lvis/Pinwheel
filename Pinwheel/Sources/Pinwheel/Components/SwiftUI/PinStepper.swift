@@ -24,7 +24,7 @@ public struct PinStepper: SwiftUI.View {
     public var body: some SwiftUI.View {
         HStack(spacing: .spacingM) {
             SwiftUI.Button(action: onDecrement) { Image(systemName: "minus") }
-            PinLabel("\(value)").font(.body)
+            PinLabel("\(value)").font(.body).frame(minWidth: 20)
             SwiftUI.Button(action: onIncrement) { Image(systemName: "plus") }
         }
         .font(PinTextStyle.body.font)
