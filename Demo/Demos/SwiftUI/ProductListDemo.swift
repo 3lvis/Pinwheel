@@ -23,16 +23,31 @@ struct ProductListDemo: SwiftUI.View {
     ]
 
     var body: some SwiftUI.View {
-        List {
-            Section("Recommended") {
-                ForEach(recommended) { row($0) }
-            }
-            Section("On sale") {
-                ForEach(deals) { row($0) }
-                    .onDelete { deals.remove(atOffsets: $0) }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                header("Recommended")
+                rows(recommended)
+                header("On sale")
+                rows(deals)
             }
         }
-        .listStyle(.plain)
+        .background(.primaryBackground)
+    }
+
+    private func header(_ title: String) -> some SwiftUI.View {
+        PinLabel(title).font(.footnote).color(.secondary)
+            .padding(.horizontal, .spacingM)
+            .padding(.top, .spacingM)
+            .padding(.bottom, .spacingXS)
+    }
+
+    @ViewBuilder private func rows(_ products: [Product]) -> some SwiftUI.View {
+        ForEach(Array(products.enumerated()), id: \.element.id) { index, product in
+            row(product).padding(.horizontal, .spacingM)
+            if index < products.count - 1 {
+                Divider().padding(.leading, .spacingM)
+            }
+        }
     }
 
     private func row(_ product: Product) -> some SwiftUI.View {
