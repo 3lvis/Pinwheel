@@ -26,7 +26,11 @@ struct OrderSummaryDemo: SwiftUI.View {
         Item(title: "Cold-Pressed Olive Oil", detail: "500 ml", label: "Not delivered", bonus: nil, discount: nil,
              quantity: "1 × kr 149,00", tax: "15% VAT", price: "kr 149,00"),
         Item(title: "Dark Roast Coffee", detail: "1 kg", label: nil, bonus: "Bonus", discount: "−15%",
-             quantity: "2 × kr 189,00", tax: "15% VAT", price: "kr 321,30")
+             quantity: "2 × kr 189,00", tax: "15% VAT", price: "kr 321,30"),
+        Item(title: "Greek Yogurt", detail: "500 g", label: nil, bonus: nil, discount: "−10%",
+             quantity: "3 × kr 29,90", tax: "15% VAT", price: "kr 80,73"),
+        Item(title: "Aged Cheddar", detail: "250 g", label: "Replaced", bonus: nil, discount: nil,
+             quantity: "1 × kr 89,00", tax: "15% VAT", price: "kr 89,00")
     ]
 
     var body: some SwiftUI.View {
@@ -44,9 +48,9 @@ struct OrderSummaryDemo: SwiftUI.View {
                                 PinLabel(detail).font(.caption).color(.secondary)
                             }
                             HStack(spacing: .spacingS) {
-                                if let label = item.label { pill(label, fill: .primaryBackground, text: .secondary) }
-                                if let bonus = item.bonus { pill(bonus, fill: .actionBackground, text: .custom(.white)) }
-                                if let discount = item.discount { pill(discount, fill: .criticalBackground, text: .custom(.white)) }
+                                if let label = item.label { pill(label, fill: .primaryBackground, text: .primary) }
+                                if let bonus = item.bonus { pill(bonus, fill: .actionBackground, text: .action) }
+                                if let discount = item.discount { pill(discount, fill: .criticalBackground, text: .critical) }
                                 Spacer()
                                 PinLabel(item.tax).font(.caption).color(.tertiary)
                             }

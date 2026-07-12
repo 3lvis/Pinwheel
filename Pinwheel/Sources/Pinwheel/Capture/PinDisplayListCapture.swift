@@ -70,7 +70,7 @@ public enum PinDisplayListCapture {
                 if let content {
                     var rootNode = screen(content, width: size.width, fill: screenFill, components: components, canvasHeight: size.height, oneScreen: screenHeight, safeAreaTop: host.safeAreaInsets.top)
                     rootNode.name = name
-                    return FigmaDocument(width: size.width, height: rootNode.h, root: componentizeRepeatedChildren(rootNode), tokens: colorTokens + PinFloatTokens.tokens, textStyles: textStyles)
+                    return FigmaDocument(width: size.width, height: rootNode.h, root: componentizeRepeatedChildren(stripDuplicateNestedBackground(rootNode)), tokens: colorTokens + PinFloatTokens.tokens, textStyles: textStyles)
                 }
             }
         }
@@ -83,7 +83,7 @@ public enum PinDisplayListCapture {
             rootNode = screen(rootNode, width: size.width, fill: screenFill, components: components, canvasHeight: size.height, oneScreen: screenHeight, safeAreaTop: host.safeAreaInsets.top)
         }
         rootNode.name = name
-        return FigmaDocument(width: size.width, height: rootNode.h, root: componentizeRepeatedChildren(rootNode), tokens: colorTokens + PinFloatTokens.tokens, textStyles: textStyles)
+        return FigmaDocument(width: size.width, height: rootNode.h, root: componentizeRepeatedChildren(stripDuplicateNestedBackground(rootNode)), tokens: colorTokens + PinFloatTokens.tokens, textStyles: textStyles)
     }
 
     // Sibling frames with an identical structural signature (everything but text content and per-instance
@@ -91,6 +91,32 @@ public enum PinDisplayListCapture {
     // and the rest as instances. There's no cell class as on the UIKit side, so the signature carries the
     // discrimination — it includes size, so a grouping is faithful (an instance overrides only text/fill,
     // which is all that differs). Subtrees with an image leaf are excluded — a crop can't be reproduced.
+    // A card's fill matches every container that wraps the same text set, so a sibling that carries no text
+    // (a thumbnail) leaves the card frame and its inner content frame indistinguishable and both claim the
+    // background — doubling the fill and the padding. Strip the inner copy: a child frame sharing its
+    // parent's fill token and radius duplicated it, so the outer frame owns the background alone.
+    static func stripDuplicateNestedBackground(_ node: FigmaNode) -> FigmaNode {
+        var node = node
+        node.children = node.children.map(stripDuplicateNestedBackground)
+        guard let token = node.fillToken else { return node }
+        node.children = node.children.map { child in
+            guard child.tag == "frame", child.fillToken == token, child.radiusToken == node.radiusToken else { return child }
+            var child = child
+            child.fill = nil
+            child.fillToken = nil
+            child.fillDark = nil
+            child.radius = nil
+            child.radiusToken = nil
+            if var layout = child.layout {
+                layout.pad = [0, 0, 0, 0]
+                layout.padTokens = [nil, nil, nil, nil]
+                child.layout = layout
+            }
+            return child
+        }
+        return node
+    }
+
     static func componentizeRepeatedChildren(_ node: FigmaNode) -> FigmaNode {
         var node = node
         node.children = node.children.map(componentizeRepeatedChildren)
