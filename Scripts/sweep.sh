@@ -45,8 +45,9 @@ Usage: Scripts/sweep.sh [--capture] [--preview] [--no-build] [--only=<id>]
   --capture    render each component to Figma JSON and push it to the serve
   --preview    screenshot each component (+ tweak variants, light + dark) to PNGs
   --no-build   reuse the last build
-  --only=<id>  capture just one component (e.g. swiftui-numbers) without clearing the
-               rest of the catalog — a fast spot-check; still resolves the booted sim
+  --only=<ids> capture a subset without clearing the rest of the catalog — a fast
+               spot-check. Comma-separated, each a glob: --only=swiftui-numbers,
+               --only='figma-*' (every figma screen), --only='*cart*'
   (no mode)    do both
 EOF
 }
@@ -261,8 +262,17 @@ main() {
   [[ "${#ids[@]}" -gt 0 ]] || die "no component ids in the catalog skeleton"
 
   if [[ -n "${ONLY}" ]]; then
-    printf '%s\n' "${ids[@]}" | grep -qx "${ONLY}" || die "no component '${ONLY}' in the catalog (ids: ${ids[*]})"
-    ids=("${ONLY}")
+    local -a patterns=() selected=()
+    IFS=',' read -ra patterns <<< "${ONLY}"
+    local id pattern
+    for id in "${ids[@]}"; do
+      for pattern in "${patterns[@]}"; do
+        # shellcheck disable=SC2053 -- glob match: --only='figma-*' sweeps every figma screen
+        if [[ "${id}" == ${pattern} ]]; then selected+=("${id}"); break; fi
+      done
+    done
+    [[ "${#selected[@]}" -gt 0 ]] || die "no component matching '${ONLY}' in the catalog (ids: ${ids[*]})"
+    ids=("${selected[@]}")
   fi
 
   if "${do_capture}"; then run_capture "${ids[@]}"; fi
