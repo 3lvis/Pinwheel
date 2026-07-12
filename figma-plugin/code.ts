@@ -142,10 +142,10 @@ async function makeText(run: any, font: any): Promise<TextNode> {
   return text
 }
 
-function collectRunTexts(node: any): string[] {
-  const out: string[] = []
+function collectRuns(node: any): Array<{ text: string; font: any }> {
+  const out: Array<{ text: string; font: any }> = []
   const walk = (current: any) => {
-    if (current.texts) for (const run of current.texts) out.push(run.text)
+    if (current.texts) for (const run of current.texts) out.push({ text: run.text, font: current.font })
     if (current.children) for (const child of current.children) walk(child)
   }
   if (node.children) for (const child of node.children) walk(child)
@@ -155,13 +155,15 @@ function collectRunTexts(node: any): string[] {
 async function applyInstanceContent(instance: InstanceNode, node: any): Promise<void> {
   if (node.fill) instance.fills = [solid(node.fill, node.fillToken)]
 
-  const nested = node.children && node.children.length ? collectRunTexts(node) : []
+  const nested = node.children && node.children.length ? collectRuns(node) : []
   if (nested.length) {
     const nestedTexts = instance.findAllWithCriteria({ types: ['TEXT'] }) as TextNode[]
     for (let index = 0; index < nestedTexts.length && index < nested.length; index += 1) {
       const text = nestedTexts[index]
       if (text.fontName !== figma.mixed) await figma.loadFontAsync(text.fontName as FontName)
-      text.characters = nested[index]
+      text.characters = nested[index].text
+      const font = nested[index].font
+      if (font && font.color) text.fills = [solid(font.color, font.colorToken)]
     }
     return
   }

@@ -220,10 +220,10 @@ var PW = (() => {
     }
     return text;
   }
-  function collectRunTexts(node) {
+  function collectRuns(node) {
     const out = [];
     const walk = (current) => {
-      if (current.texts) for (const run of current.texts) out.push(run.text);
+      if (current.texts) for (const run of current.texts) out.push({ text: run.text, font: current.font });
       if (current.children) for (const child of current.children) walk(child);
     };
     if (node.children) for (const child of node.children) walk(child);
@@ -231,13 +231,15 @@ var PW = (() => {
   }
   async function applyInstanceContent(instance, node) {
     if (node.fill) instance.fills = [solid(node.fill, node.fillToken)];
-    const nested = node.children && node.children.length ? collectRunTexts(node) : [];
+    const nested = node.children && node.children.length ? collectRuns(node) : [];
     if (nested.length) {
       const nestedTexts = instance.findAllWithCriteria({ types: ["TEXT"] });
       for (let index = 0; index < nestedTexts.length && index < nested.length; index += 1) {
         const text = nestedTexts[index];
         if (text.fontName !== figma.mixed) await figma.loadFontAsync(text.fontName);
-        text.characters = nested[index];
+        text.characters = nested[index].text;
+        const font = nested[index].font;
+        if (font && font.color) text.fills = [solid(font.color, font.colorToken)];
       }
       return;
     }
