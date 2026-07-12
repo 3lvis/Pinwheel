@@ -32,6 +32,24 @@ final class NestedBackgroundTests: XCTestCase {
         XCTAssertEqual(inner.layout?.pad, [0, 0, 0, 0], "the duplicated padding is zeroed")
     }
 
+    // A list of rows each carrying the screen's own fill (PinList rows are primaryBackground on a
+    // primaryBackground screen, so their frame spans the row insets) are NOT a duplicated wrapper — a
+    // duplicate is a single child that wraps the parent, not many stacked siblings. They must be kept.
+    func testManySameFillSiblingRowsAreKept() {
+        func row() -> FigmaNode {
+            FigmaNode(tag: "frame", x: 0, y: 0, w: 300, h: 36, fill: RGBA(r: 1, g: 1, b: 1, a: 1), fillToken: "primaryBackground",
+                      layout: columnLayout(pad: 8), children: [FigmaNode(tag: "text", x: 0, y: 0, w: 100, h: 20, children: [])])
+        }
+        let screen = FigmaNode(tag: "screen", x: 0, y: 0, w: 300, h: 300,
+                               fill: RGBA(r: 1, g: 1, b: 1, a: 1), fillToken: "primaryBackground",
+                               layout: columnLayout(pad: 0), children: [row(), row(), row()])
+        let result = PinDisplayListCapture.stripDuplicateNestedBackground(screen)
+        for (index, row) in result.children.enumerated() {
+            XCTAssertEqual(row.fillToken, "primaryBackground", "row \(index) keeps its fill")
+            XCTAssertEqual(row.layout?.pad, [8, 8, 8, 8], "row \(index) keeps its insets")
+        }
+    }
+
     // A genuinely different nested fill (a card on a differently-coloured screen) is not a duplicate and stays.
     func testNestedContainerWithADifferentFillIsUntouched() {
         let card = FigmaNode(tag: "frame", x: 0, y: 0, w: 200, h: 80,

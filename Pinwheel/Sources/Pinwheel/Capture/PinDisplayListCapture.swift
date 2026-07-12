@@ -94,11 +94,15 @@ public enum PinDisplayListCapture {
     // A card's fill matches every container that wraps the same text set, so a sibling that carries no text
     // (a thumbnail) leaves the card frame and its inner content frame indistinguishable and both claim the
     // background — doubling the fill and the padding. Strip the inner copy: a child frame sharing its
-    // parent's fill token and radius duplicated it, so the outer frame owns the background alone.
+    // parent's fill token and radius duplicated it, so the outer frame owns the background alone. Only a
+    // *lone* matching child is a duplicate wrapper; many same-fill siblings are stacked rows (a PinList's
+    // primaryBackground rows on a primaryBackground screen), which legitimately carry the fill and insets.
     static func stripDuplicateNestedBackground(_ node: FigmaNode) -> FigmaNode {
         var node = node
         node.children = node.children.map(stripDuplicateNestedBackground)
         guard let token = node.fillToken else { return node }
+        let matches = node.children.filter { $0.tag == "frame" && $0.fillToken == token && $0.radiusToken == node.radiusToken }
+        guard matches.count == 1 else { return node }
         node.children = node.children.map { child in
             guard child.tag == "frame", child.fillToken == token, child.radiusToken == node.radiusToken else { return child }
             var child = child

@@ -43,6 +43,8 @@ public struct PinList: SwiftUI.View {
                     row
                         .padding(.horizontal, .spacingM)
                         .padding(.vertical, .spacingS)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(.primaryBackground)
                     if index < rows.count - 1 {
                         Divider().padding(.leading, .spacingM)
                     }
