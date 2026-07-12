@@ -525,6 +525,19 @@ public enum PinDisplayListCapture {
         var area: CGFloat { leaf.frame.width * leaf.frame.height }
     }
 
+    // Build a structured node from raw leaves via containment alone. For a consumer's arbitrary content
+    // (a raw List cell, whose whole row lives in one CellHostingView DisplayList) there's no SwiftUI value
+    // to reflect, so geometry is all we have. A flat row has no leaf enclosing its siblings, so seed a
+    // transparent root spanning their union — otherwise containmentTree keeps only the largest leaf.
+    static func containmentNode(leaves: [DisplayLeaf], host: UIView) -> FigmaNode? {
+        guard let first = leaves.first else { return nil }
+        // Strictly larger than the union so it encloses even a lone leaf whose frame equals the union —
+        // containmentTree refuses to nest a child sharing the parent's exact frame.
+        let bounds = leaves.dropFirst().map(\.frame).reduce(first.frame) { $0.union($1) }.insetBy(dx: -1, dy: -1)
+        let rooted = [DisplayLeaf(frame: bounds, kind: .transparent)] + leaves
+        return emit(containmentTree(rooted), host: host)
+    }
+
     private static func containmentTree(_ leaves: [DisplayLeaf]) -> Box {
         let parentsBeforeChildren = leaves.map(Box.init).sorted { $0.area > $1.area }
         for (index, box) in parentsBeforeChildren.enumerated() {
