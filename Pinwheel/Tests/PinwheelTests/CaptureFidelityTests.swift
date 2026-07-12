@@ -465,12 +465,21 @@ final class CaptureFidelityTests: XCTestCase {
             .text("Wi-Fi", detail: "Home", chevron: true) {},
             .toggle("Airplane Mode", isOn: .constant(false)),
         ], onRetry: {})
-        let document = try XCTUnwrap(PinDisplayListCapture.document(list, name: "List", size: CGSize(width: 402, height: 400), screenHeight: 778),
-                                     "the list should capture into a document")
+        // PinList is a real UIKit-backed List; capture reads its rows by force-realizing the backing
+        // collection on a live host, not off-screen (the DisplayList can't see unrealized cells).
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 402, height: 400))
+        let controller = UIHostingController(rootView: list)
+        window.rootViewController = controller
+        window.isHidden = false
+        window.layoutIfNeeded()
+        controller.view.layoutIfNeeded()
+        let document = try XCTUnwrap(
+            PinSwiftUIListCapture.document(name: "List", size: CGSize(width: 402, height: 400), screenHeight: 778, liveHost: controller.view),
+            "PinList should capture its rows, not return nil")
         let titles = allTextNodes(in: document.root).compactMap { $0.texts?.first?.text }
-        XCTAssertTrue(titles.contains("Wi-Fi"),
-                      "an eager PinList captures its row titles as text nodes; a UIKit-backed List captures an empty frame")
+        XCTAssertTrue(titles.contains("Wi-Fi"), "PinList captures its row titles as text nodes")
         XCTAssertTrue(titles.contains("Airplane Mode"), "toggle-row labels must capture too")
+        withExtendedLifetime(window) {}
     }
 
     func testFullScreenComponentCentersInOneScreen() throws {

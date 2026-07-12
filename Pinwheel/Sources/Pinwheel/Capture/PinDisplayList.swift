@@ -23,7 +23,7 @@ struct DisplayLeaf {
 enum PinDisplayList {
     // The window is returned so the caller keeps it alive.
     static func read<Content: SwiftUI.View>(_ view: Content, size: CGSize, liveControlsOnScreen: Bool) -> (leaves: [DisplayLeaf], host: UIView, window: UIWindow)? {
-        let controller = UIHostingController(rootView: view.environment(\.pinCapturing, true))
+        let controller = UIHostingController(rootView: view)
         let hostView: UIView = controller.view
         hostView.frame = CGRect(origin: .zero, size: size)
         let window = UIWindow(frame: hostView.frame)

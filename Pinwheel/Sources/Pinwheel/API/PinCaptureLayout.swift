@@ -30,7 +30,4 @@ public struct PinCaptureLayout {
 
 public extension EnvironmentValues {
     @Entry var pinCaptureSink: (@MainActor @Sendable (String) -> Void)? = nil
-    // Set by the capture pipeline: a UIKit-backed `List` is invisible to the DisplayList, so PinList
-    // renders an eager stack while this is on.
-    @Entry var pinCapturing: Bool = false
 }

@@ -34,7 +34,7 @@ final class FillWidthPropagationTests: XCTestCase {
 
     func testRowFillsWidthFromNestedSpacer() throws {
         let size = CGSize(width: 402, height: 900)
-        let controller = UIHostingController(rootView: Row().environment(\.pinCapturing, true))
+        let controller = UIHostingController(rootView: Row())
         controller.view.frame = CGRect(origin: .zero, size: size)
         let window = UIWindow(frame: controller.view.frame)
         window.rootViewController = controller
