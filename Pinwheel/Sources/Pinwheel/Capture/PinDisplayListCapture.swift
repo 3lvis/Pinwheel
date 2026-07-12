@@ -99,31 +99,57 @@ public enum PinDisplayListCapture {
         }
         var counts: [String: Int] = [:]
         for case let signature? in signatures { counts[signature, default: 0] += 1 }
-        // The master of each ≥2 group is its first member (the superset — real rows carry every optional
-        // child). A leftover row that's a *subset* of a master (a cart row without the optional SALE pill /
-        // was-price) joins that component as a variant, normalized to the master's structure with the
-        // missing children inserted as hidden placeholders.
         let originalChildren = node.children
-        let masters = signatures.enumerated().reduce(into: [String: Int]()) { result, pair in
-            if let signature = pair.element, counts[signature, default: 0] >= 2, result[signature] == nil {
-                result[signature] = pair.offset
+
+        // The master of a component must carry every optional layer: a Figma instance can hide a layer but
+        // not add one. So a subset row joins by gaining hidden placeholders, and a superset row is promoted
+        // to master (the existing members then gaining the placeholders instead).
+        var clusterKeyBySignature: [String: Int] = [:]
+        var clusterMaster: [Int] = []
+        var clusterMembers: [[Int]] = []
+        var clusterKey: [String] = []
+        for (index, signature) in signatures.enumerated() {
+            guard let signature, counts[signature, default: 0] >= 2 else { continue }
+            if let cluster = clusterKeyBySignature[signature] {
+                clusterMembers[cluster].append(index)
+            } else {
+                clusterKeyBySignature[signature] = clusterMaster.count
+                clusterMaster.append(index)
+                clusterMembers.append([index])
+                clusterKey.append(signature)
             }
         }
-        node.children = node.children.enumerated().map { index, child in
-            if let signature = signatures[index], counts[signature, default: 0] >= 2 {
-                var componentized = child
-                componentized.component = signature
-                return componentized
-            }
-            guard child.tag == "frame", child.component == nil else { return child }
-            for (signature, masterIndex) in masters.sorted(by: { $0.value < $1.value }) {
-                if let normalized = variantAlign(master: originalChildren[masterIndex], into: child) {
-                    var componentized = normalized
-                    componentized.component = signature
-                    return componentized
+        for index in originalChildren.indices {
+            guard originalChildren[index].tag == "frame", originalChildren[index].component == nil else { continue }
+            if let signature = signatures[index], counts[signature, default: 0] >= 2 { continue }
+            for cluster in clusterMaster.indices {
+                let master = originalChildren[clusterMaster[cluster]]
+                if variantAlign(master: master, into: originalChildren[index]) != nil {
+                    clusterMembers[cluster].append(index)
+                    break
+                }
+                if variantAlign(master: originalChildren[index], into: master) != nil {
+                    clusterMaster[cluster] = index
+                    clusterMembers[cluster].append(index)
+                    break
                 }
             }
-            return child
+        }
+
+        var assignment: [Int: (key: String, node: FigmaNode)] = [:]
+        for cluster in clusterMaster.indices where clusterMembers[cluster].count >= 2 {
+            let master = originalChildren[clusterMaster[cluster]]
+            for member in clusterMembers[cluster] {
+                if let normalized = variantAlign(master: master, into: originalChildren[member]) {
+                    assignment[member] = (clusterKey[cluster], normalized)
+                }
+            }
+        }
+        node.children = originalChildren.enumerated().map { index, child in
+            guard let (key, normalized) = assignment[index] else { return child }
+            var componentized = normalized
+            componentized.component = key
+            return componentized
         }
         return node
     }
@@ -165,12 +191,18 @@ public enum PinDisplayListCapture {
         // one template, while a real size difference (a 120 vs 240 card) still lands in distinct buckets.
         func bucket(_ value: Double) -> Int { Int((value / 16).rounded()) }
         if node.tag == "image" { return "IMG:w\(bucket(node.w)):h\(bucket(node.h))" }
-        var parts = ["\(node.tag):w\(bucket(node.w)):h\(bucket(node.h))"]
+        // A chip (a frame hugging a single text — a status pill) sizes to its overridable text, so its width
+        // varies per instance; omit its size so a short "Bonus" and a long "Not delivered" share a template.
+        // Any other frame keeps size-keying, so genuinely different-sized cards stay distinct.
+        let isChip = node.children.count == 1 && node.children.first?.tag == "text"
+        var parts = [isChip ? node.tag : "\(node.tag):w\(bucket(node.w)):h\(bucket(node.h))"]
         // Only the axis is stable — justify/align/gap are inferred from rendered geometry and wobble with
         // text width across otherwise-identical cards, so they'd falsely split one template. Instances
         // inherit the master's layout regardless.
         if let layout = node.layout { parts.append("L\(layout.mode)") }
-        parts.append("F:\(node.fillToken ?? (node.fill != nil ? "#" : "-"))")
+        // Fill is keyed by PRESENCE, not colour — a Figma instance can override a fill, so rows differing
+        // only by a chip's colour (bonus blue vs warning neutral) group and the plugin overrides per instance.
+        parts.append("F:\(node.fill != nil || node.fillToken != nil ? "#" : "-")")
         parts.append("R:\(node.radiusToken ?? (node.radius != nil ? "#" : "-"))")
         parts.append("[\(node.children.map(signature).joined(separator: ","))]")
         return parts.joined(separator: "|")
