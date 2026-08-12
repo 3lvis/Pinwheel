@@ -86,7 +86,7 @@ struct FigmaCaptureSweepView: SwiftUI.View {
     }
 }
 
-private struct LiveCaptureHost: UIViewControllerRepresentable {
+struct LiveCaptureHost: UIViewControllerRepresentable {
     let entry: FigmaCatalogEntry
     var onCaptured: ((FigmaDocument) -> Void)?
 
