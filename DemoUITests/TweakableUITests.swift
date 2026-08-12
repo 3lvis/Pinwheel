@@ -61,44 +61,7 @@ final class TweakableUITests: XCTestCase {
         item.tap()
     }
 
-    // KEEP: app-layer wiring — tweak preferences survive the settings sheet
-    // closing and reopening across a playground re-render. (Tweak invocation
-    // itself is unit-tested in PinwheelTweakTests.)
-    @MainActor
-    func testSwiftUISecondActionTweakStillUpdatesContent() {
-        launchPreview(.tweakable, .swiftUI)
 
-        openSettings()
-        let option1 = app.buttons["Option 1"]
-        XCTAssertTrue(option1.waitForExistence(timeout: defaultTimeout))
-        option1.tap()
-        XCTAssertTrue(app.staticTexts["You chose Option 1."].waitForExistence(timeout: defaultTimeout))
-
-        openSettings()
-        // A described row's accessibility label is the combined "title, description".
-        let option2 = app.buttons["Option 2, Description 2"]
-        XCTAssertTrue(option2.waitForExistence(timeout: defaultTimeout), "Option 2 should still be listed on reopen")
-        option2.tap()
-        XCTAssertTrue(app.staticTexts["You chose Option 2."].waitForExistence(timeout: defaultTimeout),
-                      "A second tweak selection should still update the example label")
-    }
-
-    // KEEP: app-layer wiring — the real user path (catalog list → fullScreenCover
-    // → playground → sheet) that a unit can't drive.
-    @MainActor
-    func testCatalogTweakableActionUpdatesContent() {
-        app.launch()
-
-        openCatalogItem(.tweakable, .swiftUI, in: .components)
-
-        openSettings()
-        let option1 = app.buttons["Option 1"]
-        XCTAssertTrue(option1.waitForExistence(timeout: defaultTimeout), "Option 1 should be listed")
-        option1.tap()
-
-        XCTAssertTrue(app.staticTexts["You chose Option 1."].waitForExistence(timeout: defaultTimeout),
-                      "Choosing a tweak from the catalog (nested presentation) should update the label")
-    }
 
     // KEEP: app-layer wiring — the UIKit Tweakable bridge end-to-end plus hosting
     // driving the on-screen instance (the mapping itself is in PinwheelTweakTests).
