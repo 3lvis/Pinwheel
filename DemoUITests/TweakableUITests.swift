@@ -123,9 +123,9 @@ final class TweakableUITests: XCTestCase {
         launchPreview(.tweakable, .swiftUI)
         openSettings()
 
-        let deviceButton = app.buttons["iphone.gen3"]
-        XCTAssertTrue(deviceButton.waitForExistence(timeout: defaultTimeout), "device nav button should exist")
-        deviceButton.tap()
+        let deviceRow = app.buttons["pinwheel.device"]
+        XCTAssertTrue(deviceRow.waitForExistence(timeout: defaultTimeout), "the Device row should be listed in settings")
+        deviceRow.tap()
 
         let device = app.buttons["iPhone XS/11 Pro"]
         XCTAssertTrue(device.waitForExistence(timeout: defaultTimeout), "iPhone XS/11 Pro should be listed")

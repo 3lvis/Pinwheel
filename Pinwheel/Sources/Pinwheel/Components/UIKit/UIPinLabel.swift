@@ -1,7 +1,9 @@
 import UIKit
 
 public class UIPinLabel: UILabel {
-    public init(font: UIFont = .body, textColor: UIColor = .primaryText) {
+    private var textStyle: PinTextStyle = .body
+
+    public init(font: PinTextStyle = .body, textColor: UIColor = .primaryText) {
         super.init(frame: .zero)
         setup(font: font, textColor: textColor)
     }
@@ -16,11 +18,19 @@ public class UIPinLabel: UILabel {
         setup()
     }
 
-    private func setup(font: UIFont = .body, textColor: UIColor = .primaryText) {
+    private func setup(font: PinTextStyle = .body, textColor: UIColor = .primaryText) {
         translatesAutoresizingMaskIntoConstraints = false
         isAccessibilityElement = true
         adjustsFontForContentSizeCategory = true
-        self.font = font
+        textStyle = font
         self.textColor = textColor
+        applyTextStyle()
+        registerForTraitChanges([PinwheelThemeTrait.self]) { (label: UIPinLabel, _: UITraitCollection) in
+            label.applyTextStyle()
+        }
+    }
+
+    private func applyTextStyle() {
+        font = textStyle.uiFont(in: traitCollection[PinwheelThemeTrait.self])
     }
 }

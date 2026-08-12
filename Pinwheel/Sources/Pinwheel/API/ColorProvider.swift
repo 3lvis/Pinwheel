@@ -1,6 +1,6 @@
 import UIKit
 
-public protocol ColorProvider {
+public nonisolated protocol ColorProvider: Sendable {
     var primaryText: UIColor { get }
     var secondaryText: UIColor { get }
     var tertiaryText: UIColor { get }

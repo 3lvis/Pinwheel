@@ -5,8 +5,9 @@ struct PinwheelFloatingControlsHost: UIViewRepresentable {
     let chrome: PinwheelChrome
     let tweakCount: Int
     let fabVisible: Bool
-    // The FAB lives in its own window, which `.preferredColorScheme` doesn't reach, so it carries its own style override.
+    // The FAB lives in its own window, which neither `.preferredColorScheme` nor the bridged theme trait reaches.
     var colorScheme: ColorScheme?
+    var theme: PinwheelTheme
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -23,7 +24,8 @@ struct PinwheelFloatingControlsHost: UIViewRepresentable {
             context.coordinator.update(
                 fabVisible: chrome.isFloatingControlsVisible,
                 tweakCount: chrome.tweakCount,
-                colorScheme: chrome.colorScheme
+                colorScheme: chrome.colorScheme,
+                theme: chrome.theme
             )
         }
         return probe
@@ -33,7 +35,7 @@ struct PinwheelFloatingControlsHost: UIViewRepresentable {
         if let scene = uiView.window?.windowScene {
             context.coordinator.attach(scene: scene, chrome: chrome)
         }
-        context.coordinator.update(fabVisible: fabVisible, tweakCount: tweakCount, colorScheme: colorScheme)
+        context.coordinator.update(fabVisible: fabVisible, tweakCount: tweakCount, colorScheme: colorScheme, theme: theme)
     }
 
     static func dismantleUIView(_ uiView: ProbeView, coordinator: Coordinator) {
@@ -65,9 +67,10 @@ struct PinwheelFloatingControlsHost: UIViewRepresentable {
             self.window = window
         }
 
-        func update(fabVisible: Bool, tweakCount: Int, colorScheme: ColorScheme?) {
+        func update(fabVisible: Bool, tweakCount: Int, colorScheme: ColorScheme?, theme: PinwheelTheme) {
             guard let window else { return }
             window.controller.itemsCount = tweakCount
+            window.traitOverrides[PinwheelThemeTrait.self] = theme
             switch colorScheme {
             case .light: window.overrideUserInterfaceStyle = .light
             case .dark: window.overrideUserInterfaceStyle = .dark

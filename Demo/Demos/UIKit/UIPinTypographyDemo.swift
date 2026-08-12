@@ -2,7 +2,7 @@ import UIKit
 import Pinwheel
 
 struct FontItem {
-    let font: UIFont
+    let font: PinTextStyle
     let title: String
 }
 

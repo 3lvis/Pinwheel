@@ -13,62 +13,75 @@ public enum PinTextStyle {
     case caption
     case captionSemibold
 
-    var font: SwiftUI.Font {
+    public func font(in theme: PinwheelTheme) -> SwiftUI.Font {
+        SwiftUI.Font(uiFont(in: theme))
+    }
+
+    func uiFont(in theme: PinwheelTheme) -> UIFont {
+        let fonts = theme.fonts
         switch self {
-        case .title: return PinwheelTheme.Typography.title
-        case .titleSemibold: return PinwheelTheme.Typography.titleSemibold
-        case .subtitle: return PinwheelTheme.Typography.subtitle
-        case .subtitleSemibold: return PinwheelTheme.Typography.subtitleSemibold
-        case .body: return PinwheelTheme.Typography.body
-        case .bodySemibold: return PinwheelTheme.Typography.bodySemibold
-        case .footnote: return PinwheelTheme.Typography.footnote
-        case .footnoteSemibold: return PinwheelTheme.Typography.footnoteSemibold
-        case .caption: return PinwheelTheme.Typography.caption
-        case .captionSemibold: return PinwheelTheme.Typography.captionSemibold
+        case .title: return fonts.title
+        case .titleSemibold: return fonts.titleSemibold
+        case .subtitle: return fonts.subtitle
+        case .subtitleSemibold: return fonts.subtitleSemibold
+        case .body: return fonts.body
+        case .bodySemibold: return fonts.bodySemibold
+        case .footnote: return fonts.footnote
+        case .footnoteSemibold: return fonts.footnoteSemibold
+        case .caption: return fonts.caption
+        case .captionSemibold: return fonts.captionSemibold
         }
     }
 }
 
-public enum PinwheelTheme {
-    public enum Typography {
-        public static var title: Font { Font(UIFont.title) }
-        public static var titleSemibold: Font { Font(UIFont.titleSemibold) }
-        public static var subtitle: Font { Font(UIFont.subtitle) }
-        public static var subtitleSemibold: Font { Font(UIFont.subtitleSemibold) }
-        public static var body: Font { Font(UIFont.body) }
-        public static var bodySemibold: Font { Font(UIFont.bodySemibold) }
-        public static var footnote: Font { Font(UIFont.footnote) }
-        public static var footnoteSemibold: Font { Font(UIFont.footnoteSemibold) }
-        public static var caption: Font { Font(UIFont.caption) }
-        public static var captionSemibold: Font { Font(UIFont.captionSemibold) }
+public nonisolated struct PinwheelTheme: Sendable {
+    public let name: String
+    public let colors: ColorProvider
+    public let fonts: FontProvider
+    public let buttonShape: PinButtonShape
+
+    public init(name: String, colors: ColorProvider, fonts: FontProvider) {
+        self.init(name: name, colors: colors, fonts: fonts, buttonShape: .rounded)
     }
 
-    public enum Colors {
-        public static var primaryText: Color { Color(uiColor: .primaryText) }
-        public static var secondaryText: Color { Color(uiColor: .secondaryText) }
-        public static var tertiaryText: Color { Color(uiColor: .tertiaryText) }
-        public static var actionText: Color { Color(uiColor: .actionText) }
-        public static var criticalText: Color { Color(uiColor: .criticalText) }
-
-        public static var primaryBackground: Color { Color(uiColor: .primaryBackground) }
-        public static var secondaryBackground: Color { Color(uiColor: .secondaryBackground) }
-        public static var actionBackground: Color { Color(uiColor: .actionBackground) }
-        public static var criticalBackground: Color { Color(uiColor: .criticalBackground) }
+    public init(name: String, colors: ColorProvider, fonts: FontProvider, buttonShape: PinButtonShape) {
+        self.name = name
+        self.colors = colors
+        self.fonts = fonts
+        self.buttonShape = buttonShape
     }
+}
+
+nonisolated extension PinwheelTheme: Identifiable {
+    public var id: String { name }
+}
+
+nonisolated extension PinwheelTheme: Equatable {
+    public static func == (lhs: PinwheelTheme, rhs: PinwheelTheme) -> Bool {
+        lhs.name == rhs.name
+    }
+}
+
+public nonisolated extension PinwheelTheme {
+    static let standard = PinwheelTheme(
+        name: "Standard",
+        colors: DefaultColorProvider(),
+        fonts: DefaultFontProvider()
+    )
 }
 
 /// `.red`-style shorthand for the themed colors. The leading-dot form needs a
 /// `ShapeStyle`/`Color` context to resolve; at `.listRowBackground(_:)` (a generic
 /// `View` parameter) spell the type: `Color.primaryBackground`.
 public extension ShapeStyle where Self == Color {
-    static var primaryText: Color { PinwheelTheme.Colors.primaryText }
-    static var secondaryText: Color { PinwheelTheme.Colors.secondaryText }
-    static var tertiaryText: Color { PinwheelTheme.Colors.tertiaryText }
-    static var actionText: Color { PinwheelTheme.Colors.actionText }
-    static var criticalText: Color { PinwheelTheme.Colors.criticalText }
+    static var primaryText: Color { Color(uiColor: .primaryText) }
+    static var secondaryText: Color { Color(uiColor: .secondaryText) }
+    static var tertiaryText: Color { Color(uiColor: .tertiaryText) }
+    static var actionText: Color { Color(uiColor: .actionText) }
+    static var criticalText: Color { Color(uiColor: .criticalText) }
 
-    static var primaryBackground: Color { PinwheelTheme.Colors.primaryBackground }
-    static var secondaryBackground: Color { PinwheelTheme.Colors.secondaryBackground }
-    static var actionBackground: Color { PinwheelTheme.Colors.actionBackground }
-    static var criticalBackground: Color { PinwheelTheme.Colors.criticalBackground }
+    static var primaryBackground: Color { Color(uiColor: .primaryBackground) }
+    static var secondaryBackground: Color { Color(uiColor: .secondaryBackground) }
+    static var actionBackground: Color { Color(uiColor: .actionBackground) }
+    static var criticalBackground: Color { Color(uiColor: .criticalBackground) }
 }

@@ -61,6 +61,7 @@ struct PinwheelPlayground: SwiftUI.View {
                     tweaks: chrome.tweaks,
                     selectedDeviceIndex: $chrome.selectedDeviceIndex
                 )
+                .pinwheelPresented(chrome)
                 .presentationDetents([.medium, .large])
             }
     }
@@ -212,121 +213,5 @@ private struct PinwheelHostedItem: SwiftUI.View {
         } else {
             view
         }
-    }
-}
-
-private struct PinwheelSettingsView: SwiftUI.View {
-    let tweaks: [PinwheelTweak]
-    @SwiftUI.Binding var selectedDeviceIndex: Int?
-
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some SwiftUI.View {
-        NavigationStack {
-            optionsList
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .principal) {
-                        PinLabel("Options").font(.subtitleSemibold)
-                    }
-                    ToolbarItem(placement: .topBarTrailing) {
-                        NavigationLink {
-                            PinwheelDeviceList(selectedIndex: $selectedDeviceIndex)
-                        } label: {
-                            Image(systemName: "iphone.gen3")
-                        }
-                        .tint(.actionText)
-                    }
-                }
-        }
-    }
-
-    @ViewBuilder
-    private var optionsList: some SwiftUI.View {
-        List {
-            ForEach(tweaks) { tweak in
-                tweakRow(tweak)
-                    .listRowBackground(Color.primaryBackground)
-            }
-        }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
-        .background(.primaryBackground)
-        .overlay {
-            if tweaks.isEmpty {
-                PinLabel("No options").color(.secondary)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func tweakRow(_ tweak: PinwheelTweak) -> some SwiftUI.View {
-        switch tweak.control {
-        case .action(let action):
-            SwiftUI.Button {
-                action()
-                dismiss()
-            } label: {
-                rowLabels(tweak)
-            }
-            .buttonStyle(.plain)
-        case .toggle(let isOn):
-            Toggle(isOn: isOn) { rowLabels(tweak) }
-        }
-    }
-
-    private func rowLabels(_ tweak: PinwheelTweak) -> some SwiftUI.View {
-        VStack(alignment: .leading, spacing: .spacingXXS) {
-            PinLabel(tweak.title)
-            if let description = tweak.description {
-                PinLabel(description).font(.caption).color(.secondary)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .contentShape(Rectangle())
-    }
-}
-
-private struct PinwheelDeviceList: SwiftUI.View {
-    @SwiftUI.Binding var selectedIndex: Int?
-
-    private let devices = Device.all
-
-    var body: some SwiftUI.View {
-        List {
-            ForEach(Array(devices.enumerated()), id: \.offset) { index, device in
-                SwiftUI.Button {
-                    selectedIndex = index
-                } label: {
-                    HStack {
-                        PinLabel(device.title).color(device.isEnabled ? .primary : .tertiary)
-                        Spacer()
-                        if isSelected(index, device) {
-                            Image(systemName: "checkmark")
-                                .foregroundStyle(.actionText)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .disabled(!device.isEnabled)
-                .listRowBackground(Color.primaryBackground)
-            }
-        }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
-        .background(.primaryBackground)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                PinLabel("Device").font(.subtitleSemibold)
-            }
-        }
-    }
-
-    private func isSelected(_ index: Int, _ device: Device) -> Bool {
-        if let selectedIndex { return selectedIndex == index }
-        return device.isCurrent
     }
 }

@@ -6,12 +6,25 @@ import SwiftUI
 public struct PinwheelPreview: SwiftUI.View {
     private let sections: [PinwheelSection]
     private let id: String
+    private let themes: [PinwheelTheme]
 
     @SwiftUI.State private var chrome = PinwheelChrome()
 
     public init(_ id: String, sections: [PinwheelSection]) {
+        self.init(id, sections: sections, themes: [.standard])
+    }
+
+    public init(_ id: String, sections: [PinwheelSection], themes: [PinwheelTheme]) {
         self.id = id
         self.sections = sections
+        self.themes = themes
+
+        // Resolved before the first render, so the window override never lands on a stale theme.
+        let chrome = PinwheelChrome()
+        chrome.themes = themes
+        chrome.selectedThemeName = Self.requestedTheme
+        chrome.normalizeTheme()
+        _chrome = SwiftUI.State(initialValue: chrome)
     }
 
     public init(_ id: String, @PinwheelSectionBuilder sections: () -> [PinwheelSection]) {
@@ -28,11 +41,14 @@ public struct PinwheelPreview: SwiftUI.View {
                 autoApplyTweak: Self.requestedTweak
             )
             .environment(chrome)
+            .environment(\.pinwheelTheme, chrome.theme)
+            .background(PinwheelThemedWindow(theme: chrome.theme))
             .background(
                 PinwheelFloatingControlsHost(
                     chrome: chrome,
                     tweakCount: chrome.tweakCount,
-                    fabVisible: chrome.isFloatingControlsVisible
+                    fabVisible: chrome.isFloatingControlsVisible,
+                    theme: chrome.theme
                 )
             )
         } else {
@@ -78,6 +94,20 @@ public extension PinwheelPreview {
         }
 
         if let environment = ProcessInfo.processInfo.environment["PINWHEEL_PREVIEW"],
+           !environment.isEmpty {
+            return environment
+        }
+
+        return nil
+    }
+
+    static var requestedTheme: String? {
+        if let argument = UserDefaults.standard.string(forKey: "PinwheelPreviewTheme"),
+           !argument.isEmpty {
+            return argument
+        }
+
+        if let environment = ProcessInfo.processInfo.environment["PINWHEEL_PREVIEW_THEME"],
            !environment.isEmpty {
             return environment
         }

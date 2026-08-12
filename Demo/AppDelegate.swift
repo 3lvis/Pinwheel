@@ -15,9 +15,6 @@ struct DemoApp: App {
             UIView.setAnimationsEnabled(false)
         }
 
-        Config.colorProvider = DemoColorProvider()
-        Config.fontProvider = DemoFontProvider()
-
         if FigmaCatalog.isManifestDump {
             FigmaCatalog.dumpManifest()
         }
@@ -28,9 +25,9 @@ struct DemoApp: App {
             if let captureID = FigmaCatalog.requestedCaptureID {
                 FigmaCaptureSweepView(id: captureID)
             } else if let previewID = PinwheelPreview.requestedID {
-                PinwheelPreview(previewID, sections: DemoPinwheelSections.all)
+                PinwheelPreview(previewID, sections: DemoPinwheelSections.all, themes: DemoThemes.all)
             } else {
-                PinwheelCatalog {
+                PinwheelCatalog(themes: DemoThemes.all) {
                     DemoPinwheelSections.tokens
                     DemoPinwheelSections.components
                     DemoPinwheelSections.screens

@@ -334,14 +334,24 @@ public struct PinwheelSelection: Hashable, Identifiable {
 public struct PinwheelCatalog: SwiftUI.View {
     private let sections: [PinwheelSection]
     private let usesEmbeddedNavigation: Bool
+    private let themes: [PinwheelTheme]
 
     public init(usesEmbeddedNavigation: Bool = true, @PinwheelSectionBuilder sections: () -> [PinwheelSection]) {
+        self.init(themes: [.standard], usesEmbeddedNavigation: usesEmbeddedNavigation, sections: sections)
+    }
+
+    public init(
+        themes: [PinwheelTheme],
+        usesEmbeddedNavigation: Bool = true,
+        @PinwheelSectionBuilder sections: () -> [PinwheelSection]
+    ) {
         self.sections = sections()
         self.usesEmbeddedNavigation = usesEmbeddedNavigation
+        self.themes = themes
     }
 
     public var body: some SwiftUI.View {
-        PinwheelCatalogView(sections: sections, usesEmbeddedNavigation: usesEmbeddedNavigation)
+        PinwheelCatalogView(sections: sections, usesEmbeddedNavigation: usesEmbeddedNavigation, themes: themes)
     }
 }
 
@@ -373,6 +383,7 @@ enum PinwheelStateStore {
     private static let selectedSectionIDKey = "Pinwheel.SelectedSectionID"
     private static let selectedItemIDKey = "Pinwheel.SelectedItemID"
     private static let selectedDeviceBySelectionKey = "Pinwheel.SelectedDeviceBySelection"
+    private static let selectedThemeNameKey = "Pinwheel.SelectedThemeName"
     // Legacy key retained so the persisted FAB corner survives.
     private static let floatingControlsCornerKey = "lastCornerForTweakingButtonKey"
 
@@ -384,6 +395,11 @@ enum PinwheelStateStore {
     static var selectedItemID: String? {
         get { UserDefaults.standard.string(forKey: selectedItemIDKey) }
         set { UserDefaults.standard.set(newValue, forKey: selectedItemIDKey) }
+    }
+
+    static var selectedThemeName: String? {
+        get { UserDefaults.standard.string(forKey: selectedThemeNameKey) }
+        set { UserDefaults.standard.set(newValue, forKey: selectedThemeNameKey) }
     }
 
     static func clearSelectedItem() {

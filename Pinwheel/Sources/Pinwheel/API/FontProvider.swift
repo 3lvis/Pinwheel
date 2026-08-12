@@ -1,6 +1,6 @@
 import UIKit
 
-public protocol FontProvider {
+public nonisolated protocol FontProvider: Sendable {
     var title: UIFont { get }
     var titleSemibold: UIFont { get }
     var subtitle: UIFont { get }
@@ -17,7 +17,7 @@ public protocol FontProvider {
 
 // Semibold variants default to the regular size at semibold weight, so an existing provider gets them
 // for free (and can still override any one).
-public extension FontProvider {
+public nonisolated extension FontProvider {
     var titleSemibold: UIFont { font(ofSize: 23, weight: .semibold).scaledFont(forTextStyle: .headline) }
     var bodySemibold: UIFont { font(ofSize: 17, weight: .semibold).scaledFont(forTextStyle: .body) }
     var footnoteSemibold: UIFont { font(ofSize: 13, weight: .semibold).scaledFont(forTextStyle: .footnote) }

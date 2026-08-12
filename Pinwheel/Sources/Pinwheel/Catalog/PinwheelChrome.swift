@@ -1,5 +1,15 @@
 import SwiftUI
 
+extension SwiftUI.View {
+    // A presentation is a new SwiftUI root: it inherits neither the chrome, the theme nor the
+    // color scheme from the view it is attached to.
+    func pinwheelPresented(_ chrome: PinwheelChrome) -> some SwiftUI.View {
+        environment(chrome)
+            .environment(\.pinwheelTheme, chrome.theme)
+            .preferredColorScheme(chrome.colorScheme)
+    }
+}
+
 @MainActor
 @Observable
 final class PinwheelChrome {
@@ -15,8 +25,26 @@ final class PinwheelChrome {
     var componentID: String?
     var componentVariant: String?
     var colorScheme: ColorScheme?
+    var themes: [PinwheelTheme] = [.standard]
+    var selectedThemeName: String?
 
     var tweakCount: Int { tweaks.count }
+
+    var theme: PinwheelTheme {
+        themes.first { $0.name == selectedThemeName } ?? themes.first ?? .standard
+    }
+
+    var isThemePickerVisible: Bool { themes.count > 1 }
+
+    func selectTheme(_ theme: PinwheelTheme) {
+        selectedThemeName = theme.name
+        PinwheelStateStore.selectedThemeName = theme.name
+    }
+
+    func normalizeTheme() {
+        if let selectedThemeName, themes.contains(where: { $0.name == selectedThemeName }) { return }
+        selectedThemeName = themes.first?.name
+    }
 
     var isFloatingControlsVisible: Bool {
         isPresentingItem && !showsSettings

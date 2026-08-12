@@ -5,6 +5,8 @@ public struct PinStepper: SwiftUI.View {
     private var onDecrement: () -> Void = {}
     private var onIncrement: () -> Void = {}
 
+    @Environment(\.pinwheelTheme) private var theme
+
     public init(value: Int) {
         self.value = value
     }
@@ -27,7 +29,7 @@ public struct PinStepper: SwiftUI.View {
             PinLabel("\(value)").font(.body).frame(minWidth: 20)
             SwiftUI.Button(action: onIncrement) { Image(systemName: "plus") }
         }
-        .font(PinTextStyle.body.font)
+        .font(PinTextStyle.body.font(in: theme))
         .foregroundStyle(.actionText)
         .padding(.horizontal, .spacingM)
         .padding(.vertical, .spacingS)

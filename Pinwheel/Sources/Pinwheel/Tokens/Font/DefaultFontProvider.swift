@@ -1,6 +1,6 @@
 import UIKit
 
-public struct DefaultFontProvider: FontProvider {
+public nonisolated struct DefaultFontProvider: FontProvider {
     public var title: UIFont {
         let font = UIFont.systemFont(ofSize: 23, weight: .medium)
         return font.scaledFont(forTextStyle: .headline)

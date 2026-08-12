@@ -29,6 +29,8 @@ public struct PinLabel: SwiftUI.View {
     private var typography: PinTextStyle = .body
     private var color: TextColor = .primary
 
+    @Environment(\.pinwheelTheme) private var theme
+
     public init(_ text: String) {
         self.text = text
     }
@@ -47,7 +49,7 @@ public struct PinLabel: SwiftUI.View {
 
     public var body: some SwiftUI.View {
         Text(text)
-            .font(typography.font)
+            .font(typography.font(in: theme))
             .foregroundStyle(color.color)
     }
 }

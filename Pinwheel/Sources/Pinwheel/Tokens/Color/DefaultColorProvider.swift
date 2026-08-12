@@ -1,6 +1,6 @@
 import UIKit
 
-public struct DefaultColorProvider: ColorProvider {
+public nonisolated struct DefaultColorProvider: ColorProvider {
     public var primaryText: UIColor {
         if #available(iOS 13.0, *) {
             return UIColor.label

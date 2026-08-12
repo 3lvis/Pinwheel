@@ -28,7 +28,7 @@ public struct PinList: SwiftUI.View {
             ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
                 row
                     .listRowInsets(EdgeInsets(top: .spacingS, leading: .spacingM, bottom: .spacingS, trailing: .spacingM))
-                    .listRowBackground(PinwheelTheme.Colors.primaryBackground)
+                    .listRowBackground(Color.primaryBackground)
             }
         }
         .listStyle(.plain)
@@ -104,7 +104,7 @@ public extension PinList {
 
         private func iconView(_ image: Image, enabled: Bool) -> some SwiftUI.View {
             image
-                .foregroundStyle(enabled ? PinwheelTheme.Colors.actionText : PinwheelTheme.Colors.secondaryText)
+                .foregroundStyle(enabled ? Color.actionText : Color.secondaryText)
                 .frame(width: .spacingXL)
         }
 
