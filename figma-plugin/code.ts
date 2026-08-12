@@ -109,9 +109,9 @@ function calibrateWidth(text: TextNode, targetWidth: number): void {
 async function makeText(run: any, font: any): Promise<TextNode> {
   const plan = planText(run, font)
   const text = figma.createText()
-  // A bound style dictates textDecoration, so it would wipe the underline; underlined text (the link
-  // button) keeps its raw font and its underline instead of the typography-token binding.
-  const style = plan.styleName && !plan.underline ? textStyles[plan.styleName] : undefined
+  // A bound style dictates textDecoration, so it would wipe a decoration; decorated text (an underlined
+  // link, a struck "was" price) keeps its raw font and its decoration instead of the typography binding.
+  const style = plan.styleName && !plan.underline && !plan.strikethrough ? textStyles[plan.styleName] : undefined
   if (style) {
     await figma.loadFontAsync(style.fontName as FontName)
     text.fontName = style.fontName as FontName
@@ -125,6 +125,8 @@ async function makeText(run: any, font: any): Promise<TextNode> {
   if (plan.underline) {
     text.textDecoration = 'UNDERLINE'
     text.textDecorationOffset = { value: 2, unit: 'PIXELS' }
+  } else if (plan.strikethrough) {
+    text.textDecoration = 'STRIKETHROUGH'
   }
   // letterSpacing/lineHeight are owned by a text style; writing them detaches an applied style (Figma
   // reverts the node to raw values), so only set them when the text is unstyled.
@@ -187,6 +189,41 @@ async function applyInstanceContent(instance: InstanceNode, node: any): Promise<
   }
 }
 
+// An instance normalized to its component's structure carries hidden placeholders for the optional layers
+// it lacks (a cart row without the SALE pill / was-price). Walk the instance's layers in the same order
+// build created them (orderChildren) and hide those placeholders, so the instance shows only its own content.
+// A component groups rows that share a structure but each carry a different photo; override every image
+// fill per instance (walking the instance's layers in build order) so each row shows its own image, not
+// the master's.
+function applyImages(layer: SceneNode, node: any): void {
+  if (!('children' in layer)) return
+  const layers = (layer as ChildrenMixin).children as SceneNode[]
+  const items = orderChildren(node)
+  for (let index = 0; index < items.length && index < layers.length; index += 1) {
+    const child = items[index].child
+    if (!child) continue
+    if (child.image) {
+      const source = darkMode && child.imageDark ? child.imageDark : child.image
+      const image = figma.createImage(figma.base64Decode(source))
+      ;(layers[index] as GeometryMixin).fills = [{ type: 'IMAGE', imageHash: image.hash, scaleMode: 'FILL' }]
+    } else {
+      applyImages(layers[index], child)
+    }
+  }
+}
+
+function applyHidden(layer: SceneNode, node: any): void {
+  if (!('children' in layer)) return
+  const layers = (layer as ChildrenMixin).children as SceneNode[]
+  const items = orderChildren(node)
+  for (let index = 0; index < items.length && index < layers.length; index += 1) {
+    const child = items[index].child
+    if (!child) continue
+    if (child.hidden) layers[index].visible = false
+    else applyHidden(layers[index], child)
+  }
+}
+
 async function build(node: any, parent: BaseNode & ChildrenMixin, parentX: number, parentY: number, flow: boolean, insideComponent: boolean = false): Promise<SceneNode> {
   if (node.grow) {
     const spacer = figma.createFrame()
@@ -228,12 +265,22 @@ async function build(node: any, parent: BaseNode & ChildrenMixin, parentX: numbe
   if (node.component && masters[node.component]) {
     const instance = masters[node.component].createInstance()
     parent.appendChild(instance)
-    instance.resize(Math.max(node.w, 0.01), Math.max(node.h, 0.01))
+    // A reflection-path row has no measured size (node.w/h ≈ 0) and fills its parent via a grow child, so
+    // it takes FILL like the master frame does — resizing it to node.w would collapse it to ~0 and the
+    // rows would overlap. Only pin an explicit size when the capture actually measured one.
+    const parentIsAutoLayout = instance.parent && 'layoutMode' in instance.parent && (instance.parent as FrameNode).layoutMode !== 'NONE'
+    if ((node.children.some((child: any) => child.grow) || node.fillWidth) && parentIsAutoLayout) {
+      instance.layoutSizingHorizontal = 'FILL'
+    } else if (node.w > 1 && node.h > 1) {
+      instance.resize(node.w, node.h)
+    }
     if (!flow) {
       instance.x = node.x - parentX
       instance.y = node.y - parentY
     }
     await applyInstanceContent(instance, node)
+    applyHidden(instance, node)
+    applyImages(instance, node)
     return instance
   }
 
@@ -249,7 +296,7 @@ async function build(node: any, parent: BaseNode & ChildrenMixin, parentX: numbe
   frame.fills = node.fill ? [solid(node.fill, node.fillToken)] : []
   frame.clipsContent = false
   if (node.stroke) {
-    frame.strokes = [solid(node.stroke)]
+    frame.strokes = [solid(node.stroke, node.strokeToken)]
     frame.strokeWeight = node.strokeWidth
   }
   if (node.radius) frame.cornerRadius = node.radius
@@ -508,7 +555,9 @@ async function importFramed(data: any, version: any, dark: boolean, tags?: strin
 // Always-on debug path: every import records a compact summary of what it received (the captured IR),
 // flushed to the serve so an import can be diagnosed by reading http://localhost:8787/debug.json.
 // A rootTag of "image" means the capture produced no structured nodes (it fell back to a flat image).
-function traceComponent(name: string, root: any): void {
+// id is the stable catalog id (e.g. "swiftui-button"); name/title collides across the SwiftUI/UIKit
+// twins, so a diff against the captured IR must key on id, not name.
+function traceComponent(id: string, name: string, root: any): void {
   let nodes = 0
   let texts = 0
   let images = 0
@@ -519,7 +568,7 @@ function traceComponent(name: string, root: any): void {
     for (const child of node.children || []) walk(child)
   }
   walk(root)
-  const summary: any = { name, rootTag: root.tag, nodes, texts, images, boundStyles: boundTextStyleCount }
+  const summary: any = { id: id || null, name, rootTag: root.tag, nodes, texts, images, boundStyles: boundTextStyleCount }
   if (root.tag === 'image') summary.warning = 'flat image — the capture produced no structured nodes'
   importTrace.push(summary)
 }
@@ -543,7 +592,7 @@ figma.ui.onmessage = async (message: any) => {
       importTrace = []
       await syncFromDocument(data)
       const framed = await importFramed(data, message.version, Boolean(message.dark), message.tags)
-      traceComponent(data.root.name || 'Screen', data.root)
+      traceComponent(message.id, data.root.name || 'Screen', data.root)
       flushTrace()
       figma.viewport.scrollAndZoomIntoView([framed])
       figma.ui.postMessage({ type: 'done' })
@@ -570,7 +619,7 @@ figma.ui.onmessage = async (message: any) => {
         frame.y = 0
         cursor += frame.width + GAP
         placed.push(frame)
-        traceComponent((entry.data.root && entry.data.root.name) || 'Screen', entry.data.root)
+        traceComponent(entry.id, (entry.data.root && entry.data.root.name) || 'Screen', entry.data.root)
       }
       flushTrace()
       figma.viewport.scrollAndZoomIntoView(placed)

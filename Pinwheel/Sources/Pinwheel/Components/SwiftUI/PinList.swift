@@ -4,6 +4,9 @@ public struct PinList: SwiftUI.View {
     private let state: PinState
     private let rows: [Row]
     private let onRetry: () -> Void
+    // A UIKit-backed `List` hides its rows behind per-cell hosting views the capture can't read, so under
+    // capture PinList renders the same rows in a pure-SwiftUI stack instead. Same `Row` in both — 1:1 cells.
+    @Environment(\.pinCapturing) private var capturing
 
     public init(state: PinState = .loaded, rows: [Row], onRetry: @escaping () -> Void = {}) {
         self.state = state
@@ -14,23 +17,40 @@ public struct PinList: SwiftUI.View {
     public var body: some SwiftUI.View {
         switch state {
         case .loaded:
-            // No per-row id to key on; positional identity is stable because rows are a fixed value array per render.
-            ScrollView {
-                VStack(spacing: 0) {
-                    ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
-                        row
-                            .padding(.horizontal, .spacingM)
-                            .padding(.vertical, .spacingS)
-                        if index < rows.count - 1 {
-                            Divider().padding(.leading, .spacingM)
-                        }
-                    }
-                }
-            }
-            .background(.primaryBackground)
+            if capturing { capturableStack } else { productionList }
         default:
             PinStateView(state, onAction: onRetry)
         }
+    }
+
+    private var productionList: some SwiftUI.View {
+        List {
+            ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                row
+                    .listRowInsets(EdgeInsets(top: .spacingS, leading: .spacingM, bottom: .spacingS, trailing: .spacingM))
+                    .listRowBackground(PinwheelTheme.Colors.primaryBackground)
+            }
+        }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(.primaryBackground)
+    }
+
+    // No per-row id to key on; positional identity is stable because rows are a fixed value array per render.
+    private var capturableStack: some SwiftUI.View {
+        ScrollView {
+            VStack(spacing: 0) {
+                ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
+                    row
+                        .padding(.horizontal, .spacingM)
+                        .padding(.vertical, .spacingS)
+                    if index < rows.count - 1 {
+                        Divider().padding(.leading, .spacingM)
+                    }
+                }
+            }
+        }
+        .background(.primaryBackground)
     }
 }
 

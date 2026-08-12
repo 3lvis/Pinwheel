@@ -370,6 +370,64 @@ final class CaptureFidelityTests: XCTestCase {
         XCTAssertTrue(cards.allSatisfy { $0.component == nil }, "cards of different widths must not be grouped — an instance can't override width")
     }
 
+    // Rows that share an identical image (an icon/chevron the same across every row) must group into one
+    // component — the image is reproducible, unlike a per-row photo which stays distinct.
+    func testIdenticalImageRowsGroupAsOneComponent() throws {
+        struct Cards: SwiftUI.View {
+            var body: some SwiftUI.View {
+                ScrollView {
+                    VStack(spacing: .spacingM) {
+                        ForEach(["Alpha", "Bravo", "Charlie"], id: \.self) { title in
+                            HStack {
+                                Image(systemName: "star.fill")
+                                PinLabel(title).font(.body)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.spacingL)
+                            .background(.secondaryBackground)
+                            .cornerRadius(.radiusM)
+                        }
+                    }
+                    .padding(.spacingL)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .background(.primaryBackground)
+            }
+        }
+        let root = try XCTUnwrap(PinDisplayListCapture.document(Cards(), name: "Icons", size: CGSize(width: 402, height: 1600), screenHeight: 778)).root
+        let keys = Set(allFrameNodes(in: root).compactMap { $0.component })
+        XCTAssertEqual(keys.count, 1, "rows sharing one identical icon must group into a single component")
+        XCTAssertEqual(allFrameNodes(in: root).filter { $0.component != nil }.count, 3, "all three icon rows are instances")
+    }
+
+    // Two cards of the same template that differ by a few points of content-driven width must still group;
+    // only a real size difference (see testDifferentlySizedCards) splits them.
+    func testCardsWithMinorWidthDifferenceStillGroup() throws {
+        struct Cards: SwiftUI.View {
+            var body: some SwiftUI.View {
+                ScrollView {
+                    VStack(spacing: .spacingM) {
+                        card(width: 200, title: "One")
+                        card(width: 206, title: "Two")
+                    }
+                    .padding(.spacingL)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .background(.primaryBackground)
+            }
+            func card(width: CGFloat, title: String) -> some SwiftUI.View {
+                VStack { PinLabel(title).font(.title); PinLabel("detail").font(.caption) }
+                    .frame(width: width)
+                    .padding(.spacingL)
+                    .background(.secondaryBackground)
+                    .cornerRadius(.radiusM)
+            }
+        }
+        let root = try XCTUnwrap(PinDisplayListCapture.document(Cards(), name: "Widths", size: CGSize(width: 402, height: 1600), screenHeight: 778)).root
+        let keys = Set(allFrameNodes(in: root).compactMap { $0.component })
+        XCTAssertEqual(keys.count, 1, "cards differing by a few points still group as one template")
+    }
+
     private func hasCenteringSlot(_ node: FigmaNode) -> Bool {
         if node.name == "Center", node.children.contains(where: { $0.fill != nil }) { return true }
         return node.children.contains { hasCenteringSlot($0) }

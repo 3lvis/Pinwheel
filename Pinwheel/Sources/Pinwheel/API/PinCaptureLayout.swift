@@ -32,4 +32,7 @@ public struct PinCaptureLayout {
 
 public extension EnvironmentValues {
     @Entry var pinCaptureSink: (@MainActor @Sendable (String) -> Void)? = nil
+    // Set by the capture pipeline so capture-aware containers (PinList) render their capturable form — a
+    // pure-SwiftUI stack — instead of a UIKit-backed `List` the DisplayList can't see.
+    @Entry var pinCapturing: Bool = false
 }

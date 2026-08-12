@@ -218,6 +218,29 @@ Components that already ship a UIKit-friendly shell — `UIPinButton`, `UIPinSta
 
 Pinwheel can preview a demo in known iPhone and iPad sizes from the floating settings sheet. SwiftUI demos receive the simulated horizontal and vertical size classes through the SwiftUI environment while the content frame is resized to the selected device.
 
+## Figma Capture
+
+Pinwheel can export your running catalog to editable Figma — every component captured 1:1 with the simulator, in light and dark, as real text/color/number nodes (not a flat screenshot). Components capture with **zero cooperation**: there's no capture code or markers in your views. The engine reads what a component renders (its structure from geometry, its names from reflection) and value-matches the rendered colors, spacing, radii, and fonts against your registered tokens so they import as named, editable Figma variables.
+
+Register your design tokens once so the match can happen:
+
+```swift
+import Pinwheel
+
+PinCaptureTokens.current = PinCaptureTokens(
+    colors: [
+        .init(name: "primaryText", light: .black, dark: .white),
+        .init(name: "primaryBackground", light: .white, dark: .black),
+    ],
+    spacings: [.init(name: "spacing-m", value: 16)],
+    radii: [.init(name: "radius-m", value: 12)],
+    systemFontFamily: "SF Pro",
+    textStyles: [.init(name: "body", family: "SF Pro", size: 17, weight: 400)]
+)
+```
+
+Build capturable screens as eager SwiftUI (`ScrollView { VStack { ForEach } }`) — including bespoke 2-D rows (a thumbnail, a stacked text column, a trailing control), which capture with their real nested layout, not a flattened one. A `List` is UIKit-backed and captures lazily; route lists through `PinList` for a full capture. The capture flow itself (the sweep script, the local serve, and the "Pinwheel Capture Import" Figma plugin) is a developer tool that lives in the repo, not something your app links against.
+
 ## Demo App
 
 The demo app groups examples by concept into three sections:

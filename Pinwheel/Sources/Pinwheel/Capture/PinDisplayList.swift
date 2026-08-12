@@ -1,12 +1,13 @@
 import SwiftUI
 import UIKit
+import ObjectiveC
 
 // Reads SwiftUI's private, undocumented DisplayList via reflection — the internals shift across
 // toolchains, so all of it is contained to this file. Never ships.
 
 struct DisplayLeaf {
     enum Kind {
-        case text(String, font: UIFont?, color: UIColor?, underline: Bool, alignment: NSTextAlignment)
+        case text(String, font: UIFont?, color: UIColor?, underline: Bool, strikethrough: Bool, alignment: NSTextAlignment)
         case roundedRect(radius: CGFloat, color: UIColor?)
         case rasterizable
         case color(UIColor)
@@ -22,7 +23,7 @@ struct DisplayLeaf {
 enum PinDisplayList {
     // The window is returned so the caller keeps it alive.
     static func read<Content: SwiftUI.View>(_ view: Content, size: CGSize, liveControlsOnScreen: Bool) -> (leaves: [DisplayLeaf], host: UIView, window: UIWindow)? {
-        let controller = UIHostingController(rootView: view)
+        let controller = UIHostingController(rootView: view.environment(\.pinCapturing, true))
         let hostView: UIView = controller.view
         hostView.frame = CGRect(origin: .zero, size: size)
         let window = UIWindow(frame: hostView.frame)
@@ -129,11 +130,20 @@ enum PinDisplayList {
     }
 
     private static func displayList(of hostingView: Any) -> Any? {
-        guard let base = child(hostingView, "_base"),
+        // The root `_UIHostingView` exposes `_base` via Mirror; a `List` cell's `CellHostingView` stores it
+        // as an ObjC ivar Mirror hides — read it through the runtime so per-cell capture reaches the same
+        // `viewGraph → renderer → lastList` path.
+        guard let base = child(hostingView, "_base") ?? ivarObject(hostingView, "_base"),
               let graphHost = child(base, "viewGraph"),
               let rendererBox = child(graphHost, "renderer"),
               let updater = unwrap(child(rendererBox, "renderer")) else { return nil }
         return child(updater, "lastList")
+    }
+
+    private static func ivarObject(_ value: Any, _ name: String) -> Any? {
+        guard let object = value as AnyObject?,
+              let ivar = class_getInstanceVariable(type(of: object), name) else { return nil }
+        return object_getIvar(object, ivar)
     }
 
     private static func walk(_ list: Any, origin: CGPoint) -> [DisplayLeaf] {
@@ -265,22 +275,30 @@ enum PinDisplayList {
         return image.pngData()?.base64EncodedString()
     }
 
+    static func textKind(from attributed: NSAttributedString?, fallback: String?) -> DisplayLeaf.Kind {
+        let string = attributed?.string ?? fallback ?? ""
+        let attributes = attributed.flatMap { $0.length > 0 ? $0.attributes(at: 0, effectiveRange: nil) : nil }
+        let underline = (attributes?[.underlineStyle] as? Int).map { $0 != 0 } ?? false
+        let strikethrough = (attributes?[.strikethroughStyle] as? Int).map { $0 != 0 } ?? false
+        let alignment = (attributes?[.paragraphStyle] as? NSParagraphStyle)?.alignment ?? .natural
+        return .text(string, font: attributes?[.font] as? UIFont, color: attributes?[.foregroundColor] as? UIColor,
+                     underline: underline, strikethrough: strikethrough, alignment: alignment)
+    }
+
     private static func contentKind(_ value: Any) -> DisplayLeaf.Kind? {
         guard let (kind, payload) = enumCase(value) else { return .unknown(String(describing: type(of: value))) }
         switch kind {
         case "text":
-            let attributed = deepAttributed(payload)
-            let string = attributed?.string ?? deepString(payload) ?? ""
-            let attributes = attributed.flatMap { $0.length > 0 ? $0.attributes(at: 0, effectiveRange: nil) : nil }
-            let underline = (attributes?[.underlineStyle] as? Int).map { $0 != 0 } ?? false
-            let alignment = (attributes?[.paragraphStyle] as? NSParagraphStyle)?.alignment ?? .natural
-            return .text(string, font: attributes?[.font] as? UIFont, color: attributes?[.foregroundColor] as? UIColor, underline: underline, alignment: alignment)
+            return textKind(from: deepAttributed(payload), fallback: deepString(payload))
         case "shape":
             let mirror = Mirror(reflecting: payload).children.map(\.value)
             let color = mirror.count > 1 ? deepColor(mirror[1]) : nil
             if let radius = roundedRectRadius(mirror.first) { return .roundedRect(radius: radius, color: color) }
             return .rasterizable
         case "color": return .color(deepColor(payload) ?? .clear)
+        // A raster image (a photo, a loaded AsyncImage) resolves its pixels only on a rendered layer, so
+        // mark it rasterizable and let the host-layer crop fill it — same path as an SF Symbol shape.
+        case "image": return .rasterizable
         case "platformView": return .rasterizable
         default: return .unknown(kind)
         }

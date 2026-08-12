@@ -93,7 +93,7 @@ private struct LiveCaptureHost: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIViewController {
         let container = UIViewController()
         container.view.backgroundColor = .clear
-        let host = UIHostingController(rootView: AnyView(entry.item.swiftUIView()))
+        let host = UIHostingController(rootView: AnyView(entry.item.swiftUIView().environment(\.pinCapturing, true)))
         container.addChild(host)
         host.view.translatesAutoresizingMaskIntoConstraints = false
         container.view.addSubview(host.view)
@@ -127,9 +127,12 @@ private struct LiveCaptureHost: UIViewControllerRepresentable {
         // real pills/text never capture. (UIKit controls render only in the sim's own appearance, so the
         // sweep runs twice — sim light, then dark — and merges the two single-appearance documents.)
         let displayList = { PinDisplayListCapture.document(entry.item.swiftUIView(), name: entry.title, size: size, screenHeight: FigmaCatalog.oneScreen, liveHost: host.view) }
+        // A SwiftUI `List` hides its rows behind per-cell hosting views the DisplayList can't see; capture
+        // it via the backing-collection walk (nil for non-List SwiftUI screens, so they fall through).
+        let listCapture = { PinSwiftUIListCapture.document(name: entry.title, size: size, screenHeight: FigmaCatalog.oneScreen, liveHost: host.view) }
         guard let document = entry.item.isUIKitHosted
             ? (PinUIKitCapture.document(host: host.view, name: entry.title, size: size, screenHeight: FigmaCatalog.oneScreen) ?? displayList())
-            : displayList()
+            : (listCapture() ?? displayList())
         else { return }
         onCaptured?(document)
         let version = PinCaptureVersions.shared.record(id: entry.id, document: document)

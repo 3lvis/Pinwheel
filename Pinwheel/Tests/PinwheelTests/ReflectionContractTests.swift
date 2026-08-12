@@ -117,11 +117,127 @@ final class ReflectionContractTests: XCTestCase {
     }
 
     func testStructuralContainersReflectNil() {
-        XCTAssertNil(PinViewReflector.reflect(ForEach(0..<3, id: \.self) { PinLabel("row \($0)") }),
-                     "a ForEach reflects nil so capture uses the containment fallback")
         XCTAssertNil(PinViewReflector.reflect(List { PinLabel("row") }),
                      "a List reflects nil — its lazy UIKit-backed rows aren't in the reflected tree")
         XCTAssertNil(PinViewReflector.reflect(Section { PinLabel("row") }),
                      "a Section reflects nil, falling back to containment")
+    }
+
+    // A ForEach of *container* rows (the rich/2-D case the deref targets — Cart etc.) expands into its real
+    // rows via PinVariadicExpander, so it no longer reflects nil. Bare-leaf rows (ForEach { PinLabel }) have
+    // a different graph-node shape the deref doesn't reach; those return nil and the screen falls back to the
+    // containment path (their prior behavior — a simple 1-D list containment already handles).
+    // A standalone filled/stroked shape (a thumbnail's `RoundedRectangle().fill()`) renders as a fill box the
+    // containment path keeps as a component, so reflection must emit it as a leaf — else a rich row's reflected
+    // leaf count falls short of the rendered components and the whole screen drops to containment (Cart's
+    // 2-D card scramble). An Image (SF Symbol) must NOT be a leaf — containment drops symbols, so counting one
+    // would overshoot the other way.
+    func testFilledShapeReflectsToALeafButImageDoesNot() {
+        XCTAssertNotNil(PinViewReflector.reflect(RoundedRectangle(cornerRadius: 8).fill(.red).frame(width: 56, height: 56)),
+                        "a filled shape reflects to a leaf — the containment path keeps its fill box as a component")
+        XCTAssertNil(PinViewReflector.reflect(Image(systemName: "photo")),
+                     "an SF Symbol reflects nil — the containment path drops symbols, so counting it would desync the zip")
+    }
+
+    // The rich 2-D row (thumbnail | info column | stepper) reflects with the thumbnail shape leading, the
+    // info as a nested column, and the quantity trailing — the structure Cart needs so Figma auto-layout
+    // lays it left-to-right instead of ordering by Y (the v5 scramble).
+    func testTwoDimensionalRowReflectsThumbnailInfoColumnStepper() throws {
+        try XCTSkipUnless(PinVariadicExpander.isHealthy, "expander unavailable on this OS — falls back to containment")
+        let row = HStack {
+            RoundedRectangle(cornerRadius: 8).fill(.gray).frame(width: 56, height: 56)
+            VStack(alignment: .leading) {
+                PinLabel("Title").font(.body)
+                PinLabel("$129").font(.bodySemibold)
+            }
+            Spacer()
+            PinLabel("1").font(.body)
+        }
+        guard case .container(let outer, let top)? = PinViewReflector.reflect(row), outer.axis == .row else {
+            return XCTFail("the row reflects to a horizontal container")
+        }
+        func firstLeafText(_ n: ReflectedNode) -> String?? {
+            switch n {
+            case .leaf(let t, _, _): return .some(t)
+            case .container(_, let c): return c.compactMap(firstLeafText).first ?? nil
+            case .spacer: return nil
+            }
+        }
+        guard case .leaf(let leadingText, _, _) = top.first else {
+            return XCTFail("the row leads with the thumbnail shape leaf")
+        }
+        XCTAssertNil(leadingText, "the leading leaf is the thumbnail shape (no text)")
+        let texts = top.compactMap(firstLeafText).compactMap { $0 }
+        XCTAssertEqual(texts, ["Title", "1"], "the info column (Title) precedes the trailing quantity, in reading order")
+    }
+
+    // An `.overlay(Capsule().stroke(color, lineWidth:))` border reflects onto the container. Reflection reads
+    // the StrokeStyle's lineWidth from the view value — unlike the DisplayList, which bakes the stroke to a
+    // filled ring with no readable width — so a bordered control (a stepper pill) captures its border editably.
+    func testOverlayStrokeReflectsAsTheContainerBorder() throws {
+        let bordered = HStack { PinLabel("−"); PinLabel("+") }
+            .overlay(Capsule().stroke(Color.red, lineWidth: 2))
+        guard case .container(let container, _)? = PinViewReflector.reflect(bordered) else {
+            return XCTFail("a bordered HStack reflects to a container")
+        }
+        let border = try XCTUnwrap(container.border, "the overlay stroke is captured as the container's border")
+        XCTAssertEqual(border.width, 2, "the border carries the stroke's lineWidth, read from the view value")
+    }
+
+    // A Capsule stroke border captures as a pill so the imported frame is fully rounded, not a square
+    // rectangle; a RoundedRectangle stroke carries its own corner radius.
+    func testCapsuleStrokeBorderCapturesAsPill() throws {
+        let capsule = HStack { PinLabel("x") }.overlay(Capsule().stroke(Color.red, lineWidth: 1))
+        guard case .container(let capsuleContainer, _)? = PinViewReflector.reflect(capsule),
+              let capsuleBorder = capsuleContainer.border else {
+            return XCTFail("the capsule-bordered container carries a border")
+        }
+        XCTAssertTrue(capsuleBorder.isPill, "a Capsule stroke border is a pill (fully rounded)")
+
+        let rounded = HStack { PinLabel("x") }.overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.red, lineWidth: 1))
+        guard case .container(let roundedContainer, _)? = PinViewReflector.reflect(rounded),
+              let roundedBorder = roundedContainer.border else {
+            return XCTFail("the rounded-rect-bordered container carries a border")
+        }
+        XCTAssertFalse(roundedBorder.isPill, "a RoundedRectangle stroke is not a pill")
+        XCTAssertEqual(roundedBorder.cornerRadius, 8, "the RoundedRectangle border carries its corner radius")
+    }
+
+    // A bordered single leaf (a stepper drawn as one "−  1  +" label with an overlay stroke) wraps into a
+    // bordered container so the border is carried and the leaf count stays 1 — matching containment, which
+    // groups the ring-enclosed control into a single component (its flatten treats a box of leaves as one).
+    func testBorderedLeafWrapsIntoABorderedContainer() throws {
+        let bordered = PinLabel("−  1  +").overlay(Capsule().stroke(Color.red, lineWidth: 1))
+        guard case .container(let container, let children)? = PinViewReflector.reflect(bordered) else {
+            return XCTFail("a bordered leaf wraps into a container carrying the border")
+        }
+        XCTAssertNotNil(container.border, "the wrapping container carries the stroke border")
+        XCTAssertEqual(children.count, 1, "the original leaf is the container's sole child")
+        guard case .leaf(let text, _, _) = children.first else { return XCTFail("the child is the label leaf") }
+        XCTAssertEqual(text, "−  1  +", "the label text survives the wrap")
+    }
+
+    // A fixed-size (framed) image is a deliberate thumbnail the containment path keeps as a component, so
+    // reflection must count it as a leaf — else a row like a gallery cell (thumbnail + text column) reflects
+    // short of the rendered components and drops to the containment path, which scrambles the 2-D row. An
+    // unframed intrinsic-size image (an SF Symbol) still reflects nil, since containment drops those.
+    func testFramedImageReflectsToALeafButUnframedDoesNot() {
+        XCTAssertNotNil(PinViewReflector.reflect(Image(systemName: "photo").resizable().frame(width: 64, height: 64)),
+                        "a fixed-size framed image reflects as a leaf")
+        XCTAssertNil(PinViewReflector.reflect(Image(systemName: "plus")),
+                     "an unframed image still reflects nil")
+    }
+
+    func testForEachOfContainerRowsExpands() throws {
+        try XCTSkipUnless(PinVariadicExpander.isHealthy, "expander unavailable on this OS — ForEach falls back to containment")
+        func leaves(_ n: ReflectedNode?) -> Int {
+            switch n {
+            case .container(_, let c): return c.reduce(0) { $0 + leaves($1) }
+            case .leaf: return 1
+            default: return 0
+            }
+        }
+        XCTAssertEqual(leaves(PinViewReflector.reflect(ForEach(["r0", "r1"], id: \.self) { name in HStack { PinLabel(name) } })), 2,
+                       "ForEach of HStack rows expands → 2 leaves")
     }
 }
