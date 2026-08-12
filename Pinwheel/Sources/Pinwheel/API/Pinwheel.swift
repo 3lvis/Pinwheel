@@ -174,8 +174,6 @@ public struct PinwheelItem {
             tabletDisplayMode: .fullscreen,
             isUIKitHosted: true,
             makeSwiftUIView: {
-                // Reuse the same view across renders. The tweak controls hold onto it, so a
-                // fresh one each render would leave them driving a hidden, discarded copy.
                 let view = sharedHostedView ?? {
                     let created = ViewType(frame: .zero)
                     sharedHostedView = created

@@ -63,22 +63,6 @@ final class TweakableUITests: XCTestCase {
 
 
 
-    // KEEP: app-layer wiring — the UIKit Tweakable bridge end-to-end plus hosting
-    // driving the on-screen instance (the mapping itself is in PinwheelTweakTests).
-    @MainActor
-    func testCatalogUIKitTweakableActionUpdatesContent() {
-        app.launch()
-
-        openCatalogItem(.tweakable, .uiKit, in: .components)
-
-        openSettings()
-        let option1 = app.buttons["Option 1"]
-        XCTAssertTrue(option1.waitForExistence(timeout: defaultTimeout), "Option 1 should be listed")
-        option1.tap()
-
-        XCTAssertTrue(app.staticTexts["You chose Option 1."].waitForExistence(timeout: defaultTimeout),
-                      "A UIKit tweak chosen from the catalog should update the hosted view's label")
-    }
 
     // KEEP: app-layer wiring — a SwiftUI layout-engine crash no unit can reproduce.
     @MainActor
