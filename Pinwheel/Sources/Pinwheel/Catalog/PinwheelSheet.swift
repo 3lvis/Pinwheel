@@ -38,7 +38,6 @@ struct PinwheelSheet<Content: SwiftUI.View, Trailing: SwiftUI.View>: SwiftUI.Vie
             VStack(alignment: .leading, spacing: 0) {
                 header
                 Divider()
-                    // A Divider is a 0.33pt hairline by default, which disappears on a light surface.
                     .frame(height: 1)
                     .overlay(Color.secondaryBackground)
                     .padding(.horizontal, .spacingXL)

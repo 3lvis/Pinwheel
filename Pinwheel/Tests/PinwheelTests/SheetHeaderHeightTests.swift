@@ -29,5 +29,11 @@ final class SheetHeaderHeightTests: XCTestCase {
             accuracy: 0.5,
             "the header band should be the 48pt control floor with one spacing-s above and below"
         )
+        XCTAssertEqual(
+            hairline.frame.height,
+            1,
+            accuracy: 0.01,
+            "a Divider draws a 0.33pt hairline by default, which disappears on a light surface"
+        )
     }
 }
