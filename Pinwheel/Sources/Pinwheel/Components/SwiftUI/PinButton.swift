@@ -123,6 +123,7 @@ private struct PinButtonStyle: SwiftUI.ButtonStyle {
                 .padding(.horizontal, .spacingL)
                 .frame(minWidth: hasTitle ? 100 : nil)
                 .frame(maxWidth: isFullWidth ? .infinity : nil)
+                .frame(minHeight: .minimumControlHeight)
                 .background {
                     if let background {
                         theme.buttonShape.shape.fill(background)

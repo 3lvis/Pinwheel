@@ -25,6 +25,7 @@ struct PinwheelSettingsView: SwiftUI.View {
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
+            .background(.primaryBackground)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
@@ -143,32 +144,35 @@ struct PickerList<Content: SwiftUI.View>: SwiftUI.View {
     @ViewBuilder let content: () -> Content
 
     @SwiftUI.State private var contentHeight: CGFloat = 0
+    @SwiftUI.State private var safeAreaBottom: CGFloat = 0
     @Environment(\.dismiss) private var dismiss
 
     var body: some SwiftUI.View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 header
-                Rectangle()
-                    .fill(Color.secondaryBackground)
+                Divider()
+                    // A Divider is a 0.33pt hairline by default, which disappears on a light surface.
                     .frame(height: 1)
-                    .padding(.horizontal, PickerMetrics.margin)
+                    .overlay(Color.secondaryBackground)
+                    .padding(.horizontal, .spacingXL)
                 content()
                 PinButton("Done") { dismiss() }
                     .style(.primary)
                     .fullWidth()
-                    .padding(.horizontal, PickerMetrics.margin)
-                    .padding(.top, PickerMetrics.groupGap)
+                    .padding(.horizontal, .spacingXL)
+                    .padding(.top, .spacingXL)
             }
-            .padding(.bottom, PickerMetrics.bottomAir)
+            .padding(.bottom, .spacingXL)
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentHeight = $0 }
         }
         .scrollBounceBehavior(.basedOnSize)
-        // The sheet lays its content out above the bottom safe area, so a fitted detent leaves
-        // that strip empty below the content. Spanning it makes `bottomAir` the breathing room.
-        .ignoresSafeArea(.container, edges: .bottom)
+        .background(.primaryBackground)
+        .onGeometryChange(for: CGFloat.self) { $0.safeAreaInsets.bottom } action: { safeAreaBottom = $0 }
         .presentationDragIndicator(.hidden)
-        .presentationDetents([.height(contentHeight), .large])
+        // A sheet adds its bottom safe-area inset on top of the detent, so asking for the content's
+        // height yields a sheet that much taller and an empty strip under the content.
+        .presentationDetents([.height(max(contentHeight - safeAreaBottom, 0)), .large])
     }
 
     private var header: some SwiftUI.View {
@@ -184,8 +188,8 @@ struct PickerList<Content: SwiftUI.View>: SwiftUI.View {
             .tint(.primaryText)
             .accessibilityLabel("Close")
         }
-        .padding(.horizontal, PickerMetrics.margin)
-        .padding(.top, PickerMetrics.groupGap)
+        .padding(.horizontal, .spacingXL)
+        .padding(.top, .spacingXL)
         .padding(.bottom, .spacingM)
     }
 
@@ -229,8 +233,9 @@ struct PickerRow: SwiftUI.View {
                 Spacer()
                 PickerRadio(isSelected: isSelected)
             }
-            .frame(maxWidth: .infinity, minHeight: PickerMetrics.rowHeight, alignment: .leading)
-            .padding(.horizontal, PickerMetrics.margin)
+            .padding(.horizontal, .spacingXL)
+            .padding(.vertical, .spacingM)
+            .frame(maxWidth: .infinity, minHeight: .minimumControlHeight, alignment: .leading)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -276,6 +281,8 @@ struct PinwheelDeviceList: SwiftUI.View {
 private struct PickerRadio: SwiftUI.View {
     let isSelected: Bool
 
+    @ScaledMetric(relativeTo: .body) private var size: CGFloat = .spacingXL
+
     var body: some SwiftUI.View {
         ZStack {
             Circle()
@@ -286,13 +293,7 @@ private struct PickerRadio: SwiftUI.View {
                     .padding(5)
             }
         }
-        .frame(width: .spacingXL, height: .spacingXL)
+        .frame(width: size, height: size)
     }
 }
 
-enum PickerMetrics {
-    static let margin: CGFloat = .spacingXL
-    static let rowHeight: CGFloat = 48
-    static let groupGap: CGFloat = .spacingXL
-    static let bottomAir: CGFloat = .spacingXXL
-}
