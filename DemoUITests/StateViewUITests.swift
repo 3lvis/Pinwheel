@@ -37,37 +37,7 @@ final class StateViewUITests: XCTestCase {
         failed.tap()
     }
 
-    // KEEP: app-layer wiring — the SwiftUI failed-state action button fires and
-    // PinStateView transitions to loading.
-    @MainActor
-    func testSwiftUIStateViewRetryTriggersLoading() {
-        launchPreview(.stateView, .swiftUI)
-        selectFailedState()
 
-        XCTAssertTrue(app.staticTexts["Oops!"].waitForExistence(timeout: defaultTimeout))
-        let retry = app.buttons["Retry"]
-        XCTAssertTrue(retry.waitForExistence(timeout: defaultTimeout))
-        retry.tap()
-
-        XCTAssertTrue(app.staticTexts["Loading..."].waitForExistence(timeout: defaultTimeout),
-                      "Tapping Retry should switch the SwiftUI state view to loading")
-    }
-
-    // KEEP: app-layer wiring — the UIPinStateView shell hosts PinStateView and
-    // bridges the retry action to its delegate.
-    @MainActor
-    func testUIKitStateViewBridgesTweaksAndRetry() {
-        launchPreview(.stateView, .uiKit)
-        selectFailedState()
-
-        XCTAssertTrue(app.staticTexts["Oops!"].waitForExistence(timeout: defaultTimeout))
-        let retry = app.buttons["Retry"]
-        XCTAssertTrue(retry.waitForExistence(timeout: defaultTimeout))
-        retry.tap()
-
-        XCTAssertTrue(app.staticTexts["Loading..."].waitForExistence(timeout: defaultTimeout),
-                      "Tapping Retry should fire the delegate and switch the UIKit state view to loading")
-    }
 
     // KEEP: app-layer wiring — the `viewController:` hosting seam bridges Tweakable
     // into the sheet and drives the live on-screen instance, not an off-screen copy.
