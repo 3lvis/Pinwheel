@@ -48,7 +48,7 @@ struct PinwheelPlayground: SwiftUI.View {
             }
             .onDisappear {
                 chrome.isPresentingItem = false
-                chrome.showsSettings = false
+                chrome.showsTweaks = false
                 chrome.selectedDeviceIndex = nil
                 chrome.tweaks = []
                 chrome.onClose = nil
@@ -56,13 +56,12 @@ struct PinwheelPlayground: SwiftUI.View {
                 chrome.componentID = nil
                 chrome.componentVariant = nil
             }
-            .sheet(isPresented: $chrome.showsSettings) {
-                PinwheelSettingsView(
+            .sheet(isPresented: $chrome.showsTweaks) {
+                PinwheelTweaksView(
                     tweaks: chrome.tweaks,
                     selectedDeviceIndex: $chrome.selectedDeviceIndex
                 )
                 .pinwheelPresented(chrome)
-                .presentationDetents([.medium, .large])
             }
     }
 

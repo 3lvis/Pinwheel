@@ -53,40 +53,33 @@ struct PinwheelCatalogView: SwiftUI.View {
             normalizeSelection()
         }
         .sheet(isPresented: $showsSectionPicker) {
-            PickerList(title: "Section") {
+            PinwheelSheet(title: "Section", showsDone: true) {
                 ForEach(sections) { section in
                     PickerRow(title: section.title, isSelected: section.id == selectedSection?.id) {
                         selectedSectionID = section.id
                         PinwheelStateStore.selectedSectionID = section.id
-                        showsSectionPicker = false
                     }
-                    .listRowSeparatorTint(.secondaryBackground)
-                    .listRowBackground(Color.primaryBackground)
                 }
             }
             .pinwheelPresented(chrome)
         }
         .sheet(isPresented: $showsThemePicker) {
-            PickerList(title: "Theme") {
+            PinwheelSheet(title: "Theme", showsDone: true) {
                 ForEach(chrome.themes) { theme in
                     ThemeSampleRow(theme: theme, isSelected: theme == chrome.theme) {
                         chrome.selectTheme(theme)
                     }
-                    .listRowSeparatorTint(.secondaryBackground)
-                    .listRowBackground(Color.primaryBackground)
                 }
             }
             .pinwheelPresented(chrome)
         }
         .sheet(isPresented: $showsAppearancePicker) {
-            PickerList(title: "Appearance") {
+            PinwheelSheet(title: "Appearance", showsDone: true) {
                 ForEach(PinwheelAppearance.allCases) { appearance in
                     PickerRow(title: appearance.title, isSelected: appearance == selectedAppearance) {
                         chrome.colorScheme = appearance.colorScheme
                     }
                     .accessibilityIdentifier("pinwheel.appearance.\(appearance.rawValue)")
-                    .listRowSeparatorTint(.secondaryBackground)
-                    .listRowBackground(Color.primaryBackground)
                 }
             }
             .pinwheelPresented(chrome)
@@ -358,5 +351,30 @@ private struct PresentedPinwheelItem: Identifiable {
 
     var id: String {
         return selection.id
+    }
+}
+
+enum PinwheelAppearance: String, CaseIterable, Identifiable {
+    case system
+    case light
+    case dark
+
+    var id: String { rawValue }
+    var title: String { rawValue.capitalizingFirstLetter }
+
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .system: return nil
+        case .light: return .light
+        case .dark: return .dark
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .system: return "circle.lefthalf.filled"
+        case .light: return "sun.max"
+        case .dark: return "moon.fill"
+        }
     }
 }

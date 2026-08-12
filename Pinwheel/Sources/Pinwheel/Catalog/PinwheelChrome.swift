@@ -18,7 +18,7 @@ final class PinwheelChrome {
     /// lost them when the settings sheet opened, leaving the sheet empty.
     var tweaks: [PinwheelTweak] = []
     var isPresentingItem: Bool = false
-    var showsSettings: Bool = false
+    var showsTweaks: Bool = false
     var selectedDeviceIndex: Int?
     var onClose: (() -> Void)?
     var componentName: String?
@@ -47,7 +47,7 @@ final class PinwheelChrome {
     }
 
     var isFloatingControlsVisible: Bool {
-        isPresentingItem && !showsSettings
+        isPresentingItem && !showsTweaks
     }
 
     var simulatedDevice: Device? {
@@ -61,7 +61,7 @@ final class PinwheelChrome {
         isPresentingItem && simulatedDevice != nil
     }
 
-    func selectSettings() { showsSettings = true }
+    func selectTweaks() { showsTweaks = true }
 
     /// Hide the controls immediately so the FAB and device pill dismiss in sync
     /// with the close, instead of lingering until the dismissal animation ends.

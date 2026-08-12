@@ -61,7 +61,7 @@ struct PinwheelFloatingControlsHost: UIViewRepresentable {
         func attach(scene: UIWindowScene, chrome: PinwheelChrome) {
             guard window == nil else { return }
             let window = PinwheelFloatingControlsWindow(windowScene: scene)
-            window.controller.onSettings = { [weak chrome] in chrome?.selectSettings() }
+            window.controller.onSettings = { [weak chrome] in chrome?.selectTweaks() }
             window.controller.onClose = { [weak chrome] in chrome?.selectClose() }
             window.controller.anchoringView.setControlsHidden(true, animated: false)
             self.window = window

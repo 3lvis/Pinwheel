@@ -17,7 +17,7 @@ final class PresentedThemeUITests: XCTestCase {
         settings.tap()
 
         XCTAssertTrue(
-            app.staticTexts["pinwheel.settings.theme.Ember"].waitForExistence(timeout: 5),
+            app.staticTexts["pinwheel.sheet.Tweaks.theme.Ember"].waitForExistence(timeout: 5),
             "a sheet takes its traits from the window, not from the view that presented it, so the catalog writes the theme onto the window — without that this sheet falls back to the standard theme"
         )
     }
