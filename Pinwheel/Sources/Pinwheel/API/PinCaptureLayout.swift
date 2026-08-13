@@ -10,11 +10,9 @@ public struct PinCaptureLayout {
     public let alignment: CrossAxis
     public let mainAxisAlignment: CrossAxis
     public let minWidth: CGFloat?
-    // Hold the captured main-axis size instead of hugging the content — a fixed-width colored bar whose
-    // text is centered inside, not shrink-wrapped to the glyphs.
+    // An AUTO size makes the plugin shrink a row to its text; FIXED holds the width the capture measured.
     public let primaryAxisFixed: Bool
-    // Hold the captured cross-axis size so `.center`/`.trailing` alignment positions within the real
-    // width — a hugged cross axis collapses to the widest child and drifts off-center.
+    // A hugged cross axis collapses to the widest child, so centred alignment drifts off-centre.
     public let counterAxisFixed: Bool
 
     public init(axis: Axis, spacing: CGFloat, padding: EdgeInsets = EdgeInsets(), spaceBetween: Bool = false, alignment: CrossAxis = .center, mainAxisAlignment: CrossAxis = .leading, minWidth: CGFloat? = nil, primaryAxisFixed: Bool = false, counterAxisFixed: Bool = false) {
@@ -32,7 +30,7 @@ public struct PinCaptureLayout {
 
 public extension EnvironmentValues {
     @Entry var pinCaptureSink: (@MainActor @Sendable (String) -> Void)? = nil
-    // Set by the capture pipeline so capture-aware containers (PinList) render their capturable form — a
-    // pure-SwiftUI stack — instead of a UIKit-backed `List` the DisplayList can't see.
+    // Set by the capture pipeline: a UIKit-backed `List` is invisible to the DisplayList, so PinList
+    // renders an eager stack while this is on.
     @Entry var pinCapturing: Bool = false
 }

@@ -1,8 +1,7 @@
 import Foundation
 import SwiftUI
 
-/// Renders one catalog component by id. `id` is a bare item id (`"button"`) or a
-/// qualified `"sectionID/itemID"` to disambiguate items that share an id.
+/// `id` is a bare item id (`"button"`), or `"sectionID/itemID"` when two items share one.
 public struct PinwheelPreview: SwiftUI.View {
     private let sections: [PinwheelSection]
     private let id: String

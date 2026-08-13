@@ -110,7 +110,6 @@ public struct PinwheelItem {
         PinwheelItem.generatedID(title: title, tags: tags)
     }
 
-    /// Lets callers form a deep-link (`-PinwheelPreview <id>`) without hardcoding the slug.
     nonisolated public static func generatedID(title: String, tags: [PinTag] = []) -> String {
         return (tags.map(\.rawValue) + [title]).joined(separator: " ").pinwheelGeneratedID
     }
@@ -369,9 +368,6 @@ private extension String {
             .joined(separator: "-")
 
         if !dashed.isEmpty { return dashed }
-        // `id` is computed, so a random fallback would re-roll on every read and
-        // break persistence/deep-links. Derive a deterministic id from the scalar
-        // code points for titles that slugify to empty (emoji/punctuation-only).
         let hex = unicodeScalars.map { String($0.value, radix: 16) }.joined(separator: "-")
         return hex.isEmpty ? "untitled" : hex
     }

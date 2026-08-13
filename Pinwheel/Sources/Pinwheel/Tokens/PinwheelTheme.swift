@@ -70,9 +70,6 @@ public nonisolated extension PinwheelTheme {
     )
 }
 
-/// `.red`-style shorthand for the themed colors. The leading-dot form needs a
-/// `ShapeStyle`/`Color` context to resolve; at `.listRowBackground(_:)` (a generic
-/// `View` parameter) spell the type: `Color.primaryBackground`.
 public extension ShapeStyle where Self == Color {
     static var primaryText: Color { Color(uiColor: .primaryText) }
     static var secondaryText: Color { Color(uiColor: .secondaryText) }

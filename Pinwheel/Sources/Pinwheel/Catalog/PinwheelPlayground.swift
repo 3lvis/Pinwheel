@@ -22,10 +22,8 @@ struct PinwheelPlayground: SwiftUI.View {
             .background(
                 chrome.simulatedDevice != nil ? .primaryText : .primaryBackground
             )
-            // Don't animate the device-frame resize with `.animation(value:)`: it
-            // recurses SwiftUI's layout into a stack overflow (crashes on every
-            // device pick). The pill rides the playground, not the FAB window, so
-            // its transition scales in place instead of collapsing.
+            // The pill rides the playground rather than the FAB window, so its transition scales in
+            // place instead of collapsing.
             .overlay(alignment: .top) {
                 PinwheelDevicePill(previewMode: previewMode)
                     .padding(.top, .spacingS)
@@ -200,8 +198,6 @@ private struct PinwheelDevicePill: SwiftUI.View {
     }
 }
 
-// Builds the item's view once (in `@State`) so playground re-renders don't
-// recreate it and reset its emitted tweak preference to empty.
 private struct PinwheelHostedItem: SwiftUI.View {
     private let id: String
     @SwiftUI.State private var view: AnyView

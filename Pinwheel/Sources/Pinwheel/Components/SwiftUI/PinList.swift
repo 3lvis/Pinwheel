@@ -4,8 +4,7 @@ public struct PinList: SwiftUI.View {
     private let state: PinState
     private let rows: [Row]
     private let onRetry: () -> Void
-    // A UIKit-backed `List` hides its rows behind per-cell hosting views the capture can't read, so under
-    // capture PinList renders the same rows in a pure-SwiftUI stack instead. Same `Row` in both — 1:1 cells.
+    // The same `Row` in both branches, so a captured stack is 1:1 with the rendered List's cells.
     @Environment(\.pinCapturing) private var capturing
 
     public init(state: PinState = .loaded, rows: [Row], onRetry: @escaping () -> Void = {}) {

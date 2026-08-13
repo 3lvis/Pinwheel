@@ -13,9 +13,6 @@ extension SwiftUI.View {
 @MainActor
 @Observable
 final class PinwheelChrome {
-    /// Held here rather than in the playground's `@State` so they survive
-    /// playground re-renders / identity changes — the deep-link preview otherwise
-    /// lost them when the settings sheet opened, leaving the sheet empty.
     var tweaks: [PinwheelTweak] = []
     var isPresentingItem: Bool = false
     var showsTweaks: Bool = false

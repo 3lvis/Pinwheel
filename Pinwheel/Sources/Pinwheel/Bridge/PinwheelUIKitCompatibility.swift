@@ -38,10 +38,9 @@ extension PinwheelTweak {
     }
 }
 
-/// Hosts a UIKit view at full bounds. Wrapping in a `UIViewControllerRepresentable`
-/// (not a bare `UIViewRepresentable`) is deliberate: SwiftUI hands a controller the
-/// full proposed size, whereas a `UIViewRepresentable` sizes to the fitting size and
-/// collapses edge-pinned examples (Tokens, table-backed) to the top-left.
+/// A `UIViewControllerRepresentable` rather than a `UIViewRepresentable`: SwiftUI hands a controller the
+/// full proposed size, where a view sizes to its fitting size and collapses edge-pinned content to the
+/// top-left.
 final class PinwheelUIKitContainerViewController: UIViewController {
     private let makeContent: () -> UIView
 

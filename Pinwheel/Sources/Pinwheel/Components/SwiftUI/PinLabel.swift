@@ -1,9 +1,5 @@
 import SwiftUI
 
-/// SwiftUI's built-in `.body` / `.title` are Apple's system text styles that share
-/// names with the design system but silently bypass it; `PinLabel` resolves the
-/// provider-backed font, and taking a `PinTextStyle` (not a raw `Font`) makes the
-/// system-font path unrepresentable.
 public struct PinLabel: SwiftUI.View {
     public enum TextColor {
         case primary

@@ -1,9 +1,8 @@
 import SwiftUI
 import UIKit
 
-/// Hosts a SwiftUI `Pin*` component as a self-sizing `UIView` for UIKit call sites.
-/// The hosting controller is re-parented to the nearest view controller on window
-/// move, so safe-area, trait, and environment propagation work.
+/// The hosting controller is re-parented to the nearest view controller on window move, so safe-area,
+/// trait and environment propagation reach the hosted component.
 public final class PinHostView<Content: SwiftUI.View>: UIView {
     private let hostingController: UIHostingController<Content>
 
@@ -14,8 +13,6 @@ public final class PinHostView<Content: SwiftUI.View>: UIView {
         translatesAutoresizingMaskIntoConstraints = false
         backgroundColor = .clear
 
-        // Publish SwiftUI's ideal size as intrinsic content size so the host hugs
-        // its content inside stack views / Auto Layout.
         hostingController.sizingOptions = .intrinsicContentSize
         hostingController.view.backgroundColor = .clear
         hostingController.view.translatesAutoresizingMaskIntoConstraints = false
