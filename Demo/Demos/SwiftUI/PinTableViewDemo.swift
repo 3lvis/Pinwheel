@@ -6,6 +6,8 @@ struct PinTableViewDemo: SwiftUI.View {
     @SwiftUI.State private var off = false
     @SwiftUI.State private var on = true
 
+    @SwiftUI.State private var stateIndex = 1
+
     var body: some SwiftUI.View {
         PinList(state: state, rows: [
             .text("Account", icon: Image(systemName: "person.crop.circle.fill"), subtitle: "Signed in", chevron: true) {},
@@ -21,10 +23,8 @@ struct PinTableViewDemo: SwiftUI.View {
             .text("Sign out", enabled: false),
         ], onRetry: { state = .loaded })
         .pinwheelTweaks {
-            PinwheelTweak("Loading") { state = DemoStateFixture.loading }
-            PinwheelTweak("Loaded") { state = .loaded }
-            PinwheelTweak("Empty") { state = DemoStateFixture.empty }
-            PinwheelTweak("Failed") { state = DemoStateFixture.failed }
+            PinwheelTweak("State", options: DemoStateFixture.titles, selection: $stateIndex)
         }
+        .onChange(of: stateIndex) { _, index in state = DemoStateFixture.state(at: index) }
     }
 }

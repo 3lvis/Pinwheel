@@ -4,6 +4,8 @@ import Pinwheel
 struct PinStateViewDemo: SwiftUI.View {
     @SwiftUI.State private var state: PinState = DemoStateFixture.empty
 
+    @SwiftUI.State private var stateIndex = 2
+
     var body: some SwiftUI.View {
         PinStateView(state) {
             state = DemoStateFixture.loading
@@ -11,10 +13,8 @@ struct PinStateViewDemo: SwiftUI.View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.primaryBackground)
         .pinwheelTweaks {
-            PinwheelTweak("Loading") { state = DemoStateFixture.loading }
-            PinwheelTweak("Loaded") { state = .loaded }
-            PinwheelTweak("Empty") { state = DemoStateFixture.empty }
-            PinwheelTweak("Failed") { state = DemoStateFixture.failed }
+            PinwheelTweak("State", options: DemoStateFixture.titles, selection: $stateIndex)
         }
+        .onChange(of: stateIndex) { _, index in state = DemoStateFixture.state(at: index) }
     }
 }

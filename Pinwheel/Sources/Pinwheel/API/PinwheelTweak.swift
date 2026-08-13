@@ -27,6 +27,7 @@ public struct PinwheelTweak: Identifiable, Equatable {
     enum Control {
         case action(() -> Void)
         case toggle(Binding<Bool>)
+        case select(options: [String], selection: Binding<Int>)
     }
 
     public let id: String
@@ -48,17 +49,41 @@ public struct PinwheelTweak: Identifiable, Equatable {
         self.control = .toggle(isOn)
     }
 
+    public init(
+        _ title: String,
+        id: String? = nil,
+        description: String? = nil,
+        options: [String],
+        selection: Binding<Int>
+    ) {
+        self.id = id ?? title
+        self.title = title
+        self.description = description
+        self.control = .select(options: options, selection: selection)
+    }
+
     public static func == (lhs: PinwheelTweak, rhs: PinwheelTweak) -> Bool {
         return lhs.id == rhs.id && lhs.title == rhs.title && lhs.description == rhs.description
     }
 
-    /// Lands the deep-link preview on this variant: runs an action, or forces a toggle on (never off).
-    func applyAsPreviewVariant() {
+    /// The names `-PinwheelPreviewTweak` can address. An option list offers its options rather than its
+    /// own title, so a sweep captures every variant it holds instead of only the one that happens to be on.
+    var previewVariantTitles: [String] {
+        if case .select(let options, _) = control { return options }
+        return [title]
+    }
+
+    /// Lands the deep-link preview on this variant: runs an action, forces a toggle on (never off), or
+    /// selects the named option.
+    func applyAsPreviewVariant(named name: String) {
         switch control {
         case .action(let action):
             action()
         case .toggle(let isOn):
             isOn.wrappedValue = true
+        case .select(let options, let selection):
+            guard let index = options.firstIndex(of: name) else { return }
+            selection.wrappedValue = index
         }
     }
 }

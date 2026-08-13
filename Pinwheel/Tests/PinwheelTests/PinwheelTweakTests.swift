@@ -6,14 +6,14 @@ import SwiftUI
 final class PinwheelTweakTests: XCTestCase {
     func testActionTweakRunsItsClosure() {
         var ran = false
-        PinwheelTweak("Option", action: { ran = true }).applyAsPreviewVariant()
+        PinwheelTweak("Option", action: { ran = true }).applyAsPreviewVariant(named: "Option")
         XCTAssertTrue(ran)
     }
 
     func testToggleTweakIsForcedOnAsPreviewVariant() {
         var value = false
         let binding = Binding(get: { value }, set: { value = $0 })
-        PinwheelTweak("Option", isOn: binding).applyAsPreviewVariant()
+        PinwheelTweak("Option", isOn: binding).applyAsPreviewVariant(named: "Option")
         XCTAssertTrue(value, "applyAsPreviewVariant turns a toggle on, never off")
     }
 
@@ -21,7 +21,7 @@ final class PinwheelTweakTests: XCTestCase {
         var ran = false
         let bridged = PinwheelTweak(TextTweak(title: "Option", action: { ran = true }))
         XCTAssertNotNil(bridged)
-        bridged?.applyAsPreviewVariant()
+        bridged?.applyAsPreviewVariant(named: "Option")
         XCTAssertTrue(ran)
     }
 
@@ -41,5 +41,27 @@ final class PinwheelTweakTests: XCTestCase {
             var description: String?
         }
         XCTAssertNil(PinwheelTweak(CustomTweak()))
+    }
+
+    func testAnOptionListIsAddressableByEachOptionSoTheSweepStillCapturesEveryVariant() {
+        var selection = 0
+        let binding = Binding(get: { selection }, set: { selection = $0 })
+        let tweak = PinwheelTweak("State", options: ["Loading", "Loaded", "Empty"], selection: binding)
+
+        XCTAssertEqual(
+            tweak.previewVariantTitles,
+            ["Loading", "Loaded", "Empty"],
+            "The sweep enumerates variants by title, so an option list must offer its options rather than its own name"
+        )
+    }
+
+    func testApplyingAPreviewVariantByNameSelectsThatOption() {
+        var selection = 0
+        let binding = Binding(get: { selection }, set: { selection = $0 })
+        let tweak = PinwheelTweak("State", options: ["Loading", "Loaded", "Empty"], selection: binding)
+
+        tweak.applyAsPreviewVariant(named: "Empty")
+
+        XCTAssertEqual(selection, 2)
     }
 }

@@ -86,17 +86,17 @@ struct PinwheelPlayground: SwiftUI.View {
 
         if !didDumpPreviewTweaks {
             didDumpPreviewTweaks = true
-            writePreviewTweakTitles(tweaks.map(\.title))
+            writePreviewTweakTitles(tweaks.flatMap(\.previewVariantTitles))
         }
 
         guard let target = autoApplyTweak, !didApplyPreviewTweak,
-              let tweak = tweaks.first(where: { $0.title == target }) else {
+              let tweak = tweaks.first(where: { $0.previewVariantTitles.contains(target) }) else {
             return
         }
         didApplyPreviewTweak = true
         // Defer past the current view update — mutating state mid-update is undefined.
         DispatchQueue.main.async {
-            tweak.applyAsPreviewVariant()
+            tweak.applyAsPreviewVariant(named: target)
         }
     }
 

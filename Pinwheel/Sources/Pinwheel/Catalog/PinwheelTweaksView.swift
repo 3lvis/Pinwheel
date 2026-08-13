@@ -57,6 +57,21 @@ struct PinwheelTweaksView: SwiftUI.View {
                 .padding(.horizontal, .spacingXL)
                 .padding(.vertical, .spacingM)
                 .frame(maxWidth: .infinity, minHeight: .minimumControlHeight, alignment: .leading)
+        case .select(let options, let selection):
+            NavigationLink {
+                PinwheelOptionList(title: tweak.title, options: options, selection: selection)
+            } label: {
+                HStack {
+                    tweakLabels(tweak)
+                    PinLabel(options.indices.contains(selection.wrappedValue) ? options[selection.wrappedValue] : "")
+                        .color(.secondary)
+                }
+                .padding(.horizontal, .spacingXL)
+                .padding(.vertical, .spacingM)
+                .frame(maxWidth: .infinity, minHeight: .minimumControlHeight, alignment: .leading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
         }
     }
 
@@ -68,6 +83,25 @@ struct PinwheelTweaksView: SwiftUI.View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+struct PinwheelOptionList: SwiftUI.View {
+    let title: String
+    let options: [String]
+    @SwiftUI.Binding var selection: Int
+
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some SwiftUI.View {
+        PinwheelSheet(PinwheelSheetModel(title: title, leading: .back)) {
+            ForEach(Array(options.enumerated()), id: \.offset) { index, option in
+                PickerRow(title: option, isSelected: index == selection) {
+                    selection = index
+                    dismiss()
+                }
+            }
+        }
     }
 }
 
