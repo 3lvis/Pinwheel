@@ -53,18 +53,19 @@ struct PinwheelCatalogView: SwiftUI.View {
             normalizeSelection()
         }
         .sheet(isPresented: $showsSectionPicker) {
-            PinwheelSheet(title: "Section", showsDone: true) {
+            PinwheelSheet(PinwheelSheetModel(title: "Section")) {
                 ForEach(sections) { section in
                     PickerRow(title: section.title, isSelected: section.id == selectedSection?.id) {
                         selectedSectionID = section.id
                         PinwheelStateStore.selectedSectionID = section.id
+                        showsSectionPicker = false
                     }
                 }
             }
             .pinwheelPresented(chrome)
         }
         .sheet(isPresented: $showsThemePicker) {
-            PinwheelSheet(title: "Theme", showsDone: true) {
+            PinwheelSheet(PinwheelSheetModel(title: "Theme")) {
                 ForEach(chrome.themes) { theme in
                     ThemeSampleRow(theme: theme, isSelected: theme == chrome.theme) {
                         chrome.selectTheme(theme)
@@ -74,7 +75,7 @@ struct PinwheelCatalogView: SwiftUI.View {
             .pinwheelPresented(chrome)
         }
         .sheet(isPresented: $showsAppearancePicker) {
-            PinwheelSheet(title: "Appearance", showsDone: true) {
+            PinwheelSheet(PinwheelSheetModel(title: "Appearance")) {
                 ForEach(PinwheelAppearance.allCases) { appearance in
                     PickerRow(title: appearance.title, isSelected: appearance == selectedAppearance) {
                         chrome.colorScheme = appearance.colorScheme

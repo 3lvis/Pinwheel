@@ -7,7 +7,7 @@ import UIKit
 final class SheetHeaderHeightTests: XCTestCase {
     private struct Fixture: SwiftUI.View {
         var body: some SwiftUI.View {
-            PinwheelSheet(title: "Section", showsDone: true) {
+            PinwheelSheet(PinwheelSheetModel(title: "Section", commit: .init("Done") {})) {
                 PickerRow(title: "Tokens", isSelected: true) {}
                 PickerRow(title: "Components", isSelected: false) {}
             }

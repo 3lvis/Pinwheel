@@ -1,8 +1,6 @@
 import SwiftUI
 
-// Not a `List`: a scroll view takes all the height it is offered, so measuring one reports the
-// sheet's height back to itself and the fitted detent silently does nothing.
-struct PinwheelSheet<Content: SwiftUI.View, Trailing: SwiftUI.View>: SwiftUI.View {
+struct PinwheelSheetModel {
     enum Leading {
         case close
         case back
@@ -22,9 +20,27 @@ struct PinwheelSheet<Content: SwiftUI.View, Trailing: SwiftUI.View>: SwiftUI.Vie
         }
     }
 
+    /// A sheet that completes a flow ends in a commit the caller names — Done, Confirm, Pay. A sheet
+    /// whose every tap already took effect has nothing to commit and leaves this nil.
+    struct Commit {
+        let title: String
+        let action: () -> Void
+
+        init(_ title: String, action: @escaping () -> Void) {
+            self.title = title
+            self.action = action
+        }
+    }
+
     let title: String
     var leading: Leading = .close
-    var showsDone: Bool = false
+    var commit: Commit?
+}
+
+// Not a `List`: a scroll view takes all the height it is offered, so measuring one reports the
+// sheet's height back to itself and the fitted detent silently does nothing.
+struct PinwheelSheet<Content: SwiftUI.View, Trailing: SwiftUI.View>: SwiftUI.View {
+    let model: PinwheelSheetModel
     @ViewBuilder let content: () -> Content
     @ViewBuilder var trailing: () -> Trailing
 
@@ -42,8 +58,8 @@ struct PinwheelSheet<Content: SwiftUI.View, Trailing: SwiftUI.View>: SwiftUI.Vie
                     .overlay(Color.secondaryBackground)
                     .padding(.horizontal, .spacingXL)
                 content()
-                if showsDone {
-                    PinButton("Done") { dismiss() }
+                if let commit = model.commit {
+                    PinButton(commit.title, action: commit.action)
                         .style(.primary)
                         .fullWidth()
                         .padding(.horizontal, .spacingXL)
@@ -65,18 +81,18 @@ struct PinwheelSheet<Content: SwiftUI.View, Trailing: SwiftUI.View>: SwiftUI.Vie
 
     private var header: some SwiftUI.View {
         ZStack {
-            PinLabel(title)
+            PinLabel(model.title)
                 .font(.subtitleSemibold)
-                .accessibilityIdentifier("pinwheel.sheet.\(title).theme.\(theme.name)")
+                .accessibilityIdentifier("pinwheel.sheet.\(model.title).theme.\(theme.name)")
             HStack {
                 SwiftUI.Button {
                     dismiss()
                 } label: {
-                    Image(systemName: leading.symbol)
+                    Image(systemName: model.leading.symbol)
                         .font(PinTextStyle.subtitleSemibold.font(in: theme))
                 }
                 .tint(.primaryText)
-                .accessibilityLabel(leading.label)
+                .accessibilityLabel(model.leading.label)
                 Spacer()
                 trailing()
                     .tint(.primaryText)
@@ -89,16 +105,14 @@ struct PinwheelSheet<Content: SwiftUI.View, Trailing: SwiftUI.View>: SwiftUI.Vie
 }
 
 extension PinwheelSheet where Trailing == EmptyView {
-    init(
-        title: String,
-        leading: Leading = .close,
-        showsDone: Bool = false,
-        @ViewBuilder content: @escaping () -> Content
-    ) {
-        self.init(title: title, leading: leading, showsDone: showsDone, content: content, trailing: { EmptyView() })
+    init(_ model: PinwheelSheetModel, @ViewBuilder content: @escaping () -> Content) {
+        self.init(model: model, content: content, trailing: { EmptyView() })
     }
 }
 
+/// The chosen row is outlined rather than ticked. A fill alone would be carrying the meaning in
+/// colour, which needs 3:1 against its surroundings to stand on its own (WCAG 1.4.1, 1.4.11) — the
+/// border is a shape, so the fill can stay soft.
 struct PickerRow: SwiftUI.View {
     let title: String
     let isSelected: Bool
@@ -109,33 +123,22 @@ struct PickerRow: SwiftUI.View {
             HStack {
                 PinLabel(title).color(isSelected ? .action : .primary)
                 Spacer()
-                PickerRadio(isSelected: isSelected)
             }
-            .padding(.horizontal, .spacingXL)
+            .padding(.horizontal, .spacingM)
             .padding(.vertical, .spacingM)
             .frame(maxWidth: .infinity, minHeight: .minimumControlHeight, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: .radiusM)
+                    .fill(isSelected ? Color.actionText.opacity(0.12) : Color.clear)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: .radiusM)
+                    .strokeBorder(isSelected ? Color.actionText : Color.clear, lineWidth: 1)
+            )
             .contentShape(Rectangle())
+            .padding(.horizontal, .spacingM)
         }
         .buttonStyle(.plain)
-    }
-}
-
-private struct PickerRadio: SwiftUI.View {
-    let isSelected: Bool
-
-    @ScaledMetric(relativeTo: .body) private var size: CGFloat = .spacingXL
-
-    var body: some SwiftUI.View {
-        ZStack {
-            Circle()
-                .strokeBorder(isSelected ? Color.actionText : Color.tertiaryText, lineWidth: 2)
-            if isSelected {
-                Circle()
-                    .fill(Color.actionText)
-                    .padding(5)
-            }
-        }
-        .frame(width: size, height: size)
     }
 }
 

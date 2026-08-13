@@ -9,7 +9,7 @@ struct PinwheelTweaksView: SwiftUI.View {
 
     var body: some SwiftUI.View {
         NavigationStack {
-            PinwheelSheet(title: "Tweaks") {
+            PinwheelSheet(model: PinwheelSheetModel(title: "Tweaks")) {
                 if tweaks.isEmpty {
                     PinLabel("No tweaks")
                         .color(.secondary)
@@ -72,13 +72,16 @@ struct PinwheelTweaksView: SwiftUI.View {
 struct PinwheelDeviceList: SwiftUI.View {
     @SwiftUI.Binding var selectedIndex: Int?
 
+    @Environment(\.dismiss) private var dismiss
+
     private let devices = Device.all
 
     var body: some SwiftUI.View {
-        PinwheelSheet(title: "Device", leading: .back, showsDone: true) {
+        PinwheelSheet(PinwheelSheetModel(title: "Device", leading: .back)) {
             ForEach(Array(devices.enumerated()), id: \.offset) { index, device in
                 PickerRow(title: device.title, isSelected: isSelected(index, device)) {
                     selectedIndex = index
+                    dismiss()
                 }
                 .disabled(!device.isEnabled)
             }

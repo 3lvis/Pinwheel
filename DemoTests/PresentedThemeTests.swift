@@ -18,7 +18,7 @@ final class PresentedThemeTests: XCTestCase {
             Color.clear
                 .background(PinwheelThemedWindow(theme: theme))
                 .sheet(isPresented: .constant(true)) {
-                    PinwheelSheet(title: "Tweaks") {
+                    PinwheelSheet(PinwheelSheetModel(title: "Tweaks")) {
                         PinLabel("No tweaks")
                     }
                 }
