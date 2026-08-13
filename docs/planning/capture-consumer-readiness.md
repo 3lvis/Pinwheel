@@ -153,13 +153,6 @@ byte-identical. `ForEach`-of-*bare-leaf* rows (`ForEach { PinLabel }`) still fal
 (different graph shape; 1-D containment already handles them). Remaining Cart gaps are the stepper
 border (§5, hard wall for editable) and the SALE pill fill (§6, on-screen-only drop).
 
-## UI-tier note (environment)
-The `DemoUITests` catalog navigation uses a SwiftUI `Menu` section picker that **does not open under UI
-automation on iOS 26.5** (the menu never presents; `Tokens`/`Screens` buttons never appear) — the
-baseline `b008fec` fails the same tests on 26.5, so it's a runtime issue, not a regression. The suite is
-green on iOS 18.3. Harden the picker interaction (or the picker) so the tier runs on the newest runtime
-per the durability principle (a test pins a capability, not a snapshot OS).
-
 ## Perf follow-up
 The SwiftUI grouping signature is O(n²) on large trees (recomputes each subtree at every level).
 Memoize bottom-up to O(n) before heavy consumer screens.
