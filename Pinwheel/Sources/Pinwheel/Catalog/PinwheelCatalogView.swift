@@ -117,7 +117,7 @@ struct PinwheelCatalogView: SwiftUI.View {
                 }
                 ToolbarItemGroup(placement: .bottomBar) {
                     if chrome.themes.count > 1 {
-                        barSymbolButton("paintpalette", label: chrome.theme.name) {
+                        barThemeButton {
                             showsThemePicker = true
                         }
                         .accessibilityIdentifier("pinwheel.theme")
@@ -136,6 +136,20 @@ struct PinwheelCatalogView: SwiftUI.View {
         SwiftUI.Button(action: action) {
             PinLabel(title).color(.action)
         }
+    }
+
+    /// A menu's control reports what is chosen, and a brand's signature is its colour, so the theme
+    /// button carries a swatch and the theme's name rather than one palette symbol that never changes.
+    private func barThemeButton(action: @escaping () -> Void) -> some SwiftUI.View {
+        SwiftUI.Button(action: action) {
+            HStack(spacing: .spacingXS) {
+                Circle()
+                    .fill(Color.actionText)
+                    .frame(width: .spacingM, height: .spacingM)
+                PinLabel(chrome.theme.name).color(.action)
+            }
+        }
+        .accessibilityLabel("Theme, \(chrome.theme.name)")
     }
 
     private func barSymbolButton(
