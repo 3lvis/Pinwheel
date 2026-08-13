@@ -69,6 +69,7 @@ struct PinwheelCatalogView: SwiftUI.View {
                 ForEach(chrome.themes) { theme in
                     ThemeSampleRow(theme: theme, isSelected: theme == chrome.theme) {
                         chrome.selectTheme(theme)
+                        showsThemePicker = false
                     }
                 }
             }
@@ -79,6 +80,7 @@ struct PinwheelCatalogView: SwiftUI.View {
                 ForEach(PinwheelAppearance.allCases) { appearance in
                     PickerRow(title: appearance.title, isSelected: appearance == selectedAppearance) {
                         chrome.colorScheme = appearance.colorScheme
+                        showsAppearancePicker = false
                     }
                     .accessibilityIdentifier("pinwheel.appearance.\(appearance.rawValue)")
                 }
