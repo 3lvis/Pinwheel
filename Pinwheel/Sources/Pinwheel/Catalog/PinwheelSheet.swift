@@ -89,7 +89,9 @@ struct PinwheelSheet<Content: SwiftUI.View, Trailing: SwiftUI.View>: SwiftUI.Vie
                     dismiss()
                 } label: {
                     Image(systemName: model.leading.symbol)
-                        .font(PinTextStyle.subtitleSemibold.font(in: theme))
+                        .font(PinTextStyle.body.font(in: theme))
+                        .symbolRenderingMode(.monochrome)
+                        .imageScale(.large)
                 }
                 .tint(.primaryText)
                 .accessibilityLabel(model.leading.label)

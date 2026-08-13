@@ -7,57 +7,39 @@ protocol CornerAnchoringViewDelegate: AnyObject {
 
 final class CornerAnchoringView: UIView {
     weak var delegate: CornerAnchoringViewDelegate?
-    let buttonSize = CGFloat.spacingXXL * 2
+    let buttonSize = CGFloat.minimumControlHeight
 
-    private lazy var closeButton: FloatingButton = {
-        let button = FloatingButton(withAutoLayout: true)
-        let config = UIImage.SymbolConfiguration(pointSize: 26, weight: .bold)
-        if let image = UIImage(systemName: "xmark", withConfiguration: config) {
-            button.setImage(image.withRenderingMode(.alwaysTemplate), for: .normal)
-        }
-        button.addTarget(self, action: #selector(closeButtonAction), for: .touchUpInside)
-        button.accessibilityIdentifier = "pinwheel.close"
-        return button
-    }()
-
-    private lazy var settingsButton: FloatingButton = {
-        let button = FloatingButton(withAutoLayout: true)
-        let config = UIImage.SymbolConfiguration(pointSize: 25, weight: .regular)
-        if let image = UIImage(systemName: "wrench.adjustable.fill", withConfiguration: config) {
-            button.setImage(image.withRenderingMode(.alwaysTemplate), for: .normal)
-        }
-        button.addTarget(self, action: #selector(tweakButtonAction), for: .touchUpInside)
-        button.accessibilityIdentifier = "pinwheel.settings"
-        return button
-    }()
+    /// The buttons are hosted SwiftUI (see `PinwheelFloatingButtons`); this view owns only the drag.
+    private let buttonsContent = UIView(withAutoLayout: true)
 
     private lazy var buttonsView: UIView = {
         let views = UIView()
         views.translatesAutoresizingMaskIntoConstraints = false
-        views.addSubview(closeButton)
-        views.addSubview(settingsButton)
-
-        let halfButtonSize = buttonSize / 2.0
-
+        views.addSubview(buttonsContent)
         NSLayoutConstraint.activate([
-            settingsButton.leadingAnchor.constraint(equalTo: views.leadingAnchor),
-            settingsButton.trailingAnchor.constraint(equalTo: views.trailingAnchor),
-            settingsButton.topAnchor.constraint(equalTo: views.topAnchor),
-            settingsButton.widthAnchor.constraint(equalToConstant: buttonSize),
-            settingsButton.heightAnchor.constraint(equalToConstant: buttonSize),
+            buttonsContent.leadingAnchor.constraint(equalTo: views.leadingAnchor),
+            buttonsContent.trailingAnchor.constraint(equalTo: views.trailingAnchor),
+            buttonsContent.topAnchor.constraint(equalTo: views.topAnchor),
+            buttonsContent.bottomAnchor.constraint(equalTo: views.bottomAnchor),
+            buttonsContent.widthAnchor.constraint(equalToConstant: buttonSize),
+            buttonsContent.heightAnchor.constraint(equalToConstant: buttonSize * 2 + .spacingM),
         ])
-
-        NSLayoutConstraint.activate([
-            settingsButton.bottomAnchor.constraint(equalTo: closeButton.topAnchor, constant: -.spacingS),
-            closeButton.leadingAnchor.constraint(equalTo: views.leadingAnchor),
-            closeButton.trailingAnchor.constraint(equalTo: views.trailingAnchor),
-            closeButton.widthAnchor.constraint(equalToConstant: buttonSize),
-            closeButton.heightAnchor.constraint(equalToConstant: buttonSize),
-            closeButton.bottomAnchor.constraint(equalTo: views.bottomAnchor)
-        ])
-
         return views
     }()
+
+    /// Called once by the owning controller, which parents the hosting controller so the hosted
+    /// buttons keep their traits (the theme rides a trait) and their lifecycle.
+    func setButtonsContent(_ view: UIView) {
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .clear
+        buttonsContent.addSubview(view)
+        NSLayoutConstraint.activate([
+            view.leadingAnchor.constraint(equalTo: buttonsContent.leadingAnchor),
+            view.trailingAnchor.constraint(equalTo: buttonsContent.trailingAnchor),
+            view.topAnchor.constraint(equalTo: buttonsContent.topAnchor),
+            view.bottomAnchor.constraint(equalTo: buttonsContent.bottomAnchor),
+        ])
+    }
 
     private var anchorAreaViews = [UIView]()
     private let panRecognizer = UIPanGestureRecognizer()
@@ -69,9 +51,11 @@ final class CornerAnchoringView: UIView {
 
     public var itemsCount: Int = 0 {
         didSet {
-            settingsButton.itemsCount = itemsCount
+            onItemsCountChange?(itemsCount)
         }
     }
+
+    var onItemsCountChange: ((Int) -> Void)?
 
     func setControlsHidden(_ hidden: Bool, animated: Bool, completion: (() -> Void)? = nil) {
         let apply = {
@@ -296,13 +280,7 @@ final class CornerAnchoringView: UIView {
         })
     }
 
-    @objc private func tweakButtonAction() {
-        delegate?.cornerAnchoringViewDidSelectTweakButton(self)
-    }
 
-    @objc private func closeButtonAction() {
-        delegate?.cornerAnchoringViewDidSelectCloseButton(self)
-    }
 }
 
 extension UISpringTimingParameters {

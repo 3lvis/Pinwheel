@@ -115,13 +115,18 @@ struct PinwheelCatalogView: SwiftUI.View {
                 if #available(iOS 26, *) {
                     ToolbarSpacer(.flexible, placement: .bottomBar)
                 }
-                ToolbarItemGroup(placement: .bottomBar) {
-                    if chrome.themes.count > 1 {
+                if chrome.themes.count > 1 {
+                    ToolbarItem(placement: .bottomBar) {
                         barSymbolButton("paintpalette", label: chrome.theme.name) {
                             showsThemePicker = true
                         }
                         .accessibilityIdentifier("pinwheel.theme")
                     }
+                    if #available(iOS 26, *) {
+                        ToolbarSpacer(.fixed, placement: .bottomBar)
+                    }
+                }
+                ToolbarItem(placement: .bottomBar) {
                     barSymbolButton(selectedAppearance.icon, label: selectedAppearance.title) {
                         showsAppearancePicker = true
                     }

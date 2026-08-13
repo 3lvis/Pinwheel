@@ -173,11 +173,17 @@ private struct PinwheelDevicePill: SwiftUI.View {
             }
             if chrome.isDevicePillVisible, let device = chrome.simulatedDevice {
                 Image(systemName: "iphone.gen3")
+                    .font(PinTextStyle.body.font(in: chrome.theme))
+                    .symbolRenderingMode(.monochrome)
+                    .imageScale(.large)
                 PinLabel(device.title).font(.caption)
                 SwiftUI.Button {
                     chrome.selectedDeviceIndex = nil
                 } label: {
                     Image(systemName: "xmark.circle.fill")
+                        .font(PinTextStyle.body.font(in: chrome.theme))
+                        .symbolRenderingMode(.monochrome)
+                        .imageScale(.large)
                         .foregroundStyle(.secondaryText)
                 }
                 .buttonStyle(.plain)

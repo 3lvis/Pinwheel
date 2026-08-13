@@ -26,7 +26,9 @@ struct PinwheelTweaksView: SwiftUI.View {
                     PinwheelDeviceList(selectedIndex: $selectedDeviceIndex)
                 } label: {
                     Image(systemName: "iphone.gen3")
-                        .font(PinTextStyle.subtitleSemibold.font(in: theme))
+                        .font(PinTextStyle.body.font(in: theme))
+                        .symbolRenderingMode(.monochrome)
+                        .imageScale(.large)
                 }
                 .accessibilityLabel("Device")
                 .accessibilityIdentifier("pinwheel.device")

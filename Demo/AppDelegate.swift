@@ -18,6 +18,7 @@ struct DemoApp: App {
         if FigmaCatalog.isManifestDump {
             FigmaCatalog.dumpManifest()
         }
+
     }
 
     var body: some Scene {
