@@ -6,17 +6,23 @@ can gate CI.
 
 ## Why it pays
 
-KolibriDemo today is a `NavigationStack` over a 27-case `GalleryPage` enum. Five pages hand-roll their
-own state `Picker`, four hand-roll their own `.sheet`, one hand-rolls a `UIViewRepresentable` to host a
-`KUIButton`, and a single ad-hoc `-page <name>` launch argument carries three UI tests. Pinwheel already
-owns all of that: a registry that doubles as the index and the preview index, `pinwheelTweaks` for named
-variants, `.presentation(.medium)`, simulated devices, `PinwheelItem(_:view:)` for UIKit content.
+KolibriDemo today is a `NavigationStack` over one `GalleryPage` enum carrying a case per page — around
+thirty, and one more with every component that lands. The pages hand-roll what a catalog owns: their own
+state `Picker`s, their own `.sheet`s, a `UIViewRepresentable` to host a `KUIButton`, and one ad-hoc
+`-page <name>` launch argument that every UI test in the target hangs off. Pinwheel already owns all of
+that: a registry that doubles as the index and the preview index, `pinwheelTweaks` for named variants,
+`.presentation(.medium)`, simulated devices, `PinwheelItem(_:view:)` for UIKit content.
 
 The sweep is the part worth the migration. `tienda-ios`'s own PLAN asks to "sweep every preview and gate
 that it renders" — the case that motivated it was 142 app preview blocks resolving
-`KolibriTheme.placeholder` for months while every build stayed green. Pinwheel's `-PinwheelManifest` dump
-plus `Scripts/sweep.sh` walks every component id × tweak variant × appearance × theme, which is that gate
-at component granularity.
+`KolibriTheme.placeholder` for months while every build stayed green, and PLAN still counts roughly forty
+of them wrong. Pinwheel's `-PinwheelManifest` dump plus `Scripts/sweep.sh` walks every component id ×
+tweak variant × appearance, which is that gate at component granularity.
+
+Two pieces of the gate are still to build, and step 5 owns them. The sweep captures without comparing —
+`Scripts/sweep.sh` holds no baseline — so gating means adding a comparison step. And brand is not yet an
+axis: `PinwheelPreview` honours `-PinwheelPreviewTheme`, but the sweep never passes it, so a run covers
+one theme. Brand coverage is why KolibriDemo wants this, so that axis comes first.
 
 ## Done — the theming groundwork
 
@@ -35,10 +41,16 @@ one catalog could only ever show one brand. It is now plural and live:
 - Spacing and radius collapsed from mutable statics to constants; `minimumControlHeight` is the one token
   a row and a CTA share.
 
-**KolibriKit inherits two of these findings directly.** `KolibriThemeTrait` declares no
-`affectsColorAppearance`, and KolibriDemo works around the consequence by forcing recreation
-(`.id(theme)` on its UIKit button preview) — adding the declaration should retire that. And Kolibri's
-`theme.components.buttonCornerRadius` is a `CGFloat`, so it cannot express a capsule.
+**KolibriKit inherits three findings, each with its own cause.**
+
+- `KolibriThemeTrait` declares no `affectsColorAppearance`, so the hundreds of dynamic colours in
+  `Generated/SemanticUIColor.swift` — each a `UIColor { $0[KolibriThemeTrait.self]… }` — keep the brand
+  they were last drawn under. One line reaches every one of them.
+- `KUIButton` takes its theme at `init` and holds it in a `let`, so a brand switch leaves a built instance
+  as it was; KolibriDemo's UIKit button preview keys an `.id(...)` off the brand to force a rebuild. This
+  is a separate cause, and the trait declaration does not retire it — the button reads a stored value,
+  never a trait. Routing `KUIButton` through `SemanticUIColor` is what retires it.
+- `theme.components.buttonCornerRadius` is a `CGFloat`, so it cannot express a capsule.
 
 ## Remaining
 
@@ -51,8 +63,8 @@ one catalog could only ever show one brand. It is now plural and live:
    seam before migrating anything.
 3. **Migrate pages to items, section by section.** Tokens first (4 pages, near-mechanical), then
    Components. This is the bulk, and it is judgement work rather than mechanical: a "page" today is often
-   many components — `CartComponentsDemo` renders 14 in one screen — and splitting them is exactly what
-   makes deep-links, tweaks and the sweep pay off.
+   many components — `CartComponentsDemo` is 17 sections over six component types — and splitting them is
+   exactly what makes deep-links, tweaks and the sweep pay off.
 4. **Retire the hand-rolled machinery**: `GalleryPage`, the `-page` argument, the state pickers, the
    `.sheet` calls, the `UIViewRepresentable`.
 5. **Port the sweep and gate it.** `Scripts/sweep.sh` becomes `bin/kolibri-sweep` over brand × appearance
@@ -63,9 +75,9 @@ one catalog could only ever show one brand. It is now plural and live:
 
 ## The open design question
 
-Pinwheel's nine colour tokens will never be KolibriKit's ~100 semantic tokens, and should not try. So
-theming Pinwheel themes the *harness*, while `KButton` and its ~300 siblings read `\.kolibriTheme` and
-stay untouched. Same selection, two scopes.
+Pinwheel's nine colour tokens will never be KolibriKit's several hundred semantic tokens, and should not
+try. So theming Pinwheel themes the *harness*, while `KButton` and the hundred-odd components beside it
+read `\.kolibriTheme` and stay untouched. Same selection, two scopes.
 
 The agreed shape: a `PinwheelTheme` also knows how to project itself into a design system Pinwheel does
 not own — the theme is already "the values components read", so extending it from (colours, fonts, shape)
