@@ -70,7 +70,7 @@ public enum PinDisplayListCapture {
                 if let content {
                     var rootNode = screen(content, width: size.width, fill: screenFill, components: components, canvasHeight: size.height, oneScreen: screenHeight, safeAreaTop: host.safeAreaInsets.top)
                     rootNode.name = name
-                    return FigmaDocument(width: size.width, height: rootNode.h, root: componentizeRepeatedChildren(rootNode), tokens: colorTokens + PinFloatTokens.tokens, textStyles: textStyles)
+                    return FigmaDocument(width: size.width, height: rootNode.h, root: componentizeRepeatedChildren(stripDuplicateNestedBackground(rootNode)), tokens: colorTokens + PinFloatTokens.tokens, textStyles: textStyles)
                 }
             }
         }
@@ -83,7 +83,7 @@ public enum PinDisplayListCapture {
             rootNode = screen(rootNode, width: size.width, fill: screenFill, components: components, canvasHeight: size.height, oneScreen: screenHeight, safeAreaTop: host.safeAreaInsets.top)
         }
         rootNode.name = name
-        return FigmaDocument(width: size.width, height: rootNode.h, root: componentizeRepeatedChildren(rootNode), tokens: colorTokens + PinFloatTokens.tokens, textStyles: textStyles)
+        return FigmaDocument(width: size.width, height: rootNode.h, root: componentizeRepeatedChildren(stripDuplicateNestedBackground(rootNode)), tokens: colorTokens + PinFloatTokens.tokens, textStyles: textStyles)
     }
 
     // Sibling frames with an identical structural signature (everything but text content and per-instance
@@ -91,6 +91,36 @@ public enum PinDisplayListCapture {
     // and the rest as instances. There's no cell class as on the UIKit side, so the signature carries the
     // discrimination — it includes size, so a grouping is faithful (an instance overrides only text/fill,
     // which is all that differs). Subtrees with an image leaf are excluded — a crop can't be reproduced.
+    // A card's fill matches every container that wraps the same text set, so a sibling that carries no text
+    // (a thumbnail) leaves the card frame and its inner content frame indistinguishable and both claim the
+    // background — doubling the fill and the padding. Strip the inner copy: a child frame sharing its
+    // parent's fill token and radius duplicated it, so the outer frame owns the background alone. Only a
+    // *lone* matching child is a duplicate wrapper; many same-fill siblings are stacked rows (a PinList's
+    // primaryBackground rows on a primaryBackground screen), which legitimately carry the fill and insets.
+    static func stripDuplicateNestedBackground(_ node: FigmaNode) -> FigmaNode {
+        var node = node
+        node.children = node.children.map(stripDuplicateNestedBackground)
+        guard let token = node.fillToken else { return node }
+        let matches = node.children.filter { $0.tag == "frame" && $0.fillToken == token && $0.radiusToken == node.radiusToken }
+        guard matches.count == 1 else { return node }
+        node.children = node.children.map { child in
+            guard child.tag == "frame", child.fillToken == token, child.radiusToken == node.radiusToken else { return child }
+            var child = child
+            child.fill = nil
+            child.fillToken = nil
+            child.fillDark = nil
+            child.radius = nil
+            child.radiusToken = nil
+            if var layout = child.layout {
+                layout.pad = [0, 0, 0, 0]
+                layout.padTokens = [nil, nil, nil, nil]
+                child.layout = layout
+            }
+            return child
+        }
+        return node
+    }
+
     static func componentizeRepeatedChildren(_ node: FigmaNode) -> FigmaNode {
         var node = node
         node.children = node.children.map(componentizeRepeatedChildren)
@@ -99,31 +129,57 @@ public enum PinDisplayListCapture {
         }
         var counts: [String: Int] = [:]
         for case let signature? in signatures { counts[signature, default: 0] += 1 }
-        // The master of each ≥2 group is its first member (the superset — real rows carry every optional
-        // child). A leftover row that's a *subset* of a master (a cart row without the optional SALE pill /
-        // was-price) joins that component as a variant, normalized to the master's structure with the
-        // missing children inserted as hidden placeholders.
         let originalChildren = node.children
-        let masters = signatures.enumerated().reduce(into: [String: Int]()) { result, pair in
-            if let signature = pair.element, counts[signature, default: 0] >= 2, result[signature] == nil {
-                result[signature] = pair.offset
+
+        // The master of a component must carry every optional layer: a Figma instance can hide a layer but
+        // not add one. So a subset row joins by gaining hidden placeholders, and a superset row is promoted
+        // to master (the existing members then gaining the placeholders instead).
+        var clusterKeyBySignature: [String: Int] = [:]
+        var clusterMaster: [Int] = []
+        var clusterMembers: [[Int]] = []
+        var clusterKey: [String] = []
+        for (index, signature) in signatures.enumerated() {
+            guard let signature, counts[signature, default: 0] >= 2 else { continue }
+            if let cluster = clusterKeyBySignature[signature] {
+                clusterMembers[cluster].append(index)
+            } else {
+                clusterKeyBySignature[signature] = clusterMaster.count
+                clusterMaster.append(index)
+                clusterMembers.append([index])
+                clusterKey.append(signature)
             }
         }
-        node.children = node.children.enumerated().map { index, child in
-            if let signature = signatures[index], counts[signature, default: 0] >= 2 {
-                var componentized = child
-                componentized.component = signature
-                return componentized
-            }
-            guard child.tag == "frame", child.component == nil else { return child }
-            for (signature, masterIndex) in masters.sorted(by: { $0.value < $1.value }) {
-                if let normalized = variantAlign(master: originalChildren[masterIndex], into: child) {
-                    var componentized = normalized
-                    componentized.component = signature
-                    return componentized
+        for index in originalChildren.indices {
+            guard originalChildren[index].tag == "frame", originalChildren[index].component == nil else { continue }
+            if let signature = signatures[index], counts[signature, default: 0] >= 2 { continue }
+            for cluster in clusterMaster.indices {
+                let master = originalChildren[clusterMaster[cluster]]
+                if variantAlign(master: master, into: originalChildren[index]) != nil {
+                    clusterMembers[cluster].append(index)
+                    break
+                }
+                if variantAlign(master: originalChildren[index], into: master) != nil {
+                    clusterMaster[cluster] = index
+                    clusterMembers[cluster].append(index)
+                    break
                 }
             }
-            return child
+        }
+
+        var assignment: [Int: (key: String, node: FigmaNode)] = [:]
+        for cluster in clusterMaster.indices where clusterMembers[cluster].count >= 2 {
+            let master = originalChildren[clusterMaster[cluster]]
+            for member in clusterMembers[cluster] {
+                if let normalized = variantAlign(master: master, into: originalChildren[member]) {
+                    assignment[member] = (clusterKey[cluster], normalized)
+                }
+            }
+        }
+        node.children = originalChildren.enumerated().map { index, child in
+            guard let (key, normalized) = assignment[index] else { return child }
+            var componentized = normalized
+            componentized.component = key
+            return componentized
         }
         return node
     }
@@ -165,12 +221,18 @@ public enum PinDisplayListCapture {
         // one template, while a real size difference (a 120 vs 240 card) still lands in distinct buckets.
         func bucket(_ value: Double) -> Int { Int((value / 16).rounded()) }
         if node.tag == "image" { return "IMG:w\(bucket(node.w)):h\(bucket(node.h))" }
-        var parts = ["\(node.tag):w\(bucket(node.w)):h\(bucket(node.h))"]
+        // A chip (a frame hugging a single text — a status pill) sizes to its overridable text, so its width
+        // varies per instance; omit its size so a short "Bonus" and a long "Not delivered" share a template.
+        // Any other frame keeps size-keying, so genuinely different-sized cards stay distinct.
+        let isChip = node.children.count == 1 && node.children.first?.tag == "text"
+        var parts = [isChip ? node.tag : "\(node.tag):w\(bucket(node.w)):h\(bucket(node.h))"]
         // Only the axis is stable — justify/align/gap are inferred from rendered geometry and wobble with
         // text width across otherwise-identical cards, so they'd falsely split one template. Instances
         // inherit the master's layout regardless.
         if let layout = node.layout { parts.append("L\(layout.mode)") }
-        parts.append("F:\(node.fillToken ?? (node.fill != nil ? "#" : "-"))")
+        // Fill is keyed by PRESENCE, not colour — a Figma instance can override a fill, so rows differing
+        // only by a chip's colour (bonus blue vs warning neutral) group and the plugin overrides per instance.
+        parts.append("F:\(node.fill != nil || node.fillToken != nil ? "#" : "-")")
         parts.append("R:\(node.radiusToken ?? (node.radius != nil ? "#" : "-"))")
         parts.append("[\(node.children.map(signature).joined(separator: ","))]")
         return parts.joined(separator: "|")
@@ -461,6 +523,19 @@ public enum PinDisplayListCapture {
         var children: [Box] = []
         init(_ leaf: DisplayLeaf) { self.leaf = leaf }
         var area: CGFloat { leaf.frame.width * leaf.frame.height }
+    }
+
+    // Build a structured node from raw leaves via containment alone. For a consumer's arbitrary content
+    // (a raw List cell, whose whole row lives in one CellHostingView DisplayList) there's no SwiftUI value
+    // to reflect, so geometry is all we have. A flat row has no leaf enclosing its siblings, so seed a
+    // transparent root spanning their union — otherwise containmentTree keeps only the largest leaf.
+    static func containmentNode(leaves: [DisplayLeaf], host: UIView) -> FigmaNode? {
+        guard let first = leaves.first else { return nil }
+        // Strictly larger than the union so it encloses even a lone leaf whose frame equals the union —
+        // containmentTree refuses to nest a child sharing the parent's exact frame.
+        let bounds = leaves.dropFirst().map(\.frame).reduce(first.frame) { $0.union($1) }.insetBy(dx: -1, dy: -1)
+        let rooted = [DisplayLeaf(frame: bounds, kind: .transparent)] + leaves
+        return emit(containmentTree(rooted), host: host)
     }
 
     private static func containmentTree(_ leaves: [DisplayLeaf]) -> Box {

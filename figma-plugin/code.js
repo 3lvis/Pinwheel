@@ -220,10 +220,10 @@ var PW = (() => {
     }
     return text;
   }
-  function collectRunTexts(node) {
+  function collectRuns(node) {
     const out = [];
     const walk = (current) => {
-      if (current.texts) for (const run of current.texts) out.push(run.text);
+      if (current.texts) for (const run of current.texts) out.push({ text: run.text, font: current.font });
       if (current.children) for (const child of current.children) walk(child);
     };
     if (node.children) for (const child of node.children) walk(child);
@@ -231,13 +231,15 @@ var PW = (() => {
   }
   async function applyInstanceContent(instance, node) {
     if (node.fill) instance.fills = [solid(node.fill, node.fillToken)];
-    const nested = node.children && node.children.length ? collectRunTexts(node) : [];
+    const nested = node.children && node.children.length ? collectRuns(node) : [];
     if (nested.length) {
       const nestedTexts = instance.findAllWithCriteria({ types: ["TEXT"] });
       for (let index = 0; index < nestedTexts.length && index < nested.length; index += 1) {
         const text = nestedTexts[index];
         if (text.fontName !== figma.mixed) await figma.loadFontAsync(text.fontName);
-        text.characters = nested[index];
+        text.characters = nested[index].text;
+        const font = nested[index].font;
+        if (font && font.color) text.fills = [solid(font.color, font.colorToken)];
       }
       return;
     }
@@ -279,6 +281,17 @@ var PW = (() => {
       }
     }
   }
+  function applyFills(layer, node) {
+    if (!("children" in layer)) return;
+    const layers = layer.children;
+    const items = orderChildren(node);
+    for (let index = 0; index < items.length && index < layers.length; index += 1) {
+      const child = items[index].child;
+      if (!child) continue;
+      if (child.fill) layers[index].fills = [solid(child.fill, child.fillToken)];
+      applyFills(layers[index], child);
+    }
+  }
   function applyHidden(layer, node) {
     if (!("children" in layer)) return;
     const layers = layer.children;
@@ -286,8 +299,12 @@ var PW = (() => {
     for (let index = 0; index < items.length && index < layers.length; index += 1) {
       const child = items[index].child;
       if (!child) continue;
-      if (child.hidden) layers[index].visible = false;
-      else applyHidden(layers[index], child);
+      if (child.hidden) {
+        layers[index].visible = false;
+      } else {
+        layers[index].visible = true;
+        applyHidden(layers[index], child);
+      }
     }
   }
   async function build(node, parent, parentX, parentY, flow, insideComponent = false) {
@@ -340,6 +357,7 @@ var PW = (() => {
       await applyInstanceContent(instance, node);
       applyHidden(instance, node);
       applyImages(instance, node);
+      applyFills(instance, node);
       return instance;
     }
     let frame;
@@ -375,8 +393,10 @@ var PW = (() => {
     if (node.layout) {
       applyAutoLayout(frame, node.layout);
       for (const item of orderChildren(node)) {
-        if (item.child) await build(item.child, frame, node.x, node.y, true, childInside);
-        else frame.appendChild(await makeText(item.run, node.font));
+        if (item.child) {
+          const built = await build(item.child, frame, node.x, node.y, true, childInside);
+          if (item.child.hidden) built.visible = false;
+        } else frame.appendChild(await makeText(item.run, node.font));
       }
       const parentIsAutoLayout = frame.parent && "layoutMode" in frame.parent && frame.parent.layoutMode !== "NONE";
       if ((node.children.some((child) => child.grow) || node.fillWidth) && parentIsAutoLayout) {
@@ -398,7 +418,10 @@ var PW = (() => {
           }
         }
       }
-      for (const child of node.children) await build(child, frame, node.x, node.y, false, childInside);
+      for (const child of node.children) {
+        const built = await build(child, frame, node.x, node.y, false, childInside);
+        if (child.hidden) built.visible = false;
+      }
     }
     return frame;
   }

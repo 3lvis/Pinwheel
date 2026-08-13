@@ -142,10 +142,10 @@ async function makeText(run: any, font: any): Promise<TextNode> {
   return text
 }
 
-function collectRunTexts(node: any): string[] {
-  const out: string[] = []
+function collectRuns(node: any): Array<{ text: string; font: any }> {
+  const out: Array<{ text: string; font: any }> = []
   const walk = (current: any) => {
-    if (current.texts) for (const run of current.texts) out.push(run.text)
+    if (current.texts) for (const run of current.texts) out.push({ text: run.text, font: current.font })
     if (current.children) for (const child of current.children) walk(child)
   }
   if (node.children) for (const child of node.children) walk(child)
@@ -155,13 +155,15 @@ function collectRunTexts(node: any): string[] {
 async function applyInstanceContent(instance: InstanceNode, node: any): Promise<void> {
   if (node.fill) instance.fills = [solid(node.fill, node.fillToken)]
 
-  const nested = node.children && node.children.length ? collectRunTexts(node) : []
+  const nested = node.children && node.children.length ? collectRuns(node) : []
   if (nested.length) {
     const nestedTexts = instance.findAllWithCriteria({ types: ['TEXT'] }) as TextNode[]
     for (let index = 0; index < nestedTexts.length && index < nested.length; index += 1) {
       const text = nestedTexts[index]
       if (text.fontName !== figma.mixed) await figma.loadFontAsync(text.fontName as FontName)
-      text.characters = nested[index]
+      text.characters = nested[index].text
+      const font = nested[index].font
+      if (font && font.color) text.fills = [solid(font.color, font.colorToken)]
     }
     return
   }
@@ -212,6 +214,21 @@ function applyImages(layer: SceneNode, node: any): void {
   }
 }
 
+// Rows grouped as one component can differ by a nested fill's colour (a bonus chip vs a warning chip);
+// override each instance's nested fills (walking in build order) so a chip shows its own colour, not the
+// master's. A Figma instance can override a fill.
+function applyFills(layer: SceneNode, node: any): void {
+  if (!('children' in layer)) return
+  const layers = (layer as ChildrenMixin).children as SceneNode[]
+  const items = orderChildren(node)
+  for (let index = 0; index < items.length && index < layers.length; index += 1) {
+    const child = items[index].child
+    if (!child) continue
+    if (child.fill) (layers[index] as GeometryMixin).fills = [solid(child.fill, child.fillToken)]
+    applyFills(layers[index], child)
+  }
+}
+
 function applyHidden(layer: SceneNode, node: any): void {
   if (!('children' in layer)) return
   const layers = (layer as ChildrenMixin).children as SceneNode[]
@@ -219,8 +236,12 @@ function applyHidden(layer: SceneNode, node: any): void {
   for (let index = 0; index < items.length && index < layers.length; index += 1) {
     const child = items[index].child
     if (!child) continue
-    if (child.hidden) layers[index].visible = false
-    else applyHidden(layers[index], child)
+    if (child.hidden) {
+      layers[index].visible = false
+    } else {
+      layers[index].visible = true
+      applyHidden(layers[index], child)
+    }
   }
 }
 
@@ -281,6 +302,7 @@ async function build(node: any, parent: BaseNode & ChildrenMixin, parentX: numbe
     await applyInstanceContent(instance, node)
     applyHidden(instance, node)
     applyImages(instance, node)
+    applyFills(instance, node)
     return instance
   }
 
@@ -318,8 +340,10 @@ async function build(node: any, parent: BaseNode & ChildrenMixin, parentX: numbe
   if (node.layout) {
     applyAutoLayout(frame, node.layout)
     for (const item of orderChildren(node)) {
-      if (item.child) await build(item.child, frame, node.x, node.y, true, childInside)
-      else frame.appendChild(await makeText(item.run, node.font))
+      if (item.child) {
+        const built = await build(item.child, frame, node.x, node.y, true, childInside)
+        if (item.child.hidden) built.visible = false
+      } else frame.appendChild(await makeText(item.run, node.font))
     }
     const parentIsAutoLayout = frame.parent && 'layoutMode' in frame.parent && (frame.parent as FrameNode).layoutMode !== 'NONE'
     if ((node.children.some((child: any) => child.grow) || node.fillWidth) && parentIsAutoLayout) {
@@ -341,7 +365,10 @@ async function build(node: any, parent: BaseNode & ChildrenMixin, parentX: numbe
         }
       }
     }
-    for (const child of node.children) await build(child, frame, node.x, node.y, false, childInside)
+    for (const child of node.children) {
+      const built = await build(child, frame, node.x, node.y, false, childInside)
+      if (child.hidden) built.visible = false
+    }
   }
   return frame
 }

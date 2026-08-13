@@ -25,3 +25,19 @@ test('a hidden placeholder layer is hidden on the instance but not the master', 
   assert.notEqual(masterPill.visible, false, 'the master keeps the SALE pill visible')
   assert.equal(instancePill.visible, false, 'the instance hides its SALE pill placeholder')
 })
+
+// When the master (first row) hides an optional layer but a later instance carries it, the instance must
+// SHOW it — a superset row (Order Summary's two-pill product among one-pill rows normalizes the first row's
+// second pill to hidden, so the two-pill row un-hides it).
+test('an instance shows a layer the master hides', async () => {
+  const { build, created } = loadPlugin()
+  const doc = frame([row(true), row(false)], { component: undefined })
+  await build(doc, rootParent(), 0, 0, false)
+
+  const master = created.find((node) => node.type === 'COMPONENT')
+  const instance = created.find((node) => node.type === 'INSTANCE')
+  const masterPill = master.children[0].children[1]
+  const instancePill = instance.children[0].children[1]
+  assert.equal(masterPill.visible, false, 'the master hides the pill placeholder')
+  assert.notEqual(instancePill.visible, false, 'the instance un-hides the pill it carries')
+})

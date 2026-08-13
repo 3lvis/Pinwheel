@@ -93,7 +93,7 @@ struct LiveCaptureHost: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIViewController {
         let container = UIViewController()
         container.view.backgroundColor = .clear
-        let host = UIHostingController(rootView: AnyView(entry.item.swiftUIView().environment(\.pinCapturing, true)))
+        let host = UIHostingController(rootView: AnyView(entry.item.swiftUIView()))
         container.addChild(host)
         host.view.translatesAutoresizingMaskIntoConstraints = false
         container.view.addSubview(host.view)

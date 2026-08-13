@@ -13,27 +13,11 @@ public enum PinSwiftUIListCapture {
         guard let collection = firstCollection(in: liveHost) else { return nil }
         realizeAllCells(collection)
 
-        let rows: [FigmaNode] = orderedCells(collection).compactMap { cell in
-            // A row's content is split across nested hosting views, each its own DisplayList boundary.
-            // Capture every one and place it by its frame. Text-dominant rows capture fully; a rich row
-            // with embedded controls captures partially — some fragments host their content in a way that
-            // exposes no readable DisplayList (a known limitation).
-            let fragments: [FigmaNode] = hostingViews(in: cell).compactMap { hosting in
-                guard let fragment = PinDisplayListCapture.document(
-                    SwiftUI.EmptyView(), name: "Row", size: hosting.bounds.size,
-                    screenHeight: hosting.bounds.height, liveHost: hosting
-                ) else { return nil }
-                guard !nodeTexts(fragment.root).isEmpty || !fragment.root.children.isEmpty else { return nil }
-                let origin = hosting.convert(CGPoint.zero, to: liveHost)
-                var node = shift(fragment.root, dx: Double(origin.x), dy: Double(origin.y))
-                if node.tag == "screen" { node.tag = "frame" }
-                return node
-            }
-            guard !fragments.isEmpty else { return nil }
-            let frame = cell.convert(cell.bounds, to: liveHost)
-            return FigmaNode(tag: "frame", x: Double(frame.minX), y: Double(frame.minY),
-                             w: Double(frame.width), h: Double(frame.height), name: "Row", children: fragments)
-        }
+        // Section headers are supplementary views, not cells; capture both so a sectioned List keeps its
+        // headers. Order by on-screen Y so headers land above their rows.
+        let items = (orderedCells(collection) + sectionHeaders(collection))
+            .sorted { $0.convert(CGPoint.zero, to: liveHost).y < $1.convert(CGPoint.zero, to: liveHost).y }
+        let rows: [FigmaNode] = items.compactMap { structuredRow($0, in: liveHost) }
         guard !rows.isEmpty else { return nil }
 
         let top = rows.map { $0.y }.min() ?? 0
@@ -50,7 +34,9 @@ public enum PinSwiftUIListCapture {
             fill: background.map(RGBA.init), fillToken: background.flatMap(PinDisplayListCapture.tokenName(for:)),
             name: name, children: lifted
         )
-        return FigmaDocument(width: width, height: root.h, root: root,
+        // Repeated rows share one component (edit the master, the copies follow), same as the DisplayList path.
+        let componentized = PinDisplayListCapture.componentizeRepeatedChildren(PinDisplayListCapture.stripDuplicateNestedBackground(root))
+        return FigmaDocument(width: width, height: componentized.h, root: componentized,
                              tokens: PinDisplayListCapture.colorTokens + PinFloatTokens.tokens,
                              textStyles: PinDisplayListCapture.textStyles)
     }
@@ -81,11 +67,40 @@ public enum PinSwiftUIListCapture {
         scroll.layoutIfNeeded()
     }
 
+    private static func sectionHeaders(_ scroll: UIScrollView) -> [UIView] {
+        guard let collection = scroll as? UICollectionView else { return [] }
+        let kind = UICollectionView.elementKindSectionHeader
+        return collection.indexPathsForVisibleSupplementaryElements(ofKind: kind)
+            .compactMap { collection.supplementaryView(forElementKind: kind, at: $0) }
+    }
+
     private static func orderedCells(_ scroll: UIScrollView) -> [UIView] {
         let cells: [UIView] = (scroll as? UICollectionView)?.visibleCells
             ?? (scroll as? UITableView)?.visibleCells
             ?? []
         return cells.sorted { $0.frame.minY < $1.frame.minY }
+    }
+
+    // Reassemble one cell into a structured row. A cell's whole row lives in its CellHostingView
+    // DisplayList (thumbnail, title, pill, prices, stepper); gather the leaves of every hosting view in the
+    // cell — shifted into cell coordinates — and build one node by containment, so nothing scatters.
+    private static func structuredRow(_ cell: UIView, in liveHost: UIView) -> FigmaNode? {
+        var leaves: [DisplayLeaf] = []
+        for hosting in hostingViews(in: cell) {
+            guard let hostingLeaves = PinDisplayList.leaves(fromHost: hosting, liveControlsOnScreen: true) else { continue }
+            let offset = hosting.convert(CGPoint.zero, to: cell)
+            leaves += hostingLeaves.map { leaf in
+                var moved = DisplayLeaf(frame: leaf.frame.offsetBy(dx: offset.x, dy: offset.y), kind: leaf.kind)
+                moved.image = leaf.image
+                return moved
+            }
+        }
+        guard let content = PinDisplayListCapture.containmentNode(leaves: leaves, host: cell) else { return nil }
+        let origin = cell.convert(CGPoint.zero, to: liveHost)
+        var node = shift(content, dx: Double(origin.x), dy: Double(origin.y))
+        node.tag = "frame"
+        node.name = "Row"
+        return node
     }
 
     // Every hosting view in the cell, at any depth — each row fragment (title, price, stepper, image) is
@@ -100,10 +115,6 @@ public enum PinSwiftUIListCapture {
         }
         scan(view)
         return found
-    }
-
-    private static func nodeTexts(_ node: FigmaNode) -> [String] {
-        (node.texts?.map { $0.text } ?? []) + node.children.flatMap { nodeTexts($0) }
     }
 
     private static func shift(_ node: FigmaNode, dx: Double, dy: Double) -> FigmaNode {

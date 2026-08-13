@@ -4,8 +4,6 @@ public struct PinList: SwiftUI.View {
     private let state: PinState
     private let rows: [Row]
     private let onRetry: () -> Void
-    // The same `Row` in both branches, so a captured stack is 1:1 with the rendered List's cells.
-    @Environment(\.pinCapturing) private var capturing
 
     public init(state: PinState = .loaded, rows: [Row], onRetry: @escaping () -> Void = {}) {
         self.state = state
@@ -16,40 +14,19 @@ public struct PinList: SwiftUI.View {
     public var body: some SwiftUI.View {
         switch state {
         case .loaded:
-            if capturing { capturableStack } else { productionList }
+            List {
+                ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                    row
+                        .listRowInsets(EdgeInsets(top: .spacingS, leading: .spacingM, bottom: .spacingS, trailing: .spacingM))
+                        .listRowBackground(Color.primaryBackground)
+                }
+            }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .background(.primaryBackground)
         default:
             PinStateView(state, onAction: onRetry)
         }
-    }
-
-    private var productionList: some SwiftUI.View {
-        List {
-            ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
-                row
-                    .listRowInsets(EdgeInsets(top: .spacingS, leading: .spacingM, bottom: .spacingS, trailing: .spacingM))
-                    .listRowBackground(Color.primaryBackground)
-            }
-        }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
-        .background(.primaryBackground)
-    }
-
-    // No per-row id to key on; positional identity is stable because rows are a fixed value array per render.
-    private var capturableStack: some SwiftUI.View {
-        ScrollView {
-            VStack(spacing: 0) {
-                ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
-                    row
-                        .padding(.horizontal, .spacingM)
-                        .padding(.vertical, .spacingS)
-                    if index < rows.count - 1 {
-                        Divider().padding(.leading, .spacingM)
-                    }
-                }
-            }
-        }
-        .background(.primaryBackground)
     }
 }
 
