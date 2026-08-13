@@ -13,14 +13,18 @@ enum DemoStateFixture {
     static let empty = PinState.empty(title: emptyTitle, subtitle: emptySubtitle)
     static let failed = PinState.failed(title: failedTitle, subtitle: failedSubtitle, actionTitle: retryActionTitle)
 
-    static let titles = ["Loading", "Loaded", "Empty", "Failed"]
+    static let states: [(title: String, state: PinState)] = [
+        ("Loading", loading),
+        ("Loaded", .loaded),
+        ("Empty", empty),
+        ("Failed", failed),
+    ]
 
-    static func state(at index: Int) -> PinState {
-        switch index {
-        case 0: return loading
-        case 2: return empty
-        case 3: return failed
-        default: return .loaded
-        }
-    }
+    static let loadingIndex = 0
+    static let loadedIndex = 1
+    static let emptyIndex = 2
+
+    static var titles: [String] { states.map(\.title) }
+
+    static func state(at index: Int) -> PinState { states[index].state }
 }

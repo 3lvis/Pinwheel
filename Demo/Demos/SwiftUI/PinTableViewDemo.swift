@@ -2,14 +2,12 @@ import SwiftUI
 import Pinwheel
 
 struct PinTableViewDemo: SwiftUI.View {
-    @SwiftUI.State private var state: PinState = .loaded
+    @SwiftUI.State private var stateIndex = DemoStateFixture.loadedIndex
     @SwiftUI.State private var off = false
     @SwiftUI.State private var on = true
 
-    @SwiftUI.State private var stateIndex = 1
-
     var body: some SwiftUI.View {
-        PinList(state: state, rows: [
+        PinList(state: DemoStateFixture.state(at: stateIndex), rows: [
             .text("Account", icon: Image(systemName: "person.crop.circle.fill"), subtitle: "Signed in", chevron: true) {},
             .text("Notifications", icon: Image(systemName: "bell.badge.fill"), chevron: true) {},
             .text("Privacy & Security", icon: Image(systemName: "lock.fill"), chevron: true) {},
@@ -21,10 +19,9 @@ struct PinTableViewDemo: SwiftUI.View {
             .toggle("Dark Appearance", icon: Image(systemName: "moon.fill"), isOn: $on),
             .text("About", subtitle: "Version 1.0", chevron: true) {},
             .text("Sign out", enabled: false),
-        ], onRetry: { state = .loaded })
+        ], onRetry: { stateIndex = DemoStateFixture.loadedIndex })
         .pinwheelTweaks {
             PinwheelTweak("State", options: DemoStateFixture.titles, selection: $stateIndex)
         }
-        .onChange(of: stateIndex) { _, index in state = DemoStateFixture.state(at: index) }
     }
 }
