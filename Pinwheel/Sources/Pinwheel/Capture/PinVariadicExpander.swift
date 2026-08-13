@@ -33,7 +33,6 @@ enum PinVariadicExpander {
     /// Cached capability probe: only trust the deref if it recovers a known fixture's structure exactly.
     static let isHealthy: Bool = runSelfTest()
 
-    // MARK: Expansion
 
     private final class Sink {
         var rows: [Any] = []
@@ -71,7 +70,6 @@ enum PinVariadicExpander {
         return _openExistential(view, do: host)
     }
 
-    // MARK: Graph navigation
 
     // A row's node carries `view: AGWeakAttribute` (id in `_details.identifier.rawValue`) and `viewType`
     // (the row's type metatype). Hunt for that pair inside the element.
@@ -102,7 +100,6 @@ enum PinVariadicExpander {
         return _openExistential(type, do: project)
     }
 
-    // MARK: Self-test
 
     private struct ProbeRow: SwiftUI.View {
         let title: String
@@ -125,7 +122,6 @@ enum PinVariadicExpander {
             default: return 0
             }
         }
-        // Row 0 (extra: true) → 2 labels; row 1 (extra: false) → 1 label. Both must reflect to real HStacks.
         return leafCount(PinViewReflector.reflect(rows[0])) == 2 && leafCount(PinViewReflector.reflect(rows[1])) == 1
     }
 }

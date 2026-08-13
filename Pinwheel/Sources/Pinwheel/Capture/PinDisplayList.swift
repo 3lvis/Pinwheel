@@ -55,7 +55,7 @@ enum PinDisplayList {
         let inset = host.safeAreaInsets
         // A UIKit control paints its real appearance only on the live screen (off-screen it's a flat
         // blob). Crop the key window only when the caller vouches this component is the on-screen
-        // content — otherwise foreign controls (the catalog's) land on these leaves (the v7 corruption).
+        // content — otherwise foreign controls (the catalog's) land on these leaves.
         let controlCrops = liveControlsOnScreen ? keyWindowControlCrops() : []
         let wideLeaves = leaves.indices
             .filter { if case .rasterizable = leaves[$0].kind, leaves[$0].image == nil, leaves[$0].frame.width > 40 { return true }; return false }

@@ -59,16 +59,11 @@ public enum PinDisplayListCapture {
         if let structure = PinViewReflector.reflect(view) {
             let reflectedLeaves = leafCount(structure)
             let deepLeaves = components.flatMap(allLeaves)
-            // The flattened-leaf fallback is only for a genuinely 2-D row (a cross-axis nested stack — an
-            // HStack holding a VStack column) that containment collapses to one component and scrambles. A
-            // flat 1-D row (a colored bar of side-by-side labels) captures fine on containment and must keep
-            // its background fill, so it stays on the exact/containment path.
             let pool: [Box]? = reflectedLeaves == components.count ? components
                 : (reflectedLeaves == deepLeaves.count && hasMixedRow(structure) ? deepLeaves : nil)
             if var pool {
                 let backgrounds = collectBackgrounds(root)
                 let content = emitStructure(structure, host: host, backgrounds: backgrounds) { text in
-                    // Match by text, not index — a 2D grid scrambles a positional zip; duplicates resolve first-unconsumed.
                     let matched = pool.firstIndex { componentText($0) == text } ?? (pool.isEmpty ? nil : 0)
                     return matched.map { pool.remove(at: $0) }
                 }
@@ -169,9 +164,6 @@ public enum PinDisplayListCapture {
         // Bucket size to ~16pt so content-driven width jitter (a longer price, a wider label) doesn't split
         // one template, while a real size difference (a 120 vs 240 card) still lands in distinct buckets.
         func bucket(_ value: Double) -> Int { Int((value / 16).rounded()) }
-        // An image is a swappable slot keyed by size, not bytes: same-size images (a gallery's per-row
-        // photos, or a shared chevron) group so their rows share one component, and the plugin overrides each
-        // instance's image fill. A genuinely different size (an icon vs a hero photo) stays a distinct slot.
         if node.tag == "image" { return "IMG:w\(bucket(node.w)):h\(bucket(node.h))" }
         var parts = ["\(node.tag):w\(bucket(node.w)):h\(bucket(node.h))"]
         // Only the axis is stable — justify/align/gap are inferred from rendered geometry and wobble with
@@ -184,9 +176,6 @@ public enum PinDisplayListCapture {
         return parts.joined(separator: "|")
     }
 
-    // A 2-D cell is a container that MIXES a leaf and a sub-stack (a gallery row: an image leaf beside a
-    // VStack text column) — the shape containment collapses to one component and scrambles. A flat row of
-    // labels (all leaves) or a list column of rows (all containers) isn't mixed and captures fine as-is.
     private static func hasMixedRow(_ node: ReflectedNode) -> Bool {
         guard case .container(_, let children) = node else { return false }
         var hasLeaf = false, hasContainer = false
@@ -205,7 +194,6 @@ public enum PinDisplayListCapture {
         }
     }
 
-    // Flatten the root's children too, else a flat screen collapses to one component and desyncs the reflected leaf count. A childless root is itself the sole component.
     private static func orderedComponents(_ box: Box) -> [Box] {
         let leaves = box.children.isEmpty ? [box] : orderedForLayout(box.children).flatMap(flatten)
         return groupOrphanIcons(leaves)
@@ -268,7 +256,6 @@ public enum PinDisplayListCapture {
         case .leaf(let text, let isButton, let fillWidth):
             guard let box = next(text) else { return nil }
             var node = componentNode(box, host: host)
-            // SwiftUI drops a fill-less button's frame, so it arrives as bare text — rebuild the padded, min-width box so it reads as a button.
             if isButton, node.tag != "frame" { node = bareButtonContainer(node) }
             if fillWidth { node = fillWidthCentered(node) }
             return node
@@ -281,10 +268,6 @@ public enum PinDisplayListCapture {
             let texts = childNodes.reduce(into: Set<String>()) { $0.formUnion(nodeTexts($1)) }
             let background = backgrounds.first { $0.texts == texts }
             var padding = background?.padding ?? EdgeInsets()
-            // A `.frame(maxWidth: .infinity)` card with left-aligned content hugs the leading edge, so its
-            // trailing gap is the frame being wider than its content, not real padding. Measured trailing is
-            // unusable (content never reaches the right), so assume symmetric padding and fill the parent
-            // width instead of baking the empty space in as a giant trailing inset.
             let fillsWidth = container.axis == .column && container.alignment == .leading
                 && padding.trailing > padding.leading + 8
             if fillsWidth { padding.trailing = padding.leading }
@@ -300,9 +283,6 @@ public enum PinDisplayListCapture {
                 name: container.axis == .row ? "HStack" : "VStack",
                 layout: FigmaLayout(layout), ordered: true, children: childNodes
             )
-            // Fill-width propagates: a container whose child fills (a Spacer, or a sub-stack that itself
-            // fills) must fill too, or the chain breaks — a receipt row hugs and centres because the Spacer
-            // pushing its price sits two levels down (row → column → price HStack).
             let propagatesFill = childNodes.contains { $0.grow == true || $0.fillWidth == true }
             if fillsWidth || propagatesFill { node.fillWidth = true }
             if let border = container.border {
@@ -318,7 +298,6 @@ public enum PinDisplayListCapture {
         }
     }
 
-    // Rebuild the pill box SwiftUI optimized away for a fill-less button: min-width, standard padding, centered, transparent.
     static let bareButtonMinWidth: CGFloat = 100
 
     private static func bareButtonContainer(_ content: FigmaNode) -> FigmaNode {
@@ -484,14 +463,13 @@ public enum PinDisplayListCapture {
         var area: CGFloat { leaf.frame.width * leaf.frame.height }
     }
 
-    // Largest-first so a parent is placed before its children. The biggest leaf (the screen fill) is the root.
     private static func containmentTree(_ leaves: [DisplayLeaf]) -> Box {
-        let boxes = leaves.map(Box.init).sorted { $0.area > $1.area }
-        for (index, box) in boxes.enumerated() {
-            let parent = boxes[..<index].last { encloses($0.leaf.frame, box.leaf.frame) && $0.leaf.frame != box.leaf.frame }
+        let parentsBeforeChildren = leaves.map(Box.init).sorted { $0.area > $1.area }
+        for (index, box) in parentsBeforeChildren.enumerated() {
+            let parent = parentsBeforeChildren[..<index].last { encloses($0.leaf.frame, box.leaf.frame) && $0.leaf.frame != box.leaf.frame }
             parent?.children.append(box)
         }
-        return boxes.first ?? Box(DisplayLeaf(frame: CGRect(origin: .zero, size: .zero), kind: .color(.clear)))
+        return parentsBeforeChildren.first ?? Box(DisplayLeaf(frame: CGRect(origin: .zero, size: .zero), kind: .color(.clear)))
     }
 
     private static func encloses(_ outer: CGRect, _ inner: CGRect) -> Bool {
@@ -544,9 +522,6 @@ public enum PinDisplayListCapture {
         }
         let orderedChildren = orderedForLayout(box.children)
         var layout = inferLayout(orderedChildren.map(\.leaf.frame), in: frame)
-        // A left-aligned column's content hugs the leading edge, so a large trailing gap is the frame being
-        // wider than its content (a .frame(maxWidth:.infinity) card), not padding: drop the bogus inset to
-        // match leading and fill the parent width instead of baking the empty space in.
         let fillsWidth = layout.axis == .column && layout.alignment == .leading
             && layout.padding.trailing > layout.padding.leading + 8
         if fillsWidth {
@@ -579,8 +554,6 @@ public enum PinDisplayListCapture {
         return node
     }
 
-    // Dissolve transparent grouping boxes so a pre-grouped two-line row's leaves rejoin their band, but keep
-    // a fill/radius-bearing box (the SALE pill) whole — flattening through it drops its capsule fill.
     private static func flattenLeaves(_ boxes: [Box]) -> [Box] {
         boxes.flatMap { box in
             box.children.isEmpty || fillColor(box.leaf.kind) != nil || cornerRadius(box.leaf.kind) != nil
@@ -589,7 +562,6 @@ public enum PinDisplayListCapture {
         }
     }
 
-    // Cluster leaves into non-overlapping vertical bands (one visual row each) so the parent is unambiguously a column.
     private static func yBands(_ children: [Box]) -> [[Box]] {
         let sorted = children.sorted { $0.leaf.frame.minY < $1.leaf.frame.minY }
         var bands: [[Box]] = []
@@ -643,9 +615,6 @@ public enum PinDisplayListCapture {
     }
 
     static func orderedForLayout(_ children: [Box]) -> [Box] {
-        // Compare vertical CENTRES, not top edges: glyphs on one row (a short minus bar, a tall value, a
-        // plus) share a centre but differ in top-edge y, so a top-edge sort reads them as stacked and
-        // scrambles the row (− 1 + → 1 + −).
         children.sorted {
             abs($0.leaf.frame.midY - $1.leaf.frame.midY) > 4
                 ? $0.leaf.frame.midY < $1.leaf.frame.midY
@@ -701,16 +670,11 @@ public enum PinDisplayListCapture {
         )
     }
 
-    // A custom font's real family is Figma-loadable and should carry through; the system font's internal
-    // family name (prefixed ".") is not, so it falls back to the registry's design-face name.
     static func fontFamily(_ font: UIFont?) -> String {
         guard let family = font?.familyName, !family.hasPrefix(".") else { return PinCaptureTokens.current.systemFontFamily }
         return family
     }
 
-    // A text color binds only to a text-role token (the registry's `textEligible`): a background token
-    // matched purely by value — a literal white equals a light background's value — would flip the text
-    // dark on a dark-mode import, so a contrast literal stays untokenized (static) instead.
     private static func textColorToken(for color: UIColor) -> String? {
         PinCaptureTokens.current.colorName(for: color, textRoleOnly: true)
     }

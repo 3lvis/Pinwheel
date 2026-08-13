@@ -70,7 +70,6 @@ final class CaptureFidelityTests: XCTestCase {
     func testLiteralWhiteTextDoesNotBindABackgroundToken() {
         let white = PinDisplayListCapture.figmaFont(.body, color: .white, underline: false)
         XCTAssertNil(white.colorToken, "literal white text must stay untokenized, not bind primaryBackground (which flips dark)")
-        // A genuine text-role token still tokenizes.
         let action = PinDisplayListCapture.figmaFont(.body, color: .actionText, underline: false)
         XCTAssertEqual(action.colorToken, "actionText", "a text-role token still binds")
     }
@@ -400,8 +399,7 @@ final class CaptureFidelityTests: XCTestCase {
         XCTAssertEqual(allFrameNodes(in: root).filter { $0.component != nil }.count, 3, "all three icon rows are instances")
     }
 
-    // Two cards of the same template that differ by a few points of content-driven width must still group;
-    // only a real size difference (see testDifferentlySizedCards) splits them.
+    // Two cards of the same template that differ by a few points of content-driven width must still group.
     func testCardsWithMinorWidthDifferenceStillGroup() throws {
         struct Cards: SwiftUI.View {
             var body: some SwiftUI.View {

@@ -126,11 +126,10 @@ final class ReflectionContractTests: XCTestCase {
     // A ForEach of *container* rows (the rich/2-D case the deref targets — Cart etc.) expands into its real
     // rows via PinVariadicExpander, so it no longer reflects nil. Bare-leaf rows (ForEach { PinLabel }) have
     // a different graph-node shape the deref doesn't reach; those return nil and the screen falls back to the
-    // containment path (their prior behavior — a simple 1-D list containment already handles).
+    // containment path.
     // A standalone filled/stroked shape (a thumbnail's `RoundedRectangle().fill()`) renders as a fill box the
     // containment path keeps as a component, so reflection must emit it as a leaf — else a rich row's reflected
-    // leaf count falls short of the rendered components and the whole screen drops to containment (Cart's
-    // 2-D card scramble). An Image (SF Symbol) must NOT be a leaf — containment drops symbols, so counting one
+    // leaf count falls short of the rendered components and the whole screen drops to containment. An Image (SF Symbol) must NOT be a leaf — containment drops symbols, so counting one
     // would overshoot the other way.
     func testFilledShapeReflectsToALeafButImageDoesNot() {
         XCTAssertNotNil(PinViewReflector.reflect(RoundedRectangle(cornerRadius: 8).fill(.red).frame(width: 56, height: 56)),
@@ -141,7 +140,7 @@ final class ReflectionContractTests: XCTestCase {
 
     // The rich 2-D row (thumbnail | info column | stepper) reflects with the thumbnail shape leading, the
     // info as a nested column, and the quantity trailing — the structure Cart needs so Figma auto-layout
-    // lays it left-to-right instead of ordering by Y (the v5 scramble).
+    // lays it left-to-right instead of ordering by Y.
     func testTwoDimensionalRowReflectsThumbnailInfoColumnStepper() throws {
         try XCTSkipUnless(PinVariadicExpander.isHealthy, "expander unavailable on this OS — falls back to containment")
         let row = HStack {

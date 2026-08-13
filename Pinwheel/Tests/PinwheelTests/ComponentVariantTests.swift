@@ -9,7 +9,6 @@ final class ComponentVariantTests: XCTestCase {
     private func pill() -> FigmaNode {
         FigmaNode(tag: "frame", x: 0, y: 0, w: 40, h: 20, children: [text()])
     }
-    // A cart row: title + optional SALE pill, then a price + optional strikethrough was-price.
     private func row(sale: Bool) -> FigmaNode {
         let title = FigmaNode(tag: "frame", x: 0, y: 0, w: 200, h: 20, children: sale ? [text(), pill()] : [text()])
         let price = FigmaNode(tag: "frame", x: 0, y: 20, w: 200, h: 20, children: sale ? [text(), text()] : [text()])
@@ -44,8 +43,6 @@ final class ComponentVariantTests: XCTestCase {
         XCTAssertTrue(keys.allSatisfy { $0 != nil }, "every row is part of the component")
         XCTAssertEqual(Set(keys.compactMap { $0 }).count, 1, "all four rows share ONE component — the no-sale row is a variant, not its own frame")
 
-        // The no-sale row (index 2) is normalized to the master's structure: its title row now carries a
-        // hidden SALE pill and its price row a hidden was-price.
         let noSale = result.children[2]
         let titleRow = noSale.children[0]
         let priceRow = noSale.children[1]

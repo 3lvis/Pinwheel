@@ -17,7 +17,7 @@ public enum PinSwiftUIListCapture {
             // A row's content is split across nested hosting views, each its own DisplayList boundary.
             // Capture every one and place it by its frame. Text-dominant rows capture fully; a rich row
             // with embedded controls captures partially — some fragments host their content in a way that
-            // exposes no readable DisplayList (a known limitation, see the plan).
+            // exposes no readable DisplayList (a known limitation).
             let fragments: [FigmaNode] = hostingViews(in: cell).compactMap { hosting in
                 guard let fragment = PinDisplayListCapture.document(
                     SwiftUI.EmptyView(), name: "Row", size: hosting.bounds.size,
@@ -55,7 +55,7 @@ public enum PinSwiftUIListCapture {
                              textStyles: PinDisplayListCapture.textStyles)
     }
 
-    // The first opaque backgroundColor up the superview chain (including the window) — the surface a
+    // The surface a
     // transparent collection is drawn on.
     static func opaqueBackground(above view: UIView) -> UIColor? {
         var current: UIView? = view.superview

@@ -46,7 +46,6 @@ final class PinUIKitCaptureTests: XCTestCase {
         XCTAssertGreaterThan(node.y, 200, "centered content must not be lifted to the top of the frame")
     }
 
-    // The color demo's swatch is the cell's backgroundColor; the row node must carry it as a token fill.
     func testTableCellBackgroundBecomesTheRowFillToken() throws {
         let source = ColorRowsSource(colors: [.actionText, .criticalText])
         let table = UITableView()
@@ -68,7 +67,6 @@ final class PinUIKitCaptureTests: XCTestCase {
         XCTAssertEqual(rows.count, 2, "both color rows capture")
     }
 
-    // A UILabel with a background (a spacing/radius bar) captures as a filled, rounded frame — not just text.
     func testLabelWithBackgroundCapturesTokenFillAndRadius() throws {
         let host = UIView()
         let label = UILabel()
@@ -108,7 +106,6 @@ final class PinUIKitCaptureTests: XCTestCase {
         XCTAssertLessThan(node.w, 100, "a 2-character string must not span the full-width label frame")
     }
 
-    // A themed UITextView captures its text with the token, so it adapts in dark mode.
     func testThemedTextViewCapturesItsColorToken() throws {
         let host = UIView()
         let textView = UITextView()
@@ -161,8 +158,6 @@ final class PinUIKitCaptureTests: XCTestCase {
         XCTAssertFalse(document.textStyles.isEmpty, "the document ships the typography tokens")
     }
 
-    // A rounded, colored UIView (a concentric-radius layer) must capture as a token fill + radius, not
-    // be walked through as an invisible container.
     func testRoundedColoredViewCapturesAsAFillShape() throws {
         let host = UIView()
         let shape = UIView()

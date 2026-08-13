@@ -2,8 +2,7 @@ import UIKit
 
 // The design tokens the capture value-matches rendered values against and emits as Figma variables.
 // Defaults to Pinwheel's own tokens; a consumer sets `PinCaptureTokens.current` to their palette so THEIR
-// colors, spacings, radii, and font bind — the capture engine stays library-agnostic. (Text-style *names*
-// still match Pinwheel's `PinTextStyle` — a follow-up.)
+// colors, spacings, radii, and font bind — the capture engine stays library-agnostic.
 @MainActor
 public struct PinCaptureTokens {
     public struct ColorToken {
@@ -86,7 +85,6 @@ public struct PinCaptureTokens {
         )
     }
 
-    // MARK: Matching (value → token name), preserving the engine's existing tolerances.
 
     func colorName(for color: UIColor, textRoleOnly: Bool = false) -> String? {
         let target = RGBA(color)
@@ -98,8 +96,7 @@ public struct PinCaptureTokens {
     func spacingName(for value: Double) -> String? { exactFloat(value, in: spacings) }
     func radiusName(for value: Double) -> String? { exactFloat(value, in: radii) }
 
-    // Match a rendered font to a text style by size + weight (the same size/weight a Figma text style
-    // carries), so captured text binds the consumer's named style.
+    // Size + weight is what a Figma text style carries, so that is what a rendered font matches on.
     func textStyleName(for font: UIFont) -> String? {
         let weight = Self.cssWeight(font)
         return textStyles.first { abs($0.size - Double(font.pointSize)) < 0.5 && $0.weight == weight }?.name
@@ -136,7 +133,6 @@ public struct PinCaptureTokens {
         abs(a.r - b.r) < 0.02 && abs(a.g - b.g) < 0.02 && abs(a.b - b.b) < 0.02 && abs(a.a - b.a) < 0.05
     }
 
-    // MARK: Emission (registry → Figma variables).
 
     var figmaColorTokens: [FigmaToken] {
         colors.map { FigmaToken(name: $0.name, type: "color", value: $0.light, dark: $0.dark) }

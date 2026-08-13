@@ -4,7 +4,7 @@ import UIKit
 // Captures a hosted UIKit component into the Figma IR by reading the real UIView tree — no DisplayList,
 // no markers. A recycled UITableView/UICollectionView only realizes its visible viewport, so cells are
 // force-realized first (a scroll view's cull window is its bounds; demo data is small, so sizing to the
-// full contentSize realizes everything). UILabel/UISwitch/UIImageView map straight to Figma nodes.
+// full contentSize realizes everything).
 @MainActor
 public enum PinUIKitCapture {
     public static func document(host: UIView, name: String, size: CGSize, screenHeight: CGFloat) -> FigmaDocument? {
@@ -61,7 +61,6 @@ public enum PinUIKitCapture {
         return best
     }
 
-    // MARK: General view-tree walk
 
     private static func viewNodes(in view: UIView, host: UIView) -> [FigmaNode] {
         var nodes: [FigmaNode] = []
@@ -71,8 +70,6 @@ public enum PinUIKitCapture {
             } else if let stack = subview as? UIStackView {
                 nodes.append(stackFrame(stack, host: host))
             } else {
-                // A rounded, colored view is a shape (a concentric-radius layer / card); emit its fill,
-                // then recurse for nested layers and labels.
                 if let shape = shapeFillNode(subview, host: host) { nodes.append(shape) }
                 nodes.append(contentsOf: viewNodes(in: subview, host: host))
             }
@@ -80,7 +77,6 @@ public enum PinUIKitCapture {
         return nodes.sorted { ($0.y, $0.x) < ($1.y, $1.x) }
     }
 
-    // The leaf mappings: a label/textview to a text node, a control/image/hosted-SwiftUI island to a crop.
     private static func leafNode(_ view: UIView, host: UIView) -> FigmaNode? {
         if let label = view as? UILabel { return labelNode(label, host: host) }
         if let textView = view as? UITextView { return textViewNode(textView, host: host) }
@@ -102,7 +98,6 @@ public enum PinUIKitCapture {
         return node
     }
 
-    // A UIStackView is Figma auto-layout: map its axis/spacing/alignment and keep the arranged order.
     private static func stackFrame(_ stack: UIStackView, host: UIView) -> FigmaNode {
         let frame = stack.convert(stack.bounds, to: host)
         let stretches = stack.alignment == .fill
@@ -254,7 +249,6 @@ public enum PinUIKitCapture {
         )
     }
 
-    // MARK: Cell containers (UITableView / UICollectionView)
 
     private static func firstCellContainer(in view: UIView) -> UIScrollView? {
         if let table = view as? UITableView { return table }
