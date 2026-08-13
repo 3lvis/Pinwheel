@@ -39,19 +39,6 @@ enum HostedView {
         return labels
     }
 
-    /// Where the elements carrying `label` were laid out, in the window's own coordinates, since
-    /// `accessibilityFrame` reports the screen's.
-    static func accessibilityFrames(
-        in window: UIWindow,
-        labelled label: String,
-        ceiling: Int = 2000
-    ) -> [CGRect] {
-        var frames: [CGRect] = []
-        walkAccessibility(in: window, ceiling: ceiling) { object in
-            if object.accessibilityLabel == label { frames.append(window.convert(object.accessibilityFrame, from: nil)) }
-        }
-        return frames
-    }
 
     @discardableResult
     static func activateFirst(
@@ -67,9 +54,9 @@ enum HostedView {
         return activated
     }
 
-    /// The presented controller, once its view has joined the window — traits resolve from the
-    /// hierarchy, so one read before the presentation is attached reports the defaults instead.
-    static func presentation(in window: UIWindow) throws -> UIViewController {
+    /// Traits resolve from the view hierarchy, so a presentation read before it attaches reports
+    /// defaults rather than what the window carries.
+    static func attachedPresentation(in window: UIWindow) throws -> UIViewController {
         var arrived = false
         for _ in 0..<300 {
             RunLoop.current.run(until: Date().addingTimeInterval(0.02))
@@ -82,25 +69,6 @@ enum HostedView {
         throw PresentationNeverAttached(presented: arrived)
     }
 
-    /// The presentation a sheet settled on, once the height it measured for itself stops moving — a
-    /// measured detent is applied a beat after the sheet appears.
-    static func settledPresentation(in window: UIWindow) throws -> UIViewController {
-        var heights: [CGFloat] = []
-        var presentation: UIViewController?
-
-        for _ in 0..<300 {
-            RunLoop.current.run(until: Date().addingTimeInterval(0.02))
-            guard let presented = window.rootViewController?.presentedViewController else { continue }
-            presentation = presented
-            presented.view.layoutIfNeeded()
-            heights.append(presented.view.frame.height)
-            if heights.count >= 5, Set(heights.suffix(5)).count == 1, heights.last ?? 0 > 0 {
-                return presented
-            }
-        }
-
-        throw SheetNeverSettled(presented: presentation != nil, heights: Array(heights.suffix(10)))
-    }
 
     private static func walkAccessibility(
         in window: UIWindow,
@@ -144,14 +112,6 @@ enum HostedView {
     }
 }
 
-struct SheetNeverSettled: Error, CustomStringConvertible {
-    let presented: Bool
-    let heights: [CGFloat]
-
-    var description: String {
-        "The sheet settled on no height. Presented: \(presented). Heights seen: \(heights)."
-    }
-}
 
 struct PresentationNeverAttached: Error, CustomStringConvertible {
     let presented: Bool

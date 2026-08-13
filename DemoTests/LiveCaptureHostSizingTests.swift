@@ -6,7 +6,6 @@ import UIKit
 
 @MainActor
 final class LiveCaptureHostSizingTests: XCTestCase {
-    /// Taller than any device, so a host clamped to the window would cut it off.
     private struct TallScreen: SwiftUI.View {
         var body: some SwiftUI.View {
             ScrollView {

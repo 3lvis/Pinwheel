@@ -33,7 +33,7 @@ final class PresentedThemeTests: XCTestCase {
             window.rootViewController = nil
         }
 
-        let sheet = try HostedView.presentation(in: window)
+        let sheet = try HostedView.attachedPresentation(in: window)
 
         XCTAssertEqual(
             sheet.view.traitCollection[PinwheelThemeTrait.self].name,

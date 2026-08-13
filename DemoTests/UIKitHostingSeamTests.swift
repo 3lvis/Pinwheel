@@ -96,7 +96,7 @@ final class UIKitHostingSeamTests: XCTestCase {
         }
 
         chrome.showsTweaks = true
-        _ = try HostedView.presentation(in: window)
+        _ = try HostedView.attachedPresentation(in: window)
 
         XCTAssertTrue(
             HostedView.activateFirst(labelled: "Option 1", in: window),
@@ -118,7 +118,7 @@ final class UIKitHostingSeamTests: XCTestCase {
         }
 
         chrome.showsTweaks = true
-        _ = try HostedView.presentation(in: window)
+        _ = try HostedView.attachedPresentation(in: window)
 
         XCTAssertTrue(
             HostedView.activateFirst(labelled: "Option 1", in: window),

@@ -20,8 +20,6 @@ struct PinwheelSheetModel {
         }
     }
 
-    /// A sheet that completes a flow ends in a commit the caller names — Done, Confirm, Pay. A sheet
-    /// whose every tap already took effect has nothing to commit and leaves this nil.
     struct Commit {
         let title: String
         let action: () -> Void
@@ -112,9 +110,8 @@ extension PinwheelSheet where Trailing == EmptyView {
     }
 }
 
-/// The chosen row is outlined rather than ticked. A fill alone would be carrying the meaning in
-/// colour, which needs 3:1 against its surroundings to stand on its own (WCAG 1.4.1, 1.4.11) — the
-/// border is a shape, so the fill can stay soft.
+/// The border, not the fill, carries the selection: colour alone would need 3:1 against its
+/// surroundings to stand on its own (WCAG 1.4.1, 1.4.11), which a soft fill does not reach.
 struct PickerRow: SwiftUI.View {
     let title: String
     let isSelected: Bool

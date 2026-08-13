@@ -1,9 +1,7 @@
 import SwiftUI
 
-/// The floating controls' buttons. SwiftUI rather than UIKit because the merge between neighbouring
-/// glass is installed by the system for platform glass — a hand-rolled `UIVisualEffectView` carrying a
-/// `UIGlassEffect` gets the press flex but never the bridge, so two capsules stay two capsules where
-/// the index's bar buttons join into one shape. The drag and the throw stay in `CornerAnchoringView`.
+/// SwiftUI rather than UIKit: measured, a `UIVisualEffectView` carrying a `UIGlassEffect` gets the
+/// press flex but never the bridge that merges neighbouring glass, so its capsules never join.
 struct PinwheelFloatingButtons: SwiftUI.View {
     let theme: PinwheelTheme
     let tweakCount: Int

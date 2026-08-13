@@ -3,8 +3,6 @@ import SwiftUI
 import UIKit
 @testable import Pinwheel
 
-/// The chain a tweak travels: a component emits it as a preference, the playground reads it onto the
-/// chrome, the sheet renders it, and activating it re-renders the component.
 @MainActor
 final class TweakChainTests: XCTestCase {
     private struct TweakableDemo: SwiftUI.View {
@@ -47,7 +45,7 @@ final class TweakChainTests: XCTestCase {
         XCTAssertFalse(chrome.tweaks.isEmpty, "the component's tweaks should reach the chrome as a preference")
 
         chrome.showsTweaks = true
-        _ = try HostedView.presentation(in: window)
+        _ = try HostedView.attachedPresentation(in: window)
 
         XCTAssertTrue(
             HostedView.activateFirst(labelled: "Option 1", in: window),
@@ -68,13 +66,13 @@ final class TweakChainTests: XCTestCase {
         }
 
         chrome.showsTweaks = true
-        _ = try HostedView.presentation(in: window)
+        _ = try HostedView.attachedPresentation(in: window)
         XCTAssertTrue(HostedView.activateFirst(labelled: "Option 1", in: window))
 
         chrome.showsTweaks = false
         RunLoop.current.run(until: Date().addingTimeInterval(0.3))
         chrome.showsTweaks = true
-        _ = try HostedView.presentation(in: window)
+        _ = try HostedView.attachedPresentation(in: window)
 
         XCTAssertTrue(
             HostedView.activateFirst(labelled: "Option 2", in: window),

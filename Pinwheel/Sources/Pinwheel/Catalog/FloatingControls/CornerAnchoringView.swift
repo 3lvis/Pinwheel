@@ -9,7 +9,6 @@ final class CornerAnchoringView: UIView {
     weak var delegate: CornerAnchoringViewDelegate?
     let buttonSize = CGFloat.minimumControlHeight
 
-    /// The buttons are hosted SwiftUI (see `PinwheelFloatingButtons`); this view owns only the drag.
     private let buttonsContent = UIView(withAutoLayout: true)
 
     private lazy var buttonsView: UIView = {
@@ -27,8 +26,8 @@ final class CornerAnchoringView: UIView {
         return views
     }()
 
-    /// Called once by the owning controller, which parents the hosting controller so the hosted
-    /// buttons keep their traits (the theme rides a trait) and their lifecycle.
+    /// The caller parents the hosting controller: the theme rides a trait, which only reaches a view
+    /// whose controller is in the hierarchy.
     func setButtonsContent(_ view: UIView) {
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = .clear
