@@ -25,7 +25,7 @@ final class PinwheelChrome {
     var themes: [PinwheelTheme] = [.standard]
     var selectedThemeName: String?
 
-    var tweakCount: Int { tweaks.count }
+    var tweakCount: Int { tweaks.reduce(0) { $0 + $1.previewVariantTitles.count } }
 
     var theme: PinwheelTheme {
         themes.first { $0.name == selectedThemeName } ?? themes.first ?? .standard

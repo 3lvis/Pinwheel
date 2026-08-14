@@ -35,11 +35,17 @@ public struct PinwheelTweak: Identifiable, Equatable {
     public let description: String?
     let control: Control
 
+    /// The chosen option as it stood when this value was built. Preferences are compared by value and
+    /// `onPreferenceChange` fires only on inequality, so reading the binding at comparison time would
+    /// report the same answer for both generations and the sheet would keep drawing the older row.
+    let selectedOption: Int?
+
     public init(_ title: String, id: String? = nil, description: String? = nil, action: @escaping () -> Void) {
         self.id = id ?? title
         self.title = title
         self.description = description
         self.control = .action(action)
+        self.selectedOption = nil
     }
 
     public init(_ title: String, id: String? = nil, description: String? = nil, isOn: Binding<Bool>) {
@@ -47,6 +53,7 @@ public struct PinwheelTweak: Identifiable, Equatable {
         self.title = title
         self.description = description
         self.control = .toggle(isOn)
+        self.selectedOption = nil
     }
 
     public init(
@@ -60,10 +67,12 @@ public struct PinwheelTweak: Identifiable, Equatable {
         self.title = title
         self.description = description
         self.control = .select(options: options, selection: selection)
+        self.selectedOption = selection.wrappedValue
     }
 
     public static func == (lhs: PinwheelTweak, rhs: PinwheelTweak) -> Bool {
         return lhs.id == rhs.id && lhs.title == rhs.title && lhs.description == rhs.description
+            && lhs.selectedOption == rhs.selectedOption
     }
 
     /// The names `-PinwheelPreviewTweak` can address. An option list offers its options rather than its

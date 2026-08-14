@@ -59,7 +59,7 @@ struct PinwheelTweaksView: SwiftUI.View {
                 .frame(maxWidth: .infinity, minHeight: .minimumControlHeight, alignment: .leading)
         case .select(let options, let selection):
             ForEach(Array(options.enumerated()), id: \.offset) { index, option in
-                PickerRow(title: option, isSelected: index == selection.wrappedValue) {
+                PickerRow(title: option, isSelected: index == tweak.selectedOption) {
                     selection.wrappedValue = index
                     dismiss()
                 }

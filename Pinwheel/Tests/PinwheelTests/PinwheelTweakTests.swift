@@ -64,4 +64,19 @@ final class PinwheelTweakTests: XCTestCase {
 
         XCTAssertEqual(selection, 2)
     }
+
+    func testAChangedSelectionMakesTheTweakUnequalSoThePreferencePropagates() {
+        var selection = 0
+        let binding = Binding(get: { selection }, set: { selection = $0 })
+        let before = PinwheelTweak("State", options: ["Basket", "Simple"], selection: binding)
+
+        selection = 1
+        let after = PinwheelTweak("State", options: ["Basket", "Simple"], selection: binding)
+
+        XCTAssertNotEqual(
+            before,
+            after,
+            "onPreferenceChange only fires on inequality, so a tweak that ignores its selection leaves the sheet showing a stale row"
+        )
+    }
 }
