@@ -27,7 +27,6 @@ class UIPinLabelDemo: UIPinView {
             caption
         ])
 
-        addSubview(stackView)
-        stackView.anchorToTopSafeArea(margin: .spacingL)
+        addSubview(stackView, filling: safeAreaLayoutGuide, edges: [.top, .leading, .trailing], margin: .spacingL)
     }
 }

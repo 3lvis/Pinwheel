@@ -29,8 +29,7 @@ class UIPinViewControllerDemo: UIViewController, Tweakable {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .primaryBackground
-        view.addSubview(stateView)
-        stateView.fillInSuperview()
+        view.addSubview(stateView, filling: .all)
     }
 }
 

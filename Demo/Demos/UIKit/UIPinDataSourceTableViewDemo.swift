@@ -24,8 +24,7 @@ class UIPinDataSourceTableViewDemo: UIPinView, Tweakable {
     }()
 
     override func setup() {
-        addSubview(tableView)
-        tableView.fillInSuperview()
+        addSubview(tableView, filling: .all)
     }
 }
 
