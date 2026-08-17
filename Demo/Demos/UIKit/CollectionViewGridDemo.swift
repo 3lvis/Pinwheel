@@ -21,8 +21,7 @@ class CollectionViewGridDemo: UIPinView {
     }()
 
     override func setup() {
-        addSubview(collectionView)
-        collectionView.fillInSuperview()
+        addSubview(collectionView, filling: .all)
     }
 }
 

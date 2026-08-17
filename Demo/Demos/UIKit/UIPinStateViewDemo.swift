@@ -27,8 +27,7 @@ class UIPinStateViewDemo: UIPinView, Tweakable {
     }()
 
     override func setup() {
-        addSubview(stateView)
-        stateView.fillInSuperview()
+        addSubview(stateView, filling: .all)
     }
 }
 

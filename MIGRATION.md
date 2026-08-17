@@ -84,3 +84,38 @@ PinwheelSection("Components", id: "components") {
 ## Use Stable IDs
 
 Pinwheel persists selected section, item, and device state by ID. Pass explicit IDs for every section and item before renaming or reordering examples.
+
+## Add A Subview And Constrain It In One Call
+
+The `fillInSuperview` family is gone. Those methods sat on the *child* and looked upward for a superview, so they did nothing at all when a view had not been added yet, and they left a window where a subview was in the hierarchy with no constraints. The parent now adds and constrains in one call:
+
+```swift
+// before
+addSubview(tableView)
+tableView.fillInSuperview()
+
+addSubview(stackView)
+stackView.anchorToTopSafeArea(margin: .spacingL)
+
+// after
+addSubview(tableView, filling: .all)
+
+addSubview(stackView, filling: safeAreaLayoutGuide, edges: [.top, .leading, .trailing], margin: .spacingL)
+```
+
+Edges come from UIKit's `NSDirectionalRectEdge`. Pass edges alone to pin to the parent's own bounds, or name a `UILayoutGuide` to pin to that instead:
+
+| Before | After |
+|---|---|
+| `fillInSuperview(insets:)` | `addSubview(_:filling: .all, insets:)` |
+| `fillInSuperview(margin:)` | `addSubview(_:filling: .all, margin:)` |
+| `fillInSafeArea(insets:)` | `addSubview(_:filling: safeAreaLayoutGuide, insets:)` |
+| `fillInSafeArea(margin:)` | `addSubview(_:filling: safeAreaLayoutGuide, margin:)` |
+| `anchorToTopSafeArea(margin:)` | `addSubview(_:filling: safeAreaLayoutGuide, edges: [.top, .leading, .trailing], margin:)` |
+| `anchorToBottomSafeArea(margin:)` | `addSubview(_:filling: safeAreaLayoutGuide, edges: [.leading, .trailing, .bottom], margin:)` |
+| `fillInSuperviewWithSafeAreaTop(insets:)` | `addSubview(_:top: safeAreaLayoutGuide.topAnchor, leading: leadingAnchor, trailing: trailingAnchor, bottom: bottomAnchor, insets:)` |
+| `fillInVerticalLayoutMarginsHorizontalSafeArea(insets:)` | `addSubview(_:top: layoutMarginsGuide.topAnchor, leading: safeAreaLayoutGuide.leadingAnchor, trailing: safeAreaLayoutGuide.trailingAnchor, bottom: layoutMarginsGuide.bottomAnchor, insets:)` |
+
+The last two mixed one guide with another per edge. Pass the four anchors directly for those, which also covers pinning to a sibling or to a guide from anywhere else.
+
+Where z-order matters, `insertSubview(_:belowSubview:filling:)` does the same for an insertion.

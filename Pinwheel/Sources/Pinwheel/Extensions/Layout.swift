@@ -1,84 +1,94 @@
 import UIKit
 
 public extension UIView {
-    func fillInSuperview(margin: CGFloat) {
-        fillInSuperview(insets: UIEdgeInsets(top: margin, leading: margin, bottom: margin, trailing: margin))
+    func addSubview(_ view: UIView, filling edges: NSDirectionalRectEdge, insets: UIEdgeInsets = .zero) {
+        addSubview(view)
+        view.pin(to: ownAnchors, edges: edges, insets: insets)
     }
 
-    func fillInSuperview(insets: UIEdgeInsets = .zero) {
-        guard let superview = superview else { return }
-
-        NSLayoutConstraint.activate([
-            topAnchor.constraint(equalTo: superview.topAnchor, constant: insets.top),
-            leadingAnchor.constraint(equalTo: superview.leadingAnchor, constant: insets.leading),
-            trailingAnchor.constraint(equalTo: superview.trailingAnchor, constant: -insets.trailing),
-            bottomAnchor.constraint(equalTo: superview.bottomAnchor, constant: -insets.bottom)
-        ])
+    func addSubview(_ view: UIView, filling edges: NSDirectionalRectEdge, margin: CGFloat) {
+        addSubview(view, filling: edges, insets: UIEdgeInsets(margin))
     }
 
-    func fillInSuperviewWithSafeAreaTop(insets: UIEdgeInsets = .zero) {
-        guard let superview = superview else { return }
-
-        NSLayoutConstraint.activate([
-            topAnchor.constraint(equalTo: superview.safeAreaLayoutGuide.topAnchor, constant: insets.top),
-            leadingAnchor.constraint(equalTo: superview.leadingAnchor, constant: insets.leading),
-            trailingAnchor.constraint(equalTo: superview.trailingAnchor, constant: -insets.trailing),
-            bottomAnchor.constraint(equalTo: superview.bottomAnchor, constant: -insets.bottom)
-        ])
+    func addSubview(
+        _ view: UIView,
+        filling guide: UILayoutGuide,
+        edges: NSDirectionalRectEdge = .all,
+        insets: UIEdgeInsets = .zero
+    ) {
+        addSubview(view)
+        view.pin(
+            to: (guide.topAnchor, guide.leadingAnchor, guide.trailingAnchor, guide.bottomAnchor),
+            edges: edges,
+            insets: insets
+        )
     }
 
-    func fillInSafeArea(margin: CGFloat) {
-        fillInSafeArea(insets: UIEdgeInsets(top: margin, leading: margin, bottom: margin, trailing: margin))
+    func addSubview(
+        _ view: UIView,
+        filling guide: UILayoutGuide,
+        edges: NSDirectionalRectEdge = .all,
+        margin: CGFloat
+    ) {
+        addSubview(view, filling: guide, edges: edges, insets: UIEdgeInsets(margin))
     }
 
-    func fillInSafeArea(insets: UIEdgeInsets = .zero) {
-        guard let superview = superview else { return }
-
-        NSLayoutConstraint.activate([
-            topAnchor.constraint(equalTo: superview.safeAreaLayoutGuide.topAnchor, constant: insets.top),
-            leadingAnchor.constraint(equalTo: superview.safeAreaLayoutGuide.leadingAnchor, constant: insets.leading),
-            trailingAnchor.constraint(equalTo: superview.safeAreaLayoutGuide.trailingAnchor, constant: -insets.trailing),
-            bottomAnchor.constraint(equalTo: superview.safeAreaLayoutGuide.bottomAnchor, constant: -insets.bottom)
-        ])
+    func addSubview(
+        _ view: UIView,
+        top: NSLayoutYAxisAnchor,
+        leading: NSLayoutXAxisAnchor,
+        trailing: NSLayoutXAxisAnchor,
+        bottom: NSLayoutYAxisAnchor,
+        insets: UIEdgeInsets = .zero
+    ) {
+        addSubview(view)
+        view.pin(to: (top, leading, trailing, bottom), edges: .all, insets: insets)
     }
 
-    func fillInVerticalLayoutMarginsHorizontalSafeArea(insets: UIEdgeInsets = .zero) {
-        guard let superview = superview else { return }
+    func insertSubview(
+        _ view: UIView,
+        belowSubview sibling: UIView,
+        filling edges: NSDirectionalRectEdge,
+        insets: UIEdgeInsets = .zero
+    ) {
+        insertSubview(view, belowSubview: sibling)
+        view.pin(to: ownAnchors, edges: edges, insets: insets)
+    }
+}
 
-        NSLayoutConstraint.activate([
-            topAnchor.constraint(equalTo: superview.layoutMarginsGuide.topAnchor, constant: insets.top),
-            leadingAnchor.constraint(equalTo: superview.safeAreaLayoutGuide.leadingAnchor, constant: insets.leading),
-            trailingAnchor.constraint(equalTo: superview.safeAreaLayoutGuide.trailingAnchor, constant: -insets.trailing),
-            bottomAnchor.constraint(equalTo: superview.layoutMarginsGuide.bottomAnchor, constant: -insets.bottom)
-        ])
+private typealias PinnedEdges = (
+    top: NSLayoutYAxisAnchor,
+    leading: NSLayoutXAxisAnchor,
+    trailing: NSLayoutXAxisAnchor,
+    bottom: NSLayoutYAxisAnchor
+)
+
+private extension UIView {
+    var ownAnchors: PinnedEdges {
+        (topAnchor, leadingAnchor, trailingAnchor, bottomAnchor)
     }
 
-    func anchorToTopSafeArea(margin: CGFloat) {
-        anchorToTopSafeArea(insets: UIEdgeInsets(top: margin, leading: margin, bottom: margin, trailing: margin))
+    func pin(to target: PinnedEdges, edges: NSDirectionalRectEdge, insets: UIEdgeInsets) {
+        var constraints: [NSLayoutConstraint] = []
+        if edges.contains(.top) {
+            constraints.append(topAnchor.constraint(equalTo: target.top, constant: insets.top))
+        }
+        if edges.contains(.leading) {
+            constraints.append(leadingAnchor.constraint(equalTo: target.leading, constant: insets.leading))
+        }
+        if edges.contains(.trailing) {
+            constraints.append(trailingAnchor.constraint(equalTo: target.trailing, constant: -insets.trailing))
+        }
+        if edges.contains(.bottom) {
+            constraints.append(bottomAnchor.constraint(equalTo: target.bottom, constant: -insets.bottom))
+        }
+        NSLayoutConstraint.activate(constraints)
     }
+}
 
-    func anchorToTopSafeArea(insets: UIEdgeInsets = .zero) {
-        guard let superview = superview else { return }
-
-        NSLayoutConstraint.activate([
-            topAnchor.constraint(equalTo: superview.safeAreaLayoutGuide.topAnchor, constant: insets.top),
-            leadingAnchor.constraint(equalTo: superview.safeAreaLayoutGuide.leadingAnchor, constant: insets.leading),
-            trailingAnchor.constraint(equalTo: superview.safeAreaLayoutGuide.trailingAnchor, constant: -insets.trailing),
-        ])
-    }
-
-    func anchorToBottomSafeArea(margin: CGFloat) {
-        anchorToBottomSafeArea(insets: UIEdgeInsets(top: margin, leading: margin, bottom: margin, trailing: margin))
-    }
-
-    func anchorToBottomSafeArea(insets: UIEdgeInsets = .zero) {
-        guard let superview = superview else { return }
-
-        NSLayoutConstraint.activate([
-            leadingAnchor.constraint(equalTo: superview.safeAreaLayoutGuide.leadingAnchor, constant: insets.leading),
-            trailingAnchor.constraint(equalTo: superview.safeAreaLayoutGuide.trailingAnchor, constant: -insets.trailing),
-            bottomAnchor.constraint(equalTo: superview.safeAreaLayoutGuide.bottomAnchor, constant: -insets.bottom),
-        ])
+private extension UIEdgeInsets {
+    init(_ margin: CGFloat) {
+        self.init(top: margin, leading: margin, bottom: margin, trailing: margin)
     }
 }
 

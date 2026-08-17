@@ -106,17 +106,15 @@ open class UIPinTableView: ShadowScrollView {
         translatesAutoresizingMaskIntoConstraints = false
         backgroundColor = .primaryBackground
         tableView.register(UIPinTableViewCell.self)
-        addSubview(stateView)
+        addSubview(stateView, filling: .all)
 
         if usingShadowWhenScrolling {
-            insertSubview(tableView, belowSubview: topShadowView)
+            insertSubview(tableView, belowSubview: topShadowView, filling: .all)
             let anchor = topShadowView.bottomAnchor.constraint(equalTo: topAnchor)
             anchor.isActive = true
         } else {
-            addSubview(tableView)
+            addSubview(tableView, filling: .all)
         }
-        stateView.fillInSuperview()
-        tableView.fillInSuperview()
     }
 }
 
