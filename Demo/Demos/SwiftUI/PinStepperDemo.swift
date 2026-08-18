@@ -7,23 +7,23 @@ struct PinStepperDemo: SwiftUI.View {
 
     var body: some SwiftUI.View {
         ScrollView {
-            VStack(alignment: .leading, spacing: .spacingXL) {
-                VStack(alignment: .leading, spacing: .spacingS) {
+            VStack(alignment: .leading, spacing: .spacing6) {
+                VStack(alignment: .leading, spacing: .spacing2) {
                     PinLabel("Quantity").font(.subtitleSemibold)
                     PinStepper(value: quantity)
                         .onDecrement { quantity = max(0, quantity - 1) }
                         .onIncrement { quantity += 1 }
                 }
 
-                VStack(alignment: .leading, spacing: .spacingS) {
+                VStack(alignment: .leading, spacing: .spacing2) {
                     PinLabel("Crate size").font(.subtitleSemibold)
                     PinStepper(value: crate)
                         .onDecrement { crate = max(0, crate - 1) }
                         .onIncrement { crate += 1 }
                 }
             }
-            .padding(.horizontal, .spacingL)
-            .padding(.vertical, .spacingXXL)
+            .padding(.horizontal, .spacing4)
+            .padding(.vertical, .spacing8)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .background(.primaryBackground)

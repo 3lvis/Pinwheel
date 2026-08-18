@@ -226,7 +226,7 @@ final class PinUIKitCaptureTests: XCTestCase {
         let host = UIView()
         let stack = UIStackView()
         stack.axis = .vertical
-        stack.spacing = .spacingM
+        stack.spacing = .spacing3
         stack.translatesAutoresizingMaskIntoConstraints = false
         for text in ["One", "Two"] {
             let label = UILabel()
@@ -241,7 +241,7 @@ final class PinUIKitCaptureTests: XCTestCase {
         let document = try XCTUnwrap(capture(host))
         let frame = try XCTUnwrap(firstNode(document.root) { $0.layout?.mode == "column" && $0.children.count == 2 },
                                   "a UIStackView should capture as an auto-layout column frame with its arranged subviews as children")
-        XCTAssertEqual(frame.layout?.rowGap ?? -1, Double(CGFloat.spacingM), accuracy: 0.5, "the stack spacing becomes the row gap")
+        XCTAssertEqual(frame.layout?.rowGap ?? -1, Double(CGFloat.spacing3), accuracy: 0.5, "the stack spacing becomes the row gap")
     }
 
     // Figma's createImage rejects any crop over 4096px per side and aborts the whole import; a tall
@@ -293,7 +293,7 @@ final class PinUIKitCaptureTests: XCTestCase {
         let stack = UIStackView()
         stack.axis = .vertical
         stack.alignment = .center
-        stack.spacing = .spacingM
+        stack.spacing = .spacing3
         stack.translatesAutoresizingMaskIntoConstraints = false
         for title in ["A", "B"] {
             let label = UILabel()
@@ -324,7 +324,7 @@ final class PinUIKitCaptureTests: XCTestCase {
         row.backgroundColor = .actionBackground
         row.isLayoutMarginsRelativeArrangement = true
         row.insetsLayoutMarginsFromSafeArea = false
-        row.layoutMargins = UIEdgeInsets(top: .spacingM, left: .spacingL, bottom: .spacingM, right: .spacingL)
+        row.layoutMargins = UIEdgeInsets(top: .spacing3, left: .spacing4, bottom: .spacing3, right: .spacing4)
         let label = UILabel()
         label.text = "Action"
         label.textColor = .black
@@ -339,7 +339,7 @@ final class PinUIKitCaptureTests: XCTestCase {
         let document = try XCTUnwrap(capture(host))
         let frame = try XCTUnwrap(firstNode(document.root) { $0.layout?.mode == "row" && $0.children.count == 1 })
         XCTAssertEqual(frame.fillToken, "actionBackground", "a UIStackView's background color captures as the frame's fill")
-        XCTAssertEqual(frame.layout?.pad.first ?? -1, Double(CGFloat.spacingM), accuracy: 0.5, "layoutMargins capture as the frame's padding")
+        XCTAssertEqual(frame.layout?.pad.first ?? -1, Double(CGFloat.spacing3), accuracy: 0.5, "layoutMargins capture as the frame's padding")
     }
 
     // Cells of the same class and structure are one template: the capture stamps them a shared component

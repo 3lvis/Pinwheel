@@ -3,14 +3,13 @@ import Pinwheel
 
 class UIPinNumbersDemo: UIPinView {
     private let spacings: [(String, CGFloat)] = [
-        ("spacingXXS", .spacingXXS),
-        ("spacingXS", .spacingXS),
-        ("spacingXM", .spacingXM),
-        ("spacingS", .spacingS),
-        ("spacingM", .spacingM),
-        ("spacingL", .spacingL),
-        ("spacingXL", .spacingXL),
-        ("spacingXXL", .spacingXXL)
+        ("spacing1", .spacing1),
+        ("spacing2", .spacing2),
+        ("spacing3", .spacing3),
+        ("spacing4", .spacing4),
+        ("spacing5", .spacing5),
+        ("spacing6", .spacing6),
+        ("spacing8", .spacing8)
     ]
 
     private let radii: [(String, CGFloat)] = [
@@ -19,12 +18,12 @@ class UIPinNumbersDemo: UIPinView {
     ]
 
     private let concentricOuter: CGFloat = .radiusL
-    private let concentricInsets: [CGFloat] = [.spacingXS, .spacingM, .spacingL]
+    private let concentricInsets: [CGFloat] = [.spacing1, .spacing3, .spacing4]
 
     override func setup() {
         let stackView = UIStackView(withAutoLayout: true)
         stackView.axis = .vertical
-        stackView.spacing = .spacingXXL
+        stackView.spacing = .spacing8
 
         stackView.addArrangedSubview(header("Spacing"))
         for (title, spacing) in spacings {
@@ -45,9 +44,9 @@ class UIPinNumbersDemo: UIPinView {
         // back to a flat image. A pinned stack always lays out, so every row captures.
         addSubview(stackView)
         NSLayoutConstraint.activate([
-            stackView.topAnchor.constraint(equalTo: topAnchor, constant: .spacingXXL),
-            stackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingL),
-            stackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingL)
+            stackView.topAnchor.constraint(equalTo: topAnchor, constant: .spacing8),
+            stackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacing4),
+            stackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacing4)
         ])
     }
 
@@ -100,7 +99,7 @@ class UIPinNumbersDemo: UIPinView {
     }
 
     private func concentricStack() -> UIView {
-        let gap: CGFloat = .spacingS
+        let gap: CGFloat = .spacing2
         let middle = concentricRadius(outer: concentricOuter, inset: gap)
         let inner = concentricRadius(outer: middle, inset: gap)
 
@@ -142,7 +141,7 @@ class UIPinNumbersDemo: UIPinView {
     private func column(_ views: [UIView]) -> UIStackView {
         let stack = UIStackView(arrangedSubviews: views)
         stack.axis = .vertical
-        stack.spacing = .spacingS
+        stack.spacing = .spacing2
         stack.translatesAutoresizingMaskIntoConstraints = false
         return stack
     }

@@ -76,7 +76,7 @@ struct FigmaCaptureSweepView: SwiftUI.View {
                 .ignoresSafeArea()
                 .overlay(alignment: .top) {
                     // Must ride the outer view, not the hosted content, or it enters the capture itself.
-                    if ProcessInfo.processInfo.arguments.contains("-UITesting"), let summary {
+                    if ProcessInfo.processInfo.arguments.contains("-UITestingNoAnimations"), let summary {
                         Text(summary).accessibilityIdentifier("capture.summary").opacity(0.02)
                     }
                 }

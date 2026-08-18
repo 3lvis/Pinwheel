@@ -9,19 +9,19 @@ final class FillWidthCardPaddingTests: XCTestCase {
     private struct Fixture: SwiftUI.View {
         var body: some SwiftUI.View {
             ScrollView {
-                VStack(spacing: .spacingM) {
+                VStack(spacing: .spacing3) {
                     ForEach(["Revenue", "Orders"], id: \.self) { title in
-                        VStack(alignment: .leading, spacing: .spacingXS) {
+                        VStack(alignment: .leading, spacing: .spacing1) {
                             PinLabel(title).font(.caption).color(.secondary)
                             PinLabel("$12,480").font(.title)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.spacingL)
+                        .padding(.spacing4)
                         .background(.secondaryBackground)
                         .cornerRadius(.radiusM)
                     }
                 }
-                .padding(.spacingL)
+                .padding(.spacing4)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .background(.primaryBackground)
@@ -32,8 +32,6 @@ final class FillWidthCardPaddingTests: XCTestCase {
         (node.fillToken == "secondaryBackground" && node.layout != nil ? [node] : []) + node.children.flatMap(cards)
     }
 
-    // A full-width left-aligned card must not record the empty space to the right of its content as
-    // trailing padding — the padding stays symmetric (spacing-l all round) and the card fills its parent.
     func testFullWidthCardHasSymmetricPaddingNotAGiantTrailingGap() throws {
         let document = try XCTUnwrap(PinDisplayListCapture.document(
             Fixture(), name: "Cards", size: CGSize(width: 402, height: 700), screenHeight: 700))

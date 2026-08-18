@@ -57,17 +57,17 @@ open class UIPinTableViewCell: UITableViewCell {
         return stackView
     }()
 
-    open lazy var stackViewLeadingAnchorConstraint = stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: .spacingL)
-    private lazy var iconLeadingConstraint = iconImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: .spacingL)
-    private lazy var stackViewToIconConstraint = stackView.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: .spacingS)
+    open lazy var stackViewLeadingAnchorConstraint = stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: .spacing4)
+    private lazy var iconLeadingConstraint = iconImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: .spacing4)
+    private lazy var stackViewToIconConstraint = stackView.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: .spacing2)
     open lazy var stackViewTrailingAnchorConstraint = stackView.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor)
     open lazy var stackViewBottomAnchorConstraint = stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -13)
     open lazy var stackViewTopAnchorConstraint = stackView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 13)
     open lazy var detailLabelTrailingConstraint = detailLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
     open lazy var switchControlTrailingConstraint = switchControl.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
 
-    private lazy var stackViewToDetailLabelConstraint = stackView.trailingAnchor.constraint(lessThanOrEqualTo: detailLabel.leadingAnchor, constant: -.spacingXS)
-    private lazy var stackViewToSwitchControlConstraint = stackView.trailingAnchor.constraint(lessThanOrEqualTo: switchControl.leadingAnchor, constant: -.spacingXS)
+    private lazy var stackViewToDetailLabelConstraint = stackView.trailingAnchor.constraint(lessThanOrEqualTo: detailLabel.leadingAnchor, constant: -.spacing1)
+    private lazy var stackViewToSwitchControlConstraint = stackView.trailingAnchor.constraint(lessThanOrEqualTo: switchControl.leadingAnchor, constant: -.spacing1)
 
     public override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -135,17 +135,17 @@ open class UIPinTableViewCell: UITableViewCell {
 
             if (viewModel as? UIPinTextTableViewItem)?.hasChevron == true {
                 accessoryType = .disclosureIndicator
-                detailLabelTrailingConstraint.constant = -.spacingS
-                switchControlTrailingConstraint.constant = -.spacingS
-                stackViewTrailingAnchorConstraint.constant = -.spacingS
+                detailLabelTrailingConstraint.constant = -.spacing2
+                switchControlTrailingConstraint.constant = -.spacing2
+                stackViewTrailingAnchorConstraint.constant = -.spacing2
             } else {
                 accessoryType = .none
-                detailLabelTrailingConstraint.constant = -.spacingL
-                switchControlTrailingConstraint.constant = -.spacingL
-                stackViewTrailingAnchorConstraint.constant = -.spacingL
+                detailLabelTrailingConstraint.constant = -.spacing4
+                switchControlTrailingConstraint.constant = -.spacing4
+                stackViewTrailingAnchorConstraint.constant = -.spacing4
             }
 
-            separatorInset = .leadingInset(.spacingL)
+            separatorInset = .leadingInset(.spacing4)
         }
     }
 
@@ -168,8 +168,8 @@ open class UIPinTableViewCell: UITableViewCell {
 
         NSLayoutConstraint.activate([
             iconImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            iconImageView.widthAnchor.constraint(equalToConstant: .spacingXL),
-            iconImageView.heightAnchor.constraint(equalToConstant: .spacingXL),
+            iconImageView.widthAnchor.constraint(equalToConstant: .spacing6),
+            iconImageView.heightAnchor.constraint(equalToConstant: .spacing6),
 
             stackViewTopAnchorConstraint,
             stackViewLeadingAnchorConstraint,

@@ -3,7 +3,7 @@ import Pinwheel
 
 struct PinLabelDemo: SwiftUI.View {
     var body: some SwiftUI.View {
-        VStack(alignment: .leading, spacing: .spacingL) {
+        VStack(alignment: .leading, spacing: .spacing4) {
             PinLabel("Title").font(.title)
             PinLabel("Subtitle").font(.subtitle)
             PinLabel("Body")
@@ -11,7 +11,7 @@ struct PinLabelDemo: SwiftUI.View {
             PinLabel("Caption").font(.caption)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .padding(.spacingL)
+        .padding(.spacing4)
         .background(.primaryBackground)
     }
 }

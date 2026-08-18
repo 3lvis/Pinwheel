@@ -7,8 +7,8 @@ struct PinButtonDemo: SwiftUI.View {
 
     var body: some SwiftUI.View {
         ScrollView {
-            VStack(spacing: .spacingM) {
-                HStack(spacing: .spacingM) {
+            VStack(spacing: .spacing3) {
+                HStack(spacing: .spacing3) {
                     PinButton("Cancel") {}.style(.secondary)
                     PinButton("Pay") {}
                 }
@@ -23,15 +23,15 @@ struct PinButtonDemo: SwiftUI.View {
                 PinButton("Place order", systemImage: "checkmark") {}
                     .frame(maxWidth: .infinity)
 
-                VStack(alignment: .leading, spacing: .spacingM) {
+                VStack(alignment: .leading, spacing: .spacing3) {
                     PinLabel("Payment method").font(.subtitleSemibold)
-                    HStack(spacing: .spacingS) {
+                    HStack(spacing: .spacing2) {
                         PinButton("Card") {}.style(.secondary)
                         PinButton("Cash") {}.style(.secondary)
                         PinButton("Points") {}.style(.secondary)
                     }
                 }
-                .padding(.spacingL)
+                .padding(.spacing4)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(.secondaryBackground)
                 .clipShape(RoundedRectangle(cornerRadius: .radiusM))
@@ -79,8 +79,8 @@ struct PinButtonDemo: SwiftUI.View {
                     .style(.custom(text: .green, background: .red))
                     .disabled(true)
             }
-            .padding(.horizontal, .spacingL)
-            .padding(.vertical, .spacingXXL)
+            .padding(.horizontal, .spacing4)
+            .padding(.vertical, .spacing8)
             .frame(maxWidth: .infinity)
         }
         .background(.primaryBackground)

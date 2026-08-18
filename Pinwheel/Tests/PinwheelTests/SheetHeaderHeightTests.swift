@@ -25,9 +25,9 @@ final class SheetHeaderHeightTests: XCTestCase {
         )
         XCTAssertEqual(
             hairline.frame.minY,
-            .minimumControlHeight + .spacingS * 2,
+            .minimumControlHeight + .spacing2 * 2,
             accuracy: 0.5,
-            "the header band should be the 48pt control floor with one spacing-s above and below"
+            "the header band should be the 48pt control floor with one spacing-2 above and below"
         )
         XCTAssertEqual(
             hairline.frame.height,

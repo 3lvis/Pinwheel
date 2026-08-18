@@ -24,7 +24,7 @@ struct PinwheelFloatingButtons: SwiftUI.View {
     }
 
     private var stack: some SwiftUI.View {
-        VStack(spacing: .spacingM) {
+        VStack(spacing: .spacing3) {
             button("slider.horizontal.3", label: "Tweaks", action: onTweaks)
                 .accessibilityIdentifier("pinwheel.settings")
             button("xmark", label: "Close", action: onClose)
@@ -61,9 +61,9 @@ struct PinwheelFloatingButtons: SwiftUI.View {
             Text("\(tweakCount)")
                 .font(PinTextStyle.caption.font(in: theme))
                 .foregroundStyle(Color.primaryBackground)
-                .frame(width: .spacingL + .spacingXXS, height: .spacingL + .spacingXXS)
+                .frame(width: .spacing5, height: .spacing5)
                 .background(Circle().fill(Color.actionText))
-                .offset(x: .spacingXS, y: -.spacingXS)
+                .offset(x: .spacing1, y: -.spacing1)
         }
     }
 }

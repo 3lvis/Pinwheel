@@ -2,22 +2,22 @@ import UIKit
 
 public nonisolated struct DefaultFontProvider: FontProvider {
     public var title: UIFont {
-        let font = UIFont.systemFont(ofSize: 23, weight: .medium)
+        let font = UIFont.systemFont(ofSize: 20, weight: .medium)
         return font.scaledFont(forTextStyle: .headline)
     }
 
     public var subtitle: UIFont {
-        let font = UIFont.systemFont(ofSize: 20, weight: .medium)
+        let font = UIFont.systemFont(ofSize: 18, weight: .medium)
         return font.scaledFont(forTextStyle: .subheadline)
     }
 
     public var subtitleSemibold: UIFont {
-        let font = UIFont.systemFont(ofSize: 20, weight: .semibold)
+        let font = UIFont.systemFont(ofSize: 18, weight: .semibold)
         return font.scaledFont(forTextStyle: .subheadline)
     }
 
     public var body: UIFont {
-        let font = UIFont.systemFont(ofSize: 17, weight: .medium)
+        let font = UIFont.systemFont(ofSize: 16, weight: .medium)
         return font.scaledFont(forTextStyle: .body)
     }
 

@@ -35,38 +35,38 @@ struct OrderSummaryDemo: SwiftUI.View {
 
     var body: some SwiftUI.View {
         ScrollView {
-            VStack(spacing: .spacingM) {
+            VStack(spacing: .spacing3) {
                 ForEach(items) { item in
-                    HStack(spacing: .spacingM) {
+                    HStack(spacing: .spacing3) {
                         RoundedRectangle(cornerRadius: .radiusM)
                             .fill(.primaryBackground)
                             .frame(width: 64, height: 64)
                             .overlay(Image(systemName: "bag").foregroundStyle(.tertiaryText))
-                        VStack(alignment: .leading, spacing: .spacingS) {
+                        VStack(alignment: .leading, spacing: .spacing2) {
                             PinLabel(item.title).font(.bodySemibold)
                             if let detail = item.detail {
                                 PinLabel(detail).font(.caption).color(.secondary)
                             }
-                            HStack(spacing: .spacingS) {
+                            HStack(spacing: .spacing2) {
                                 if let label = item.label { pill(label, fill: .primaryBackground, text: .primary) }
                                 if let bonus = item.bonus { pill(bonus, fill: .actionBackground, text: .action) }
                                 if let discount = item.discount { pill(discount, fill: .criticalBackground, text: .critical) }
                                 Spacer()
                                 PinLabel(item.tax).font(.caption).color(.tertiary)
                             }
-                            HStack(alignment: .bottom, spacing: .spacingM) {
+                            HStack(alignment: .bottom, spacing: .spacing3) {
                                 PinLabel(item.quantity).font(.caption).color(.secondary)
                                 Spacer()
                                 PinLabel(item.price).font(.bodySemibold)
                             }
                         }
                     }
-                    .padding(.spacingM)
+                    .padding(.spacing3)
                     .background(.secondaryBackground)
                     .cornerRadius(.radiusM)
                 }
             }
-            .padding(.spacingL)
+            .padding(.spacing4)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(.primaryBackground)
@@ -74,7 +74,7 @@ struct OrderSummaryDemo: SwiftUI.View {
 
     private func pill(_ text: String, fill: Color, text textColor: PinLabel.TextColor) -> some SwiftUI.View {
         PinLabel(text).font(.footnote).color(textColor)
-            .padding(.horizontal, .spacingS)
+            .padding(.horizontal, .spacing2)
             .padding(.vertical, 2)
             .background(fill, in: Capsule())
     }

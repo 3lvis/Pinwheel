@@ -9,7 +9,7 @@ struct AppleControlsDemo: SwiftUI.View {
     @SwiftUI.State private var date = Date(timeIntervalSince1970: 1_700_000_000)
 
     var body: some SwiftUI.View {
-        VStack(alignment: .leading, spacing: .spacingL) {
+        VStack(alignment: .leading, spacing: .spacing4) {
             PinLabel("Apple controls").font(.title)
             PinLabel("Each control captures as a named placeholder, ready to swap for its Apple Figma iOS UI Kit component.")
                 .font(.footnote)
@@ -29,13 +29,13 @@ struct AppleControlsDemo: SwiftUI.View {
             control("Progress") { ProgressView(value: amount).tint(.actionText) }
             control("DatePicker") { DatePicker("", selection: $date, displayedComponents: .date).labelsHidden() }
         }
-        .padding(.spacingL)
+        .padding(.spacing4)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(.primaryBackground)
     }
 
     private func control(_ name: String, @ViewBuilder _ content: () -> some SwiftUI.View) -> some SwiftUI.View {
-        VStack(alignment: .leading, spacing: .spacingXS) {
+        VStack(alignment: .leading, spacing: .spacing1) {
             PinLabel(name).font(.caption).color(.secondary)
             content()
         }

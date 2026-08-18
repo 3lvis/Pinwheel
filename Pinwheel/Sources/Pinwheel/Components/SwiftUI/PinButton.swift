@@ -76,7 +76,7 @@ public struct PinButton: SwiftUI.View {
 
     @ViewBuilder
     private var label: some SwiftUI.View {
-        HStack(spacing: .spacingS) {
+        HStack(spacing: .spacing2) {
             if let title {
                 Text(title)
                     .font(typography.font(in: theme))
@@ -119,8 +119,8 @@ private struct PinButtonStyle: SwiftUI.ButtonStyle {
             configuration.label
                 .foregroundStyle(foreground)
                 .tint(foreground)
-                .padding(.vertical, .spacingM)
-                .padding(.horizontal, .spacingL)
+                .padding(.vertical, .spacing3)
+                .padding(.horizontal, .spacing4)
                 .frame(minWidth: hasTitle ? 100 : nil)
                 .frame(maxWidth: isFullWidth ? .infinity : nil)
                 .frame(minHeight: .minimumControlHeight)

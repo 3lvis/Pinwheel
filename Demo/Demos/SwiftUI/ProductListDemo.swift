@@ -36,22 +36,22 @@ struct ProductListDemo: SwiftUI.View {
     }
 
     private func row(_ product: Product) -> some SwiftUI.View {
-        HStack(spacing: .spacingM) {
+        HStack(spacing: .spacing3) {
             RoundedRectangle(cornerRadius: .radiusM)
                 .fill(.secondaryBackground)
                 .frame(width: 56, height: 56)
                 .overlay(Image(systemName: "photo").foregroundStyle(.tertiaryText))
-            VStack(alignment: .leading, spacing: .spacingXS) {
-                HStack(spacing: .spacingS) {
+            VStack(alignment: .leading, spacing: .spacing1) {
+                HStack(spacing: .spacing2) {
                     PinLabel(product.title).font(.body)
                     if product.onSale {
                         PinLabel("SALE").font(.footnote).color(.custom(.white))
-                            .padding(.horizontal, .spacingS)
+                            .padding(.horizontal, .spacing2)
                             .padding(.vertical, 2)
                             .background(.criticalBackground, in: Capsule())
                     }
                 }
-                HStack(spacing: .spacingS) {
+                HStack(spacing: .spacing2) {
                     PinLabel(product.now).font(.bodySemibold)
                     if let was = product.was {
                         PinLabel(was).font(.caption).color(.secondary).strikethrough()
@@ -59,16 +59,16 @@ struct ProductListDemo: SwiftUI.View {
                 }
             }
             Spacer()
-            HStack(spacing: .spacingM) {
+            HStack(spacing: .spacing3) {
                 Image(systemName: "minus")
                 PinLabel("\(product.quantity)").font(.body)
                 Image(systemName: "plus")
             }
             .foregroundStyle(.actionText)
-            .padding(.horizontal, .spacingM)
-            .padding(.vertical, .spacingS)
+            .padding(.horizontal, .spacing3)
+            .padding(.vertical, .spacing2)
             .overlay(Capsule().stroke(.tertiaryText, lineWidth: 1))
         }
-        .padding(.vertical, .spacingXS)
+        .padding(.vertical, .spacing1)
     }
 }

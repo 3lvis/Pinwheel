@@ -364,14 +364,14 @@ public enum PinDisplayListCapture {
 
     private static func bareButtonContainer(_ content: FigmaNode) -> FigmaNode {
         let layout = PinCaptureLayout(
-            axis: .row, spacing: .spacingS,
-            padding: EdgeInsets(top: .spacingM, leading: .spacingL, bottom: .spacingM, trailing: .spacingL),
+            axis: .row, spacing: .spacing2,
+            padding: EdgeInsets(top: .spacing3, leading: .spacing4, bottom: .spacing3, trailing: .spacing4),
             alignment: .center, mainAxisAlignment: .center, minWidth: bareButtonMinWidth
         )
         return FigmaNode(
             tag: "frame", x: content.x, y: content.y,
-            w: max(content.w + 2 * Double(CGFloat.spacingL), Double(bareButtonMinWidth)),
-            h: content.h + 2 * Double(CGFloat.spacingM),
+            w: max(content.w + 2 * Double(CGFloat.spacing4), Double(bareButtonMinWidth)),
+            h: content.h + 2 * Double(CGFloat.spacing3),
             name: "Pill", layout: FigmaLayout(layout), ordered: true, children: [content]
         )
     }

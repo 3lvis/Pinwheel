@@ -11,11 +11,11 @@ final class FillWidthPropagationTests: XCTestCase {
     private struct Row: SwiftUI.View {
         var body: some SwiftUI.View {
             ScrollView {
-                VStack(spacing: .spacingM) {
+                VStack(spacing: .spacing3) {
                     ForEach(["A", "B"], id: \.self) { title in
-                        HStack(spacing: .spacingM) {
+                        HStack(spacing: .spacing3) {
                             RoundedRectangle(cornerRadius: .radiusM).fill(.primaryBackground).frame(width: 64, height: 64)
-                            VStack(alignment: .leading, spacing: .spacingS) {
+                            VStack(alignment: .leading, spacing: .spacing2) {
                                 PinLabel(title).font(.bodySemibold)
                                 HStack {
                                     PinLabel("qty").font(.caption)
@@ -24,9 +24,9 @@ final class FillWidthPropagationTests: XCTestCase {
                                 }
                             }
                         }
-                        .padding(.spacingM).background(.secondaryBackground).cornerRadius(.radiusM)
+                        .padding(.spacing3).background(.secondaryBackground).cornerRadius(.radiusM)
                     }
-                }.padding(.spacingL)
+                }.padding(.spacing4)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top).background(.primaryBackground)
         }
@@ -49,6 +49,6 @@ final class FillWidthPropagationTests: XCTestCase {
         }
         let card = try XCTUnwrap(findCard(document.root), "the card row captures with its fill")
         XCTAssertEqual(card.fillWidth, true, "the card row fills the width (from its nested Spacer), so it doesn't hug and centre")
-        _ = withExtendedLifetime(window) {}
+        withExtendedLifetime(window) {}
     }
 }

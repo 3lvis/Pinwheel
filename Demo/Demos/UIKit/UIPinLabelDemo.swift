@@ -18,7 +18,7 @@ class UIPinLabelDemo: UIPinView {
         let caption = UIPinLabel(font: .caption)
         caption.text = "Caption"
 
-        let stackView = UIStackView(axis: .vertical, spacing: .spacingL)
+        let stackView = UIStackView(axis: .vertical, spacing: .spacing4)
         stackView.addArrangedSubviews([
             title,
             subtitle,
@@ -27,6 +27,6 @@ class UIPinLabelDemo: UIPinView {
             caption
         ])
 
-        addSubview(stackView, filling: safeAreaLayoutGuide, edges: [.top, .leading, .trailing], margin: .spacingL)
+        addSubview(stackView, filling: safeAreaLayoutGuide, edges: [.top, .leading, .trailing], margin: .spacing4)
     }
 }

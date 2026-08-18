@@ -24,8 +24,8 @@ struct PinColorDemo: SwiftUI.View {
                         PinLabel(title).font(.body).color(.custom(.white))
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, .spacingL)
-                    .padding(.vertical, .spacingM)
+                    .padding(.horizontal, .spacing4)
+                    .padding(.vertical, .spacing3)
                     .background(SwiftUI.Color(uiColor: color))
                 }
             }

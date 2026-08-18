@@ -35,9 +35,9 @@ struct ImageGalleryDemo: SwiftUI.View {
 
     var body: some SwiftUI.View {
         ScrollView {
-            VStack(spacing: .spacingM) {
+            VStack(spacing: .spacing3) {
                 ForEach(photos) { photo in
-                    HStack(spacing: .spacingM) {
+                    HStack(spacing: .spacing3) {
                         AsyncImage(url: photo.fileURL) { image in
                             image.resizable()
                         } placeholder: {
@@ -45,18 +45,18 @@ struct ImageGalleryDemo: SwiftUI.View {
                         }
                         .frame(width: 64, height: 64)
                         .clipShape(RoundedRectangle(cornerRadius: .radiusM))
-                        VStack(alignment: .leading, spacing: .spacingXS) {
+                        VStack(alignment: .leading, spacing: .spacing1) {
                             PinLabel(photo.title).font(.bodySemibold)
                             PinLabel(photo.subtitle).font(.caption).color(.secondary)
                         }
                         Spacer()
                     }
-                    .padding(.spacingM)
+                    .padding(.spacing3)
                     .background(.secondaryBackground)
                     .cornerRadius(.radiusM)
                 }
             }
-            .padding(.spacingL)
+            .padding(.spacing4)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(.primaryBackground)

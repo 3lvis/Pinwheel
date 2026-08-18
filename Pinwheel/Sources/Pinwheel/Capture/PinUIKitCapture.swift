@@ -346,7 +346,7 @@ public enum PinUIKitCapture {
             UIGraphicsImageRenderer(size: symbol.size).image { _ in symbol.draw(at: .zero) }.pngData()?.base64EncodedString()
         }
         guard let image else { return nil }
-        let box = CGRect(x: row.maxX - .spacingL - symbol.size.width, y: row.midY - symbol.size.height / 2,
+        let box = CGRect(x: row.maxX - .spacing4 - symbol.size.width, y: row.midY - symbol.size.height / 2,
                          width: symbol.size.width, height: symbol.size.height)
         return FigmaNode(tag: "image", x: Double(box.minX), y: Double(box.minY),
                          w: Double(box.width), h: Double(box.height), image: image, children: [])
@@ -356,7 +356,7 @@ public enum PinUIKitCapture {
     // the table's own separatorColor at the row boundaries, inset to match the cells.
     private static func separatorNodes(between rows: [FigmaNode], table: UITableView?) -> [FigmaNode] {
         guard let color = table?.separatorColor, rows.count > 1 else { return [] }
-        let inset = CGFloat.spacingL
+        let inset = CGFloat.spacing4
         return rows.dropLast().enumerated().map { index, row in
             let next = rows[index + 1]
             return FigmaNode(

@@ -35,6 +35,7 @@ struct PinwheelCatalogView: SwiftUI.View {
         .environment(\.pinwheelTheme, chrome.theme)
         .preferredColorScheme(chrome.colorScheme)
         .background(PinwheelThemedWindow(theme: chrome.theme))
+        .background(PinwheelShakeToShowBuild())
         .background(
             PinwheelFloatingControlsHost(
                 chrome: chrome,
@@ -265,8 +266,8 @@ private struct PinwheelIndexView: SwiftUI.View {
                                             PinLabel(tag.rawValue)
                                                 .font(.caption)
                                                 .color(.secondary)
-                                                .padding(.horizontal, .spacingXS)
-                                                .padding(.vertical, .spacingXXS)
+                                                .padding(.horizontal, .spacing1)
+                                                .padding(.vertical, .spacing1)
                                                 .background(.secondaryBackground, in: Capsule())
                                         }
                                     }

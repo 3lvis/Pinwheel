@@ -21,7 +21,7 @@ final class CornerAnchoringView: UIView {
             buttonsContent.topAnchor.constraint(equalTo: views.topAnchor),
             buttonsContent.bottomAnchor.constraint(equalTo: views.bottomAnchor),
             buttonsContent.widthAnchor.constraint(equalToConstant: buttonSize),
-            buttonsContent.heightAnchor.constraint(equalToConstant: buttonSize * 2 + .spacingM),
+            buttonsContent.heightAnchor.constraint(equalToConstant: buttonSize * 2 + .spacing3),
         ])
         return views
     }()
@@ -108,29 +108,29 @@ final class CornerAnchoringView: UIView {
 
         addSubview(buttonsView)
 
-        let buttonHeight = buttonSize * 2 + .spacingS
+        let buttonHeight = buttonSize * 2 + .spacing2
         let buttonWidth = buttonSize
 
         NSLayoutConstraint.activate([
-            topLeftView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingL + buttonWidth / 2),
-            topLeftView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: .spacingL + buttonHeight / 2),
+            topLeftView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacing4 + buttonWidth / 2),
+            topLeftView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: .spacing4 + buttonHeight / 2),
 
-            topRightView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingL - buttonWidth / 2),
-            topRightView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: .spacingL + buttonHeight / 2),
+            topRightView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacing4 - buttonWidth / 2),
+            topRightView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor, constant: .spacing4 + buttonHeight / 2),
 
-            bottomLeftView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacingL + buttonWidth / 2),
+            bottomLeftView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacing4 + buttonWidth / 2),
 
-            bottomRightView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingL - buttonWidth / 2)
+            bottomRightView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacing4 - buttonWidth / 2)
         ])
 
-        bottomLeftViewKeyboardBottomConstraint = bottomLeftView.bottomAnchor.constraint(equalTo: keyboardLayoutGuide.topAnchor, constant: -.spacingL - buttonHeight / 2)
+        bottomLeftViewKeyboardBottomConstraint = bottomLeftView.bottomAnchor.constraint(equalTo: keyboardLayoutGuide.topAnchor, constant: -.spacing4 - buttonHeight / 2)
         bottomLeftViewKeyboardBottomConstraint?.isActive = false
-        bottomLeftViewSafeBottomConstraint = bottomLeftView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -.spacingL - buttonHeight / 2)
+        bottomLeftViewSafeBottomConstraint = bottomLeftView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -.spacing4 - buttonHeight / 2)
         bottomLeftViewSafeBottomConstraint?.isActive = true
 
-        bottomRightViewKeyboardBottomConstraint = bottomRightView.bottomAnchor.constraint(equalTo: keyboardLayoutGuide.topAnchor, constant: -.spacingL - buttonHeight / 2)
+        bottomRightViewKeyboardBottomConstraint = bottomRightView.bottomAnchor.constraint(equalTo: keyboardLayoutGuide.topAnchor, constant: -.spacing4 - buttonHeight / 2)
         bottomRightViewKeyboardBottomConstraint?.isActive = false
-        bottomRightViewSafeBottomConstraint = bottomRightView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -.spacingL - buttonHeight / 2)
+        bottomRightViewSafeBottomConstraint = bottomRightView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -.spacing4 - buttonHeight / 2)
         bottomRightViewSafeBottomConstraint?.isActive = true
 
         panRecognizer.addTarget(self, action: #selector(anchoredViewPanned(recognizer:)))

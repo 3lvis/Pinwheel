@@ -102,6 +102,70 @@ fixed radius, so it stays a shape rather than collapsing to a `CGFloat`.
 
 Omit `themes:` and everything resolves `PinwheelTheme.standard`, which wraps Apple's system colors and fonts.
 
+## Trays
+
+A tray is a short, focused surface that stands as tall as its own content. Present a sequence of them
+with `pinwheelTray(path:)` — the array is the stack, so appending pushes and removing pops.
+
+```swift
+struct BoostView: View {
+    private enum Destination: Hashable { case boost, howItWorks }
+
+    @State private var path: [Destination] = []
+
+    var body: some View {
+        PinButton("Boost Post") { path = [.boost] }
+            .pinwheelTray(path: $path) { destination in
+                switch destination {
+                case .boost:
+                    PinTray("Boost Post") {
+                        TierWheel()
+                        PinTraySection {
+                            PinTrayValue("Region", value: region) { path.append(.region) }
+                            PinTrayValue("Pay with", value: card) { path.append(.payment) }
+                        }
+                    }
+                    .titleAccessory {
+                        Button { path.append(.howItWorks) } label: { Image(systemName: "questionmark.circle") }
+                    }
+                    .commit("Boost Post") { path.removeAll() }
+
+                case .howItWorks:
+                    PinTray("How it works") { PinTrayText("Boosting shows your post to more people.") }
+                        .commit("Got It") { path.removeLast() }
+                }
+            }
+    }
+}
+```
+
+Each tray carries a centred title and one leading control, which the stack derives: a cross at the root
+that dismisses, a back chevron once pushed that pops. `.titleAccessory { }` adds a trailing control, and
+`.commit(_:action:)` a button that ends the flow — leave it off where a tap already takes effect.
+
+A tray stands as tall as it holds; `.detent(.filling)` makes it take all the room instead, for a surface
+you browse rather than read. `.floating { }` stands something over the body at the tray's bottom edge —
+a `PinTraySearchField`, a filter bar — and the body keeps room below its last row to be read past it.
+
+Rows come from a small vocabulary, and the container owns the space around them: a tray separates its
+sections, a `PinTraySection` separates the items within one, and a row only decides what happens inside
+itself.
+
+| | |
+|---|---|
+| `PinTraySection` | a run of items that belong together |
+| `PinTrayValue` | what is chosen, and opens the tray that changes it |
+| `PinTrayChoice` | one of a set of mutually exclusive options |
+| `PinTrayText` | a paragraph, `.centred()` when it is a caption |
+| `PinTrayLink` | a sentence ending in a phrase that leaves the app |
+| `PinTraySearchField` | the field a search tray floats over its results |
+
+Moving between trays springs the height and cross-dissolves the content in place as one motion, so a
+sequence reads as one surface changing rather than a stack of separate sheets. A commit button standing
+in both trays holds still through the move while its label changes. The tray is dismissed by its cross,
+by a downward drag, or by tapping outside it; a tray that raises the keyboard stands on it and leaves
+beside it on the keyboard's own clock.
+
 ## Tweaks
 
 Attach actions and toggles to any SwiftUI demo with `pinwheelTweaks`. They appear in Pinwheel's floating settings sheet.

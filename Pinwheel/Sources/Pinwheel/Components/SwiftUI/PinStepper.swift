@@ -24,15 +24,15 @@ public struct PinStepper: SwiftUI.View {
     }
 
     public var body: some SwiftUI.View {
-        HStack(spacing: .spacingM) {
+        HStack(spacing: .spacing3) {
             SwiftUI.Button(action: onDecrement) { Image(systemName: "minus") }
             PinLabel("\(value)").font(.body).frame(minWidth: 20)
             SwiftUI.Button(action: onIncrement) { Image(systemName: "plus") }
         }
         .font(PinTextStyle.body.font(in: theme))
         .foregroundStyle(.actionText)
-        .padding(.horizontal, .spacingM)
-        .padding(.vertical, .spacingS)
+        .padding(.horizontal, .spacing3)
+        .padding(.vertical, .spacing2)
         .overlay(Capsule().stroke(.tertiaryText, lineWidth: 1))
     }
 }

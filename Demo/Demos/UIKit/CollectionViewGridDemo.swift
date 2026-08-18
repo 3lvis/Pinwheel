@@ -7,9 +7,9 @@ class CollectionViewGridDemo: UIPinView {
 
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
-        layout.minimumInteritemSpacing = .spacingM
-        layout.minimumLineSpacing = .spacingM
-        layout.sectionInset = UIEdgeInsets(top: .spacingL, left: .spacingL, bottom: .spacingL, right: .spacingL)
+        layout.minimumInteritemSpacing = .spacing3
+        layout.minimumLineSpacing = .spacing3
+        layout.sectionInset = UIEdgeInsets(top: .spacing4, left: .spacing4, bottom: .spacing4, right: .spacing4)
         let view = UICollectionView(frame: .zero, collectionViewLayout: layout)
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = .clear
@@ -47,7 +47,7 @@ extension CollectionViewGridDemo: UICollectionViewDataSource {
 extension CollectionViewGridDemo: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let columns: CGFloat = 2
-        let available = collectionView.bounds.width - .spacingL * 2 - .spacingM * (columns - 1)
+        let available = collectionView.bounds.width - .spacing4 * 2 - .spacing3 * (columns - 1)
         let width = floor(available / columns)
         return CGSize(width: width, height: indexPath.section == 0 ? 96 : 60)
     }
@@ -69,8 +69,8 @@ private final class MetricCardCell: UICollectionViewCell {
         NSLayoutConstraint.activate([
             label.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             label.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            label.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor, constant: .spacingS),
-            label.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -.spacingS)
+            label.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor, constant: .spacing2),
+            label.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -.spacing2)
         ])
     }
 

@@ -26,7 +26,7 @@ struct PinwheelPlayground: SwiftUI.View {
             // place instead of collapsing.
             .overlay(alignment: .top) {
                 PinwheelDevicePill(previewMode: previewMode)
-                    .padding(.top, .spacingS)
+                    .padding(.top, .spacing2)
             }
             .onAppear {
                 // Preview renders skip device restore/persistence so a saved
@@ -136,6 +136,7 @@ private struct PinwheelDevicePill: SwiftUI.View {
     let previewMode: Bool
     @Environment(PinwheelChrome.self) private var chrome
     @SwiftUI.State private var versionFaded = false
+    @SwiftUI.State private var showingBuild = false
 
     private var isVisible: Bool {
         guard chrome.isPresentingItem, chrome.componentName != nil else { return false }
@@ -148,6 +149,15 @@ private struct PinwheelDevicePill: SwiftUI.View {
             if isVisible, let name = chrome.componentName {
                 pill(name: name)
                     .transition(.scale.combined(with: .opacity))
+                    .onTapGesture {
+                        showingBuild = true
+                        versionFaded = false
+                    }
+                    .task(id: showingBuild) {
+                        guard showingBuild else { return }
+                        try? await Task.sleep(for: .seconds(4))
+                        showingBuild = false
+                    }
                     // The playground is constructed a beat before it's presented, so time the fade from
                     // the pill appearing, not from construction (which spends the window unseen).
                     .task {
@@ -161,8 +171,8 @@ private struct PinwheelDevicePill: SwiftUI.View {
     }
 
     private func pill(name: String) -> some SwiftUI.View {
-        HStack(spacing: .spacingS) {
-            PinLabel(name).font(.caption)
+        HStack(spacing: .spacing2) {
+            PinLabel(showingBuild ? PinwheelBuild.label : name).font(.caption)
             if let variant = chrome.componentVariant {
                 PinLabel("· \(variant)").font(.caption).color(.secondary)
             }
@@ -188,8 +198,8 @@ private struct PinwheelDevicePill: SwiftUI.View {
             }
         }
         .foregroundStyle(.primaryText)
-        .padding(.horizontal, .spacingM)
-        .padding(.vertical, .spacingS)
+        .padding(.horizontal, .spacing3)
+        .padding(.vertical, .spacing2)
         .background(
             Capsule()
                 .fill(.secondaryBackground)

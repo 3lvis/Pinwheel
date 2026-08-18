@@ -41,19 +41,19 @@ class UIPinFullscreenViewDemo: UIPinFullscreenView {
 
         NSLayoutConstraint.activate([
             textView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
-            textView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: .spacingM),
-            textView.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -.spacingM),
+            textView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: .spacing3),
+            textView.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -.spacing3),
 
             leftAnchoredLabel.topAnchor.constraint(equalTo: textView.bottomAnchor),
-            leftAnchoredLabel.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: .spacingM),
+            leftAnchoredLabel.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: .spacing3),
 
             rightAnchoredLabel.topAnchor.constraint(equalTo: textView.bottomAnchor),
-            rightAnchoredLabel.leadingAnchor.constraint(equalTo: leftAnchoredLabel.trailingAnchor, constant: .spacingM),
-            rightAnchoredLabel.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -.spacingM),
+            rightAnchoredLabel.leadingAnchor.constraint(equalTo: leftAnchoredLabel.trailingAnchor, constant: .spacing3),
+            rightAnchoredLabel.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -.spacing3),
         ])
 
-        safeAnchorToKeyboardTopAndSafeAreaBottom(subview: rightAnchoredLabel, constant: -.spacingM)
-        safeAnchorToKeyboardTopAndSafeAreaBottom(subview: leftAnchoredLabel, constant: -.spacingM)
+        safeAnchorToKeyboardTopAndSafeAreaBottom(subview: rightAnchoredLabel, constant: -.spacing3)
+        safeAnchorToKeyboardTopAndSafeAreaBottom(subview: leftAnchoredLabel, constant: -.spacing3)
     }
 }
 

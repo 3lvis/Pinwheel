@@ -7,29 +7,29 @@ struct CardsDemo: SwiftUI.View {
 
     var body: some SwiftUI.View {
         ScrollView {
-            VStack(spacing: .spacingM) {
+            VStack(spacing: .spacing3) {
                 ForEach(metrics, id: \.0) { title, value in
-                    VStack(alignment: .leading, spacing: .spacingXS) {
+                    VStack(alignment: .leading, spacing: .spacing1) {
                         PinLabel(title).font(.caption).color(.secondary)
                         PinLabel(value).font(.title)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.spacingL)
+                    .padding(.spacing4)
                     .background(.secondaryBackground)
                     .cornerRadius(.radiusM)
                 }
                 ForEach(statuses, id: \.0) { title, value in
-                    VStack(alignment: .leading, spacing: .spacingXS) {
+                    VStack(alignment: .leading, spacing: .spacing1) {
                         PinLabel(title).font(.caption).color(.secondary)
                         PinLabel(value).font(.body)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.spacingM)
+                    .padding(.spacing3)
                     .background(.actionBackground)
                     .cornerRadius(.radiusL)
                 }
             }
-            .padding(.spacingL)
+            .padding(.spacing4)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(.primaryBackground)

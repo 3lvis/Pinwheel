@@ -17,7 +17,7 @@ public struct PinList: SwiftUI.View {
             List {
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
                     row
-                        .listRowInsets(EdgeInsets(top: .spacingS, leading: .spacingM, bottom: .spacingS, trailing: .spacingM))
+                        .listRowInsets(EdgeInsets(top: .spacing2, leading: .spacing3, bottom: .spacing2, trailing: .spacing3))
                         .listRowBackground(Color.primaryBackground)
                 }
             }
@@ -69,7 +69,7 @@ public extension PinList {
                 textRow(subtitle: subtitle, detail: detail, chevron: chevron, enabled: enabled, action: action)
             case let .toggle(subtitle, enabled, isOn):
                 Toggle(isOn: isOn) {
-                    HStack(spacing: .spacingS) {
+                    HStack(spacing: .spacing2) {
                         if let icon { iconView(icon, enabled: enabled) }
                         labels(subtitle: subtitle, enabled: enabled)
                     }
@@ -81,11 +81,11 @@ public extension PinList {
         private func iconView(_ image: Image, enabled: Bool) -> some SwiftUI.View {
             image
                 .foregroundStyle(enabled ? Color.actionText : Color.secondaryText)
-                .frame(width: .spacingXL)
+                .frame(width: .spacing6)
         }
 
         private func labels(subtitle: String?, enabled: Bool) -> some SwiftUI.View {
-            VStack(alignment: .leading, spacing: .spacingXXS) {
+            VStack(alignment: .leading, spacing: .spacing1) {
                 PinLabel(title).color(enabled ? .primary : .secondary)
                 if let subtitle {
                     PinLabel(subtitle).font(.caption).color(enabled ? .primary : .secondary)
@@ -101,7 +101,7 @@ public extension PinList {
             enabled: Bool,
             action: (() -> Void)?
         ) -> some SwiftUI.View {
-            let content = HStack(spacing: .spacingS) {
+            let content = HStack(spacing: .spacing2) {
                 if let icon { iconView(icon, enabled: enabled) }
                 labels(subtitle: subtitle, enabled: enabled)
                 Spacer()

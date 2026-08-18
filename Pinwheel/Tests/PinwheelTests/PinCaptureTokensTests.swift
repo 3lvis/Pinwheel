@@ -4,9 +4,9 @@ import UIKit
 
 @MainActor
 final class PinCaptureTokensTests: XCTestCase {
-    override func tearDown() {
+    override func tearDown() async throws {
         PinCaptureTokens.current = .pinwheel
-        super.tearDown()
+        try await super.tearDown()
     }
 
     // A consumer's own color must bind to the consumer's own token name — the engine can't be hardwired to

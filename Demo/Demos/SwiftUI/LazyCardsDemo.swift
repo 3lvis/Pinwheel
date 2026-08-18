@@ -6,19 +6,19 @@ struct LazyCardsDemo: SwiftUI.View {
 
     var body: some SwiftUI.View {
         ScrollView {
-            LazyVStack(spacing: .spacingM) {
+            LazyVStack(spacing: .spacing3) {
                 ForEach(items, id: \.self) { title in
-                    VStack(alignment: .leading, spacing: .spacingXS) {
+                    VStack(alignment: .leading, spacing: .spacing1) {
                         PinLabel(title).font(.caption).color(.secondary)
                         PinLabel("Detail row").font(.body)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.spacingL)
+                    .padding(.spacing4)
                     .background(.secondaryBackground)
                     .cornerRadius(.radiusM)
                 }
             }
-            .padding(.spacingL)
+            .padding(.spacing4)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(.primaryBackground)

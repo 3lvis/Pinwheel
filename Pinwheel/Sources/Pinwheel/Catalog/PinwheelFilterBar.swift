@@ -29,15 +29,15 @@ struct PinwheelFilterBar: SwiftUI.View {
 
     private var pills: some SwiftUI.View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: .spacingS) {
+            HStack(spacing: .spacing2) {
                 ForEach(tags, id: \.self) { tag in
                     pill(title: tag.rawValue, isSelected: selectedTag == tag) {
                         selectedTag = selectedTag == tag ? nil : tag
                     }
                 }
             }
-            .padding(.horizontal, .spacingS)
-            .padding(.vertical, .spacingS)
+            .padding(.horizontal, .spacing2)
+            .padding(.vertical, .spacing2)
         }
         .background(.primaryBackground)
     }
@@ -46,8 +46,8 @@ struct PinwheelFilterBar: SwiftUI.View {
         SwiftUI.Button(action: action) {
             PinLabel(title)
                 .color(isSelected ? .custom(.primaryBackground) : .action)
-                .padding(.horizontal, .spacingM)
-                .padding(.vertical, .spacingS)
+                .padding(.horizontal, .spacing3)
+                .padding(.vertical, .spacing2)
                 .background {
                     if isSelected {
                         Capsule().fill(.actionText)

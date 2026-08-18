@@ -22,8 +22,8 @@ struct PinTypographyDemo: SwiftUI.View {
                 ForEach(styles, id: \.0) { title, style in
                     PinLabel(title).font(style)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, .spacingL)
-                        .padding(.vertical, .spacingM)
+                        .padding(.horizontal, .spacing4)
+                        .padding(.vertical, .spacing3)
                 }
             }
         }

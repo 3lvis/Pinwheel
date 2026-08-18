@@ -45,8 +45,8 @@ struct PinwheelTweaksView: SwiftUI.View {
                 dismiss()
             } label: {
                 tweakLabels(tweak)
-                    .padding(.horizontal, .spacingXL)
-                    .padding(.vertical, .spacingM)
+                    .padding(.horizontal, .spacing6)
+                    .padding(.vertical, .spacing3)
                     .frame(maxWidth: .infinity, minHeight: .minimumControlHeight, alignment: .leading)
                     .contentShape(Rectangle())
             }
@@ -54,8 +54,8 @@ struct PinwheelTweaksView: SwiftUI.View {
         case .toggle(let isOn):
             Toggle(isOn: isOn) { tweakLabels(tweak) }
                 .tint(.actionText)
-                .padding(.horizontal, .spacingXL)
-                .padding(.vertical, .spacingM)
+                .padding(.horizontal, .spacing6)
+                .padding(.vertical, .spacing3)
                 .frame(maxWidth: .infinity, minHeight: .minimumControlHeight, alignment: .leading)
         case .select(let options, let selection):
             ForEach(Array(options.enumerated()), id: \.offset) { index, option in
@@ -63,13 +63,13 @@ struct PinwheelTweaksView: SwiftUI.View {
                     selection.wrappedValue = index
                     dismiss()
                 }
-                .padding(.horizontal, .spacingM)
+                .padding(.horizontal, .spacing3)
             }
         }
     }
 
     private func tweakLabels(_ tweak: PinwheelTweak) -> some SwiftUI.View {
-        VStack(alignment: .leading, spacing: .spacingXXS) {
+        VStack(alignment: .leading, spacing: .spacing1) {
             PinLabel(tweak.title)
             if let description = tweak.description {
                 PinLabel(description).font(.caption).color(.secondary)

@@ -5,15 +5,15 @@ import Pinwheel
 @main
 struct DemoApp: App {
     init() {
-        // -UITesting clears persisted state so a prior run's selection can't leak
-        // in, and disables animations so presentations don't flake the tests.
         // -PinwheelPreview lives in the argument domain, so it survives the clear.
-        if ProcessInfo.processInfo.arguments.contains("-UITesting") {
+        if ProcessInfo.processInfo.arguments.contains("-UITestingNoAnimations") {
             if let domain = Bundle.main.bundleIdentifier {
                 UserDefaults.standard.removePersistentDomain(forName: domain)
             }
             UIView.setAnimationsEnabled(false)
         }
+
+        PinwheelRecorder.start()
 
         if FigmaCatalog.isManifestDump {
             FigmaCatalog.dumpManifest()

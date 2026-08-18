@@ -10,26 +10,26 @@ final class SalePillCaptureTests: XCTestCase {
     private struct Fixture: SwiftUI.View {
         var body: some SwiftUI.View {
             ScrollView {
-                VStack(spacing: .spacingM) {
+                VStack(spacing: .spacing3) {
                     ForEach(["Alpha", "Bravo", "Charlie"], id: \.self) { name in
-                        HStack(spacing: .spacingM) {
-                            VStack(alignment: .leading, spacing: .spacingXS) {
-                                HStack(spacing: .spacingS) {
+                        HStack(spacing: .spacing3) {
+                            VStack(alignment: .leading, spacing: .spacing1) {
+                                HStack(spacing: .spacing2) {
                                     PinLabel(name).font(.body)
                                     PinLabel("SALE").font(.footnote).color(.custom(.white))
-                                        .padding(.horizontal, .spacingS).padding(.vertical, 2)
+                                        .padding(.horizontal, .spacing2).padding(.vertical, 2)
                                         .background(.criticalBackground, in: Capsule())
                                 }
                                 PinLabel("$10").font(.bodySemibold)
                             }
                             Spacer()
                         }
-                        .padding(.spacingM)
+                        .padding(.spacing3)
                         .background(.secondaryBackground)
                         .cornerRadius(.radiusM)
                     }
                 }
-                .padding(.spacingL)
+                .padding(.spacing4)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .background(.primaryBackground)

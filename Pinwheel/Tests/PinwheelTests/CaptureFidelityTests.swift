@@ -7,24 +7,24 @@ import UIKit
 final class CaptureFidelityTests: XCTestCase {
     private struct Fixture: SwiftUI.View {
         var body: some SwiftUI.View {
-            VStack(alignment: .leading, spacing: .spacingL) {
-                VStack(alignment: .leading, spacing: .spacingM) {
+            VStack(alignment: .leading, spacing: .spacing4) {
+                VStack(alignment: .leading, spacing: .spacing3) {
                     PinLabel("Payment method").font(.subtitleSemibold)
-                    HStack(spacing: .spacingS) {
+                    HStack(spacing: .spacing2) {
                         PinButton("Card") {}.style(.secondary)
                         PinButton("Cash") {}.style(.secondary)
                     }
                 }
-                .padding(.spacingL)
+                .padding(.spacing4)
                 .background(.secondaryBackground)
                 .clipShape(RoundedRectangle(cornerRadius: .radiusM))
 
-                VStack(alignment: .trailing, spacing: .spacingS) {
+                VStack(alignment: .trailing, spacing: .spacing2) {
                     PinButton("Skip") {}.style(.tertiary)
                     PinButton("Done") {}
                 }
             }
-            .padding(.spacingL)
+            .padding(.spacing4)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .background(.primaryBackground)
         }
@@ -50,10 +50,10 @@ final class CaptureFidelityTests: XCTestCase {
     func testTallColumnNeedsAContentHeightHostOrItDropsRowsToContainment() throws {
         struct Tall: SwiftUI.View {
             var body: some SwiftUI.View {
-                VStack(spacing: .spacingM) {
+                VStack(spacing: .spacing3) {
                     ForEach(0..<12, id: \.self) { PinButton("Button \($0)") {} }
                 }
-                .padding(.spacingL)
+                .padding(.spacing4)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             }
         }
@@ -94,8 +94,8 @@ final class CaptureFidelityTests: XCTestCase {
                                 PinLabel(title).font(.body).color(.custom(.white))
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, .spacingL)
-                            .padding(.vertical, .spacingM)
+                            .padding(.horizontal, .spacing4)
+                            .padding(.vertical, .spacing3)
                             .background(SwiftUI.Color(uiColor: color))
                         }
                     }
@@ -140,12 +140,17 @@ final class CaptureFidelityTests: XCTestCase {
     }
 
     func testInferredGapBindsTheSpacingTokenDespiteGlyphBearing() {
-        // A gap between rendered leaves reads a hair wider than declared — a glyph sits inset within its
-        // frame — so a ~9-10 label↔icon gap still binds spacing-s (8).
-        XCTAssertEqual(FigmaLayout(PinCaptureLayout(axis: .row, spacing: 9.33)).gapToken, "spacing-s")
-        XCTAssertEqual(FigmaLayout(PinCaptureLayout(axis: .row, spacing: 10.33)).gapToken, "spacing-s")
-        XCTAssertEqual(FigmaLayout(PinCaptureLayout(axis: .row, spacing: 16)).gapToken, "spacing-l")
-        XCTAssertNil(FigmaLayout(PinCaptureLayout(axis: .row, spacing: 20)).gapToken)
+        XCTAssertEqual(
+            FigmaLayout(PinCaptureLayout(axis: .row, spacing: 9.33)).gapToken, "spacing-2",
+            "a rendered gap reads a hair wider than declared, a glyph sitting inset in its frame"
+        )
+        XCTAssertEqual(
+            FigmaLayout(PinCaptureLayout(axis: .row, spacing: 10.33)).gapToken, "spacing-2",
+            "so anything around 9 to 10 still binds spacing-2, which is 8"
+        )
+        XCTAssertEqual(FigmaLayout(PinCaptureLayout(axis: .row, spacing: 16)).gapToken, "spacing-4")
+        XCTAssertNil(FigmaLayout(PinCaptureLayout(axis: .row, spacing: 28)).gapToken,
+                     "a gap that is no token's value binds nothing")
     }
 
     func testMultilineTextCapturesItsCenterAlignment() throws {
@@ -200,18 +205,18 @@ final class CaptureFidelityTests: XCTestCase {
     func testFlatGroupedScreenKeepsItsRowGrouping() throws {
         struct Fixture: SwiftUI.View {
             var body: some SwiftUI.View {
-                VStack(alignment: .leading, spacing: .spacingL) {
+                VStack(alignment: .leading, spacing: .spacing4) {
                     PinLabel("Apple controls").font(.title)
-                    VStack(alignment: .leading, spacing: .spacingXS) {
+                    VStack(alignment: .leading, spacing: .spacing1) {
                         PinLabel("Toggle").font(.caption).color(.secondary)
                         PinLabel("On").font(.body)
                     }
-                    VStack(alignment: .leading, spacing: .spacingXS) {
+                    VStack(alignment: .leading, spacing: .spacing1) {
                         PinLabel("Slider").font(.caption).color(.secondary)
                         PinLabel("60%").font(.body)
                     }
                 }
-                .padding(.spacingL)
+                .padding(.spacing4)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .background(.primaryBackground)
             }
@@ -233,8 +238,8 @@ final class CaptureFidelityTests: XCTestCase {
                         ForEach(labels, id: \.self) { label in
                             PinLabel(label)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, .spacingL)
-                                .padding(.vertical, .spacingM)
+                                .padding(.horizontal, .spacing4)
+                                .padding(.vertical, .spacing3)
                         }
                     }
                 }
@@ -266,8 +271,8 @@ final class CaptureFidelityTests: XCTestCase {
                                 PinLabel(title).color(.custom(.white))
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, .spacingL)
-                            .padding(.vertical, .spacingM)
+                            .padding(.horizontal, .spacing4)
+                            .padding(.vertical, .spacing3)
                             .background(color)
                         }
                     }
@@ -289,17 +294,17 @@ final class CaptureFidelityTests: XCTestCase {
         struct Fixture: SwiftUI.View {
             var body: some SwiftUI.View {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: .spacingL) {
+                    VStack(alignment: .leading, spacing: .spacing4) {
                         PinLabel("Spacing").font(.title)
                         ForEach([CGFloat(8), CGFloat(32)], id: \.self) { pad in
                             PinLabel("bar \(Int(pad))")
                                 .frame(maxWidth: .infinity)
-                                .padding(.vertical, .spacingS)
+                                .padding(.vertical, .spacing2)
                                 .background(.tertiaryText)
                                 .padding(.horizontal, pad)
                         }
                     }
-                    .padding(.spacingL)
+                    .padding(.spacing4)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .background(.primaryBackground)
@@ -318,19 +323,19 @@ final class CaptureFidelityTests: XCTestCase {
         struct Cards: SwiftUI.View {
             var body: some SwiftUI.View {
                 ScrollView {
-                    VStack(spacing: .spacingM) {
+                    VStack(spacing: .spacing3) {
                         ForEach(["Revenue", "Orders", "Users"], id: \.self) { title in
-                            VStack(alignment: .leading, spacing: .spacingXS) {
+                            VStack(alignment: .leading, spacing: .spacing1) {
                                 PinLabel(title).font(.caption).color(.secondary)
                                 PinLabel("123").font(.title)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.spacingL)
+                            .padding(.spacing4)
                             .background(.secondaryBackground)
                             .cornerRadius(.radiusM)
                         }
                     }
-                    .padding(.spacingL)
+                    .padding(.spacing4)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .background(.primaryBackground)
@@ -348,16 +353,16 @@ final class CaptureFidelityTests: XCTestCase {
         struct Boxes: SwiftUI.View {
             var body: some SwiftUI.View {
                 ScrollView {
-                    VStack(spacing: .spacingM) {
+                    VStack(spacing: .spacing3) {
                         ForEach([CGFloat(120), CGFloat(240)], id: \.self) { width in
                             VStack { PinLabel("Box").font(.title); PinLabel("sub").font(.caption) }
                                 .frame(width: width)
-                                .padding(.spacingL)
+                                .padding(.spacing4)
                                 .background(.secondaryBackground)
                                 .cornerRadius(.radiusM)
                         }
                     }
-                    .padding(.spacingL)
+                    .padding(.spacing4)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .background(.primaryBackground)
@@ -375,19 +380,19 @@ final class CaptureFidelityTests: XCTestCase {
         struct Cards: SwiftUI.View {
             var body: some SwiftUI.View {
                 ScrollView {
-                    VStack(spacing: .spacingM) {
+                    VStack(spacing: .spacing3) {
                         ForEach(["Alpha", "Bravo", "Charlie"], id: \.self) { title in
                             HStack {
                                 Image(systemName: "star.fill")
                                 PinLabel(title).font(.body)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.spacingL)
+                            .padding(.spacing4)
                             .background(.secondaryBackground)
                             .cornerRadius(.radiusM)
                         }
                     }
-                    .padding(.spacingL)
+                    .padding(.spacing4)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .background(.primaryBackground)
@@ -404,11 +409,11 @@ final class CaptureFidelityTests: XCTestCase {
         struct Cards: SwiftUI.View {
             var body: some SwiftUI.View {
                 ScrollView {
-                    VStack(spacing: .spacingM) {
+                    VStack(spacing: .spacing3) {
                         card(width: 200, title: "One")
                         card(width: 206, title: "Two")
                     }
-                    .padding(.spacingL)
+                    .padding(.spacing4)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 .background(.primaryBackground)
@@ -416,7 +421,7 @@ final class CaptureFidelityTests: XCTestCase {
             func card(width: CGFloat, title: String) -> some SwiftUI.View {
                 VStack { PinLabel(title).font(.title); PinLabel("detail").font(.caption) }
                     .frame(width: width)
-                    .padding(.spacingL)
+                    .padding(.spacing4)
                     .background(.secondaryBackground)
                     .cornerRadius(.radiusM)
             }

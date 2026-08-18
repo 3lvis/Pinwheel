@@ -9,7 +9,7 @@ final class LiveCaptureHostSizingTests: XCTestCase {
     private struct TallScreen: SwiftUI.View {
         var body: some SwiftUI.View {
             ScrollView {
-                VStack(spacing: .spacingM) {
+                VStack(spacing: .spacing3) {
                     ForEach(0..<40, id: \.self) { index in
                         PinButton("Row \(index)") {}
                     }

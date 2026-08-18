@@ -20,24 +20,24 @@ struct CartDemo: SwiftUI.View {
 
     var body: some SwiftUI.View {
         ScrollView {
-            VStack(spacing: .spacingM) {
+            VStack(spacing: .spacing3) {
                 ForEach(items) { item in
-                    HStack(spacing: .spacingM) {
+                    HStack(spacing: .spacing3) {
                         RoundedRectangle(cornerRadius: .radiusM)
                             .fill(.secondaryBackground)
                             .frame(width: 56, height: 56)
                             .overlay(Image(systemName: "photo").foregroundStyle(.tertiaryText))
-                        VStack(alignment: .leading, spacing: .spacingXS) {
-                            HStack(spacing: .spacingS) {
+                        VStack(alignment: .leading, spacing: .spacing1) {
+                            HStack(spacing: .spacing2) {
                                 PinLabel(item.title).font(.body)
                                 if item.onSale {
                                     PinLabel("SALE").font(.footnote).color(.custom(.white))
-                                        .padding(.horizontal, .spacingS)
+                                        .padding(.horizontal, .spacing2)
                                         .padding(.vertical, 2)
                                         .background(.criticalBackground, in: Capsule())
                                 }
                             }
-                            HStack(spacing: .spacingS) {
+                            HStack(spacing: .spacing2) {
                                 PinLabel(item.now).font(.bodySemibold)
                                 if let was = item.was {
                                     PinLabel(was).font(.caption).color(.secondary).strikethrough()
@@ -47,12 +47,12 @@ struct CartDemo: SwiftUI.View {
                         Spacer()
                         PinStepper(value: item.quantity)
                     }
-                    .padding(.spacingM)
+                    .padding(.spacing3)
                     .background(.secondaryBackground)
                     .cornerRadius(.radiusM)
                 }
             }
-            .padding(.spacingL)
+            .padding(.spacing4)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(.primaryBackground)

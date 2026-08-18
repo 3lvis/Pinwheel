@@ -41,11 +41,11 @@ class UIPinColorDemo: UIPinView {
     private func row(_ item: ColorItem) -> UIView {
         let row = UIStackView(arrangedSubviews: [label(item.title, color: .black), label(item.title, color: .white)])
         row.axis = .horizontal
-        row.spacing = .spacingS
+        row.spacing = .spacing2
         row.backgroundColor = item.color
         row.isLayoutMarginsRelativeArrangement = true
         row.insetsLayoutMarginsFromSafeArea = false
-        row.layoutMargins = UIEdgeInsets(top: .spacingM, left: .spacingL, bottom: .spacingM, right: .spacingL)
+        row.layoutMargins = UIEdgeInsets(top: .spacing3, left: .spacing4, bottom: .spacing3, right: .spacing4)
         return row
     }
 

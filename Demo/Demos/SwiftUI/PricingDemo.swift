@@ -18,22 +18,22 @@ struct PricingDemo: SwiftUI.View {
 
     var body: some SwiftUI.View {
         ScrollView {
-            VStack(spacing: .spacingM) {
+            VStack(spacing: .spacing3) {
                 ForEach(deals) { deal in
-                    VStack(alignment: .leading, spacing: .spacingXS) {
+                    VStack(alignment: .leading, spacing: .spacing1) {
                         PinLabel(deal.title).font(.body)
-                        HStack(spacing: .spacingS) {
+                        HStack(spacing: .spacing2) {
                             PinLabel(deal.now).font(.bodySemibold)
                             PinLabel(deal.was).font(.caption).color(.secondary).strikethrough()
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.spacingL)
+                    .padding(.spacing4)
                     .background(.secondaryBackground)
                     .cornerRadius(.radiusM)
                 }
             }
-            .padding(.spacingL)
+            .padding(.spacing4)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(.primaryBackground)

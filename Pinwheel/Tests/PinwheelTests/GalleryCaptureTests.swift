@@ -16,20 +16,20 @@ final class GalleryCaptureTests: XCTestCase {
         let rows = ["Sunset Ridge", "Ocean Deep", "Forest Trail"]
         var body: some SwiftUI.View {
             ScrollView {
-                VStack(spacing: .spacingM) {
+                VStack(spacing: .spacing3) {
                     ForEach(rows, id: \.self) { title in
-                        HStack(spacing: .spacingM) {
+                        HStack(spacing: .spacing3) {
                             Image(uiImage: Self.swatch).resizable().frame(width: 64, height: 64)
                                 .clipShape(RoundedRectangle(cornerRadius: .radiusM))
-                            VStack(alignment: .leading, spacing: .spacingXS) {
+                            VStack(alignment: .leading, spacing: .spacing1) {
                                 PinLabel(title).font(.bodySemibold)
                                 PinLabel("Sub").font(.caption).color(.secondary)
                             }
                             Spacer()
                         }
-                        .padding(.spacingM).background(.secondaryBackground).cornerRadius(.radiusM)
+                        .padding(.spacing3).background(.secondaryBackground).cornerRadius(.radiusM)
                     }
-                }.padding(.spacingL)
+                }.padding(.spacing4)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top).background(.primaryBackground)
         }
@@ -51,6 +51,6 @@ final class GalleryCaptureTests: XCTestCase {
         }
         XCTAssertTrue(hasFill(document.root),
                       "the row keeps its card background fill — the reflection path must re-attach a flat-content card's fill, not drop it")
-        _ = withExtendedLifetime(window) {}
+        withExtendedLifetime(window) {}
     }
 }

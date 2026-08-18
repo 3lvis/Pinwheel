@@ -29,8 +29,8 @@ public struct PinStateView: SwiftUI.View {
         showsSpinner: Bool,
         actionTitle: String?
     ) -> some SwiftUI.View {
-        VStack(spacing: .spacingS) {
-            HStack(spacing: .spacingS) {
+        VStack(spacing: .spacing2) {
+            HStack(spacing: .spacing2) {
                 if showsSpinner {
                     ProgressView()
                 }
@@ -43,11 +43,11 @@ public struct PinStateView: SwiftUI.View {
             if let actionTitle {
                 PinButton(actionTitle, action: onAction)
                     .style(.secondary)
-                    .padding(.top, .spacingM)
+                    .padding(.top, .spacing3)
             }
         }
         .multilineTextAlignment(.center)
-        .padding(.horizontal, .spacingL)
+        .padding(.horizontal, .spacing4)
         .frame(maxWidth: .infinity)
     }
 }

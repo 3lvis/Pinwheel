@@ -51,7 +51,7 @@ class UIPinButtonDemo: UIPinView {
 
         primaryFloating = UIPinButton(title: "Continue")
 
-        let stackView = UIStackView(axis: .vertical, spacing: .spacingM, alignment: .center)
+        let stackView = UIStackView(axis: .vertical, spacing: .spacing3, alignment: .center)
         stackView.addArrangedSubviews([
             primary,
             primaryDisabled,
@@ -66,13 +66,13 @@ class UIPinButtonDemo: UIPinView {
             custom,
             customDisabled
         ])
-        addSubview(stackView, filling: safeAreaLayoutGuide, edges: [.top, .leading, .trailing], margin: .spacingXXL)
+        addSubview(stackView, filling: safeAreaLayoutGuide, edges: [.top, .leading, .trailing], margin: .spacing8)
 
         addSubview(primaryFloating)
         NSLayoutConstraint.activate([
-            primaryFloating.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: .spacingM),
-            primaryFloating.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacingM),
-            primaryFloating.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -.spacingM)
+            primaryFloating.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: .spacing3),
+            primaryFloating.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacing3),
+            primaryFloating.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -.spacing3)
         ])
     }
 

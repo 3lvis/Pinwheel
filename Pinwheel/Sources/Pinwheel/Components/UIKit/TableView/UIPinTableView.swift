@@ -35,7 +35,7 @@ open class UIPinTableView: ShadowScrollView {
         tableView.dataSource = self
         tableView.backgroundColor = .primaryBackground
         tableView.estimatedRowHeight = UIPinTableView.estimatedRowHeight
-        tableView.separatorColor = .secondaryBackground
+        tableView.separatorColor = .tertiaryText
         tableView.separatorInset = .leadingInset(frame.width)
         return tableView
     }()
