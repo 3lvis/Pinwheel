@@ -8,9 +8,13 @@ struct PinwheelCatalogView: SwiftUI.View {
     @State private var selectedSectionID: String?
     @State private var fullscreenItem: PresentedPinwheelItem?
     @State private var sheetItem: PresentedPinwheelItem?
-    @State private var showsSectionPicker = false
-    @State private var showsThemePicker = false
-    @State private var showsAppearancePicker = false
+    @State private var displayPath: [DisplayAxis] = []
+
+    enum DisplayAxis: Hashable {
+        case section
+        case theme
+        case appearance
+    }
     @State private var restoredSelection = false
     @State private var chrome = PinwheelChrome()
 
@@ -53,40 +57,48 @@ struct PinwheelCatalogView: SwiftUI.View {
         .onChange(of: sections.map(\.id)) { _, _ in
             normalizeSelection()
         }
-        .sheet(isPresented: $showsSectionPicker) {
-            PinwheelSheet(PinwheelSheetModel(title: "Section")) {
-                ForEach(sections) { section in
-                    PickerRow(title: section.title, isSelected: section.id == selectedSection?.id) {
-                        selectedSectionID = section.id
-                        PinwheelStateStore.selectedSectionID = section.id
-                        showsSectionPicker = false
+        .pinwheelTray(path: $displayPath) { axis in
+            switch axis {
+            case .section:
+                PinTray("Section") {
+                    PinTraySection {
+                        ForEach(sections) { section in
+                            PinTrayChoice(section.title, isChosen: section.id == selectedSection?.id) {
+                                selectedSectionID = section.id
+                                PinwheelStateStore.selectedSectionID = section.id
+                                displayPath.removeAll()
+                            }
+                        }
+                    }
+                }
+
+            case .theme:
+                PinTray("Theme") {
+                    PinTraySection {
+                        ForEach(chrome.themes) { theme in
+                            PinTrayChoice(theme.name, isChosen: theme == chrome.theme) {
+                                chrome.selectTheme(theme)
+                                displayPath.removeAll()
+                            }
+                            .environment(\.pinwheelTheme, theme)
+                            .accessibilityIdentifier("pinwheel.theme.\(theme.id)")
+                        }
+                    }
+                }
+
+            case .appearance:
+                PinTray("Appearance") {
+                    PinTraySection {
+                        ForEach(PinwheelAppearance.allCases) { appearance in
+                            PinTrayChoice(appearance.title, isChosen: appearance == selectedAppearance) {
+                                chrome.colorScheme = appearance.colorScheme
+                                displayPath.removeAll()
+                            }
+                            .accessibilityIdentifier("pinwheel.appearance.\(appearance.rawValue)")
+                        }
                     }
                 }
             }
-            .pinwheelPresented(chrome)
-        }
-        .sheet(isPresented: $showsThemePicker) {
-            PinwheelSheet(PinwheelSheetModel(title: "Theme")) {
-                ForEach(chrome.themes) { theme in
-                    ThemeSampleRow(theme: theme, isSelected: theme == chrome.theme) {
-                        chrome.selectTheme(theme)
-                        showsThemePicker = false
-                    }
-                }
-            }
-            .pinwheelPresented(chrome)
-        }
-        .sheet(isPresented: $showsAppearancePicker) {
-            PinwheelSheet(PinwheelSheetModel(title: "Appearance")) {
-                ForEach(PinwheelAppearance.allCases) { appearance in
-                    PickerRow(title: appearance.title, isSelected: appearance == selectedAppearance) {
-                        chrome.colorScheme = appearance.colorScheme
-                        showsAppearancePicker = false
-                    }
-                    .accessibilityIdentifier("pinwheel.appearance.\(appearance.rawValue)")
-                }
-            }
-            .pinwheelPresented(chrome)
         }
         .sheet(item: $sheetItem) { item in
             PinwheelPlayground(item: item.item, selection: item.selection) {
@@ -109,7 +121,7 @@ struct PinwheelCatalogView: SwiftUI.View {
             .toolbar {
                 ToolbarItem(placement: .bottomBar) {
                     barTextButton(selectedSection?.title ?? "Pinwheel") {
-                        showsSectionPicker = true
+                        displayPath = [.section]
                     }
                     .accessibilityIdentifier("pinwheel.sectionPicker")
                 }
@@ -119,7 +131,7 @@ struct PinwheelCatalogView: SwiftUI.View {
                 if chrome.themes.count > 1 {
                     ToolbarItem(placement: .bottomBar) {
                         barSymbolButton("paintpalette", label: chrome.theme.name) {
-                            showsThemePicker = true
+                            displayPath = [.theme]
                         }
                         .accessibilityIdentifier("pinwheel.theme")
                     }
@@ -129,7 +141,7 @@ struct PinwheelCatalogView: SwiftUI.View {
                 }
                 ToolbarItem(placement: .bottomBar) {
                     barSymbolButton(selectedAppearance.icon, label: selectedAppearance.title) {
-                        showsAppearancePicker = true
+                        displayPath = [.appearance]
                     }
                     .accessibilityIdentifier("pinwheel.appearance")
                 }
@@ -312,15 +324,24 @@ private struct PinwheelIndexView: SwiftUI.View {
             }
         }
         .safeAreaInset(edge: .top, spacing: 0) {
-            if sectionTags.count > 1 {
+            if !tagsWorthFiltering.isEmpty {
                 PinwheelFilterBar(
-                    tags: sectionTags,
+                    tags: tagsWorthFiltering,
                     selectedTag: $selectedTag,
                     scrolledDistance: scrolledDistance
                 )
             }
         }
         .onChange(of: section?.id) { selectedTag = nil }
+    }
+
+    /// A tag earns a pill when filtering by it would leave something out — so a lone tag counts when the
+    /// section also holds untagged items, and a tag every item carries does not.
+    private var tagsWorthFiltering: [PinTag] {
+        guard let section else { return [] }
+        let tags = sectionTags
+        if tags.count == 1, section.items.allSatisfy({ $0.tags == tags }) { return [] }
+        return tags
     }
 
     private var sectionTags: [PinTag] {

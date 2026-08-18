@@ -96,11 +96,11 @@ final class UIKitHostingSeamTests: XCTestCase {
         }
 
         chrome.showsTweaks = true
-        _ = try HostedView.attachedPresentation(in: window)
+        _ = try HostedView.attachedTray(in: window)
 
         XCTAssertTrue(
             HostedView.activateFirst(labelled: "Option 1", in: window),
-            "a UIKit Tweakable's tweaks should bridge into the sheet"
+            "a UIKit Tweakable's tweaks should bridge into the tray"
         )
         XCTAssertTrue(
             HostedView.accessibilityLabels(in: window).contains("You chose Option 1."),
@@ -118,11 +118,11 @@ final class UIKitHostingSeamTests: XCTestCase {
         }
 
         chrome.showsTweaks = true
-        _ = try HostedView.attachedPresentation(in: window)
+        _ = try HostedView.attachedTray(in: window)
 
         XCTAssertTrue(
             HostedView.activateFirst(labelled: "Option 1", in: window),
-            "a UIKit view controller's tweaks should bridge into the sheet"
+            "a UIKit view controller's tweaks should bridge into the tray"
         )
         XCTAssertEqual(
             controller.label.text,

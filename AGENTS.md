@@ -184,7 +184,7 @@ hook blocks a merge whose tip commit lacks it.
   `PinTextStyle`, not a `Font`.
 - **Colours are trait-reactive, fonts are not.** A font token resolves once against the traits current at
   the read, so SwiftUI font call sites take the theme explicitly (`PinTextStyle.font(in:)`).
-- **A presentation takes its traits from the window**, so the theme is written there, never on sheet
+- **A presentation takes its traits from the window**, so the theme is written there, never on presented
   content.
 - **One implementation per component**: a SwiftUI `Pin*` plus a thin `UIPin*` shell that hosts it. The
   UIKit twin is `UIPin*`, never `UIKitPin*`; spelled-out `UIKit` is a descriptive qualifier only

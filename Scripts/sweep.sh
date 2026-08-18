@@ -46,7 +46,7 @@ Usage: Scripts/sweep.sh [--capture] [--preview] [--no-build] [--only=<id>]
   --preview    screenshot each component (+ tweak variants, light + dark) to PNGs
   --no-build   reuse the last build
   --only=<ids> capture a subset without clearing the rest of the catalog — a fast
-               spot-check. Comma-separated, each a glob: --only=swiftui-numbers,
+               spot-check. Comma-separated, each a glob: --only=numbers,
                --only='figma-*' (every figma screen), --only='*cart*'
   (no mode)    do both
 EOF

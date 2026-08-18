@@ -54,12 +54,21 @@ struct PinwheelPlayground: SwiftUI.View {
                 chrome.componentID = nil
                 chrome.componentVariant = nil
             }
-            .sheet(isPresented: $chrome.showsTweaks) {
-                PinwheelTweaksView(
-                    tweaks: chrome.tweaks,
-                    selectedDeviceIndex: $chrome.selectedDeviceIndex
-                )
-                .pinwheelPresented(chrome)
+            .pinwheelTray(path: $chrome.tweakPath) { destination in
+                switch destination {
+                case .tweaks:
+                    PinwheelTweaksView(
+                        tweaks: chrome.tweaks,
+                        openDevices: { chrome.tweakPath.append(.device) },
+                        close: { chrome.tweakPath.removeAll() }
+                    ).tray
+
+                case .device:
+                    PinwheelDeviceList(
+                        selectedIndex: $chrome.selectedDeviceIndex,
+                        close: { chrome.tweakPath.removeAll() }
+                    ).tray
+                }
             }
     }
 

@@ -2,27 +2,23 @@ import UIKit
 import Pinwheel
 
 class UIPinViewControllerDemo: UIViewController, Tweakable {
+    private var stateIndex = DemoStateFixture.emptyIndex
+
     lazy var tweaks: [Tweak] = {
         return [
-            TextTweak(title: "Loading") {
-                self.stateView.state = .loading(title: DemoStateFixture.loadingTitle, subtitle: DemoStateFixture.loadingSubtitle)
-            },
-            TextTweak(title: "Loaded") {
-                self.stateView.state = .loaded
-            },
-            TextTweak(title: "Empty") {
-                self.stateView.state = .empty(title: DemoStateFixture.emptyTitle, subtitle: DemoStateFixture.emptySubtitle)
-            },
-            TextTweak(title: "Failed") {
-                self.stateView.state = .failed(title: DemoStateFixture.failedTitle, subtitle: DemoStateFixture.failedSubtitle, actionTitle: DemoStateFixture.retryActionTitle)
-            }
+            SelectTweak(
+                title: "State",
+                options: DemoStateFixture.titles,
+                chosenOption: { self.stateIndex },
+                action: { self.show($0) }
+            )
         ]
     }()
 
     lazy var stateView: UIPinStateView = {
         let view = UIPinStateView()
         view.delegate = self
-        view.state = .empty(title: DemoStateFixture.emptyTitle, subtitle: DemoStateFixture.emptySubtitle)
+        view.state = DemoStateFixture.viewState(at: stateIndex)
         return view
     }()
 
@@ -31,10 +27,15 @@ class UIPinViewControllerDemo: UIViewController, Tweakable {
         view.backgroundColor = .primaryBackground
         view.addSubview(stateView, filling: .all)
     }
+
+    private func show(_ index: Int) {
+        stateIndex = index
+        stateView.state = DemoStateFixture.viewState(at: index)
+    }
 }
 
 extension UIPinViewControllerDemo: UIPinStateViewDelegate {
     func stateViewDidSelectAction(_ stateView: UIPinStateView) {
-        stateView.state = .loading(title: DemoStateFixture.loadingTitle, subtitle: DemoStateFixture.loadingSubtitle)
+        show(DemoStateFixture.loadingIndex)
     }
 }

@@ -2,20 +2,16 @@ import UIKit
 import Pinwheel
 
 class UIPinTableViewDemo: UIPinView, Tweakable {
+    private var stateIndex = DemoStateFixture.loadedIndex
+
     lazy var tweaks: [Tweak] = {
         return [
-            TextTweak(title: "Loading") {
-                self.tableView.state = .loading(title: DemoStateFixture.loadingTitle, subtitle: DemoStateFixture.loadingSubtitle)
-            },
-            TextTweak(title: "Loaded") {
-                self.tableView.state = .loaded([UIPinTextTableViewItem(title: "Only value")])
-            },
-            TextTweak(title: "Empty") {
-                self.tableView.state = .empty(title: DemoStateFixture.emptyTitle, subtitle: DemoStateFixture.emptySubtitle)
-            },
-            TextTweak(title: "Failed") {
-                self.tableView.state = .failed(title: DemoStateFixture.failedTitle, subtitle: DemoStateFixture.failedSubtitle, actionTitle: DemoStateFixture.retryActionTitle)
-            }
+            SelectTweak(
+                title: "State",
+                options: DemoStateFixture.titles,
+                chosenOption: { self.stateIndex },
+                action: { self.show($0) }
+            )
         ]
     }()
 
@@ -57,6 +53,11 @@ class UIPinTableViewDemo: UIPinView, Tweakable {
 
     override func setup() {
         addSubview(tableView, filling: .all)
+    }
+
+    private func show(_ index: Int) {
+        stateIndex = index
+        tableView.state = DemoStateFixture.tableState(at: index)
     }
 }
 

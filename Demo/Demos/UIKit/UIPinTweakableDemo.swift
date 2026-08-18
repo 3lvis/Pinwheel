@@ -2,26 +2,33 @@ import UIKit
 import Pinwheel
 
 class UIPinTweakableDemo: UIPinView, Tweakable {
+    private let text = "Tweak this label."
+    private let alignmentTitles = ["Leading", "Center", "Trailing"]
+    private var alignmentIndex = 1
+    private var isUppercase = false
+
     lazy var tweaks: [Tweak] = {
-        let option1 = TextTweak(title: "Option 1") {
-            self.titleLabel.text = "You chose Option 1."
-        }
-
-        let option2 = TextTweak(title: "Option 2", description: "Description 2") {
-            self.titleLabel.text = "You chose Option 2."
-        }
-
-        let option3 = BoolTweak(title: "Option 3", description: "Toggle-backed option") { isOn in
-            self.titleLabel.text = "Option 3 is \(isOn ? "on" : "off")."
-        }
-
-        return [option1, option2, option3]
+        return [
+            SelectTweak(
+                title: "Alignment",
+                options: alignmentTitles,
+                chosenOption: { self.alignmentIndex },
+                action: { self.alignmentIndex = $0; self.reload() }
+            ),
+            BoolTweak(title: "Uppercase") { isUppercase in
+                self.isUppercase = isUppercase
+                self.reload()
+            },
+            TextTweak(title: "Reset") {
+                self.alignmentIndex = 1
+                self.isUppercase = false
+                self.reload()
+            }
+        ]
     }()
 
     lazy var titleLabel: UIPinLabel = {
         let label = UIPinLabel(font: .body)
-        label.text = "Tap the button and choose an option."
-        label.textAlignment = .center
         label.numberOfLines = 0
         return label
     }()
@@ -39,5 +46,16 @@ class UIPinTweakableDemo: UIPinView, Tweakable {
             stack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacing8),
             stack.centerYAnchor.constraint(equalTo: centerYAnchor)
         ])
+        reload()
+    }
+
+    private var alignments: [NSTextAlignment] {
+        let trailing: NSTextAlignment = effectiveUserInterfaceLayoutDirection == .rightToLeft ? .left : .right
+        return [.natural, .center, trailing]
+    }
+
+    private func reload() {
+        titleLabel.text = isUppercase ? text.uppercased() : text
+        titleLabel.textAlignment = alignments[alignmentIndex]
     }
 }

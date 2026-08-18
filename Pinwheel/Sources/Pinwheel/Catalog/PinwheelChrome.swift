@@ -10,12 +10,24 @@ extension SwiftUI.View {
     }
 }
 
+enum PinwheelTweakTray: Hashable {
+    case tweaks
+    case device
+}
+
 @MainActor
 @Observable
 final class PinwheelChrome {
     var tweaks: [PinwheelTweak] = []
     var isPresentingItem: Bool = false
-    var showsTweaks: Bool = false
+    var tweakPath: [PinwheelTweakTray] = []
+
+    /// Whether the tweak flow is up, kept as a reading of the path rather than beside it, so the two
+    /// cannot disagree about it.
+    var showsTweaks: Bool {
+        get { !tweakPath.isEmpty }
+        set { tweakPath = newValue ? [.tweaks] : [] }
+    }
     var selectedDeviceIndex: Int?
     var onClose: (() -> Void)?
     var componentName: String?

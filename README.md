@@ -78,7 +78,7 @@ PinwheelCatalog(themes: [.marine]) {
 }
 ```
 
-Hand it more than one and a Theme row appears in the floating settings sheet, so a design system with
+Hand it more than one and a Theme control appears in the bottom bar, so a design system with
 several brands switches between them live — including while a component is open. The choice persists across
 launches, and falls back to the first theme when a persisted name is gone.
 
@@ -168,7 +168,7 @@ beside it on the keyboard's own clock.
 
 ## Tweaks
 
-Attach actions and toggles to any SwiftUI demo with `pinwheelTweaks`. They appear in Pinwheel's floating settings sheet.
+Attach commands, switches and choices to any SwiftUI demo with `pinwheelTweaks`. They appear in the tray behind the wrench.
 
 ```swift
 struct PrimaryButtonDemo: View {
@@ -219,12 +219,14 @@ Available presentations:
 
 ## Tags
 
-Tag an item with an axis it belongs to. Tags render as a filter of pills under the section picker, and they fold into the item's id — so the SwiftUI and UIKit takes on the same component get distinct ids without a manual one, and share one section:
+Tag an item with an axis it belongs to. Tags render as a filter of pills under the section picker, and they fold into the item's id — so the SwiftUI and UIKit takes on the same component get distinct ids without a manual one, and share one section. SwiftUI is the default, so only the take that departs from it carries a tag:
 
 ```swift
-PinwheelItem("Button") { PinButtonDemo() }.tags(.swiftUI)    // id "swiftui-button"
+PinwheelItem("Button") { PinButtonDemo() }                   // id "button"
 PinwheelItem("Button", view: ButtonView.self).tags(.uiKit)   // id "uikit-button"
 ```
+
+A pill appears for a tag that tells items apart — a lone `UIKit` pill in a section of otherwise untagged items filters down to the UIKit takes, and a tag every item carries earns no pill.
 
 `PinTag` is open — the library ships `.swiftUI`/`.uiKit`, and you add your own axis with a static extension:
 
@@ -323,7 +325,7 @@ Components that already ship a UIKit-friendly shell — `UIPinButton`, `UIPinSta
 
 ## Device Simulation
 
-Pinwheel can preview a demo in known iPhone and iPad sizes from the floating settings sheet. SwiftUI demos receive the simulated horizontal and vertical size classes through the SwiftUI environment while the content frame is resized to the selected device.
+Pinwheel can preview a demo in known iPhone sizes from the device list in the tweaks tray. SwiftUI demos receive the simulated horizontal and vertical size classes through the SwiftUI environment while the content frame is resized to the selected device.
 
 ## Figma Capture
 

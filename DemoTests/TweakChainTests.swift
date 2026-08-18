@@ -34,7 +34,7 @@ final class TweakChainTests: XCTestCase {
         return (HostedView.window(showing: playground), chrome)
     }
 
-    func testActivatingATweakInTheSheetUpdatesTheComponent() throws {
+    func testActivatingATweakUpdatesTheComponent() throws {
         let (window, chrome) = hostPlayground()
         addTeardownBlock {
             window.rootViewController?.dismiss(animated: false)
@@ -45,19 +45,19 @@ final class TweakChainTests: XCTestCase {
         XCTAssertFalse(chrome.tweaks.isEmpty, "the component's tweaks should reach the chrome as a preference")
 
         chrome.showsTweaks = true
-        _ = try HostedView.attachedPresentation(in: window)
+        _ = try HostedView.attachedTray(in: window)
 
         XCTAssertTrue(
             HostedView.activateFirst(labelled: "Option 1", in: window),
-            "the tweak should be listed in the sheet and activatable"
+            "the tweak should be listed in the tray and activatable"
         )
         XCTAssertTrue(
             HostedView.accessibilityLabels(in: window).contains("You chose Option 1."),
-            "activating a tweak should re-render the component behind the sheet"
+            "activating a tweak should re-render the component behind the tray"
         )
     }
 
-    func testASecondTweakStillUpdatesTheComponentAfterTheSheetReopens() throws {
+    func testASecondTweakStillUpdatesTheComponentAfterTheTrayReopens() throws {
         let (window, chrome) = hostPlayground()
         addTeardownBlock {
             window.rootViewController?.dismiss(animated: false)
@@ -66,17 +66,17 @@ final class TweakChainTests: XCTestCase {
         }
 
         chrome.showsTweaks = true
-        _ = try HostedView.attachedPresentation(in: window)
+        _ = try HostedView.attachedTray(in: window)
         XCTAssertTrue(HostedView.activateFirst(labelled: "Option 1", in: window))
 
         chrome.showsTweaks = false
         RunLoop.current.run(until: Date().addingTimeInterval(0.3))
         chrome.showsTweaks = true
-        _ = try HostedView.attachedPresentation(in: window)
+        _ = try HostedView.attachedTray(in: window)
 
         XCTAssertTrue(
             HostedView.activateFirst(labelled: "Option 2", in: window),
-            "the tweaks should survive the sheet closing and the playground re-rendering"
+            "the tweaks should survive the tray closing and the playground re-rendering"
         )
         XCTAssertTrue(
             HostedView.accessibilityLabels(in: window).contains("You chose Option 2."),

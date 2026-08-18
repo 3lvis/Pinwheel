@@ -30,3 +30,25 @@ public struct BoolTweak: Tweak {
         self.action = action
     }
 }
+
+public struct SelectTweak: Tweak {
+    public var title: String
+    public var description: String?
+    public var options: [String]
+    public var chosenOption: () -> Int
+    public var action: (Int) -> Void
+
+    public init(
+        title: String,
+        description: String? = nil,
+        options: [String],
+        chosenOption: @escaping () -> Int,
+        action: @escaping (Int) -> Void
+    ) {
+        self.title = title
+        self.description = description
+        self.options = options
+        self.chosenOption = chosenOption
+        self.action = action
+    }
+}

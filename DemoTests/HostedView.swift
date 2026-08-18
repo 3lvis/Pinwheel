@@ -1,6 +1,7 @@
 import SwiftUI
 import UIKit
 import XCTest
+@testable import Pinwheel
 
 @MainActor
 enum HostedView {
@@ -69,6 +70,30 @@ enum HostedView {
         throw PresentationNeverAttached(presented: arrived)
     }
 
+
+    /// A tray is a child of what it covers rather than a presentation, so waiting for one means waiting
+    /// for its card to stand and measure.
+    static func attachedTray(in window: UIWindow) throws -> PinTrayChassis {
+        for _ in 0..<300 {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.02))
+            window.layoutIfNeeded()
+            if let tray = tray(under: window.rootViewController), tray.cardHeight > 0 { return tray }
+        }
+        throw TrayNeverStood()
+    }
+
+    private static func tray(under controller: UIViewController?) -> PinTrayChassis? {
+        guard let controller else { return nil }
+        if let found = controller as? PinTrayChassis { return found }
+        for child in controller.children {
+            if let found = tray(under: child) { return found }
+        }
+        return tray(under: controller.presentedViewController)
+    }
+
+    struct TrayNeverStood: Error, CustomStringConvertible {
+        var description: String { "No tray stood in the window." }
+    }
 
     private static func walkAccessibility(
         in window: UIWindow,

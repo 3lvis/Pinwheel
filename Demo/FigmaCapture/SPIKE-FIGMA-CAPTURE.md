@@ -15,7 +15,7 @@ deep-link.
 
 ```
 # render (with the serve running) → the app pushes its IR to the serve
-xcrun simctl launch <booted> com.nordser.pinwheel -PinwheelPreview swiftui-tableview
+xcrun simctl launch <booted> com.nordser.pinwheel -PinwheelPreview tableview
 # then click "Import layers" in the plugin — always the latest render
 ```
 
@@ -93,7 +93,7 @@ model is the general one.
   data source is finite — so under the `pinCapturing` environment (set by the capture host) `PinList`
   swaps its `List` for an eager `VStack`, and every row resolves its frame and captures its `PinLabel`s as
   *editable* text, below the fold included. It's the **real** `PinList` demo (the `TableView` catalog item,
-  `swiftui-tableview`) that captures — no separate screen. No macros, no rasterization for the text.
+  `tableview`) that captures — no separate screen. No macros, no rasterization for the text.
 - **`PinList.Row` self-captures, grouped.** `PinList.Row.body` applies `.pinCapturedContainer(name:)`
   (via `transformAnchorPreference`, which appends rather than replacing the row's own labels), so each row
   captures as one grouped Figma frame with *no capture code at the call site*. A no-op when nothing reads

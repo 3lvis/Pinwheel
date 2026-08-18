@@ -22,7 +22,7 @@ struct Device {
         return kind.rawValue
     }
 
-    var isEnabled: Bool {
+    var fitsThisScreen: Bool {
         let currentSize = UIScreen.main.bounds.size
         return frame.width <= currentSize.width && frame.height <= currentSize.height
     }

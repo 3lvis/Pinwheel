@@ -29,12 +29,17 @@ public struct PinTrayChoice: SwiftUI.View {
                 }
                 PinLabel(label)
                 Spacer(minLength: .spacing4)
-                Image(systemName: "checkmark")
-                    .foregroundStyle(.primaryText)
-                    .opacity(isChosen ? 1 : 0)
             }
-            .padding(.horizontal, .spacing4)
-            .frame(minHeight: .minimumControlHeight)
+            .padding(.horizontal, .spacing3)
+            .frame(maxWidth: .infinity, minHeight: .minimumControlHeight, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: .radiusM)
+                    .fill(isChosen ? Color.secondaryBackground : Color.clear)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: .radiusM)
+                    .strokeBorder(isChosen ? Color.secondaryText : Color.clear, lineWidth: 1)
+            )
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

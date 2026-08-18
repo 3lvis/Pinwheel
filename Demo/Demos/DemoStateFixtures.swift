@@ -20,6 +20,23 @@ enum DemoStateFixture {
         ("Failed", failed),
     ]
 
+    static let viewStates: [UIPinStateViewState] = [
+        .loading(title: loadingTitle, subtitle: loadingSubtitle),
+        .loaded,
+        .empty(title: emptyTitle, subtitle: emptySubtitle),
+        .failed(title: failedTitle, subtitle: failedSubtitle, actionTitle: retryActionTitle)
+    ]
+
+    @MainActor
+    static var tableStates: [UIPinTableViewState] {
+        [
+            .loading(title: loadingTitle, subtitle: loadingSubtitle),
+            .loaded([UIPinTextTableViewItem(title: "Only value")]),
+            .empty(title: emptyTitle, subtitle: emptySubtitle),
+            .failed(title: failedTitle, subtitle: failedSubtitle, actionTitle: retryActionTitle)
+        ]
+    }
+
     static let loadingIndex = 0
     static let loadedIndex = 1
     static let emptyIndex = 2
@@ -27,4 +44,9 @@ enum DemoStateFixture {
     static var titles: [String] { states.map(\.title) }
 
     static func state(at index: Int) -> PinState { states[index].state }
+
+    static func viewState(at index: Int) -> UIPinStateViewState { viewStates[index] }
+
+    @MainActor
+    static func tableState(at index: Int) -> UIPinTableViewState { tableStates[index] }
 }

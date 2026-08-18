@@ -35,17 +35,24 @@ public struct PinwheelTweak: Identifiable, Equatable {
     public let description: String?
     let control: Control
 
-    /// The chosen option as it stood when this value was built. Preferences are compared by value and
-    /// `onPreferenceChange` fires only on inequality, so reading the binding at comparison time would
-    /// report the same answer for both generations and the sheet would keep drawing the older row.
-    let selectedOption: Int?
+    /// Preferences are compared by value and `onPreferenceChange` fires only on inequality, so equality
+    /// reads the choice as it stood when this value was built: reading the binding at comparison time
+    /// reports the same answer for both generations and the tray keeps drawing the older row.
+    let chosenOptionWhenBuilt: Int?
+
+    /// A UIKit host builds its bridged tweaks once, so the option in force is read from the binding
+    /// rather than from what this value was built with.
+    var selectedOption: Int? {
+        guard case .select(_, let selection) = control else { return nil }
+        return selection.wrappedValue
+    }
 
     public init(_ title: String, id: String? = nil, description: String? = nil, action: @escaping () -> Void) {
         self.id = id ?? title
         self.title = title
         self.description = description
         self.control = .action(action)
-        self.selectedOption = nil
+        self.chosenOptionWhenBuilt = nil
     }
 
     public init(_ title: String, id: String? = nil, description: String? = nil, isOn: Binding<Bool>) {
@@ -53,7 +60,7 @@ public struct PinwheelTweak: Identifiable, Equatable {
         self.title = title
         self.description = description
         self.control = .toggle(isOn)
-        self.selectedOption = nil
+        self.chosenOptionWhenBuilt = nil
     }
 
     public init(
@@ -67,12 +74,12 @@ public struct PinwheelTweak: Identifiable, Equatable {
         self.title = title
         self.description = description
         self.control = .select(options: options, selection: selection)
-        self.selectedOption = selection.wrappedValue
+        self.chosenOptionWhenBuilt = selection.wrappedValue
     }
 
     public static func == (lhs: PinwheelTweak, rhs: PinwheelTweak) -> Bool {
         return lhs.id == rhs.id && lhs.title == rhs.title && lhs.description == rhs.description
-            && lhs.selectedOption == rhs.selectedOption
+            && lhs.chosenOptionWhenBuilt == rhs.chosenOptionWhenBuilt
     }
 
     /// The names `-PinwheelPreviewTweak` can address. An option list offers its options rather than its

@@ -9,9 +9,9 @@ enum DemoPinwheelSections {
 
     static var tokens: PinwheelSection {
         PinwheelSection(CatalogSection.tokens) {
-            PinwheelItem(Catalog.typography) { PinTypographyDemo() }.tags(.swiftUI)
-            PinwheelItem(Catalog.color) { PinColorDemo() }.tags(.swiftUI)
-            PinwheelItem(Catalog.numbers) { PinNumbersDemo() }.tags(.swiftUI)
+            PinwheelItem(Catalog.typography) { PinTypographyDemo() }
+            PinwheelItem(Catalog.color) { PinColorDemo() }
+            PinwheelItem(Catalog.numbers) { PinNumbersDemo() }
             PinwheelItem(Catalog.typography, view: UIPinTypographyDemo.self).tags(.uiKit)
             PinwheelItem(Catalog.color, view: UIPinColorDemo.self).tags(.uiKit)
             PinwheelItem(Catalog.numbers, view: UIPinNumbersDemo.self).tags(.uiKit)
@@ -20,13 +20,13 @@ enum DemoPinwheelSections {
 
     static var components: PinwheelSection {
         PinwheelSection(CatalogSection.components) {
-            PinwheelItem(Catalog.label) { PinLabelDemo() }.tags(.swiftUI)
-            PinwheelItem(Catalog.tweakable) { PinTweakableDemo() }.tags(.swiftUI)
-            PinwheelItem(Catalog.button) { PinButtonDemo() }.tags(.swiftUI)
-            PinwheelItem(Catalog.stepper) { PinStepperDemo() }.tags(.swiftUI)
-            PinwheelItem(Catalog.tray) { PinTrayDemo() }.tags(.swiftUI)
-            PinwheelItem(Catalog.stateView) { PinStateViewDemo() }.tags(.swiftUI)
-            PinwheelItem(Catalog.tableView) { PinTableViewDemo() }.tags(.swiftUI)
+            PinwheelItem(Catalog.label) { PinLabelDemo() }
+            PinwheelItem(Catalog.tweakable) { PinTweakableDemo() }
+            PinwheelItem(Catalog.button) { PinButtonDemo() }
+            PinwheelItem(Catalog.stepper) { PinStepperDemo() }
+            PinwheelItem(Catalog.tray) { PinTrayDemo() }
+            PinwheelItem(Catalog.stateView) { PinStateViewDemo() }
+            PinwheelItem(Catalog.tableView) { PinTableViewDemo() }
             PinwheelItem(Catalog.label, view: UIPinLabelDemo.self).tags(.uiKit)
             PinwheelItem(Catalog.tweakable, view: UIPinTweakableDemo.self).tags(.uiKit)
             PinwheelItem(Catalog.button, view: UIPinButtonDemo.self).tags(.uiKit)
@@ -57,7 +57,7 @@ enum DemoPinwheelSections {
 }
 
 #if DEBUG
-private let previewComponentID = Catalog.numbers.id(.swiftUI)
+private let previewComponentID = Catalog.numbers.id()
 
 #Preview("Pinwheel Component") {
     PinwheelPreview(previewComponentID, sections: DemoPinwheelSections.all)
