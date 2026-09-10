@@ -78,6 +78,15 @@ PinwheelCatalog(themes: [.marine]) {
 }
 ```
 
+A builder takes a list wherever it takes a literal, so sections you already hold in one place — the same
+array `PinwheelPreview(sections:)` takes — stay in one place:
+
+```swift
+PinwheelCatalog(themes: [.marine]) {
+    MyCatalog.sections
+}
+```
+
 Hand it more than one and a Theme control appears in the bottom bar, so a design system with
 several brands switches between them live — including while a component is open. The choice persists across
 launches, and falls back to the first theme when a persisted name is gone.
@@ -89,7 +98,10 @@ PinwheelCatalog(themes: [.marine, .ember]) { /* ... */ }
 The theme reaches UIKit as well as SwiftUI: it is an `EnvironmentValues.pinwheelTheme` bridged to a
 `PinwheelThemeTrait`, so a `UIColor` token resolves the selected theme wherever it is read — including
 inside a `PinwheelItem(_:view:)` and inside the floating-controls window, which sits outside the SwiftUI
-tree. `UIFont` has no dynamic counterpart, so a UIKit view that caches a font re-reads it on a trait change.
+tree. `UIFont` has no dynamic counterpart, so a UIKit view that caches a font re-reads it on a
+trait change. The window takes the theme's `actionText` as its `tintColor` as well, so the chrome
+the system presents for you — a `UIAlertController` and its kind, which read no trait of ours —
+comes out in the brand with no tinting code of your own.
 
 A theme also decides its buttons' silhouette, since that is a brand's signature as much as its palette:
 

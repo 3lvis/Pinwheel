@@ -3,8 +3,16 @@ import SwiftUI
 
 @resultBuilder
 public enum PinwheelSectionBuilder {
-    public static func buildBlock(_ components: PinwheelSection...) -> [PinwheelSection] {
-        return components
+    public static func buildExpression(_ expression: PinwheelSection) -> [PinwheelSection] {
+        return [expression]
+    }
+
+    public static func buildExpression(_ expression: [PinwheelSection]) -> [PinwheelSection] {
+        return expression
+    }
+
+    public static func buildBlock(_ components: [PinwheelSection]...) -> [PinwheelSection] {
+        return components.flatMap { $0 }
     }
 
     public static func buildArray(_ components: [[PinwheelSection]]) -> [PinwheelSection] {

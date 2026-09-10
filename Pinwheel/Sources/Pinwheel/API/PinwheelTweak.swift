@@ -2,8 +2,16 @@ import SwiftUI
 
 @resultBuilder
 public enum PinwheelTweakBuilder {
-    public static func buildBlock(_ components: PinwheelTweak...) -> [PinwheelTweak] {
-        return components
+    public static func buildExpression(_ expression: PinwheelTweak) -> [PinwheelTweak] {
+        return [expression]
+    }
+
+    public static func buildExpression(_ expression: [PinwheelTweak]) -> [PinwheelTweak] {
+        return expression
+    }
+
+    public static func buildBlock(_ components: [PinwheelTweak]...) -> [PinwheelTweak] {
+        return components.flatMap { $0 }
     }
 
     public static func buildArray(_ components: [[PinwheelTweak]]) -> [PinwheelTweak] {
