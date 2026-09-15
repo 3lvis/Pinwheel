@@ -28,6 +28,16 @@ public struct PinCaptureLayout {
     }
 }
 
+// Spelled the long way rather than with @Entry: the macro warns that a closure it stores may invalidate
+// dependents on every update, since closures are not comparable. The sink is installed once at the app
+// root, so there is nothing to compare and nothing to gain from making it comparable.
+private struct PinCaptureSinkKey: EnvironmentKey {
+    nonisolated static let defaultValue: (@MainActor @Sendable (String) -> Void)? = nil
+}
+
 public extension EnvironmentValues {
-    @Entry var pinCaptureSink: (@MainActor @Sendable (String) -> Void)? = nil
+    var pinCaptureSink: (@MainActor @Sendable (String) -> Void)? {
+        get { self[PinCaptureSinkKey.self] }
+        set { self[PinCaptureSinkKey.self] = newValue }
+    }
 }
