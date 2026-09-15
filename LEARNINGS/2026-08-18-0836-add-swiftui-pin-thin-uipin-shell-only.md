@@ -1,0 +1,2 @@
+Add a SwiftUI `Pin*` (with a thin `UIPin*` shell) **only when** SwiftUI lacks a first-class primitive, so styling would be hand-rolled anyway (`PinButton` — pill, variants, loading, symbol, haptics), **or** there's real imperative / UIKit-hosting value to bridge (`PinStateView` as a state machine a UIKit table can drive). If SwiftUI's primitive + `PinwheelTheme` already covers it and nothing needs to host it in UIKit, don't wrap it.
+*— Elvis, 2026-08-18 08:36*

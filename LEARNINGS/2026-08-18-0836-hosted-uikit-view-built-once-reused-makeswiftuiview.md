@@ -1,0 +1,2 @@
+**A hosted UIKit `view:` is built once and reused.** `makeSwiftUIView` is called on every playground re-render; it must hand back the *same* `ViewType` instance each time. The bridged tweak closures capture that instance and the hosting controller displays it — a fresh instance per render makes the tweaks mutate an off-screen copy, so UIKit tweaks silently do nothing under nested presentation.
+*— Elvis, 2026-08-18 08:36*
