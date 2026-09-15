@@ -1,0 +1,2 @@
+**A stale sweep build silently ships an old capture.** The sweep's incremental `xcodebuild` (derived data at `/tmp/pinwheel-sweep-dd`) sometimes doesn't recompile a changed *package* source, so the app captures with the pre-fix binary and the serve looks unchanged while the fix is real (proven by unit tests). When a capture doesn't reflect a just-made source change, `rm -rf /tmp/pinwheel-sweep-dd` and re-sweep for a clean build before believing the capture over the test.
+*— Elvis, 2026-08-18 08:36*

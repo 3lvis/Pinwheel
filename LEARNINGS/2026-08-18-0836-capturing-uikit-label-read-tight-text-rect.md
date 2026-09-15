@@ -1,0 +1,2 @@
+**Capturing a UIKit label: read the tight text rect, not the label frame.** A `UILabel` in a fill-aligned `UIStackView` gets a frame as wide as the widest sibling, so a short string ("subtitle") captured at that width makes Figma justify it across the box ("s u b t i t l e"). Capture `label.sizeThatFits(...)` (the glyph rect) at the label's leading origin so the text node hugs the glyphs.
+*— Elvis, 2026-08-18 08:36*
