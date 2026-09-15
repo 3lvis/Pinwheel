@@ -1,0 +1,2 @@
+**Apple's controls are themed where they are ours, stock where they are the subject.** `UIPinTableViewCell`'s `UISwitch` takes `onTintColor = .actionText`, because a switch inside our component is ours and Apple's green is in no brand's palette. The `Apple Controls` demo keeps its system green and blue on purpose: it exists to capture stock controls as named placeholders for the Figma iOS UI Kit swap, so tinting it would make the capture misrepresent what it stands for.
+*— Elvis, 2026-08-18 08:36*
