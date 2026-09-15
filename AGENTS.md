@@ -8,6 +8,9 @@ symptom. Grep it for whatever you are about to change. Yours goes in a file of i
 and the periodic pass that grades them are in [`LEARNINGS.md`](LEARNINGS.md). Keep *this* file to what a
 session needs nine times in ten.
 
+[`VOICE.md`](VOICE.md) is how we write — PRs, commits, comments, docs, error copy — and it carries the
+Swift API Design Guidelines whole, so a naming question is answered by reading it. Read it before you write.
+
 ## Working rules
 
 How a session proceeds.
