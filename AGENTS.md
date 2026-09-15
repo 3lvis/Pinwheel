@@ -2,8 +2,11 @@
 
 How we work in Pinwheel. Portable iOS conventions live one level up (`~/code/<org>/ios/AGENTS.md`) and are
 inherited, so they are not repeated here. **Why** any of this is the way it is — the measurements, the
-traps, the bugs behind each rule — is in `LEARNINGS.md`. Read the section covering whatever you are about
-to change, add to it as you learn, and keep *this* file to what a session needs nine times in ten.
+traps, the bugs behind each rule — is in [`LEARNINGS/`](LEARNINGS/), one file per lesson, searched by
+symptom. Grep it for whatever you are about to change. Yours goes in a file of its own,
+`LEARNINGS/<YYYY-MM-DD-HHMM>-<slug>.md`, so branches writing at once stay clear of each other; the rules
+and the periodic pass that grades them are in [`LEARNINGS.md`](LEARNINGS.md). Keep *this* file to what a
+session needs nine times in ten.
 
 ## Working rules
 
@@ -196,6 +199,6 @@ hook blocks a merge whose tip commit lacks it.
   off them, so a title must be unique within its scope.
 - **One file per abstraction.**
 - **A comment explains code; a docstring states a contract.** An explanation belongs in a name, a named
-  test or `LEARNINGS.md` — write the test for the behaviour a comment describes and the comment dies with
+  test or a file in `LEARNINGS/` — write the test for the behaviour a comment describes and the comment dies with
   it. A docstring earns its place on a public seam where the signature cannot say what to pass or when to
   leave it off, and it says nothing about how the code works.

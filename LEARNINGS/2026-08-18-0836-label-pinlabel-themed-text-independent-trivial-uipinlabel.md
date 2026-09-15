@@ -1,0 +1,2 @@
+**Label → `PinLabel`** (themed `Text`) + an independent trivial `UIPinLabel`. Both are fed by the same provider tokens; neither hosts the other (a label needs no hosting bridge). `PinLabel` exists because raw `Text(...).font(.body)` resolves to *Apple's* system style — a silent footgun that regressed the demos. `PinLabel.font` takes a themed `PinTextStyle`, not a raw `Font`, making the system-font path unrepresentable.
+*— Elvis, 2026-08-18 08:36*

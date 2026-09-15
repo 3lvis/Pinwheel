@@ -1,0 +1,2 @@
+**One FAB, hosted in a pass-through overlay window.** The floating tweak/close controls are the single UIKit `CornerAnchoringView` (direct-manipulation drag + velocity throw + corner persistence), now used only by the SwiftUI catalog/preview, hosted in a `UIWindow` above the app (`PinwheelFloatingControlsHost`) so they float over sheet presentations and are never clipped to a `.medium`/`.large` detent; the window's `hitTest` surfaces only the FAB buttons, so content below stays interactive.
+*— Elvis, 2026-08-18 08:36*
