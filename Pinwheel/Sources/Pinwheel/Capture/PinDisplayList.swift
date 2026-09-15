@@ -190,8 +190,8 @@ enum PinDisplayList {
     // payload without descending into child display lists.
     private static func clipCornerRadius(_ payload: Any, _ depth: Int = 0) -> CGFloat? {
         if depth > 8 { return nil }
-        if String(describing: type(of: payload)).contains("FixedRoundedRect"), let size = child(payload, "cornerSize") as? CGSize {
-            return size.width
+        if String(describing: type(of: payload)).contains("FixedRoundedRect"), let radius = fixedRoundedRectRadius(payload) {
+            return radius
         }
         for field in Mirror(reflecting: payload).children where !isDisplayList(field.value) {
             if let radius = clipCornerRadius(field.value, depth + 1) { return radius }
@@ -307,9 +307,18 @@ enum PinDisplayList {
     // SwiftUI Path.storage is an enum; `.roundedRect(FixedRoundedRect)` exposes the exact corner size.
     private static func roundedRectRadius(_ path: Any?) -> CGFloat? {
         guard let path, let storage = child(path, "storage"), let (kind, value) = enumCase(storage) else { return nil }
-        if kind == "roundedRect", let size = child(value, "cornerSize") as? CGSize { return size.width }
+        if kind == "roundedRect" { return fixedRoundedRectRadius(value) }
         if kind == "rect" { return 0 }
         return nil
+    }
+
+    // FixedRoundedRect carried `cornerSize: CGSize` through iOS 26 and carries `radii: Radii` from iOS 27,
+    // so read whichever this OS supplies. An `.uneven` radii has no single corner to report, and answering
+    // nil sends the shape down the rasterizing path rather than inventing a radius for it.
+    private static func fixedRoundedRectRadius(_ value: Any) -> CGFloat? {
+        if let size = child(value, "cornerSize") as? CGSize { return size.width }
+        guard let radii = child(value, "radii"), let (kind, corners) = enumCase(radii), kind == "uniform" else { return nil }
+        return corners as? CGFloat
     }
 
     private static func nestedLists(in value: Any) -> [Any] {

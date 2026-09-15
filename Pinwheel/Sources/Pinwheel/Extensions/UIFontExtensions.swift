@@ -1,6 +1,6 @@
 import UIKit
 
-extension UIFont {
+nonisolated extension UIFont {
     public class func rounded(ofSize size: CGFloat, weight: UIFont.Weight) -> UIFont {
         let systemFont = UIFont.systemFont(ofSize: size, weight: weight)
         let font: UIFont
@@ -24,7 +24,7 @@ extension UIFont {
     }
 }
 
-extension UIFont.Weight {
+nonisolated extension UIFont.Weight {
     public var symbolWeight: UIImage.SymbolWeight {
         switch self {
         case .ultraLight:
