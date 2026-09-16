@@ -26,9 +26,11 @@ final class CornerAnchoringView: UIView {
         return views
     }()
 
+    // The constraints run between the given view and this view's own buttonsContent, so the controller
+    // calling it would be constraining a subview two levels down.
     /// The caller parents the hosting controller: the theme rides a trait, which only reaches a view
     /// whose controller is in the hierarchy.
-    func setButtonsContent(_ view: UIView) {
+    func setButtonsContent(_ view: UIView) {  // oida:disable:this no_single_use_void_functions
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = .clear
         buttonsContent.addSubview(view)

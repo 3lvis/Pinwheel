@@ -22,22 +22,20 @@ public enum PinwheelRecorder {
         session?.write(category, message)
     }
 
+    // A facade over the private `session`, which a caller outside this type can reach no other way.
     /// Values to follow continuously. Only changes are written, so a session spent sitting still costs
     /// nothing to read.
-    // A facade over the private `session`, which a caller outside this type cannot reach.
-    // oida:disable:next no_single_use_void_functions
-    static func follow(_ sample: @escaping () -> [(String, CGFloat)]) {
+    static func follow(_ sample: @escaping () -> [(String, CGFloat)]) {  // oida:disable:this no_single_use_void_functions
         session?.follow(sample)
     }
 
+    // A facade over the private `session`, which a caller outside this type can reach no other way.
     /// One sample closure at a time, so a second follower means a second of whatever follows.
-    // A facade over the private `session`, which a caller outside this type cannot reach.
-    // oida:disable:next no_single_use_void_functions
-    static func noteIfAlreadyFollowing(_ who: String) {
+    static func noteIfAlreadyFollowing(_ who: String) {  // oida:disable:this no_single_use_void_functions
         session?.noteIfFollowing(who)
     }
 
-    // A facade over the private `session`, which a caller outside this type cannot reach.
+    // A facade over the private `session`, which a caller outside this type can reach no other way.
     // oida:disable:next no_single_use_void_functions
     static func stopFollowing() {
         session?.follow(nil)
@@ -84,7 +82,14 @@ public enum PinwheelRecorder {
         }
 
         @objc private func windowBecameVisible(_ notification: Notification) {
-            (notification.object as? UIWindow).map { watch($0) }
+            if let window = notification.object as? UIWindow, !watched.contains(ObjectIdentifier(window)) {
+                watched.append(ObjectIdentifier(window))
+                let watcher = TouchWatcher { [weak self] phase, point, view in
+                    self?.write("touch", "\(phase) (\(Int(point.x)),\(Int(point.y)))\(view.map { "  \($0)" } ?? "")")
+                }
+                window.addGestureRecognizer(watcher)
+                write("session", "watching a window \(Int(window.bounds.width))x\(Int(window.bounds.height))")
+            }
         }
 
         @objc private func keyboardAnnouncedItsMove(_ notification: Notification) {
@@ -103,6 +108,9 @@ public enum PinwheelRecorder {
             handle?.write(Data((line + "\n").utf8))
         }
 
+        // Reached through `session?` from the static facade above, so the caller holds an optional chain
+        // rather than a statement it could write itself.
+        // oida:disable:next no_single_use_void_functions
         func noteIfFollowing(_ who: String) {
             guard sample != nil else { return }
             write("session", "\(who) began following while something else still was — two are on screen")
@@ -129,16 +137,6 @@ public enum PinwheelRecorder {
         }
 
         /// A recogniser that never leaves `.possible` sees every touch and swallows none of them.
-        private func watch(_ window: UIWindow) {
-            let id = ObjectIdentifier(window)
-            guard !watched.contains(id) else { return }
-            watched.append(id)
-            let watcher = TouchWatcher { [weak self] phase, point, view in
-                self?.write("touch", "\(phase) (\(Int(point.x)),\(Int(point.y)))\(view.map { "  \($0)" } ?? "")")
-            }
-            window.addGestureRecognizer(watcher)
-            write("session", "watching a window \(Int(window.bounds.width))x\(Int(window.bounds.height))")
-        }
     }
 
     private final class TouchWatcher: UIGestureRecognizer {
@@ -195,6 +193,9 @@ public enum PinwheelRecorder {
         ) -> String? {
             var best: (area: CGFloat, name: String)?
 
+            // It walks the accessibility tree by calling itself, so there is no call site to move these
+            // statements to.
+            // oida:disable:next no_single_use_void_functions
             func consider(_ node: AnyObject) {
                 let frame = node.accessibilityFrame ?? .zero
                 let area = frame.width * frame.height

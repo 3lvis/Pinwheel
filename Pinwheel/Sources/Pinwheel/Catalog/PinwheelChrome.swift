@@ -45,6 +45,9 @@ final class PinwheelChrome {
 
     var isThemePickerVisible: Bool { themes.count > 1 }
 
+    // Choosing a theme both records it and persists it, so a call site writing this itself would have to
+    // know a selection is two writes rather than one.
+    // oida:disable:next no_single_use_void_functions
     func selectTheme(_ theme: PinwheelTheme) {
         selectedThemeName = theme.name
         PinwheelStateStore.selectedThemeName = theme.name
@@ -73,11 +76,9 @@ final class PinwheelChrome {
         isPresentingItem && simulatedDevice != nil
     }
 
-    func selectTweaks() { showsTweaks = true }
-
     /// Hide the controls immediately so the FAB and device pill dismiss in sync
     /// with the close, instead of lingering until the dismissal animation ends.
-    func selectClose() {
+    func selectClose() {  // oida:disable:this no_single_use_void_functions
         isPresentingItem = false
         onClose?()
     }

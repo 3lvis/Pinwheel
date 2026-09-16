@@ -63,6 +63,10 @@ final class PinTrayContentsView: UIView {
         titleBar.height(fitting: width) + 1 + body.contentHeight(fitting: width)
     }
 
+    // Each tray part detaches itself and its own children, which is the vocabulary the chassis tears
+    // the tray down through. Written at the call site a parent would reach past the part into what
+    // it hosts.
+    // oida:disable:next no_single_use_void_functions
     func detach() {
         titleBar.detach()
         body.detach()

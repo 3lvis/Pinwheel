@@ -83,7 +83,32 @@ open class UIPinTableViewCell: UITableViewCell {
 
     public override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setup()
+        let selectedBackgroundView = UIView()
+        selectedBackgroundView.backgroundColor = .secondaryBackground
+        self.selectedBackgroundView = selectedBackgroundView
+        backgroundColor = .primaryBackground
+
+        contentView.addSubview(iconImageView)
+        contentView.addSubview(stackView)
+        contentView.addSubview(detailLabel)
+        contentView.addSubview(switchControl)
+
+        NSLayoutConstraint.activate([
+            iconImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            iconImageView.widthAnchor.constraint(equalToConstant: .spacing6),
+            iconImageView.heightAnchor.constraint(equalToConstant: .spacing6),
+
+            stackViewTopAnchorConstraint,
+            stackViewLeadingAnchorConstraint,
+            stackViewTrailingAnchorConstraint,
+            stackViewBottomAnchorConstraint,
+
+            detailLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            detailLabelTrailingConstraint,
+
+            switchControl.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            switchControlTrailingConstraint,
+        ])
     }
 
     required public init?(coder aDecoder: NSCoder) {
@@ -169,30 +194,4 @@ open class UIPinTableViewCell: UITableViewCell {
         iconImageView.image = nil
     }
 
-    private func setup() {
-        setDefaultSelectedBackgound()
-        backgroundColor = .primaryBackground
-
-        contentView.addSubview(iconImageView)
-        contentView.addSubview(stackView)
-        contentView.addSubview(detailLabel)
-        contentView.addSubview(switchControl)
-
-        NSLayoutConstraint.activate([
-            iconImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            iconImageView.widthAnchor.constraint(equalToConstant: .spacing6),
-            iconImageView.heightAnchor.constraint(equalToConstant: .spacing6),
-
-            stackViewTopAnchorConstraint,
-            stackViewLeadingAnchorConstraint,
-            stackViewTrailingAnchorConstraint,
-            stackViewBottomAnchorConstraint,
-
-            detailLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            detailLabelTrailingConstraint,
-
-            switchControl.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            switchControlTrailingConstraint,
-        ])
-    }
 }

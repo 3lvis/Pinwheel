@@ -34,6 +34,9 @@ enum FigmaCatalog {
         entries.first { $0.id == id }
     }
 
+    // AppDelegate reaches the sweep through this and dumpManifest; both read launch arguments and drive
+    // the capture, which is work the app delegate has no business holding.
+    // oida:disable:next no_single_use_void_functions
     static func autoPush(id: String) {
         guard let entry = entry(id: id),
             let document = PinDisplayListCapture.document(
@@ -63,6 +66,8 @@ enum FigmaCatalog {
         ProcessInfo.processInfo.arguments.contains("-PinwheelManifest")
     }
 
+    // The sweep's other entry point, for the same reason.
+    // oida:disable:next no_single_use_void_functions
     static func dumpManifest() {
         let skeleton = entries.map {
             ManifestItem(
@@ -141,6 +146,10 @@ struct LiveCaptureHost: UIViewControllerRepresentable {
 
     func updateUIViewController(_ controller: UIViewController, context: Context) {}
 
+    // Deferred from makeUIViewController, which reads as build the container, defer the capture, return
+    // it. Written into that closure, fifty lines of routing would sit between the host being mounted and
+    // the container being handed back.
+    // oida:disable:next no_single_use_void_functions
     private func capture(host: UIViewController) {
         let size = host.view.bounds.size
         host.view.layoutIfNeeded()

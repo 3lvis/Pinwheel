@@ -82,43 +82,34 @@ struct PinwheelPlayground: SwiftUI.View {
             .clipped()
             .onPreferenceChange(PinwheelTweaksPreferenceKey.self) { tweaks in
                 chrome.tweaks = tweaks
-                handlePreviewTweaks(tweaks)
+                guard isPreviewing else { return }
+
+                if !didDumpPreviewTweaks {
+                    didDumpPreviewTweaks = true
+                    // Written to Documents/pinwheel-preview-tweaks.txt, one per line; `Scripts/sweep.sh --preview`
+                    // reads that file to enumerate a component's variants.
+                    if let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+                        let url = directory.appendingPathComponent("pinwheel-preview-tweaks.txt")
+                        try? tweaks.flatMap { $0.previewVariantTitles }.joined(separator: "\n").write(
+                            to: url,
+                            atomically: true,
+                            encoding: .utf8
+                        )
+                    }
+                }
+
+                guard let target = autoApplyTweak,
+                    !didApplyPreviewTweak,
+                    let tweak = tweaks.first(where: { $0.previewVariantTitles.contains(target) })
+                else {
+                    return
+                }
+                didApplyPreviewTweak = true
+                // Defer past the current view update — mutating state mid-update is undefined.
+                DispatchQueue.main.async {
+                    tweak.applyAsPreviewVariant(named: target)
+                }
             }
-    }
-
-    private func handlePreviewTweaks(_ tweaks: [PinwheelTweak]) {
-        guard isPreviewing else { return }
-
-        if !didDumpPreviewTweaks {
-            didDumpPreviewTweaks = true
-            writePreviewTweakTitles(tweaks.flatMap { $0.previewVariantTitles })
-        }
-
-        guard let target = autoApplyTweak,
-            !didApplyPreviewTweak,
-            let tweak = tweaks.first(where: { $0.previewVariantTitles.contains(target) })
-        else {
-            return
-        }
-        didApplyPreviewTweak = true
-        // Defer past the current view update — mutating state mid-update is undefined.
-        DispatchQueue.main.async {
-            tweak.applyAsPreviewVariant(named: target)
-        }
-    }
-
-    // Writes tweak titles (one per line) to Documents/pinwheel-preview-tweaks.txt;
-    // `Scripts/sweep.sh --preview` reads that file to enumerate a component's variants.
-    private func writePreviewTweakTitles(_ titles: [String]) {
-        guard let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
-            return
-        }
-        let url = directory.appendingPathComponent("pinwheel-preview-tweaks.txt")
-        try? titles.joined(separator: "\n").write(
-            to: url,
-            atomically: true,
-            encoding: .utf8
-        )
     }
 
     private func horizontalSizeClass(for device: Device?) -> SwiftUI.UserInterfaceSizeClass? {

@@ -199,6 +199,9 @@ struct PinwheelCatalogView: SwiftUI.View {
         return sections.first
     }
 
+    // Handed to PinwheelIndexView as the action each row fires, so its one use is a closure value
+    // rather than a call another statement could replace.
+    // oida:disable:next no_single_use_void_functions
     private func selectedItem(_ item: PinwheelItem) {
         guard let section = selectedSection else { return }
         present(item, in: section)
@@ -221,7 +224,7 @@ struct PinwheelCatalogView: SwiftUI.View {
     private func closePresentedItem() {
         fullscreenItem = nil
         sheetItem = nil
-        PinwheelStateStore.clearSelectedItem()
+        PinwheelStateStore.selectedItemID = nil
     }
 
     private func normalizeSelection() {

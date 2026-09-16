@@ -10,7 +10,10 @@ class UIPinTableViewDemo: UIPinView, Tweakable {
                 title: "State",
                 options: DemoStateFixture.titles,
                 chosenOption: { self.stateIndex },
-                action: { self.show($0) }
+                action: {
+                    self.stateIndex = $0
+                    self.tableView.state = DemoStateFixture.tableState(at: $0)
+                }
             )
         ]
     }()
@@ -107,11 +110,6 @@ class UIPinTableViewDemo: UIPinView, Tweakable {
 
     override func setup() {
         addSubview(tableView, filling: .all)
-    }
-
-    private func show(_ index: Int) {
-        stateIndex = index
-        tableView.state = DemoStateFixture.tableState(at: index)
     }
 }
 

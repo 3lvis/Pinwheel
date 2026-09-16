@@ -119,3 +119,14 @@ Edges come from UIKit's `NSDirectionalRectEdge`. Pass edges alone to pin to the 
 The last two mixed one guide with another per edge. Pass the four anchors directly for those, which also covers pinning to a sibling or to a guide from anywhere else.
 
 Where z-order matters, `insertSubview(_:belowSubview:filling:)` does the same for an insertion.
+
+## Set A Cell's Selected Background Directly
+
+`UITableViewCell.setDefaultSelectedBackgound()` is gone — it wrapped three lines and carried a misspelling
+into every call site. Write them where they run:
+
+```swift
+let selectedBackgroundView = UIView()
+selectedBackgroundView.backgroundColor = .secondaryBackground
+cell.selectedBackgroundView = selectedBackgroundView
+```
