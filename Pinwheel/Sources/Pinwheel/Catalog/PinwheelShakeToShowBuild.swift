@@ -14,11 +14,6 @@ struct PinwheelShakeToShowBuild: UIViewControllerRepresentable {
 
         override func viewDidAppear(_ animated: Bool) {
             super.viewDidAppear(animated)
-            listen()
-            becomeFirstResponder()
-        }
-
-        private func listen() {
             for name in [
                 UIResponder.keyboardDidHideNotification,
                 UIApplication.didBecomeActiveNotification,
@@ -30,6 +25,7 @@ struct PinwheelShakeToShowBuild: UIViewControllerRepresentable {
                     object: nil
                 )
             }
+            becomeFirstResponder()
         }
 
         @objc private func takeItBack() {

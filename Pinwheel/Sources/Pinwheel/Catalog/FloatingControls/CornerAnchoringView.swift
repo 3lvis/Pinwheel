@@ -148,14 +148,10 @@ final class CornerAnchoringView: UIView {
         panRecognizer.delaysTouchesEnded = false
         buttonsView.addGestureRecognizer(panRecognizer)
 
-        setupKeyboardNotifications()
-    }
-
-    /// The FAB lives in an overlay window above the app, so nothing else moves it
-    /// clear of the keyboard. These notifications swap each bottom corner between
-    /// its safe-area and `keyboardLayoutGuide.topAnchor` constraints so the
-    /// buttons stay tappable on keyboard-bearing screens.
-    private func setupKeyboardNotifications() {
+        // The FAB lives in an overlay window above the app, so nothing else moves it clear of the
+        // keyboard. These two swap each bottom corner between its safe-area and
+        // `keyboardLayoutGuide.topAnchor` constraints so the buttons stay tappable on keyboard-bearing
+        // screens.
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(keyboardWillShow(_:)),
