@@ -65,7 +65,50 @@ final class PinTrayChassis: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        build()
+        view.accessibilityViewIsModal = true
+
+        dimming.frame = view.bounds
+        dimming.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        dimming.backgroundColor = UIColor.black.withAlphaComponent(trayDimming)
+        dimming.alpha = 0
+        view.insertSubview(dimming, belowSubview: cardView)
+        dimming.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(dismissFromBackground)))
+
+        machine.motionIsReduced = UIAccessibility.isReduceMotionEnabled
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(motionPreferenceChanged),
+            name: UIAccessibility.reduceMotionStatusDidChangeNotification,
+            object: nil
+        )
+
+        for name in [UIResponder.keyboardWillShowNotification, UIResponder.keyboardWillHideNotification] {
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(keyboardAnnouncedItsMove),
+                name: name,
+                object: nil
+            )
+        }
+
+        PinwheelRecorder.noteIfAlreadyFollowing("tray \(mark)")
+        PinwheelRecorder.follow { [weak self] in
+            guard let self else { return [] }
+            let drawn = self.cardView.layer.presentation()
+            let top = (drawn?.frame.minY ?? self.cardView.frame.minY) + (drawn?.transform.m42 ?? 0)
+            let content =
+                self.standing?.contents.layer.presentation()?.bounds.height
+                ?? self.standing?.contents.bounds.height ?? 0
+            return [
+                ("cardTop", top),
+                ("cardHeight", drawn?.bounds.height ?? 0),
+                ("contentHeight", content),
+                ("contentBottom", top + content),
+                ("keyboard", self.measuredKeyboardHeight),
+            ]
+        }
+
+        cardView.reporting = self
     }
 
     override func didMove(toParent parent: UIViewController?) {
@@ -73,7 +116,9 @@ final class PinTrayChassis: UIViewController {
         guard parent != nil, standing == nil else { return }
         placement.followTheKeyboard()
         view.layoutIfNeeded()
-        present(arriving)
+        note("navigation", "present")
+        assemble(arriving)
+        apply(machine.handle(.presented(contentHeight: fittedHeight)))
     }
 
     private var room: PinTrayGeometry.Room {
@@ -142,6 +187,8 @@ final class PinTrayChassis: UIViewController {
         }
     }
 
+    // The completion closure below runs this; written there it puts eight statements inside a ternary.
+    // oida:disable:next no_single_use_void_functions
     private func tearDown() {
         accessoryView.detach()
         standing?.detach()
@@ -183,53 +230,6 @@ final class PinTrayChassis: UIViewController {
         return true
     }
 
-    private func build() {
-        view.accessibilityViewIsModal = true
-
-        dimming.frame = view.bounds
-        dimming.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        dimming.backgroundColor = UIColor.black.withAlphaComponent(trayDimming)
-        dimming.alpha = 0
-        view.insertSubview(dimming, belowSubview: cardView)
-        dimming.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(dismissFromBackground)))
-
-        machine.motionIsReduced = UIAccessibility.isReduceMotionEnabled
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(motionPreferenceChanged),
-            name: UIAccessibility.reduceMotionStatusDidChangeNotification,
-            object: nil
-        )
-
-        for name in [UIResponder.keyboardWillShowNotification, UIResponder.keyboardWillHideNotification] {
-            NotificationCenter.default.addObserver(
-                self,
-                selector: #selector(keyboardAnnouncedItsMove),
-                name: name,
-                object: nil
-            )
-        }
-
-        PinwheelRecorder.noteIfAlreadyFollowing("tray \(mark)")
-        PinwheelRecorder.follow { [weak self] in
-            guard let self else { return [] }
-            let drawn = self.cardView.layer.presentation()
-            let top = (drawn?.frame.minY ?? self.cardView.frame.minY) + (drawn?.transform.m42 ?? 0)
-            let content =
-                self.standing?.contents.layer.presentation()?.bounds.height
-                ?? self.standing?.contents.bounds.height ?? 0
-            return [
-                ("cardTop", top),
-                ("cardHeight", drawn?.bounds.height ?? 0),
-                ("contentHeight", content),
-                ("contentBottom", top + content),
-                ("keyboard", self.measuredKeyboardHeight),
-            ]
-        }
-
-        cardView.reporting = self
-    }
-
     private var holdsFirstResponder: Bool {
         func search(_ view: UIView) -> Bool {
             view.isFirstResponder || view.subviews.contains(where: search)
@@ -250,18 +250,19 @@ final class PinTrayChassis: UIViewController {
         apply(machine.handle(.keyboardMeasured(measured)))
     }
 
-    private func present(_ tray: PinTray) {
-        note("navigation", "present")
-        assemble(tray)
-        apply(machine.handle(.presented(contentHeight: fittedHeight)))
-    }
-
+    // PinTrayPathSync drives the chassis through refresh and show; inlining either would have that type
+    // reach past the chassis into the standing tray's own contents.
+    // oida:disable:next no_single_use_void_functions
     func refresh(_ tray: PinTray) {
         guard let standing else { return }
         standing.contents.show(titleBar: titleBarLeaf(tray), content: inset(tray.content))
-        settle()
+        let measured = fittedHeight
+        guard machine.resizes(to: measured) else { return }
+        note("reported", "content measures \(Int(measured))  standing=\(Int(machine.geometry.height))")
+        apply(machine.handle(.contentResized(measured)))
     }
 
+    // oida:disable:next no_single_use_void_functions
     func show(_ tray: PinTray, isPush: Bool) {
         note("navigation", isPush ? "push" : "pop")
         apply(machine.handle(.moveBegan(isPush: isPush)))
@@ -283,10 +284,7 @@ final class PinTrayChassis: UIViewController {
             leaving?.detach()
         }
 
-        reportTheMoveOnceTheArrivingTrayHasMounted(isPush: isPush)
-    }
-
-    private func reportTheMoveOnceTheArrivingTrayHasMounted(isPush: Bool) {
+        // A turn later, so the arriving tray has mounted and can be measured.
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
             apply(
@@ -383,14 +381,6 @@ final class PinTrayChassis: UIViewController {
     }
 
     private var accessoryInset: CGFloat { contentBottomInset }
-
-    func settle() {
-        let measured = fittedHeight
-        guard self.standing != nil, machine.resizes(to: measured) else { return }
-        let standing = machine.geometry.height
-        note("reported", "content measures \(Int(measured))  standing=\(Int(standing))")
-        apply(machine.handle(.contentResized(measured)))
-    }
 
     @objc private func dismissFromBackground() {
         note("navigation", "backdrop tapped")
