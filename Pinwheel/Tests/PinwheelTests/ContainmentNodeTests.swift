@@ -66,6 +66,7 @@ final class ContainmentNodeTests: XCTestCase {
                         w: 0,
                         h: 0,
                         children: []
-                    )), ["Row 1"])
+                    )),
+            ["Row 1"])
     }
 }

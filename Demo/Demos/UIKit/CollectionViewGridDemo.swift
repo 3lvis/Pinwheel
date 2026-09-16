@@ -39,11 +39,11 @@ extension CollectionViewGridDemo: UICollectionViewDataSource {
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if indexPath.section == 0 {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MetricCardCell.reuseIdentifier, for: indexPath) as! MetricCardCell
+            let cell = collectionView.dequeue(MetricCardCell.self, for: indexPath)
             cell.configure(title: metrics[indexPath.item])
             return cell
         }
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TagCardCell.reuseIdentifier, for: indexPath) as! TagCardCell
+        let cell = collectionView.dequeue(TagCardCell.self, for: indexPath)
         cell.configure(title: tags[indexPath.item])
         return cell
     }

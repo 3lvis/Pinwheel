@@ -178,7 +178,7 @@ enum PinDisplayList {
     private static func walk(_ list: Any, origin: CGPoint) -> [DisplayLeaf] {
         guard let items = child(list, "items") else { return [] }
         var leaves: [DisplayLeaf] = []
-        for item in Mirror(reflecting: items).children.map { $0.value } {
+        for item in Mirror(reflecting: items).children.map({ $0.value }) {
             guard let localFrame = child(item, "frame") as? CGRect,
                 let value = child(item, "value"),
                 let (name, payload) = enumCase(value)
@@ -307,7 +307,7 @@ enum PinDisplayList {
         func collect(_ payload: Any, _ origin: CGPoint) {
             for nested in nestedLists(in: payload) {
                 guard let items = child(nested, "items") else { continue }
-                for item in Mirror(reflecting: items).children.map { $0.value } {
+                for item in Mirror(reflecting: items).children.map({ $0.value }) {
                     guard let localFrame = child(item, "frame") as? CGRect,
                         let value = child(item, "value"),
                         let (name, payload) = enumCase(value)
@@ -436,6 +436,9 @@ enum PinDisplayList {
     private static func deepColor(_ value: Any, _ depth: Int = 0) -> UIColor? {
         if depth > 8 { return nil }
         if let color = value as? UIColor { return color }
+        // The typeID check proves the cast, and the compiler rejects the conditional form: a downcast to
+        // a CoreFoundation type always succeeds, so `as?` is an error rather than a safer spelling.
+        // oida:disable:next force_cast
         if CFGetTypeID(value as CFTypeRef) == CGColor.typeID { return UIColor(cgColor: value as! CGColor) }
         // SwiftUI resolves fills to `Color.Resolved` — linear-RGB floats, not a UIColor.
         if let color = resolvedColor(value) { return color }

@@ -157,7 +157,8 @@ final class PinwheelThemeTests: XCTestCase {
                 named: "Marine",
                 color: .red,
                 fontSize: 10
-            ).buttonShape, .rounded)
+            ).buttonShape,
+            .rounded)
     }
 
     func testAThemeCanGiveItsButtonsACapsule() {

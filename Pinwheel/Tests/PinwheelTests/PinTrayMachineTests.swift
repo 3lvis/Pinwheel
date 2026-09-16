@@ -20,10 +20,10 @@ final class PinTrayMachineTests: XCTestCase {
         return machine
     }
 
-    func testATrayArrivesFromBelowItsOwnBottomEdge() {
+    func testATrayArrivesFromBelowItsOwnBottomEdge() throws {
         var machine = PinTrayMachine(room: screen)
         let reaction = machine.handle(.presented(contentHeight: 641))
-        let from = try! XCTUnwrap(reaction.from)
+        let from = try XCTUnwrap(reaction.from)
         XCTAssertGreaterThan(
             from.translation,
             0,
@@ -398,10 +398,10 @@ final class PinTrayMachineTests: XCTestCase {
         XCTAssertFalse(held.dismisses)
 
         _ = machine.handle(.cardDragged(to: machine.geometry.height))
-        let let_go = machine.handle(.released(velocity: 0))
-        XCTAssertTrue(let_go.dismisses, "carried its own height down, the way out is the nearer place")
+        let letGo = machine.handle(.released(velocity: 0))
+        XCTAssertTrue(letGo.dismisses, "carried its own height down, the way out is the nearer place")
         XCTAssertGreaterThan(
-            let_go.to.translation,
+            letGo.to.translation,
             0,
             "it leaves the way it arrived"
         )

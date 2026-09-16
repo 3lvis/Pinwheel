@@ -37,17 +37,19 @@ excluded:
   - "**/Intermediates.noindex"
   - figma-plugin/node_modules
 
-# Every document is VOICE.md's except docs/, which holds working notes — plans with checkboxes and
-# design scratch — that VOICE.md leaves alone. Scoped by exclusion so the rules keep covering a
-# document added anywhere later, and so they survive a checkout directory named after a branch. A dead
-# link is a defect anywhere, so document_links_resolve stays unscoped.
+# VOICE.md governs the documents this repository publishes about itself: the root ones and every
+# LEARNINGS note. A README sitting beside a tool belongs to that tool, docs/ holds working notes, and
+# .claude and .github hold agent instructions — all of which VOICE.md leaves alone, the way tienda-ios
+# scopes it. Written as an exclusion of interior directories rather than an `included` pattern naming
+# the repository, which would match the checkout directory and so lint nothing from a worktree named
+# after its branch. A dead link is a defect anywhere, so document_links_resolve stays unscoped.
 document_says_what_is:
   severity: error
-  excluded: "/docs/"
+  excluded: "/(docs|\\.claude|\\.github|figma-plugin|Demo|DemoCatalog|DemoTests|Pinwheel)/"
 
 document_avoids_retired_words:
   severity: error
-  excluded: "/docs/"
+  excluded: "/(docs|\\.claude|\\.github|figma-plugin|Demo|DemoCatalog|DemoTests|Pinwheel)/"
 
 # Errors, not warnings: what these find is written by whoever is not reading the code around it, and a
 # warning is what a reader scrolls past.
@@ -61,9 +63,12 @@ opening_brace:
   # another condition. That is what the formatter emits.
   ignore_multiline_statement_conditions: true
 
+# A `Device.Kind` case carries the marketing names of the phones that share one screen, and the
+# underscore is the slash in "iPhone 12/13 mini" — the only punctuation a case name can hold.
 identifier_name:
   min_length: 1
   max_length: 70
+  allowed_symbols: ["_"]
 
 type_name:
   max_length: 45

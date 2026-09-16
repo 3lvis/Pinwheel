@@ -17,7 +17,8 @@ final class OrderedForLayoutTests: XCTestCase {
                     y: y,
                     width: w,
                     height: h
-                ), kind: .transparent))
+                ),
+                kind: .transparent))
     }
 
     // A stepper row: a full-height value between a short minus bar and a plus glyph. The glyphs share a

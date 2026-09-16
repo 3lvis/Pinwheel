@@ -117,7 +117,8 @@ public enum PinDisplayListCapture {
                         y: leaf.frame.minY,
                         width: leaf.frame.width,
                         height: contentBottom + 24
-                    ), kind: leaf.kind)
+                    ),
+                    kind: leaf.kind)
                 : leaf
         }
         let root = containmentTree(trimmed)

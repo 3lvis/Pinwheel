@@ -37,8 +37,10 @@ nonisolated extension UIColor {
     }
 
     var hexString: String {
+        guard let targetColorSpace = CGColorSpace(name: CGColorSpace.sRGB) else {
+            return "#000000"
+        }
         guard
-            let targetColorSpace = CGColorSpace(name: CGColorSpace.sRGB),
             let cgColor = self.cgColor.converted(
                 to: targetColorSpace,
                 intent: .relativeColorimetric,

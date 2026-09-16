@@ -45,7 +45,8 @@ enum PinViewReflector {
                     axis: axis,
                     spacing: spacing,
                     alignment: alignment
-                ), children)
+                ),
+                children)
         }
         if isLeaf(typeName) {
             return .leaf(
@@ -101,7 +102,8 @@ enum PinViewReflector {
                         spacing: nil,
                         alignment: .center,
                         border: border
-                    ), [node])
+                    ),
+                    [node])
             }
             return node
         }
@@ -118,7 +120,8 @@ enum PinViewReflector {
                             axis: .column,
                             spacing: nil,
                             alignment: .leading
-                        ), children))
+                        ),
+                        children))
         }
         // A ForEach not directly inside a stack (e.g. ScrollView { ForEach }) — expand its real rows into a
         // column. Inside a stack, `expandedChildren` splices them as siblings instead.
@@ -128,7 +131,8 @@ enum PinViewReflector {
                     axis: .column,
                     spacing: nil,
                     alignment: .leading
-                ), rows.compactMap(walk))
+                ),
+                rows.compactMap(walk))
         }
         if isStructuralContainer(typeName) { return nil }
         if isShape(typeName) {
