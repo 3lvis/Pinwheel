@@ -46,6 +46,10 @@ final class PinTrayAccessoryView: UIView {
         CGSize(width: UIView.noIntrinsicMetric, height: height)
     }
 
+    // The tray's parts each take their content through `show`, and each writes a stored property of
+    // its own. Written at the call site the chassis would reach two levels down, past the part into
+    // what it hosts.
+    // oida:disable:next no_single_use_void_functions
     func show(
         _ accessory: PinTrayAccessory,
         replacing: Bool,

@@ -54,9 +54,23 @@ struct PinwheelCatalogView: SwiftUI.View {
             )
         )
         .onAppear {
-            restoreThemes()
+            chrome.themes = themes
+            chrome.selectedThemeName = PinwheelStateStore.selectedThemeName
+            chrome.normalizeTheme()
             normalizeSelection()
-            restorePresentedItemIfNeeded()
+            guard !restoredSelection else { return }
+            restoredSelection = true
+
+            guard let sectionID = PinwheelStateStore.selectedSectionID,
+                let itemID = PinwheelStateStore.selectedItemID,
+                let section = sections.first(where: { $0.id == sectionID }),
+                let item = section.items.first(where: { $0.id == itemID })
+            else {
+                return
+            }
+
+            selectedSectionID = sectionID
+            present(item, in: section)
         }
         .onChange(of: sections.map { $0.id }) { _, _ in
             normalizeSelection()
@@ -210,12 +224,6 @@ struct PinwheelCatalogView: SwiftUI.View {
         PinwheelStateStore.clearSelectedItem()
     }
 
-    private func restoreThemes() {
-        chrome.themes = themes
-        chrome.selectedThemeName = PinwheelStateStore.selectedThemeName
-        chrome.normalizeTheme()
-    }
-
     private func normalizeSelection() {
         guard !sections.isEmpty else {
             selectedSectionID = nil
@@ -229,22 +237,6 @@ struct PinwheelCatalogView: SwiftUI.View {
         let sectionID = sections[0].id
         selectedSectionID = sectionID
         PinwheelStateStore.selectedSectionID = sectionID
-    }
-
-    private func restorePresentedItemIfNeeded() {
-        guard !restoredSelection else { return }
-        restoredSelection = true
-
-        guard let sectionID = PinwheelStateStore.selectedSectionID,
-            let itemID = PinwheelStateStore.selectedItemID,
-            let section = sections.first(where: { $0.id == sectionID }),
-            let item = section.items.first(where: { $0.id == itemID })
-        else {
-            return
-        }
-
-        selectedSectionID = sectionID
-        present(item, in: section)
     }
 
     private func detents(for presentation: PinwheelPresentation) -> Set<PresentationDetent> {

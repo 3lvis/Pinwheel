@@ -161,16 +161,6 @@ struct PinTrayMachine: Equatable {
         }
     }
 
-    private mutating func adoptWhatArrived() {
-        switch phase {
-        case .arriving(let arriving), .awaitingKeyboard(let arriving):
-            contentHeight = arriving.contentHeight
-            fills = arriving.fills
-        case .standing, .leaving:
-            break
-        }
-    }
-
     mutating func handle(_ event: Event) -> Reaction {
         let drawn = geometry
         var reaction = resolve(event)
@@ -241,7 +231,13 @@ struct PinTrayMachine: Equatable {
             var waited = false
             if case .awaitingKeyboard = phase {
                 waited = true
-                adoptWhatArrived()
+                switch phase {
+                case .arriving(let arriving), .awaitingKeyboard(let arriving):
+                    contentHeight = arriving.contentHeight
+                    fills = arriving.fills
+                case .standing, .leaving:
+                    break
+                }
                 phase = .standing
             }
             return Reaction(to: geometry(.resting), timeline: keyboard.ownsTheTimeline || waited ? .carriedByKeyboard : .spring(bounce: 0, initialVelocity: 0))

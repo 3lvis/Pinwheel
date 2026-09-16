@@ -16,7 +16,18 @@ public enum PinSwiftUIListCapture {
         liveHost: UIView
     ) -> FigmaDocument? {
         guard let collection = firstCollection(in: liveHost) else { return nil }
-        realizeAllCells(collection)
+        collection.layoutIfNeeded()
+        let fullHeight = collection.contentSize.height
+        if fullHeight > collection.bounds.height {
+            collection.bounds = CGRect(
+                x: collection.bounds.minX,
+                y: 0,
+                width: collection.bounds.width,
+                height: fullHeight
+            )
+            collection.frame.size.height = fullHeight
+            collection.layoutIfNeeded()
+        }
 
         // Section headers are supplementary views, not cells; capture both so a sectioned List keeps its
         // headers. Order by on-screen Y so headers land above their rows.
@@ -78,20 +89,6 @@ public enum PinSwiftUIListCapture {
         if view is UICollectionView || view is UITableView { return view as? UIScrollView }
         for sub in view.subviews { if let found = firstCollection(in: sub) { return found } }
         return nil
-    }
-
-    private static func realizeAllCells(_ scroll: UIScrollView) {
-        scroll.layoutIfNeeded()
-        let full = scroll.contentSize.height
-        guard full > scroll.bounds.height else { return }
-        scroll.bounds = CGRect(
-            x: scroll.bounds.minX,
-            y: 0,
-            width: scroll.bounds.width,
-            height: full
-        )
-        scroll.frame.size.height = full
-        scroll.layoutIfNeeded()
     }
 
     private static func sectionHeaders(_ scroll: UIScrollView) -> [UIView] {

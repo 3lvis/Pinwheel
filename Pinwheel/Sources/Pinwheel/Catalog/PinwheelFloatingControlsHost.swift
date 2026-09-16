@@ -100,6 +100,9 @@ struct PinwheelFloatingControlsHost: UIViewRepresentable {
             }
         }
 
+        // The window and the flag it clears are this coordinator's own private state, so the call site
+        // above has nothing it could write instead.
+        // oida:disable:next no_single_use_void_functions
         func teardown() {
             floatingControlsAreShown = false
             window?.isHidden = true

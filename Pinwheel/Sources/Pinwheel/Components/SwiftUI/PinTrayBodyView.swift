@@ -61,6 +61,10 @@ final class PinTrayBodyView: UIView {
         scroll.isScrollEnabled = overflows
     }
 
+    // The tray's parts each take their content through `show`, and each writes a stored property of
+    // its own. Written at the call site the chassis would reach two levels down, past the part into
+    // what it hosts.
+    // oida:disable:next no_single_use_void_functions
     func show(_ content: AnyView) {
         hosting.rootView = content
     }
@@ -95,10 +99,6 @@ extension PinTrayBodyView {
     static func cardTakes(_ past: CGFloat, alreadyPulling: Bool) -> Bool {
         past > 0 || alreadyPulling
     }
-
-    func wasPulled(pastTheTop past: CGFloat) {
-        coordinating?.bodyDragged(by: past)
-    }
 }
 
 extension PinTrayBodyView: UIScrollViewDelegate {
@@ -107,7 +107,7 @@ extension PinTrayBodyView: UIScrollViewDelegate {
         let alreadyPulling = coordinating?.cardIsBeingDraggedDown ?? false
         guard scrollView.isTracking, Self.cardTakes(past, alreadyPulling: alreadyPulling) else { return }
         scrollView.contentOffset.y = -scrollView.contentInset.top
-        wasPulled(pastTheTop: past)
+        coordinating?.bodyDragged(by: past)
     }
 
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {

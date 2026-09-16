@@ -24,15 +24,21 @@ public enum PinwheelRecorder {
 
     /// Values to follow continuously. Only changes are written, so a session spent sitting still costs
     /// nothing to read.
+    // A facade over the private `session`, which a caller outside this type cannot reach.
+    // oida:disable:next no_single_use_void_functions
     static func follow(_ sample: @escaping () -> [(String, CGFloat)]) {
         session?.follow(sample)
     }
 
     /// One sample closure at a time, so a second follower means a second of whatever follows.
+    // A facade over the private `session`, which a caller outside this type cannot reach.
+    // oida:disable:next no_single_use_void_functions
     static func noteIfAlreadyFollowing(_ who: String) {
         session?.noteIfFollowing(who)
     }
 
+    // A facade over the private `session`, which a caller outside this type cannot reach.
+    // oida:disable:next no_single_use_void_functions
     static func stopFollowing() {
         session?.follow(nil)
     }

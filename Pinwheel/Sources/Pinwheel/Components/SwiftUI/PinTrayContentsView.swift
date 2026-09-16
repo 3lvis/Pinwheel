@@ -50,6 +50,10 @@ final class PinTrayContentsView: UIView {
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError("PinTrayContentsView is made in code") }
 
+    // The tray's parts each take their content through `show`, and each writes a stored property of
+    // its own. Written at the call site the chassis would reach two levels down, past the part into
+    // what it hosts.
+    // oida:disable:next no_single_use_void_functions
     func show(titleBar leaf: AnyView, content: AnyView) {
         titleBar.show(leaf)
         body.show(content)

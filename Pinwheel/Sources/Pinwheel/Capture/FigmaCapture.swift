@@ -313,11 +313,7 @@ public enum FigmaCaptureFile {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         guard let data = try? encoder.encode(entry) else { return }
-        post("http://localhost:8787/catalog", data)
-    }
-
-    private static func post(_ urlString: String, _ data: Data) {
-        guard let url = URL(string: urlString) else { return }
+        guard let url = URL(string: "http://localhost:8787/catalog") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
