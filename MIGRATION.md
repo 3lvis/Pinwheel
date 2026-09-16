@@ -4,7 +4,7 @@ This guide is for projects moving from the UIKit-first Pinwheel API to the Swift
 
 ## Build The Catalog With `PinwheelCatalog`
 
-The UIKit-first catalog host has been removed — `PinwheelTableViewController` and the item-hosting `PinwheelViewController` / `PinwheelHostingViewController` (and `PinwheelItem.viewController`) no longer exist. Present the catalog with the SwiftUI `PinwheelCatalog` instead:
+The SwiftUI `PinwheelCatalog` is the catalog host, and it is the only one: `PinwheelTableViewController`, the item-hosting `PinwheelViewController` / `PinwheelHostingViewController` and `PinwheelItem.viewController` have all been removed. Present it like this:
 
 ```swift
 @main
@@ -41,7 +41,7 @@ PinwheelItem("Button", id: "button") {
 
 ## Move Presentation Options To Modifiers
 
-Initializer arguments for presentation and display details are no longer the preferred style. Use modifiers instead:
+Presentation and display details read as modifiers now:
 
 ```swift
 PinwheelItem("Table", id: "table") {
@@ -87,7 +87,7 @@ Pinwheel persists selected section, item, and device state by ID. Pass explicit 
 
 ## Add A Subview And Constrain It In One Call
 
-The `fillInSuperview` family is gone. Those methods sat on the *child* and looked upward for a superview, so they did nothing at all when a view had not been added yet, and they left a window where a subview was in the hierarchy with no constraints. The parent now adds and constrains in one call:
+The parent adds and constrains in one call, which replaces the `fillInSuperview` family. Those sat on the *child* and looked upward for a superview, so a view that had yet to be added silently stayed unconstrained, and one already in the hierarchy spent a window with constraints still to come:
 
 ```swift
 // before
