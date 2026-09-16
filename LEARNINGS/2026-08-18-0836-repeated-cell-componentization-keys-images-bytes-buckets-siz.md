@@ -1,2 +1,0 @@
-**Repeated-cell componentization keys images by bytes and buckets size to ~16pt.** An image node's signature is its byte content, so identical icons/chevrons group (an instance shares the master's identical image) while per-row photos stay distinct (an instance can't override an image); size buckets to ~16pt so content-driven width jitter doesn't split one template while a real size difference still does.
-*— Elvis, 2026-08-18 08:36*

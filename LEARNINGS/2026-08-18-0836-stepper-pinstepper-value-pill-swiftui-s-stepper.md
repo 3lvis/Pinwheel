@@ -1,2 +1,0 @@
-**`Stepper → PinStepper`** (a `−`/value/`+` pill). SwiftUI's `Stepper` renders a system `±` control that bypasses the theme and can't be the pill shape a design system wants — a theme footgun, same test as `PinLabel`. `PinStepper(value:)` + `.onDecrement/.onIncrement` modifiers; bordered capsule, SF-Symbol `±` (mirrors `PinButton`'s `systemImage:`), themed value. Migrated from tienda-ios's Kolibri `KStepper`. No `UIPinStepper` — no UIKit-hosting need yet.
-*— Elvis, 2026-08-18 08:36*

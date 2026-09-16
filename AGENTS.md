@@ -2,11 +2,11 @@
 
 How we work in Pinwheel. Portable iOS conventions live one level up (`~/code/<org>/ios/AGENTS.md`) and are
 inherited, so they are not repeated here. **Why** any of this is the way it is — the measurements, the
-traps, the bugs behind each rule — is in [`LEARNINGS/`](LEARNINGS/), one file per lesson, searched by
-symptom. Grep it for whatever you are about to change. Yours goes in a file of its own,
-`LEARNINGS/<YYYY-MM-DD-HHMM>-<slug>.md`, so branches writing at once stay clear of each other; the rules
-and the periodic pass that grades them are in [`LEARNINGS.md`](LEARNINGS.md). Keep *this* file to what a
-session needs nine times in ten.
+traps, the bugs behind each rule — is carried by the rule itself, which is what a graduated lesson looks
+like; `git log --diff-filter=D -- LEARNINGS/` reads the notes each one came from. What you learn next goes
+in a file of its own, `LEARNINGS/<YYYY-MM-DD-HHMM>-<slug>.md`, so branches writing at once stay clear of
+each other; the rules and the periodic pass that grades them are in [`LEARNINGS.md`](LEARNINGS.md). Keep
+*this* file to what a session needs nine times in ten.
 
 [`VOICE.md`](VOICE.md) is how we write — PRs, commits, comments, docs, error copy — and it carries the
 Swift API Design Guidelines whole, so a naming question is answered by reading it. Read it before you write.
@@ -54,10 +54,21 @@ How a session proceeds.
   go at, it stays interruptible until it settles, and what decides where it ends up is where it would
   come to rest if left alone — never how fast it happened to be moving when it was released.
 - **A scroll view scrolls only when its content outgrows its room.**
+- **A hosting controller reports the size its old content had.** Swapping what a
+  `UIHostingController` shows leaves its view at the previous height — a 60-row list laid out 20 points
+  tall, scrolling nothing, every row answering `Not hittable` while sitting in the accessibility tree at
+  full strength. `sizingOptions = .intrinsicContentSize` is what makes it report what SwiftUI drew.
 - **A view measures nothing until it has joined its parent.** A controller's `viewDidLoad` runs the
   moment `.view` is first touched, which is before the caller can add it — so anything needing a room
   waits for `didMove(toParent:)`. Measured detached, a tray built itself 89 points wide and none tall,
   and every correction after that landed somewhere wrong.
+- **A component captures with zero cooperation, and that is the contract.** Every `Pin*` is byte for
+  byte what a consumer would write — no capture code, no markers — and the engine derives everything
+  from what renders: structure from geometry, names from reflection, tokens by value-matching the
+  rendered colour and radius against the registries. A component changed so the capture can read it is
+  the contract broken; reverse-engineer the real thing instead, which is why the list demo stays a raw
+  `List`. Which engine runs is decided by the item's hosted *world* (`PinwheelItem.isUIKitHosted`),
+  never its display tag — routing on the `.uiKit` chip captured a tagged UIKit demo as one flat image.
 - **A value the platform owns is read, never copied.** Read it and the layout is right on hardware and
   OS versions you will never see. Where there is nothing to read, reimplement only what holds still — a
   corner's curve is the same shape on every device, its radius is not.
@@ -161,7 +172,11 @@ is not one.
   re-checks one component's Figma IR. Never hand-roll `simctl` against a pinned UDID — the sweep owns its
   own simulator, and a hardcoded device launches nowhere while you read a stale result.
 - **Dump the runtime rather than stopping at a search result.** Two private keyboard flags looked right
-  and both were wrong; enumerating every property on the live object, twice, settled it in one run.
+  and both were wrong; enumerating every property on the live object, twice, settled it in one run. The
+  capture engine reads SwiftUI's private shape storage by field name, so an OS bump empties it silently
+  and the red tests look unrelated to each other — `FixedRoundedRect` carried `cornerSize` through
+  iOS 26 and carries `radii` from iOS 27. Probe the storage; theorising about the symptom produced
+  nothing across three of them.
 - **A shake says which build is running** (`PinwheelShakeToShowBuild`). iOS delivers a shake as a
   `motionShake` event to the first responder, so a controller that takes first responder catches it;
   the simulator has no accelerometer, so CoreMotion cannot see one there at all.
@@ -196,6 +211,11 @@ hook blocks a merge whose tip commit lacks it.
   UIKit twin is `UIPin*`, never `UIKitPin*`; spelled-out `UIKit` is a descriptive qualifier only
   (`PinUIKitCapture`, `isUIKitHosted`).
 - **Shared vocabularies are top-level types** (`PinTextStyle`, `PinState`).
+- **Rows get a tray, a screen gets a sheet.** Every catalog surface is a `pinwheelTray(path:)` sequence,
+  the array being the navigation, so one title bar serves every depth and the leading control is derived
+  from depth. A picker is a tray too, because a `Menu` renders through UIKit with the system font and
+  cannot be themed. The one presentation that stays a sheet is a presented catalog item, which carries
+  its own chrome.
 - **SwiftUI-native API**: bare initializer plus chained themed modifiers, mirroring SwiftUI's own names.
   Unprefixed on our types; `pinwheel`-prefixed only when extending a SwiftUI type.
 - **Catalog ids derive from title + tags** — there is no manual `id:`, and deep links and persistence key

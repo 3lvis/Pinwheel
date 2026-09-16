@@ -12,7 +12,7 @@ Written the way we write everything else here — [`VOICE.md`](VOICE.md).
 
 ## One lesson, one file
 
-Everything lives in [`LEARNINGS/`](LEARNINGS/), a file per lesson, named for the minute you wrote it:
+Everything lives in `LEARNINGS/`, a file per lesson, named for the minute you wrote it:
 
 ```
 LEARNINGS/2026-09-15-1520-a-warm-build-hides-a-warning.md
