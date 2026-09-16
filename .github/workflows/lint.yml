@@ -1,0 +1,31 @@
+name: Lint
+
+# Its own workflow, and the one gate that runs on every push: ci.yml is paused because GitHub's macOS
+# runners flake on the hostless capture tests, which is a constraint this job never meets. Linting needs
+# no simulator, no Xcode and no macOS, so it runs on Linux and says something about every commit while the
+# simulator tiers stay local.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: oida
+    # bin/lint downloads oida, pinned by .oida-version and verified against .oida-checksum-<platform>, so
+    # CI and a laptop run the same bytes. The Swift toolchain container is what makes Linux work at all:
+    # oida's SourceKit-based rules and its swift-format handoff both resolve through the toolchain that
+    # ships in this image. The repository sits at zero, so any violation is one the branch introduced.
+    runs-on: ubuntu-latest
+    container: swift:6.3.2-noble
+    steps:
+      - uses: actions/checkout@v5
+      # curl isn't in the toolchain image; bin/lint needs it to fetch the pinned oida release.
+      - name: Install curl
+        run: apt-get update && apt-get install -y curl
+      - name: Lint
+        run: ./bin/lint --check
