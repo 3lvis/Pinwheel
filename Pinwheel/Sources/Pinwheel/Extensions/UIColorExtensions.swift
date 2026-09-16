@@ -12,7 +12,12 @@ nonisolated extension UIColor {
             let green = (hexInt >> 8) & 0xFF
             let blue = (hexInt) & 0xFF
 
-            self.init(red: CGFloat(red) / 255.0, green: CGFloat(green) / 255.0, blue: CGFloat(blue) / 255.0, alpha: 1.0)
+            self.init(
+                red: CGFloat(red) / 255.0,
+                green: CGFloat(green) / 255.0,
+                blue: CGFloat(blue) / 255.0,
+                alpha: 1.0
+            )
         } else {
             self.init(red: 0.0, green: 0.0, blue: 0.0, alpha: 0.0)
         }
@@ -34,7 +39,11 @@ nonisolated extension UIColor {
     var hexString: String {
         guard
             let targetColorSpace = CGColorSpace(name: CGColorSpace.sRGB),
-            let cgColor = self.cgColor.converted(to: targetColorSpace, intent: .relativeColorimetric, options: nil)
+            let cgColor = self.cgColor.converted(
+                to: targetColorSpace,
+                intent: .relativeColorimetric,
+                options: nil
+            )
         else {
             return "#000000"
         }
@@ -42,6 +51,11 @@ nonisolated extension UIColor {
         let red = components?[0] ?? 0.0
         let green = components?[1] ?? 0.0
         let blue = components?[2] ?? 0.0
-        return String(format: "#%02x%02x%02x", (Int)(red * 255), (Int)(green * 255), (Int)(blue * 255))
+        return String(
+            format: "#%02x%02x%02x",
+            (Int)(red * 255),
+            (Int)(green * 255),
+            (Int)(blue * 255)
+        )
     }
 }

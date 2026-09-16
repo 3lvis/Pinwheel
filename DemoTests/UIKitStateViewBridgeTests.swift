@@ -1,6 +1,6 @@
-import XCTest
 import SwiftUI
 import UIKit
+import XCTest
 @testable import Pinwheel
 
 @MainActor
@@ -24,7 +24,11 @@ final class UIKitStateViewBridgeTests: XCTestCase {
         let delegate = SpyDelegate()
         let stateView = UIPinStateView()
         stateView.delegate = delegate
-        stateView.state = .failed(title: "Oops!", subtitle: "Something went wrong.", actionTitle: "Retry")
+        stateView.state = .failed(
+            title: "Oops!",
+            subtitle: "Something went wrong.",
+            actionTitle: "Retry"
+        )
 
         let window = HostedView.window(showing: Fixture(stateView: stateView))
         addTeardownBlock {
@@ -32,10 +36,7 @@ final class UIKitStateViewBridgeTests: XCTestCase {
             window.rootViewController = nil
         }
 
-        XCTAssertTrue(
-            HostedView.activateFirst(labelled: "Retry", in: window),
-            "the hosted SwiftUI action should be reachable through the UIKit shell"
-        )
+        XCTAssertTrue(HostedView.activateFirst(labelled: "Retry", in: window), "the hosted SwiftUI action should be reachable through the UIKit shell")
         XCTAssertEqual(
             delegate.actionCount,
             1,

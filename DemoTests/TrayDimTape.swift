@@ -39,7 +39,11 @@ final class TrayDimTape: XCTestCase {
         let dim = try XCTUnwrap(backdrop(in: tray.view), "the tray dims what it covers")
 
         var tape: [(CGFloat, CGFloat)] = []
-        for pulled in stride(from: CGFloat(0), through: 400, by: 50) {
+        for pulled in stride(
+            from: CGFloat(0),
+            through: 400,
+            by: 50
+        ) {
             tray.cardDragged(to: pulled)
             RunLoop.current.run(until: Date().addingTimeInterval(0.02))
             window.layoutIfNeeded()
@@ -47,20 +51,41 @@ final class TrayDimTape: XCTestCase {
         }
 
         print("=== TAPE  cardBottom → backdrop ===")
-        for (bottom, alpha) in tape { print(String(format: "  %7.1f  %.2f", bottom, alpha)) }
+        for (bottom, alpha) in tape {
+            print(
+                String(
+                    format: "  %7.1f  %.2f",
+                    bottom,
+                    alpha
+                ))
+        }
 
-        let alphas = tape.map(\.1)
-        XCTAssertEqual(alphas.first ?? 0, 1, accuracy: 0.01, "full while it stands")
+        let alphas = tape.map { $0.1 }
         XCTAssertEqual(
-            alphas, alphas.sorted(by: >), accuracy: 0.001,
+            alphas.first ?? 0,
+            1,
+            accuracy: 0.01,
+            "full while it stands"
+        )
+        XCTAssertEqual(
+            alphas,
+            alphas.sorted(by: >),
+            accuracy: 0.001,
             "the backdrop only ever clears as the card goes down: \(alphas)"
         )
-        XCTAssertLessThan(alphas.last!, 0.75, "and it has visibly cleared by the end of the drag: \(alphas.last!)")
+        XCTAssertLessThan(
+            alphas.last!,
+            0.75,
+            "and it has visibly cleared by the end of the drag: \(alphas.last!)"
+        )
     }
 }
 
 private func XCTAssertEqual(
-    _ one: [CGFloat], _ two: [CGFloat], accuracy: CGFloat, _ message: String
+    _ one: [CGFloat],
+    _ two: [CGFloat],
+    accuracy: CGFloat,
+    _ message: String
 ) {
     for (a, b) in zip(one, two) where abs(a - b) > accuracy {
         XCTFail(message)

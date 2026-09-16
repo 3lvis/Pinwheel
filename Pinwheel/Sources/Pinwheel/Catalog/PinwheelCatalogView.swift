@@ -18,7 +18,11 @@ struct PinwheelCatalogView: SwiftUI.View {
     @State private var restoredSelection = false
     @State private var chrome = PinwheelChrome()
 
-    init(sections: [PinwheelSection], usesEmbeddedNavigation: Bool, themes: [PinwheelTheme]) {
+    init(
+        sections: [PinwheelSection],
+        usesEmbeddedNavigation: Bool,
+        themes: [PinwheelTheme]
+    ) {
         self.sections = sections
         self.usesEmbeddedNavigation = usesEmbeddedNavigation
         self.themes = themes
@@ -54,7 +58,7 @@ struct PinwheelCatalogView: SwiftUI.View {
             normalizeSelection()
             restorePresentedItemIfNeeded()
         }
-        .onChange(of: sections.map(\.id)) { _, _ in
+        .onChange(of: sections.map { $0.id }) { _, _ in
             normalizeSelection()
         }
         .pinwheelTray(path: $displayPath) { axis in
@@ -173,7 +177,6 @@ struct PinwheelCatalogView: SwiftUI.View {
         PinwheelAppearance.allCases.first { $0.colorScheme == chrome.colorScheme } ?? .system
     }
 
-
     private var selectedSection: PinwheelSection? {
         if let selectedSectionID, let section = sections.first(where: { $0.id == selectedSectionID }) {
             return section
@@ -233,9 +236,10 @@ struct PinwheelCatalogView: SwiftUI.View {
         restoredSelection = true
 
         guard let sectionID = PinwheelStateStore.selectedSectionID,
-              let itemID = PinwheelStateStore.selectedItemID,
-              let section = sections.first(where: { $0.id == sectionID }),
-              let item = section.items.first(where: { $0.id == itemID }) else {
+            let itemID = PinwheelStateStore.selectedItemID,
+            let section = sections.first(where: { $0.id == sectionID }),
+            let item = section.items.first(where: { $0.id == itemID })
+        else {
             return
         }
 
@@ -358,9 +362,10 @@ private struct PinwheelIndexView: SwiftUI.View {
     private var groupedItems: [(letter: String, items: [PinwheelItem])] {
         guard let section else { return [] }
 
-        let items = selectedTag.map { tag in
-            section.items.filter { $0.tags.contains(tag) }
-        } ?? section.items
+        let items =
+            selectedTag.map { tag in
+                section.items.filter { $0.tags.contains(tag) }
+            } ?? section.items
 
         let groups = Dictionary(grouping: items) { item in
             String(item.title.capitalizingFirstLetter.prefix(1))
@@ -371,9 +376,6 @@ private struct PinwheelIndexView: SwiftUI.View {
         }
     }
 }
-
-
-
 
 private struct PresentedPinwheelItem: Identifiable {
     let selection: PinwheelSelection

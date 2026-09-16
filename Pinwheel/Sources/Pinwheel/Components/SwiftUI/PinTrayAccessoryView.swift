@@ -46,11 +46,20 @@ final class PinTrayAccessoryView: UIView {
         CGSize(width: UIView.noIntrinsicMetric, height: height)
     }
 
-    func show(_ accessory: PinTrayAccessory, replacing: Bool, over duration: TimeInterval) {
+    func show(
+        _ accessory: PinTrayAccessory,
+        replacing: Bool,
+        over duration: TimeInterval
+    ) {
         let leaving = standing
         guard let leaf = accessory.leaf else {
             standing = .nothing
-            fade(leaving.view, to: 0, animated: replacing, over: duration) { $0.detach() }
+            fade(
+                leaving.view,
+                to: 0,
+                animated: replacing,
+                over: duration
+            ) { $0.detach() }
             return
         }
 

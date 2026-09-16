@@ -88,7 +88,12 @@ public enum PinwheelRecorder {
         }
 
         func write(_ category: String, _ message: String) {
-            let line = String(format: "%8.3f  %-9@  %@", CACurrentMediaTime() - start, category as NSString, message as NSString)
+            let line = String(
+                format: "%8.3f  %-9@  %@",
+                CACurrentMediaTime() - start,
+                category as NSString,
+                message as NSString
+            )
             handle?.write(Data((line + "\n").utf8))
         }
 
@@ -109,7 +114,8 @@ public enum PinwheelRecorder {
 
         @objc private func tick() {
             guard let values = sample?() else { return }
-            let moved = values.count != previous.count
+            let moved =
+                values.count != previous.count
                 || zip(values, previous).contains { abs($0.1 - $1.1) > 0.5 }
             guard moved else { return }
             previous = values
@@ -163,7 +169,11 @@ public enum PinwheelRecorder {
                 phase,
                 point,
                 phase == "down"
-                    ? name(watchedWindow.hitTest(point, with: nil), at: point, under: watchedWindow)
+                    ? name(
+                        watchedWindow.hitTest(point, with: nil),
+                        at: point,
+                        under: watchedWindow
+                    )
                     : nil
             )
         }
@@ -172,7 +182,11 @@ public enum PinwheelRecorder {
         /// accessibility tree rather than on views, so a plain view walk answers `_UIHostingView` for
         /// every tap in the app — the smallest labelled accessibility element under the finger is the
         /// thing that was actually pressed.
-        private func name(_ hit: UIView?, at point: CGPoint, under host: UIView) -> String? {
+        private func name(
+            _ hit: UIView?,
+            at point: CGPoint,
+            under host: UIView
+        ) -> String? {
             var best: (area: CGFloat, name: String)?
 
             func consider(_ node: AnyObject) {
@@ -181,8 +195,10 @@ public enum PinwheelRecorder {
                 if area > 0, frame.contains(point) {
                     let identifier = node.accessibilityIdentifier ?? nil
                     let label = node.accessibilityLabel ?? nil
-                    if let found = (identifier?.isEmpty == false ? identifier : label), !found.isEmpty,
-                       best == nil || area < best!.area {
+                    if let found = (identifier?.isEmpty == false ? identifier : label),
+                        !found.isEmpty,
+                        best == nil || area < best!.area
+                    {
                         best = (area, found)
                     }
                 }

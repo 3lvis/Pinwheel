@@ -24,9 +24,14 @@ class UIPinLabelDemo: UIPinView {
             subtitle,
             body,
             footnote,
-            caption
+            caption,
         ])
 
-        addSubview(stackView, filling: safeAreaLayoutGuide, edges: [.top, .leading, .trailing], margin: .spacing4)
+        addSubview(
+            stackView,
+            filling: safeAreaLayoutGuide,
+            edges: [.top, .leading, .trailing],
+            margin: .spacing4
+        )
     }
 }

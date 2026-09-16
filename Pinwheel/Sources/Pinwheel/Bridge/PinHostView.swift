@@ -22,7 +22,7 @@ public final class PinHostView<Content: SwiftUI.View>: UIView {
             hostingController.view.leadingAnchor.constraint(equalTo: leadingAnchor),
             hostingController.view.trailingAnchor.constraint(equalTo: trailingAnchor),
             hostingController.view.topAnchor.constraint(equalTo: topAnchor),
-            hostingController.view.bottomAnchor.constraint(equalTo: bottomAnchor)
+            hostingController.view.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
     }
 

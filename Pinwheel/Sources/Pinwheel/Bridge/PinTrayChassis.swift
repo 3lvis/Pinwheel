@@ -38,7 +38,11 @@ final class PinTrayChassis: UIViewController {
         PinwheelRecorder.note(category, "\(mark)  \(message)")
     }
 
-    init(showing tray: PinTray, nestedIn displayCornerRadius: CGFloat, covering frame: CGRect) {
+    init(
+        showing tray: PinTray,
+        nestedIn displayCornerRadius: CGFloat,
+        covering frame: CGRect
+    ) {
         let container = UIView(frame: frame)
         let card = PinTrayCardView(nestedIn: displayCornerRadius)
         content = container
@@ -91,7 +95,13 @@ final class PinTrayChassis: UIViewController {
             case .dismissKeyboard: view.endEditing(true)
             }
         }
-        reaction.from.map { placement.place($0, alongside: dim(to: $0), animated: false) }
+        reaction.from.map {
+            placement.place(
+                $0,
+                alongside: dim(to: $0),
+                animated: false
+            )
+        }
         note(
             "tray",
             "\(reaction.timeline)  card=\(Int(reaction.to.height)) inset=\(Int(reaction.to.bottomInset)) "
@@ -103,7 +113,12 @@ final class PinTrayChassis: UIViewController {
         let finish: () -> Void = reaction.dismisses ? { [weak self] in self?.tearDown() } : {}
         switch reaction.timeline {
         case .immediate:
-            placement.place(reaction.to, alongside: dim(to: reaction.to), animated: false, then: finish)
+            placement.place(
+                reaction.to,
+                alongside: dim(to: reaction.to),
+                animated: false,
+                then: finish
+            )
         case .carriedByKeyboard:
             placement.write(reaction.to)
             dim(to: reaction.to)()
@@ -118,7 +133,12 @@ final class PinTrayChassis: UIViewController {
                 then: finish
             )
         case .matching(let timing):
-            placement.place(reaction.to, alongside: dim(to: reaction.to), matching: timing, then: finish)
+            placement.place(
+                reaction.to,
+                alongside: dim(to: reaction.to),
+                matching: timing,
+                then: finish
+            )
         }
     }
 
@@ -171,9 +191,7 @@ final class PinTrayChassis: UIViewController {
         dimming.backgroundColor = UIColor.black.withAlphaComponent(trayDimming)
         dimming.alpha = 0
         view.insertSubview(dimming, belowSubview: cardView)
-        dimming.addGestureRecognizer(
-            UITapGestureRecognizer(target: self, action: #selector(dismissFromBackground))
-        )
+        dimming.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(dismissFromBackground)))
 
         machine.motionIsReduced = UIAccessibility.isReduceMotionEnabled
         NotificationCenter.default.addObserver(
@@ -197,7 +215,8 @@ final class PinTrayChassis: UIViewController {
             guard let self else { return [] }
             let drawn = self.cardView.layer.presentation()
             let top = (drawn?.frame.minY ?? self.cardView.frame.minY) + (drawn?.transform.m42 ?? 0)
-            let content = self.standing?.contents.layer.presentation()?.bounds.height
+            let content =
+                self.standing?.contents.layer.presentation()?.bounds.height
                 ?? self.standing?.contents.bounds.height ?? 0
             return [
                 ("cardTop", top),
@@ -219,10 +238,7 @@ final class PinTrayChassis: UIViewController {
     }
 
     @objc private func keyboardAnnouncedItsMove(_ notification: Notification) {
-        guard
-            let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval,
-            let curve = notification.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? Int
-        else { return }
+        guard let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval, let curve = notification.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? Int else { return }
         machine.keyboardTiming = PinTrayMachine.KeyboardTiming(duration: duration, curve: curve)
     }
 
@@ -273,11 +289,13 @@ final class PinTrayChassis: UIViewController {
     private func reportTheMoveOnceTheArrivingTrayHasMounted(isPush: Bool) {
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            apply(machine.handle(.moved(
-                contentHeight: fittedHeight,
-                edits: holdsFirstResponder,
-                isPush: isPush
-            )))
+            apply(
+                machine.handle(
+                    .moved(
+                        contentHeight: fittedHeight,
+                        edits: holdsFirstResponder,
+                        isPush: isPush
+                    )))
         }
     }
 
@@ -304,11 +322,13 @@ final class PinTrayChassis: UIViewController {
     func accessory(for tray: PinTray) -> PinTrayAccessory {
         if let floating = tray.floating { return .floating(inset(floating)) }
         guard let commit = tray.commit else { return .nothing }
-        return .commitButton(inset(AnyView(
-            PinButton(commit.title, action: commit.action)
-                .style(.custom(text: .primaryBackground, background: .primaryText))
-                .fullWidth()
-        )))
+        return .commitButton(
+            inset(
+                AnyView(
+                    PinButton(commit.title, action: commit.action)
+                        .style(.custom(text: .primaryBackground, background: .primaryText))
+                        .fullWidth()
+                )))
     }
 
     private func assemble(_ tray: PinTray) {
@@ -348,7 +368,8 @@ final class PinTrayChassis: UIViewController {
         let width = view.bounds.width - trayMargin * 2
         let clearanceAboveAccessory = PinTrayGeometry.clearanceAboveAccessory(floats: tray.floating != nil)
         let accessoryHeight = accessoryView.height(fitting: width)
-        contents.clearance = accessoryHeight > 0
+        contents.clearance =
+            accessoryHeight > 0
             ? accessoryInset + accessoryHeight + clearanceAboveAccessory
             : contentBottomInset
         standing = Standing(description: tray, contents: contents)

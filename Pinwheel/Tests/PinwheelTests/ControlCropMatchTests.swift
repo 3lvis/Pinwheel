@@ -1,5 +1,5 @@
-import XCTest
 import CoreGraphics
+import XCTest
 @testable import Pinwheel
 
 @MainActor
@@ -46,7 +46,7 @@ final class ControlCropMatchTests: XCTestCase {
 
     func testNoCropsAssignedWhenWideLeavesEmpty() {
         let crops: [(frame: CGRect, image: String)] = [
-            (frame: CGRect(x: 0, y: 0, width: 60, height: 30), image: "orphan"),
+            (frame: CGRect(x: 0, y: 0, width: 60, height: 30), image: "orphan")
         ]
         XCTAssertTrue(PinDisplayList.matchedControlCrops(wideLeaves: [], crops: crops).isEmpty)
     }
@@ -57,7 +57,7 @@ final class ControlCropMatchTests: XCTestCase {
             (index: 1, frame: CGRect(x: 0, y: 40, width: 60, height: 30)),
         ]
         let crops: [(frame: CGRect, image: String)] = [
-            (frame: CGRect(x: 0, y: 0, width: 61, height: 28), image: "only"),
+            (frame: CGRect(x: 0, y: 0, width: 61, height: 28), image: "only")
         ]
         XCTAssertTrue(PinDisplayList.matchedControlCrops(wideLeaves: leaves, crops: crops).isEmpty)
     }

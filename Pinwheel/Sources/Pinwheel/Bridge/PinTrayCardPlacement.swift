@@ -17,14 +17,8 @@ final class PinTrayCardPlacement {
         height.priority = .defaultHigh
         self.height = height
 
-        let offset = card.bottomAnchor.constraint(
-            equalTo: parent.keyboardLayoutGuide.topAnchor,
-            constant: -trayBottomMargin
-        )
-        let lifted = card.bottomAnchor.constraint(
-            equalTo: parent.keyboardLayoutGuide.topAnchor,
-            constant: -trayKeyboardMargin
-        )
+        let offset = card.bottomAnchor.constraint(equalTo: parent.keyboardLayoutGuide.topAnchor, constant: -trayBottomMargin)
+        let lifted = card.bottomAnchor.constraint(equalTo: parent.keyboardLayoutGuide.topAnchor, constant: -trayKeyboardMargin)
         offset.priority = UILayoutPriority(999)
         lifted.priority = UILayoutPriority(999)
         self.offset = offset
@@ -34,10 +28,7 @@ final class PinTrayCardPlacement {
         NSLayoutConstraint.activate([
             card.leadingAnchor.constraint(equalTo: parent.leadingAnchor, constant: trayMargin),
             card.trailingAnchor.constraint(equalTo: parent.trailingAnchor, constant: -trayMargin),
-            card.topAnchor.constraint(
-                greaterThanOrEqualTo: parent.safeAreaLayoutGuide.topAnchor,
-                constant: trayMargin
-            ),
+            card.topAnchor.constraint(greaterThanOrEqualTo: parent.safeAreaLayoutGuide.topAnchor, constant: trayMargin),
             height,
         ])
     }

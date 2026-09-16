@@ -12,9 +12,18 @@ final class PinTrayContentsView: UIView {
         set { body.clearance = newValue }
     }
 
-    init(titleBar: AnyView, content: AnyView, in parent: UIViewController, reporting to: PinTrayBodyCoordinating) {
+    init(
+        titleBar: AnyView,
+        content: AnyView,
+        in parent: UIViewController,
+        reporting to: PinTrayBodyCoordinating
+    ) {
         self.titleBar = PinTrayLeafView(showing: titleBar, in: parent)
-        body = PinTrayBodyView(showing: content, in: parent, reporting: to)
+        body = PinTrayBodyView(
+            showing: content,
+            in: parent,
+            reporting: to
+        )
         super.init(frame: .zero)
 
         divider.backgroundColor = .tertiaryText

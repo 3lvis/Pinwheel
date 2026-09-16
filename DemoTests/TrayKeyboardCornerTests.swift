@@ -22,10 +22,7 @@ final class TrayKeyboardCornerTests: XCTestCase {
     }
 
     func testATrayRidingTheKeyboardWearsItsOwnCornersRatherThanTheDisplays() throws {
-        let scene = try XCTUnwrap(
-            UIApplication.shared.connectedScenes.first as? UIWindowScene,
-            "the host app has no window scene"
-        )
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.first as? UIWindowScene, "the host app has no window scene")
         let window = UIWindow(windowScene: scene)
         window.frame = scene.screen.bounds
         let root = UIViewController()
@@ -47,7 +44,9 @@ final class TrayKeyboardCornerTests: XCTestCase {
         settle(window) { overlay.bottomCornerRadius > 0 }
 
         XCTAssertEqual(
-            overlay.bottomCornerRadius, UIScreen.main.pinDisplayCornerRadius, accuracy: 1,
+            overlay.bottomCornerRadius,
+            UIScreen.main.pinDisplayCornerRadius,
+            accuracy: 1,
             "resting on the floor, it is nested in the display's own corner"
         )
 
@@ -61,12 +60,15 @@ final class TrayKeyboardCornerTests: XCTestCase {
 
         settle(window) { overlay.cardBottom < window.bounds.height - 100 }
         XCTAssertLessThan(
-            overlay.cardBottom, window.bounds.height - 100,
+            overlay.cardBottom,
+            window.bounds.height - 100,
             "the keyboard never lifted the card, so this proves nothing"
         )
 
         XCTAssertEqual(
-            overlay.bottomCornerRadius, trayTopRadius, accuracy: 1,
+            overlay.bottomCornerRadius,
+            trayTopRadius,
+            accuracy: 1,
             "lifted off the floor, it is nested in nothing and wears its own corner"
         )
     }

@@ -1,11 +1,20 @@
-import XCTest
 import UIKit
+import XCTest
 @testable import Pinwheel
 
 @MainActor
 final class ContainmentNodeTests: XCTestCase {
     private func text(_ string: String, _ frame: CGRect) -> DisplayLeaf {
-        DisplayLeaf(frame: frame, kind: .text(string, font: .systemFont(ofSize: 14), color: .black, underline: false, strikethrough: false, alignment: .natural))
+        DisplayLeaf(
+            frame: frame,
+            kind: .text(
+                string,
+                font: .systemFont(ofSize: 14),
+                color: .black,
+                underline: false,
+                strikethrough: false,
+                alignment: .natural
+            ))
     }
 
     private func allText(_ node: FigmaNode) -> [String] {
@@ -25,9 +34,20 @@ final class ContainmentNodeTests: XCTestCase {
         ]
         let node = PinDisplayListCapture.containmentNode(leaves: leaves, host: host)
         XCTAssertNotNil(node)
-        XCTAssertEqual(Set(allText(node ?? FigmaNode(tag: "frame", x: 0, y: 0, w: 0, h: 0, children: []))),
-                       ["Wireless Earbuds Pro", "SALE", "$129", "$159", "1"],
-                       "every text leaf survives the containment build")
+        XCTAssertEqual(
+            Set(
+                allText(
+                    node
+                        ?? FigmaNode(
+                            tag: "frame",
+                            x: 0,
+                            y: 0,
+                            w: 0,
+                            h: 0,
+                            children: []
+                        ))),
+            ["Wireless Earbuds Pro", "SALE", "$129", "$159", "1"],
+            "every text leaf survives the containment build")
     }
 
     // A lone leaf's frame equals the union bounds; the seeded root must still enclose it, or the single
@@ -36,6 +56,16 @@ final class ContainmentNodeTests: XCTestCase {
         let host = UIView(frame: CGRect(x: 0, y: 0, width: 402, height: 44))
         let leaf = text("Row 1", CGRect(x: 16, y: 12, width: 60, height: 20))
         let node = PinDisplayListCapture.containmentNode(leaves: [leaf], host: host)
-        XCTAssertEqual(allText(node ?? FigmaNode(tag: "frame", x: 0, y: 0, w: 0, h: 0, children: [])), ["Row 1"])
+        XCTAssertEqual(
+            allText(
+                node
+                    ?? FigmaNode(
+                        tag: "frame",
+                        x: 0,
+                        y: 0,
+                        w: 0,
+                        h: 0,
+                        children: []
+                    )), ["Row 1"])
     }
 }

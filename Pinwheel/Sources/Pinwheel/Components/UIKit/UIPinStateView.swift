@@ -20,7 +20,11 @@ public enum UIPinStateViewState {
         case .empty(let title, let subtitle):
             return .empty(title: title, subtitle: subtitle)
         case .failed(let title, let subtitle, let actionTitle):
-            return .failed(title: title, subtitle: subtitle, actionTitle: actionTitle)
+            return .failed(
+                title: title,
+                subtitle: subtitle,
+                actionTitle: actionTitle
+            )
         }
     }
 
@@ -60,7 +64,7 @@ public final class UIPinStateView: UIView {
             host.trailingAnchor.constraint(equalTo: trailingAnchor),
             host.centerYAnchor.constraint(equalTo: centerYAnchor),
             host.topAnchor.constraint(greaterThanOrEqualTo: topAnchor),
-            host.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor)
+            host.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor),
         ])
     }
 

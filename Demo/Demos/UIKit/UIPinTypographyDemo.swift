@@ -17,7 +17,7 @@ class UIPinTypographyDemo: UIPinView {
         FontItem(font: .footnote, title: "Footnote"),
         FontItem(font: .footnoteSemibold, title: "Footnote Semibold"),
         FontItem(font: .caption, title: "Caption"),
-        FontItem(font: .captionSemibold, title: "Caption Semibold")
+        FontItem(font: .captionSemibold, title: "Caption Semibold"),
     ]
 
     override func setup() {
@@ -27,7 +27,12 @@ class UIPinTypographyDemo: UIPinView {
         stack.spacing = .spacing3 * 2
         stack.isLayoutMarginsRelativeArrangement = true
         stack.insetsLayoutMarginsFromSafeArea = false
-        stack.layoutMargins = UIEdgeInsets(top: .spacing3, left: .spacing4, bottom: .spacing3, right: .spacing4)
+        stack.layoutMargins = UIEdgeInsets(
+            top: .spacing3,
+            left: .spacing4,
+            bottom: .spacing3,
+            right: .spacing4
+        )
         for item in items {
             let label = UIPinLabel(font: item.font)
             label.text = item.title
@@ -38,7 +43,7 @@ class UIPinTypographyDemo: UIPinView {
         NSLayoutConstraint.activate([
             stack.topAnchor.constraint(equalTo: topAnchor),
             stack.leadingAnchor.constraint(equalTo: leadingAnchor),
-            stack.trailingAnchor.constraint(equalTo: trailingAnchor)
+            stack.trailingAnchor.constraint(equalTo: trailingAnchor),
         ])
     }
 }

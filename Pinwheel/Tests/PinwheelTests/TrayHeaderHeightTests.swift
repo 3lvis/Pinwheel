@@ -42,7 +42,12 @@ final class TrayHeaderHeightTests: XCTestCase {
             accuracy: 0.5,
             "the title bar is the 48pt control floor with one spacing-1 above and below"
         )
-        XCTAssertEqual(hairline.bounds.height, 1, accuracy: 0.01, "and it rules off with a single point")
+        XCTAssertEqual(
+            hairline.bounds.height,
+            1,
+            accuracy: 0.01,
+            "and it rules off with a single point"
+        )
     }
 
     private func first<Kind: UIView>(_ kind: Kind.Type, in view: UIView) -> Kind? {

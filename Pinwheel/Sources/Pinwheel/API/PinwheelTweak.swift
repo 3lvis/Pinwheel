@@ -55,7 +55,12 @@ public struct PinwheelTweak: Identifiable, Equatable {
         return selection.wrappedValue
     }
 
-    public init(_ title: String, id: String? = nil, description: String? = nil, action: @escaping () -> Void) {
+    public init(
+        _ title: String,
+        id: String? = nil,
+        description: String? = nil,
+        action: @escaping () -> Void
+    ) {
         self.id = id ?? title
         self.title = title
         self.description = description
@@ -63,7 +68,12 @@ public struct PinwheelTweak: Identifiable, Equatable {
         self.chosenOptionWhenBuilt = nil
     }
 
-    public init(_ title: String, id: String? = nil, description: String? = nil, isOn: Binding<Bool>) {
+    public init(
+        _ title: String,
+        id: String? = nil,
+        description: String? = nil,
+        isOn: Binding<Bool>
+    ) {
         self.id = id ?? title
         self.title = title
         self.description = description

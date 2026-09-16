@@ -70,7 +70,12 @@ struct Device {
 
         self.kind = kind
         self.traits = traits
-        self.frame = CGRect(x: x, y: y, width: size.width, height: size.height)
+        self.frame = CGRect(
+            x: x,
+            y: y,
+            width: size.width,
+            height: size.height
+        )
     }
 
     static var all: [Device] {
@@ -85,7 +90,7 @@ struct Device {
             Device(kind: .iphoneAir),
             Device(kind: .iphone12_13ProMax_14Plus),
             Device(kind: .iphone15Plus_15ProMax_16Plus),
-            Device(kind: .iphone16ProMax_17ProMax)
+            Device(kind: .iphone16ProMax_17ProMax),
         ]
     }
 }

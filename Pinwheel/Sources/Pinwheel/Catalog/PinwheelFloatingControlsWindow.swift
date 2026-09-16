@@ -17,7 +17,10 @@ final class PinwheelFloatingControlsWindow: UIWindow {
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         // Over empty areas `UIWindow.hitTest` returns the window itself (or the
         // pass-through container); only deeper interactive views capture the touch.
-        guard let hit = super.hitTest(point, with: event), hit !== self, hit !== controller.view else {
+        guard let hit = super.hitTest(point, with: event),
+            hit !== self,
+            hit !== controller.view
+        else {
             return nil
         }
         return hit

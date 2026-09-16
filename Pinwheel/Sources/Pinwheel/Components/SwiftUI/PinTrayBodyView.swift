@@ -12,7 +12,11 @@ final class PinTrayBodyView: UIView {
         didSet { scroll.contentInset.bottom = clearance }
     }
 
-    init(showing content: AnyView, in parent: UIViewController, reporting to: PinTrayBodyCoordinating) {
+    init(
+        showing content: AnyView,
+        in parent: UIViewController,
+        reporting to: PinTrayBodyCoordinating
+    ) {
         coordinating = to
         hosting = UIHostingController(rootView: content)
         super.init(frame: .zero)

@@ -16,13 +16,18 @@ struct ImageGalleryDemo: SwiftUI.View {
         let specs = [
             ("Sunset Ridge", "Landscape", UIColor.systemOrange, UIColor.systemPink),
             ("Ocean Deep", "Seascape", UIColor.systemTeal, UIColor.systemBlue),
-            ("Forest Trail", "Woodland", UIColor.systemGreen, UIColor.systemMint)
+            ("Forest Trail", "Woodland", UIColor.systemGreen, UIColor.systemMint),
         ]
         photos = specs.enumerated().map { index, spec in
             let image = Self.swatch(spec.2, spec.3)
             let url = FileManager.default.temporaryDirectory.appendingPathComponent("gallery-\(index).png")
             try? image.pngData()?.write(to: url)
-            return Photo(title: spec.0, subtitle: spec.1, image: image, fileURL: url)
+            return Photo(
+                title: spec.0,
+                subtitle: spec.1,
+                image: image,
+                fileURL: url
+            )
         }
     }
 
@@ -58,7 +63,11 @@ struct ImageGalleryDemo: SwiftUI.View {
             }
             .padding(.spacing4)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .frame(
+            maxWidth: .infinity,
+            maxHeight: .infinity,
+            alignment: .top
+        )
         .background(.primaryBackground)
     }
 }

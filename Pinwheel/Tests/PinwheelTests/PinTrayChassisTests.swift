@@ -31,16 +31,23 @@ final class PinTrayChassisTests: XCTestCase {
     }
 
     func testTheBodyTakesEverythingBelowTheTitleBar() throws {
-        let (overlay, window) = standing(
-            PinTray("Region") { Color.clear.frame(height: 2_000) }.detent(.filling)
-        )
+        let (overlay, window) = standing(PinTray("Region") { Color.clear.frame(height: 2_000) }.detent(.filling))
         window.layoutIfNeeded()
 
         let body = try XCTUnwrap(scrollView(in: overlay.view), "a tray has a scrolling body")
         let inCard = body.convert(body.bounds, to: overlay.view)
 
-        XCTAssertGreaterThan(inCard.minY, 0, "the title bar stands above it")
-        XCTAssertEqual(inCard.maxY, overlay.cardBottom, accuracy: 1, "and it runs to the card's own edge")
+        XCTAssertGreaterThan(
+            inCard.minY,
+            0,
+            "the title bar stands above it"
+        )
+        XCTAssertEqual(
+            inCard.maxY,
+            overlay.cardBottom,
+            accuracy: 1,
+            "and it runs to the card's own edge"
+        )
     }
 
     func testTheBodyKeepsRoomBelowItsLastRowForWhatFloatsOverIt() throws {
@@ -52,7 +59,11 @@ final class PinTrayChassisTests: XCTestCase {
         window.layoutIfNeeded()
 
         let body = try XCTUnwrap(scrollView(in: overlay.view), "a tray has a scrolling body")
-        XCTAssertGreaterThan(body.contentInset.bottom, 48, "the field's own height, and the gaps around it")
+        XCTAssertGreaterThan(
+            body.contentInset.bottom,
+            48,
+            "the field's own height, and the gaps around it"
+        )
     }
 
     private func accessories(in view: UIView) -> [PinTrayLeafView] {
@@ -73,15 +84,17 @@ final class PinTrayChassisTests: XCTestCase {
 
         let buttons = accessories(in: overlay.view)
         let inFlight = buttons.map { Set($0.layer.animationKeys() ?? []) }
-        XCTAssertEqual(buttons.count, 2, "the button arriving and the one being left")
         XCTAssertEqual(
-            inFlight.filter(\.isEmpty).count, 1,
+            buttons.count,
+            2,
+            "the button arriving and the one being left"
+        )
+        XCTAssertEqual(
+            inFlight.filter { $0.isEmpty }.count,
+            1,
             "the arriving button holds, so nothing about it is in flight: \(inFlight)"
         )
-        XCTAssertTrue(
-            inFlight.allSatisfy { !$0.contains("transform") },
-            "and neither carries the content's zoom: \(inFlight)"
-        )
+        XCTAssertTrue(inFlight.allSatisfy { !$0.contains("transform") }, "and neither carries the content's zoom: \(inFlight)")
     }
 
     func testAButtonArrivingWhereSomethingElseStoodFadesInRatherThanAppearing() throws {
@@ -98,15 +111,21 @@ final class PinTrayChassisTests: XCTestCase {
 
         let buttons = accessories(in: overlay.view)
         let inFlight = buttons.map { Set($0.layer.animationKeys() ?? []) }
-        XCTAssertEqual(buttons.count, 2, "the button arriving and the field being left")
         XCTAssertEqual(
-            inFlight.filter(\.isEmpty).count, 0,
+            buttons.count,
+            2,
+            "the button arriving and the field being left"
+        )
+        XCTAssertEqual(
+            inFlight.filter { $0.isEmpty }.count,
+            0,
             "neither holds: what arrives is a different thing, so it fades in: \(inFlight)"
         )
     }
 
     private func dissolvingInFlight(in view: UIView) -> [String] {
-        let mine = view is PinTrayLeafView || view is PinTrayBodyView
+        let mine =
+            view is PinTrayLeafView || view is PinTrayBodyView
             ? Set(view.layer.animationKeys() ?? []).sorted()
             : []
         return mine + view.subviews.flatMap { dissolvingInFlight(in: $0) }
@@ -114,10 +133,7 @@ final class PinTrayChassisTests: XCTestCase {
 
     func testATrayTakesVoiceOverOffWhatItCovers() {
         let (overlay, _) = standing(PinTray("Boost") { Color.clear.frame(height: 300) })
-        XCTAssertTrue(
-            overlay.view.accessibilityViewIsModal,
-            "a tray covers the screen behind it, so VoiceOver must not reach past it"
-        )
+        XCTAssertTrue(overlay.view.accessibilityViewIsModal, "a tray covers the screen behind it, so VoiceOver must not reach past it")
     }
 
     func testTheEscapeGestureLeavesATrayTheWayTappingOutsideDoes() {
@@ -143,10 +159,7 @@ final class PinTrayChassisTests: XCTestCase {
         overlay.show(boost, isPush: false)
         window.layoutIfNeeded()
 
-        XCTAssertFalse(
-            dissolvingInFlight(in: overlay.view).contains("transform"),
-            "the contents cross-dissolve without scaling: \(dissolvingInFlight(in: overlay.view))"
-        )
+        XCTAssertFalse(dissolvingInFlight(in: overlay.view).contains("transform"), "the contents cross-dissolve without scaling: \(dissolvingInFlight(in: overlay.view))")
     }
 
     func testALeavingTrayIsTornDownOnlyOnceItHasTravelled() {
@@ -165,30 +178,33 @@ extension PinTrayChassisTests {
             .commit("Boost Post") {}
         let committing = PinTray("Boost") { Color.clear }.commit("Boost Post") {}
 
-        XCTAssertFalse(
-            overlay.accessory(for: floating).isCommitButton,
-            "what a tray floats is its own content, and it takes the bottom"
-        )
-        XCTAssertTrue(
-            overlay.accessory(for: committing).isCommitButton,
-            "with nothing floating, the button stands there"
-        )
+        XCTAssertFalse(overlay.accessory(for: floating).isCommitButton, "what a tray floats is its own content, and it takes the bottom")
+        XCTAssertTrue(overlay.accessory(for: committing).isCommitButton, "with nothing floating, the button stands there")
     }
 }
 
 extension PinTrayChassisTests {
     func testTheLastTrayExitsTheFlowAndADeeperOneGoesBackAStep() {
-        XCTAssertEqual(PinTrayPathSync<Int>.exited([1]), [], "the last tray standing closes the flow")
-        XCTAssertEqual(PinTrayPathSync<Int>.exited([1, 2]), [1], "a pushed one goes back a step")
-        XCTAssertEqual(PinTrayPathSync<Int>.exited([]), [], "with nothing standing there is nothing to exit")
+        XCTAssertEqual(
+            PinTrayPathSync<Int>.exited([1]),
+            [],
+            "the last tray standing closes the flow"
+        )
+        XCTAssertEqual(
+            PinTrayPathSync<Int>.exited([1, 2]),
+            [1],
+            "a pushed one goes back a step"
+        )
+        XCTAssertEqual(
+            PinTrayPathSync<Int>.exited([]),
+            [],
+            "with nothing standing there is nothing to exit"
+        )
     }
 
     func testAPathThatGrowsOrHoldsArrivesLikeAPushAndOneThatShrinksLikeAPop() {
         XCTAssertTrue(PinTrayPathSync<Int>.isPush(to: 2, from: 1), "deeper is a push")
-        XCTAssertTrue(
-            PinTrayPathSync<Int>.isPush(to: 1, from: 1),
-            "and one tray replacing another at the same depth arrives the same way"
-        )
+        XCTAssertTrue(PinTrayPathSync<Int>.isPush(to: 1, from: 1), "and one tray replacing another at the same depth arrives the same way")
         XCTAssertFalse(PinTrayPathSync<Int>.isPush(to: 1, from: 2), "shallower is a pop")
     }
 
@@ -201,9 +217,6 @@ extension PinTrayChassisTests {
 
         _ = chassis.view
 
-        XCTAssertNil(
-            scrollView(in: chassis.view),
-            "loading the view measures a room it has not got, so nothing is built until it has a parent"
-        )
+        XCTAssertNil(scrollView(in: chassis.view), "loading the view measures a room it has not got, so nothing is built until it has a parent")
     }
 }

@@ -1,5 +1,5 @@
-import UIKit
 import SwiftUI
+import UIKit
 
 public struct PinwheelCatalog: SwiftUI.View {
     private let sections: [PinwheelSection]
@@ -7,7 +7,11 @@ public struct PinwheelCatalog: SwiftUI.View {
     private let themes: [PinwheelTheme]
 
     public init(usesEmbeddedNavigation: Bool = true, @PinwheelSectionBuilder sections: () -> [PinwheelSection]) {
-        self.init(themes: [.standard], usesEmbeddedNavigation: usesEmbeddedNavigation, sections: sections)
+        self.init(
+            themes: [.standard],
+            usesEmbeddedNavigation: usesEmbeddedNavigation,
+            sections: sections
+        )
     }
 
     public init(
@@ -21,6 +25,10 @@ public struct PinwheelCatalog: SwiftUI.View {
     }
 
     public var body: some SwiftUI.View {
-        PinwheelCatalogView(sections: sections, usesEmbeddedNavigation: usesEmbeddedNavigation, themes: themes)
+        PinwheelCatalogView(
+            sections: sections,
+            usesEmbeddedNavigation: usesEmbeddedNavigation,
+            themes: themes
+        )
     }
 }

@@ -35,7 +35,12 @@ struct PinwheelFloatingControlsHost: UIViewRepresentable {
         if let scene = uiView.window?.windowScene {
             context.coordinator.attach(scene: scene, chrome: chrome)
         }
-        context.coordinator.update(showsFloatingControls: showsFloatingControls, tweakCount: tweakCount, colorScheme: colorScheme, theme: theme)
+        context.coordinator.update(
+            showsFloatingControls: showsFloatingControls,
+            tweakCount: tweakCount,
+            colorScheme: colorScheme,
+            theme: theme
+        )
     }
 
     static func dismantleUIView(_ uiView: ProbeView, coordinator: Coordinator) {
@@ -67,7 +72,12 @@ struct PinwheelFloatingControlsHost: UIViewRepresentable {
             self.window = window
         }
 
-        func update(showsFloatingControls: Bool, tweakCount: Int, colorScheme: ColorScheme?, theme: PinwheelTheme) {
+        func update(
+            showsFloatingControls: Bool,
+            tweakCount: Int,
+            colorScheme: ColorScheme?,
+            theme: PinwheelTheme
+        ) {
             guard let window else { return }
             window.controller.itemsCount = tweakCount
             window.controller.theme = theme

@@ -26,7 +26,11 @@ struct DemoApp: App {
             if let captureID = FigmaCatalog.requestedCaptureID {
                 FigmaCaptureSweepView(id: captureID)
             } else if let previewID = PinwheelPreview.requestedID {
-                PinwheelPreview(previewID, sections: DemoPinwheelSections.all, themes: DemoThemes.all)
+                PinwheelPreview(
+                    previewID,
+                    sections: DemoPinwheelSections.all,
+                    themes: DemoThemes.all
+                )
             } else {
                 PinwheelCatalog(themes: DemoThemes.all) {
                     DemoPinwheelSections.all

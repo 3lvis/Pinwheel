@@ -1,5 +1,5 @@
-import XCTest
 import SwiftUI
+import XCTest
 @testable import Pinwheel
 
 @MainActor
@@ -12,7 +12,7 @@ final class PinwheelPreviewResolveTests: XCTestCase {
             },
             PinwheelSection("Screens") {
                 PinwheelItem("Button") { SwiftUI.Text("") }
-            }
+            },
         ]
     }
 

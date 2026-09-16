@@ -1,5 +1,5 @@
-import UIKit
 import SwiftUI
+import UIKit
 
 public struct PinwheelSelection: Hashable, Identifiable {
     public let sectionID: String

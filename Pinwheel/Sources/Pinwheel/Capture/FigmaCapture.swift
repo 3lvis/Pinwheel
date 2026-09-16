@@ -78,8 +78,10 @@ struct FigmaLayout: Encodable {
         columnGap = horizontal ? Double(layout.spacing) : 0
         rowGap = horizontal ? 0 : Double(layout.spacing)
         gapToken = PinFloatTokens.gapTokenName(for: Double(layout.spacing))
-        pad = [Double(layout.padding.top), Double(layout.padding.trailing),
-               Double(layout.padding.bottom), Double(layout.padding.leading)]
+        pad = [
+            Double(layout.padding.top), Double(layout.padding.trailing),
+            Double(layout.padding.bottom), Double(layout.padding.leading),
+        ]
         padTokens = pad.map(PinFloatTokens.spacingName(for:))
         func css(_ crossAxis: PinCaptureLayout.CrossAxis) -> String {
             switch crossAxis {
@@ -132,15 +134,17 @@ struct FigmaText: Encodable {
 struct FigmaToken: Encodable {
     let name: String
     let type: String
-    var value: RGBA? = nil
-    var dark: RGBA? = nil
-    var float: Double? = nil
+    var value: RGBA?
+    var dark: RGBA?
+    var float: Double?
 }
 
 enum PinFloatTokens {
     static var spacing: [(name: String, value: CGFloat)] {
-        [("spacing-1", .spacing1), ("spacing-2", .spacing2), ("spacing-3", .spacing3), ("spacing-4", .spacing4),
-         ("spacing-5", .spacing5), ("spacing-6", .spacing6), ("spacing-8", .spacing8)]
+        [
+            ("spacing-1", .spacing1), ("spacing-2", .spacing2), ("spacing-3", .spacing3), ("spacing-4", .spacing4),
+            ("spacing-5", .spacing5), ("spacing-6", .spacing6), ("spacing-8", .spacing8),
+        ]
     }
     static var radius: [(name: String, value: CGFloat)] { [("radius-m", .radiusM), ("radius-l", .radiusL)] }
 
@@ -155,15 +159,35 @@ enum PinFloatTokens {
 extension RGBA {
     init(_ uiColor: UIColor) {
         var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-        uiColor.getRed(&r, green: &g, blue: &b, alpha: &a)
-        self.init(r: Double(r), g: Double(g), b: Double(b), a: Double(a))
+        uiColor.getRed(
+            &r,
+            green: &g,
+            blue: &b,
+            alpha: &a
+        )
+        self.init(
+            r: Double(r),
+            g: Double(g),
+            b: Double(b),
+            a: Double(a)
+        )
     }
 
     init(_ color: Color, style: UIUserInterfaceStyle = .light) {
         let resolved = UIColor(color).resolvedColor(with: UITraitCollection(userInterfaceStyle: style))
         var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-        resolved.getRed(&r, green: &g, blue: &b, alpha: &a)
-        self.init(r: Double(r), g: Double(g), b: Double(b), a: Double(a))
+        resolved.getRed(
+            &r,
+            green: &g,
+            blue: &b,
+            alpha: &a
+        )
+        self.init(
+            r: Double(r),
+            g: Double(g),
+            b: Double(b),
+            a: Double(a)
+        )
     }
 }
 
@@ -234,12 +258,22 @@ private func figmaCssWeight(_ weight: CGFloat) -> Int {
 }
 
 extension FigmaFont {
-    @MainActor init(_ textStyle: PinTextStyle, colorTokenName: String?, rawColor: Color? = nil, underline: Bool = false) {
+    @MainActor init(
+        _ textStyle: PinTextStyle,
+        colorTokenName: String?,
+        rawColor: Color? = nil,
+        underline: Bool = false
+    ) {
         let metrics = textStyle.captureMetrics
         let color = colorTokenName.flatMap { PinColorToken(rawValue: $0)?.color } ?? rawColor ?? .primary
         self.init(
-            family: metrics.family, size: metrics.size, weight: metrics.weight,
-            color: RGBA(color), colorToken: colorTokenName, style: textStyle.captureName, underline: underline
+            family: metrics.family,
+            size: metrics.size,
+            weight: metrics.weight,
+            color: RGBA(color),
+            colorToken: colorTokenName,
+            style: textStyle.captureName,
+            underline: underline
         )
     }
 }
@@ -247,14 +281,35 @@ extension FigmaFont {
 extension FigmaTextStyle {
     @MainActor init(_ style: PinTextStyle) {
         let metrics = style.captureMetrics
-        self.init(name: style.captureName, family: metrics.family, size: metrics.size, weight: metrics.weight)
+        self.init(
+            name: style.captureName,
+            family: metrics.family,
+            size: metrics.size,
+            weight: metrics.weight
+        )
     }
 }
 
 // Best-effort, fire-and-forget pushes to the local serve: no-op if it isn't running.
 public enum FigmaCaptureFile {
-    public static func pushCatalog(app: String, id: String, title: String, section: String, tags: [String], version: Int, document: FigmaDocument) {
-        let entry = CatalogEntry(app: app, id: id, title: title, section: section, tags: tags, version: version, document: document)
+    public static func pushCatalog(
+        app: String,
+        id: String,
+        title: String,
+        section: String,
+        tags: [String],
+        version: Int,
+        document: FigmaDocument
+    ) {
+        let entry = CatalogEntry(
+            app: app,
+            id: id,
+            title: title,
+            section: section,
+            tags: tags,
+            version: version,
+            document: document
+        )
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         guard let data = try? encoder.encode(entry) else { return }

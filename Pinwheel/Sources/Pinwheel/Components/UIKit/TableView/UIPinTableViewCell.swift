@@ -1,7 +1,11 @@
 import UIKit
 
 public protocol UIPinTableViewCellDelegate: AnyObject {
-    func tableViewCell(_ tableViewCell: UIPinTableViewCell, didChangeBoolTableViewItem boolTableViewItem: UIPinBoolTableViewItem, atIndexPath indexPath: IndexPath)
+    func tableViewCell(
+        _ tableViewCell: UIPinTableViewCell,
+        didChangeBoolTableViewItem boolTableViewItem: UIPinBoolTableViewItem,
+        atIndexPath indexPath: IndexPath
+    )
 }
 
 open class UIPinTableViewCell: UITableViewCell {
@@ -38,14 +42,22 @@ open class UIPinTableViewCell: UITableViewCell {
     open lazy var switchControl: UISwitch = {
         let aSwitch = UISwitch(withAutoLayout: true)
         aSwitch.onTintColor = .actionText
-        aSwitch.addTarget(self, action: #selector(switchChanged), for: .valueChanged)
+        aSwitch.addTarget(
+            self,
+            action: #selector(switchChanged),
+            for: .valueChanged
+        )
         return aSwitch
     }()
 
     @objc func switchChanged(sender: UISwitch) {
         if let edited = tableViewItem as? UIPinBoolTableViewItem, let indexPath = indexPath {
             edited.isOn = sender.isOn
-            delegate?.tableViewCell(self, didChangeBoolTableViewItem: edited, atIndexPath: indexPath)
+            delegate?.tableViewCell(
+                self,
+                didChangeBoolTableViewItem: edited,
+                atIndexPath: indexPath
+            )
         }
     }
 
@@ -180,7 +192,7 @@ open class UIPinTableViewCell: UITableViewCell {
             detailLabelTrailingConstraint,
 
             switchControl.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            switchControlTrailingConstraint
-            ])
+            switchControlTrailingConstraint,
+        ])
     }
 }

@@ -16,10 +16,7 @@ public enum UIPinButtonStyle {
         case .tertiary:
             return .tertiary
         case .custom(let textColor, let backgroundColor):
-            return .custom(
-                text: SwiftUI.Color(uiColor: textColor),
-                background: SwiftUI.Color(uiColor: backgroundColor)
-            )
+            return .custom(text: SwiftUI.Color(uiColor: textColor), background: SwiftUI.Color(uiColor: backgroundColor))
         }
     }
 }
@@ -57,7 +54,7 @@ public final class UIPinButton: UIControl {
             host.leadingAnchor.constraint(equalTo: leadingAnchor),
             host.trailingAnchor.constraint(equalTo: trailingAnchor),
             host.topAnchor.constraint(equalTo: topAnchor),
-            host.bottomAnchor.constraint(equalTo: bottomAnchor)
+            host.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
     }
 

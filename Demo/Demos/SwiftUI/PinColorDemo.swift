@@ -11,7 +11,7 @@ struct PinColorDemo: SwiftUI.View {
         ("Primary Background", .primaryBackground),
         ("Secondary Background", .secondaryBackground),
         ("Action Background", .actionBackground),
-        ("Critical Background", .criticalBackground)
+        ("Critical Background", .criticalBackground),
     ]
 
     // VStack, not List: a List's UIKit-backed cells don't render off-screen, so Figma capture reads them empty.

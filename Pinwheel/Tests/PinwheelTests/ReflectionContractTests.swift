@@ -1,6 +1,6 @@
-import XCTest
 import SwiftUI
 import UIKit
+import XCTest
 @testable import Pinwheel
 
 @MainActor
@@ -37,10 +37,18 @@ final class ReflectionContractTests: XCTestCase {
         guard case .leaf(let text, let isButton, let fillWidth) = node else {
             return XCTFail("a PinButton must reflect as a single leaf, not recurse into its body")
         }
-        XCTAssertEqual(text, "Card", "the button leaf carries its title as text")
+        XCTAssertEqual(
+            text,
+            "Card",
+            "the button leaf carries its title as text"
+        )
         XCTAssertTrue(isButton, "a PinButton leaf is flagged as a button")
         XCTAssertFalse(fillWidth, "an unframed button does not fill width")
-        XCTAssertEqual(leafCount(node), 1, "a PinButton is exactly one leaf")
+        XCTAssertEqual(
+            leafCount(node),
+            1,
+            "a PinButton is exactly one leaf"
+        )
     }
 
     func testPinLabelReflectsToOneNonButtonLeafCarryingItsText() throws {
@@ -48,36 +56,55 @@ final class ReflectionContractTests: XCTestCase {
         guard case .leaf(let text, let isButton, let fillWidth) = node else {
             return XCTFail("a PinLabel must reflect as a single leaf, not recurse into its body")
         }
-        XCTAssertEqual(text, "Payment method", "the label leaf carries its text")
+        XCTAssertEqual(
+            text,
+            "Payment method",
+            "the label leaf carries its text"
+        )
         XCTAssertFalse(isButton, "a PinLabel leaf is not a button")
         XCTAssertFalse(fillWidth, "an unframed label does not fill width")
-        XCTAssertEqual(leafCount(node), 1, "a PinLabel is exactly one leaf")
+        XCTAssertEqual(
+            leafCount(node),
+            1,
+            "a PinLabel is exactly one leaf"
+        )
     }
 
     func testRawSwiftUIPrimitiveReflectsNil() {
-        XCTAssertNil(PinViewReflector.reflect(Picker("choice", selection: .constant(0)) { Text("A").tag(0) }),
-                     "a raw SwiftUI Picker is past the String(reflecting:).hasPrefix(\"SwiftUI.\") boundary, so it reflects nil")
-        XCTAssertNil(PinViewReflector.reflect(Stepper("Count", onIncrement: {}, onDecrement: {})),
-                     "a raw SwiftUI Stepper reflects nil for the same reason — capture falls back to containment")
+        XCTAssertNil(PinViewReflector.reflect(Picker("choice", selection: .constant(0)) { Text("A").tag(0) }), "a raw SwiftUI Picker is past the String(reflecting:).hasPrefix(\"SwiftUI.\") boundary, so it reflects nil")
+        XCTAssertNil(
+            PinViewReflector.reflect(
+                Stepper(
+                    "Count",
+                    onIncrement: {},
+                    onDecrement: {}
+                )),
+            "a raw SwiftUI Stepper reflects nil for the same reason — capture falls back to containment")
     }
 
     func testCustomCompositeRecursesIntoItsBody() throws {
-        let node = try XCTUnwrap(PinViewReflector.reflect(CustomComposite()),
-                                 "a non-SwiftUI composite must recurse into its body rather than reflect nil")
+        let node = try XCTUnwrap(PinViewReflector.reflect(CustomComposite()), "a non-SwiftUI composite must recurse into its body rather than reflect nil")
         guard case .leaf(let text, _, _) = node else {
             return XCTFail("the composite's body is a single PinLabel leaf")
         }
-        XCTAssertEqual(text, "inner body", "reflect walked into the composite's body and captured its label")
+        XCTAssertEqual(
+            text,
+            "inner body",
+            "reflect walked into the composite's body and captured its label"
+        )
     }
 
     func testCompositeNamedLikeALeafRecursesRatherThanCapturingAsThatLeaf() throws {
-        let node = try XCTUnwrap(PinViewReflector.reflect(PinButtonDemo()),
-                                 "a composite whose name starts with a leaf name must not be captured as that leaf")
+        let node = try XCTUnwrap(PinViewReflector.reflect(PinButtonDemo()), "a composite whose name starts with a leaf name must not be captured as that leaf")
         guard case .leaf(let text, let isButton, _) = node else {
             return XCTFail("PinButtonDemo's body reflects to its inner label leaf")
         }
         XCTAssertFalse(isButton, "PinButtonDemo is not a PinButton — the leaf test is exact-match, not prefix")
-        XCTAssertEqual(text, "demo body", "reflect walked into PinButtonDemo's body instead of treating it as a button")
+        XCTAssertEqual(
+            text,
+            "demo body",
+            "reflect walked into PinButtonDemo's body instead of treating it as a button"
+        )
     }
 
     func testFillWidthFrameFlipsTheLeafFillWidth() throws {
@@ -100,12 +127,20 @@ final class ReflectionContractTests: XCTestCase {
         guard case .container(_, let children) = node else {
             return XCTFail("a TupleView with more than one child reflects to a container holding all children")
         }
-        XCTAssertEqual(children.count, 2, "the container holds every child")
+        XCTAssertEqual(
+            children.count,
+            2,
+            "the container holds every child"
+        )
         let texts = children.compactMap { child -> String? in
             if case .leaf(let text, _, _) = child { return text }
             return nil
         }
-        XCTAssertEqual(texts, ["First", "Second"], "both children survive, in order")
+        XCTAssertEqual(
+            texts,
+            ["First", "Second"],
+            "both children survive, in order"
+        )
     }
 
     func testSingleSurvivingChildIsReturnedUnwrapped() throws {
@@ -113,14 +148,16 @@ final class ReflectionContractTests: XCTestCase {
         guard case .leaf(let text, _, _) = node else {
             return XCTFail("a group that reduces to one child returns that child directly, not wrapped in a container")
         }
-        XCTAssertEqual(text, "Solo", "the lone surviving child is unwrapped (Color.red reflects nil and drops out)")
+        XCTAssertEqual(
+            text,
+            "Solo",
+            "the lone surviving child is unwrapped (Color.red reflects nil and drops out)"
+        )
     }
 
     func testStructuralContainersReflectNil() {
-        XCTAssertNil(PinViewReflector.reflect(List { PinLabel("row") }),
-                     "a List reflects nil — its lazy UIKit-backed rows aren't in the reflected tree")
-        XCTAssertNil(PinViewReflector.reflect(Section { PinLabel("row") }),
-                     "a Section reflects nil, falling back to containment")
+        XCTAssertNil(PinViewReflector.reflect(List { PinLabel("row") }), "a List reflects nil — its lazy UIKit-backed rows aren't in the reflected tree")
+        XCTAssertNil(PinViewReflector.reflect(Section { PinLabel("row") }), "a Section reflects nil, falling back to containment")
     }
 
     // A ForEach of *container* rows (the rich/2-D case the deref targets — Cart etc.) expands into its real
@@ -132,10 +169,8 @@ final class ReflectionContractTests: XCTestCase {
     // leaf count falls short of the rendered components and the whole screen drops to containment. An Image (SF Symbol) must NOT be a leaf — containment drops symbols, so counting one
     // would overshoot the other way.
     func testFilledShapeReflectsToALeafButImageDoesNot() {
-        XCTAssertNotNil(PinViewReflector.reflect(RoundedRectangle(cornerRadius: 8).fill(.red).frame(width: 56, height: 56)),
-                        "a filled shape reflects to a leaf — the containment path keeps its fill box as a component")
-        XCTAssertNil(PinViewReflector.reflect(Image(systemName: "photo")),
-                     "an SF Symbol reflects nil — the containment path drops symbols, so counting it would desync the zip")
+        XCTAssertNotNil(PinViewReflector.reflect(RoundedRectangle(cornerRadius: 8).fill(.red).frame(width: 56, height: 56)), "a filled shape reflects to a leaf — the containment path keeps its fill box as a component")
+        XCTAssertNil(PinViewReflector.reflect(Image(systemName: "photo")), "an SF Symbol reflects nil — the containment path drops symbols, so counting it would desync the zip")
     }
 
     // The rich 2-D row (thumbnail | info column | stepper) reflects with the thumbnail shape leading, the
@@ -167,39 +202,51 @@ final class ReflectionContractTests: XCTestCase {
         }
         XCTAssertNil(leadingText, "the leading leaf is the thumbnail shape (no text)")
         let texts = top.compactMap(firstLeafText).compactMap { $0 }
-        XCTAssertEqual(texts, ["Title", "1"], "the info column (Title) precedes the trailing quantity, in reading order")
+        XCTAssertEqual(
+            texts,
+            ["Title", "1"],
+            "the info column (Title) precedes the trailing quantity, in reading order"
+        )
     }
 
     // An `.overlay(Capsule().stroke(color, lineWidth:))` border reflects onto the container. Reflection reads
     // the StrokeStyle's lineWidth from the view value — unlike the DisplayList, which bakes the stroke to a
     // filled ring with no readable width — so a bordered control (a stepper pill) captures its border editably.
     func testOverlayStrokeReflectsAsTheContainerBorder() throws {
-        let bordered = HStack { PinLabel("−"); PinLabel("+") }
-            .overlay(Capsule().stroke(Color.red, lineWidth: 2))
+        let bordered = HStack {
+            PinLabel("−"); PinLabel("+")
+        }
+        .overlay(Capsule().stroke(Color.red, lineWidth: 2))
         guard case .container(let container, _)? = PinViewReflector.reflect(bordered) else {
             return XCTFail("a bordered HStack reflects to a container")
         }
         let border = try XCTUnwrap(container.border, "the overlay stroke is captured as the container's border")
-        XCTAssertEqual(border.width, 2, "the border carries the stroke's lineWidth, read from the view value")
+        XCTAssertEqual(
+            border.width,
+            2,
+            "the border carries the stroke's lineWidth, read from the view value"
+        )
     }
 
     // A Capsule stroke border captures as a pill so the imported frame is fully rounded, not a square
     // rectangle; a RoundedRectangle stroke carries its own corner radius.
     func testCapsuleStrokeBorderCapturesAsPill() throws {
         let capsule = HStack { PinLabel("x") }.overlay(Capsule().stroke(Color.red, lineWidth: 1))
-        guard case .container(let capsuleContainer, _)? = PinViewReflector.reflect(capsule),
-              let capsuleBorder = capsuleContainer.border else {
+        guard case .container(let capsuleContainer, _)? = PinViewReflector.reflect(capsule), let capsuleBorder = capsuleContainer.border else {
             return XCTFail("the capsule-bordered container carries a border")
         }
         XCTAssertTrue(capsuleBorder.isPill, "a Capsule stroke border is a pill (fully rounded)")
 
         let rounded = HStack { PinLabel("x") }.overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.red, lineWidth: 1))
-        guard case .container(let roundedContainer, _)? = PinViewReflector.reflect(rounded),
-              let roundedBorder = roundedContainer.border else {
+        guard case .container(let roundedContainer, _)? = PinViewReflector.reflect(rounded), let roundedBorder = roundedContainer.border else {
             return XCTFail("the rounded-rect-bordered container carries a border")
         }
         XCTAssertFalse(roundedBorder.isPill, "a RoundedRectangle stroke is not a pill")
-        XCTAssertEqual(roundedBorder.cornerRadius, 8, "the RoundedRectangle border carries its corner radius")
+        XCTAssertEqual(
+            roundedBorder.cornerRadius,
+            8,
+            "the RoundedRectangle border carries its corner radius"
+        )
     }
 
     // A bordered single leaf (a stepper drawn as one "−  1  +" label with an overlay stroke) wraps into a
@@ -211,9 +258,17 @@ final class ReflectionContractTests: XCTestCase {
             return XCTFail("a bordered leaf wraps into a container carrying the border")
         }
         XCTAssertNotNil(container.border, "the wrapping container carries the stroke border")
-        XCTAssertEqual(children.count, 1, "the original leaf is the container's sole child")
+        XCTAssertEqual(
+            children.count,
+            1,
+            "the original leaf is the container's sole child"
+        )
         guard case .leaf(let text, _, _) = children.first else { return XCTFail("the child is the label leaf") }
-        XCTAssertEqual(text, "−  1  +", "the label text survives the wrap")
+        XCTAssertEqual(
+            text,
+            "−  1  +",
+            "the label text survives the wrap"
+        )
     }
 
     // A fixed-size (framed) image is a deliberate thumbnail the containment path keeps as a component, so
@@ -221,10 +276,8 @@ final class ReflectionContractTests: XCTestCase {
     // short of the rendered components and drops to the containment path, which scrambles the 2-D row. An
     // unframed intrinsic-size image (an SF Symbol) still reflects nil, since containment drops those.
     func testFramedImageReflectsToALeafButUnframedDoesNot() {
-        XCTAssertNotNil(PinViewReflector.reflect(Image(systemName: "photo").resizable().frame(width: 64, height: 64)),
-                        "a fixed-size framed image reflects as a leaf")
-        XCTAssertNil(PinViewReflector.reflect(Image(systemName: "plus")),
-                     "an unframed image still reflects nil")
+        XCTAssertNotNil(PinViewReflector.reflect(Image(systemName: "photo").resizable().frame(width: 64, height: 64)), "a fixed-size framed image reflects as a leaf")
+        XCTAssertNil(PinViewReflector.reflect(Image(systemName: "plus")), "an unframed image still reflects nil")
     }
 
     func testForEachOfContainerRowsExpands() throws {
@@ -236,7 +289,10 @@ final class ReflectionContractTests: XCTestCase {
             default: return 0
             }
         }
-        XCTAssertEqual(leaves(PinViewReflector.reflect(ForEach(["r0", "r1"], id: \.self) { name in HStack { PinLabel(name) } })), 2,
-                       "ForEach of HStack rows expands → 2 leaves")
+        XCTAssertEqual(
+            leaves(PinViewReflector.reflect(ForEach(["r0", "r1"], id: \.self) { name in HStack { PinLabel(name) } })),
+            2,
+            "ForEach of HStack rows expands → 2 leaves"
+        )
     }
 }

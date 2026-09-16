@@ -1,13 +1,29 @@
 import UIKit
 
 public extension UIView {
-    func addSubview(_ view: UIView, filling edges: NSDirectionalRectEdge, insets: UIEdgeInsets = .zero) {
+    func addSubview(
+        _ view: UIView,
+        filling edges: NSDirectionalRectEdge,
+        insets: UIEdgeInsets = .zero
+    ) {
         addSubview(view)
-        view.pin(to: ownAnchors, edges: edges, insets: insets)
+        view.pin(
+            to: ownAnchors,
+            edges: edges,
+            insets: insets
+        )
     }
 
-    func addSubview(_ view: UIView, filling edges: NSDirectionalRectEdge, margin: CGFloat) {
-        addSubview(view, filling: edges, insets: UIEdgeInsets(margin))
+    func addSubview(
+        _ view: UIView,
+        filling edges: NSDirectionalRectEdge,
+        margin: CGFloat
+    ) {
+        addSubview(
+            view,
+            filling: edges,
+            insets: UIEdgeInsets(margin)
+        )
     }
 
     func addSubview(
@@ -30,7 +46,12 @@ public extension UIView {
         edges: NSDirectionalRectEdge = .all,
         margin: CGFloat
     ) {
-        addSubview(view, filling: guide, edges: edges, insets: UIEdgeInsets(margin))
+        addSubview(
+            view,
+            filling: guide,
+            edges: edges,
+            insets: UIEdgeInsets(margin)
+        )
     }
 
     func addSubview(
@@ -42,7 +63,11 @@ public extension UIView {
         insets: UIEdgeInsets = .zero
     ) {
         addSubview(view)
-        view.pin(to: (top, leading, trailing, bottom), edges: .all, insets: insets)
+        view.pin(
+            to: (top, leading, trailing, bottom),
+            edges: .all,
+            insets: insets
+        )
     }
 
     func insertSubview(
@@ -52,7 +77,11 @@ public extension UIView {
         insets: UIEdgeInsets = .zero
     ) {
         insertSubview(view, belowSubview: sibling)
-        view.pin(to: ownAnchors, edges: edges, insets: insets)
+        view.pin(
+            to: ownAnchors,
+            edges: edges,
+            insets: insets
+        )
     }
 }
 
@@ -68,7 +97,11 @@ private extension UIView {
         (topAnchor, leadingAnchor, trailingAnchor, bottomAnchor)
     }
 
-    func pin(to target: PinnedEdges, edges: NSDirectionalRectEdge, insets: UIEdgeInsets) {
+    func pin(
+        to target: PinnedEdges,
+        edges: NSDirectionalRectEdge,
+        insets: UIEdgeInsets
+    ) {
         var constraints: [NSLayoutConstraint] = []
         if edges.contains(.top) {
             constraints.append(topAnchor.constraint(equalTo: target.top, constant: insets.top))
@@ -88,7 +121,12 @@ private extension UIView {
 
 private extension UIEdgeInsets {
     init(_ margin: CGFloat) {
-        self.init(top: margin, leading: margin, bottom: margin, trailing: margin)
+        self.init(
+            top: margin,
+            leading: margin,
+            bottom: margin,
+            trailing: margin
+        )
     }
 }
 

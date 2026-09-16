@@ -42,7 +42,11 @@ struct PinwheelFilterBar: SwiftUI.View {
         .background(.primaryBackground)
     }
 
-    private func pill(title: String, isSelected: Bool, action: @escaping () -> Void) -> some SwiftUI.View {
+    private func pill(
+        title: String,
+        isSelected: Bool,
+        action: @escaping () -> Void
+    ) -> some SwiftUI.View {
         SwiftUI.Button(action: action) {
             PinLabel(title)
                 .color(isSelected ? .custom(.primaryBackground) : .action)

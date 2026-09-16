@@ -1,6 +1,6 @@
-import XCTest
 import SwiftUI
 import UIKit
+import XCTest
 @testable import Demo
 @testable import Pinwheel
 
@@ -40,7 +40,11 @@ final class LiveCaptureHostSizingTests: XCTestCase {
         }
         let root = try XCTUnwrap(window.rootViewController)
         let host = innermost(root)
-        XCTAssertNotIdentical(host, root, "the capture host should have built a hosting controller for the entry")
+        XCTAssertNotIdentical(
+            host,
+            root,
+            "the capture host should have built a hosting controller for the entry"
+        )
         return host.view.bounds.height
     }
 

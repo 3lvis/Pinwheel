@@ -12,14 +12,44 @@ struct ProductListDemo: SwiftUI.View {
     }
 
     @SwiftUI.State private var recommended: [Product] = [
-        Product(title: "Wireless Earbuds Pro", now: "$129", was: "$159", quantity: 1),
-        Product(title: "Cotton Crew T-Shirt", now: "$24", was: nil, quantity: 2),
-        Product(title: "Ceramic Coffee Mug", now: "$12", was: nil, quantity: 1)
+        Product(
+            title: "Wireless Earbuds Pro",
+            now: "$129",
+            was: "$159",
+            quantity: 1
+        ),
+        Product(
+            title: "Cotton Crew T-Shirt",
+            now: "$24",
+            was: nil,
+            quantity: 2
+        ),
+        Product(
+            title: "Ceramic Coffee Mug",
+            now: "$12",
+            was: nil,
+            quantity: 1
+        ),
     ]
     @SwiftUI.State private var deals: [Product] = [
-        Product(title: "LED Desk Lamp", now: "$34", was: "$49", quantity: 1),
-        Product(title: "Hardcover Notebook Set", now: "$18", was: "$25", quantity: 3),
-        Product(title: "Insulated Water Bottle", now: "$21", was: "$28", quantity: 1)
+        Product(
+            title: "LED Desk Lamp",
+            now: "$34",
+            was: "$49",
+            quantity: 1
+        ),
+        Product(
+            title: "Hardcover Notebook Set",
+            now: "$18",
+            was: "$25",
+            quantity: 3
+        ),
+        Product(
+            title: "Insulated Water Bottle",
+            now: "$21",
+            was: "$28",
+            quantity: 1
+        ),
     ]
 
     var body: some SwiftUI.View {

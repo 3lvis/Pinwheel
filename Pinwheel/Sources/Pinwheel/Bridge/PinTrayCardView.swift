@@ -48,10 +48,7 @@ extension PinTrayCardView {
         switch gesture.state {
         case .began:
             reporting?.cardWillBeginDragging()
-            gesture.setTranslation(
-                CGPoint(x: 0, y: reporting?.dragInProgress ?? 0),
-                in: superview
-            )
+            gesture.setTranslation(CGPoint(x: 0, y: reporting?.dragInProgress ?? 0), in: superview)
         case .changed:
             reporting?.cardDragged(to: translation)
         case .ended, .cancelled:

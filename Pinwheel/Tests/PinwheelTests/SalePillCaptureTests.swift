@@ -1,6 +1,6 @@
-import XCTest
 import SwiftUI
 import UIKit
+import XCTest
 @testable import Pinwheel
 
 @MainActor
@@ -31,7 +31,11 @@ final class SalePillCaptureTests: XCTestCase {
                 }
                 .padding(.spacing4)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .frame(
+                maxWidth: .infinity,
+                maxHeight: .infinity,
+                alignment: .top
+            )
             .background(.primaryBackground)
         }
     }
@@ -44,9 +48,13 @@ final class SalePillCaptureTests: XCTestCase {
     // containment vertical-list path — flattenLeaves used to dissolve the pill wrapper down to its bare
     // label, dropping the capsule and leaving white text invisible on a light card.
     func testSalePillFillSurvivesCapture() throws {
-        let document = try XCTUnwrap(PinDisplayListCapture.document(
-            Fixture(), name: "Sale", size: CGSize(width: 402, height: 700), screenHeight: 700))
-        XCTAssertTrue(hasFill(document.root, token: "criticalBackground"),
-                      "the SALE pill's criticalBackground capsule must survive — else the white label is invisible")
+        let document = try XCTUnwrap(
+            PinDisplayListCapture.document(
+                Fixture(),
+                name: "Sale",
+                size: CGSize(width: 402, height: 700),
+                screenHeight: 700
+            ))
+        XCTAssertTrue(hasFill(document.root, token: "criticalBackground"), "the SALE pill's criticalBackground capsule must survive — else the white label is invisible")
     }
 }

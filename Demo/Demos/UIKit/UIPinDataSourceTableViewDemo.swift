@@ -13,7 +13,7 @@ class UIPinDataSourceTableViewDemo: UIPinView, Tweakable {
             TextTweak(title: "Remove row") {
                 self.rowCount = max(0, self.rowCount - 1)
                 self.tableView.reloadData()
-            }
+            },
         ]
     }()
 

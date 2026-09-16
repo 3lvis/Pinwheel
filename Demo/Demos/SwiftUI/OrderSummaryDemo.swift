@@ -15,22 +15,86 @@ struct OrderSummaryDemo: SwiftUI.View {
     }
 
     private let items = [
-        Item(title: "Organic Bananas", detail: "≈ 1.2 kg", label: nil, bonus: "Bonus", discount: nil,
-             quantity: "2 × kr 24,90", tax: "15% VAT", price: "kr 49,80"),
-        Item(title: "Whole Milk 1L", detail: "6-pack", label: "Replaced", bonus: nil, discount: nil,
-             quantity: "1 × kr 119,00", tax: "15% VAT", price: "kr 119,00"),
-        Item(title: "Sourdough Loaf", detail: nil, label: nil, bonus: nil, discount: "−20%",
-             quantity: "1 × kr 39,00", tax: "15% VAT", price: "kr 31,20"),
-        Item(title: "Free-Range Eggs", detail: "12-pack", label: nil, bonus: nil, discount: nil,
-             quantity: "1 × kr 54,90", tax: "15% VAT", price: "kr 54,90"),
-        Item(title: "Cold-Pressed Olive Oil", detail: "500 ml", label: "Not delivered", bonus: nil, discount: nil,
-             quantity: "1 × kr 149,00", tax: "15% VAT", price: "kr 149,00"),
-        Item(title: "Dark Roast Coffee", detail: "1 kg", label: nil, bonus: "Bonus", discount: "−15%",
-             quantity: "2 × kr 189,00", tax: "15% VAT", price: "kr 321,30"),
-        Item(title: "Greek Yogurt", detail: "500 g", label: nil, bonus: nil, discount: "−10%",
-             quantity: "3 × kr 29,90", tax: "15% VAT", price: "kr 80,73"),
-        Item(title: "Aged Cheddar", detail: "250 g", label: "Replaced", bonus: nil, discount: nil,
-             quantity: "1 × kr 89,00", tax: "15% VAT", price: "kr 89,00")
+        Item(
+            title: "Organic Bananas",
+            detail: "≈ 1.2 kg",
+            label: nil,
+            bonus: "Bonus",
+            discount: nil,
+            quantity: "2 × kr 24,90",
+            tax: "15% VAT",
+            price: "kr 49,80"
+        ),
+        Item(
+            title: "Whole Milk 1L",
+            detail: "6-pack",
+            label: "Replaced",
+            bonus: nil,
+            discount: nil,
+            quantity: "1 × kr 119,00",
+            tax: "15% VAT",
+            price: "kr 119,00"
+        ),
+        Item(
+            title: "Sourdough Loaf",
+            detail: nil,
+            label: nil,
+            bonus: nil,
+            discount: "−20%",
+            quantity: "1 × kr 39,00",
+            tax: "15% VAT",
+            price: "kr 31,20"
+        ),
+        Item(
+            title: "Free-Range Eggs",
+            detail: "12-pack",
+            label: nil,
+            bonus: nil,
+            discount: nil,
+            quantity: "1 × kr 54,90",
+            tax: "15% VAT",
+            price: "kr 54,90"
+        ),
+        Item(
+            title: "Cold-Pressed Olive Oil",
+            detail: "500 ml",
+            label: "Not delivered",
+            bonus: nil,
+            discount: nil,
+            quantity: "1 × kr 149,00",
+            tax: "15% VAT",
+            price: "kr 149,00"
+        ),
+        Item(
+            title: "Dark Roast Coffee",
+            detail: "1 kg",
+            label: nil,
+            bonus: "Bonus",
+            discount: "−15%",
+            quantity: "2 × kr 189,00",
+            tax: "15% VAT",
+            price: "kr 321,30"
+        ),
+        Item(
+            title: "Greek Yogurt",
+            detail: "500 g",
+            label: nil,
+            bonus: nil,
+            discount: "−10%",
+            quantity: "3 × kr 29,90",
+            tax: "15% VAT",
+            price: "kr 80,73"
+        ),
+        Item(
+            title: "Aged Cheddar",
+            detail: "250 g",
+            label: "Replaced",
+            bonus: nil,
+            discount: nil,
+            quantity: "1 × kr 89,00",
+            tax: "15% VAT",
+            price: "kr 89,00"
+        ),
     ]
 
     var body: some SwiftUI.View {
@@ -48,9 +112,27 @@ struct OrderSummaryDemo: SwiftUI.View {
                                 PinLabel(detail).font(.caption).color(.secondary)
                             }
                             HStack(spacing: .spacing2) {
-                                if let label = item.label { pill(label, fill: .primaryBackground, text: .primary) }
-                                if let bonus = item.bonus { pill(bonus, fill: .actionBackground, text: .action) }
-                                if let discount = item.discount { pill(discount, fill: .criticalBackground, text: .critical) }
+                                if let label = item.label {
+                                    pill(
+                                        label,
+                                        fill: .primaryBackground,
+                                        text: .primary
+                                    )
+                                }
+                                if let bonus = item.bonus {
+                                    pill(
+                                        bonus,
+                                        fill: .actionBackground,
+                                        text: .action
+                                    )
+                                }
+                                if let discount = item.discount {
+                                    pill(
+                                        discount,
+                                        fill: .criticalBackground,
+                                        text: .critical
+                                    )
+                                }
                                 Spacer()
                                 PinLabel(item.tax).font(.caption).color(.tertiary)
                             }
@@ -68,11 +150,19 @@ struct OrderSummaryDemo: SwiftUI.View {
             }
             .padding(.spacing4)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .frame(
+            maxWidth: .infinity,
+            maxHeight: .infinity,
+            alignment: .top
+        )
         .background(.primaryBackground)
     }
 
-    private func pill(_ text: String, fill: Color, text textColor: PinLabel.TextColor) -> some SwiftUI.View {
+    private func pill(
+        _ text: String,
+        fill: Color,
+        text textColor: PinLabel.TextColor
+    ) -> some SwiftUI.View {
         PinLabel(text).font(.footnote).color(textColor)
             .padding(.horizontal, .spacing2)
             .padding(.vertical, 2)

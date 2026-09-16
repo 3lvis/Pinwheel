@@ -8,7 +8,11 @@ public extension UICollectionView {
     }
 
     func register(_ cellClass: UICollectionReusableView.Type, ofKind kind: String) {
-        register(cellClass.self, forSupplementaryViewOfKind: kind, withReuseIdentifier: cellClass.reuseIdentifier)
+        register(
+            cellClass.self,
+            forSupplementaryViewOfKind: kind,
+            withReuseIdentifier: cellClass.reuseIdentifier
+        )
     }
 
     func registerNib(_ cellClass: UICollectionViewCell.Type, bundle: Bundle? = nil) {
@@ -19,7 +23,15 @@ public extension UICollectionView {
         return dequeueReusableCell(withReuseIdentifier: cellClass.reuseIdentifier, for: indexPath) as! T
     }
 
-    func dequeue<T>(_ reusableSupplementaryViewClass: T.Type, for indexPath: IndexPath, ofKind kind: String) -> T where T: UICollectionReusableView {
-        return dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: reusableSupplementaryViewClass.reuseIdentifier, for: indexPath) as! T
+    func dequeue<T>(
+        _ reusableSupplementaryViewClass: T.Type,
+        for indexPath: IndexPath,
+        ofKind kind: String
+    ) -> T where T: UICollectionReusableView {
+        return dequeueReusableSupplementaryView(
+            ofKind: kind,
+            withReuseIdentifier: reusableSupplementaryViewClass.reuseIdentifier,
+            for: indexPath
+        ) as! T
     }
 }

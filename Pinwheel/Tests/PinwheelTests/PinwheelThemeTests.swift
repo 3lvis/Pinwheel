@@ -1,6 +1,6 @@
-import XCTest
 import SwiftUI
 import UIKit
+import XCTest
 @testable import Pinwheel
 
 @MainActor
@@ -32,7 +32,11 @@ final class PinwheelThemeTests: XCTestCase {
         }
     }
 
-    private func theme(named name: String, color: UIColor, fontSize: CGFloat) -> PinwheelTheme {
+    private func theme(
+        named name: String,
+        color: UIColor,
+        fontSize: CGFloat
+    ) -> PinwheelTheme {
         PinwheelTheme(
             name: name,
             colors: FlatColorProvider(color: color),
@@ -41,51 +45,119 @@ final class PinwheelThemeTests: XCTestCase {
     }
 
     func testColorTokenResolvesTheThemeInTheTraitCollectionRatherThanAGlobal() {
-        let red = theme(named: "Red", color: .red, fontSize: 10)
-        let blue = theme(named: "Blue", color: .blue, fontSize: 10)
+        let red = theme(
+            named: "Red",
+            color: .red,
+            fontSize: 10
+        )
+        let blue = theme(
+            named: "Blue",
+            color: .blue,
+            fontSize: 10
+        )
 
-        let inRed = UIColor.primaryText.resolvedColor(with: UITraitCollection(mutations: {
-            $0[PinwheelThemeTrait.self] = red
-        }))
-        let inBlue = UIColor.primaryText.resolvedColor(with: UITraitCollection(mutations: {
-            $0[PinwheelThemeTrait.self] = blue
-        }))
+        let inRed = UIColor.primaryText.resolvedColor(
+            with: UITraitCollection(mutations: {
+                $0[PinwheelThemeTrait.self] = red
+            }))
+        let inBlue = UIColor.primaryText.resolvedColor(
+            with: UITraitCollection(mutations: {
+                $0[PinwheelThemeTrait.self] = blue
+            }))
 
-        XCTAssertEqual(inRed, UIColor.red, "a color token must resolve the theme carried by the traits it is resolved against")
-        XCTAssertEqual(inBlue, UIColor.blue, "the same token must resolve differently under a different theme — one static provider cannot be brand-reactive")
+        XCTAssertEqual(
+            inRed,
+            UIColor.red,
+            "a color token must resolve the theme carried by the traits it is resolved against"
+        )
+        XCTAssertEqual(
+            inBlue,
+            UIColor.blue,
+            "the same token must resolve differently under a different theme — one static provider cannot be brand-reactive"
+        )
     }
 
     func testFontTokenResolvesThePassedTheme() {
-        let small = theme(named: "Small", color: .red, fontSize: 11)
-        let large = theme(named: "Large", color: .red, fontSize: 29)
+        let small = theme(
+            named: "Small",
+            color: .red,
+            fontSize: 11
+        )
+        let large = theme(
+            named: "Large",
+            color: .red,
+            fontSize: 29
+        )
 
         XCTAssertEqual(PinTextStyle.body.uiFont(in: small).pointSize, 11)
-        XCTAssertEqual(PinTextStyle.body.uiFont(in: large).pointSize, 29, "a text style must read the theme it is given, not a fixed provider")
+        XCTAssertEqual(
+            PinTextStyle.body.uiFont(in: large).pointSize,
+            29,
+            "a text style must read the theme it is given, not a fixed provider"
+        )
     }
 
     func testThemesAreEqualByNameSoAReRenderSkipsAnUnchangedSelection() {
-        let first = theme(named: "Marine", color: .red, fontSize: 10)
-        let second = theme(named: "Marine", color: .blue, fontSize: 20)
-        XCTAssertEqual(first, second, "a theme is identified by its name — the providers are its contents, not its identity")
+        let first = theme(
+            named: "Marine",
+            color: .red,
+            fontSize: 10
+        )
+        let second = theme(
+            named: "Marine",
+            color: .blue,
+            fontSize: 20
+        )
+        XCTAssertEqual(
+            first,
+            second,
+            "a theme is identified by its name — the providers are its contents, not its identity"
+        )
     }
 
     func testChromeResolvesTheSelectedThemeByName() {
         let chrome = PinwheelChrome()
-        chrome.themes = [theme(named: "Marine", color: .red, fontSize: 10), theme(named: "Ember", color: .blue, fontSize: 10)]
+        chrome.themes = [
+            theme(
+                named: "Marine",
+                color: .red,
+                fontSize: 10
+            ),
+            theme(
+                named: "Ember",
+                color: .blue,
+                fontSize: 10
+            ),
+        ]
         chrome.selectedThemeName = "Ember"
         XCTAssertEqual(chrome.theme.name, "Ember")
     }
 
     func testChromeFallsBackToTheFirstThemeWhenThePersistedNameIsGone() {
         let chrome = PinwheelChrome()
-        chrome.themes = [theme(named: "Marine", color: .red, fontSize: 10)]
+        chrome.themes = [
+            theme(
+                named: "Marine",
+                color: .red,
+                fontSize: 10
+            )
+        ]
         chrome.selectedThemeName = "Ember"
         chrome.normalizeTheme()
-        XCTAssertEqual(chrome.selectedThemeName, "Marine", "a persisted name for a theme no longer supplied must fall back rather than resolve nothing")
+        XCTAssertEqual(
+            chrome.selectedThemeName,
+            "Marine",
+            "a persisted name for a theme no longer supplied must fall back rather than resolve nothing"
+        )
     }
 
     func testAThemeKeepsRoundedButtonsUnlessItAsksForAnotherShape() {
-        XCTAssertEqual(theme(named: "Marine", color: .red, fontSize: 10).buttonShape, .rounded)
+        XCTAssertEqual(
+            theme(
+                named: "Marine",
+                color: .red,
+                fontSize: 10
+            ).buttonShape, .rounded)
     }
 
     func testAThemeCanGiveItsButtonsACapsule() {
@@ -95,7 +167,11 @@ final class PinwheelThemeTests: XCTestCase {
             fonts: FixedSizeFontProvider(size: 10),
             buttonShape: .capsule
         )
-        XCTAssertEqual(capsuled.buttonShape, .capsule, "a capsule is half the button's height, so it cannot be carried as a radius")
+        XCTAssertEqual(
+            capsuled.buttonShape,
+            .capsule,
+            "a capsule is half the button's height, so it cannot be carried as a radius"
+        )
     }
 
     // A detached view never recomputes its trait collection, so a themed window is the only
@@ -112,7 +188,13 @@ final class PinwheelThemeTests: XCTestCase {
 
     func testAUIKitLabelTakesItsFontFromTheThemeItIsShownIn() {
         let label = UIPinLabel(font: .body)
-        let window = windowShowing(label, in: theme(named: "Large", color: .red, fontSize: 29))
+        let window = windowShowing(
+            label,
+            in: theme(
+                named: "Large",
+                color: .red,
+                fontSize: 29
+            ))
         withExtendedLifetime(window) {
             XCTAssertEqual(
                 label.font.pointSize,
@@ -124,26 +206,56 @@ final class PinwheelThemeTests: XCTestCase {
 
     func testAUIKitLabelFollowsALaterThemeChange() {
         let label = UIPinLabel(font: .body)
-        let window = windowShowing(label, in: theme(named: "Small", color: .red, fontSize: 11))
+        let window = windowShowing(
+            label,
+            in: theme(
+                named: "Small",
+                color: .red,
+                fontSize: 11
+            ))
         withExtendedLifetime(window) {
             XCTAssertEqual(label.font.pointSize, 11)
-            window.traitOverrides[PinwheelThemeTrait.self] = theme(named: "Large", color: .red, fontSize: 29)
+            window.traitOverrides[PinwheelThemeTrait.self] = theme(
+                named: "Large",
+                color: .red,
+                fontSize: 29
+            )
             window.layoutIfNeeded()
-            XCTAssertEqual(label.font.pointSize, 29, "switching theme must restyle a label already on screen")
+            XCTAssertEqual(
+                label.font.pointSize,
+                29,
+                "switching theme must restyle a label already on screen"
+            )
         }
     }
 
     func testATableViewCellLabelTakesItsFontFromTheThemeItIsShownIn() {
         let cell = UIPinTableViewCell(style: .default, reuseIdentifier: nil)
-        let window = windowShowing(cell, in: theme(named: "Large", color: .red, fontSize: 29))
+        let window = windowShowing(
+            cell,
+            in: theme(
+                named: "Large",
+                color: .red,
+                fontSize: 29
+            ))
         withExtendedLifetime(window) {
-            XCTAssertEqual(cell.titleLabel.font.pointSize, 29, "a cell's labels are themed like any other")
+            XCTAssertEqual(
+                cell.titleLabel.font.pointSize,
+                29,
+                "a cell's labels are themed like any other"
+            )
         }
     }
 
     func testATableViewCellSwitchTakesTheThemesActionColorNotAppleGreen() {
         let cell = UIPinTableViewCell(style: .default, reuseIdentifier: nil)
-        let window = windowShowing(cell, in: theme(named: "Red", color: .red, fontSize: 17))
+        let window = windowShowing(
+            cell,
+            in: theme(
+                named: "Red",
+                color: .red,
+                fontSize: 17
+            ))
         withExtendedLifetime(window) {
             XCTAssertEqual(
                 cell.switchControl.onTintColor?.resolvedColor(with: cell.traitCollection),
@@ -154,17 +266,32 @@ final class PinwheelThemeTests: XCTestCase {
     }
 
     func testSwitchingThemeCountsAsAColorAppearanceChange() {
-        let marine = UITraitCollection { $0[PinwheelThemeTrait.self] = theme(named: "Marine", color: .red, fontSize: 10) }
-        let ember = UITraitCollection { $0[PinwheelThemeTrait.self] = theme(named: "Ember", color: .blue, fontSize: 10) }
-        XCTAssertTrue(
-            marine.hasDifferentColorAppearance(comparedTo: ember),
-            "UIKit re-resolves a dynamic UIColor only for a trait that declares it changes color appearance — without it a tint stays on the theme it was assigned under"
-        )
+        let marine = UITraitCollection {
+            $0[PinwheelThemeTrait.self] = theme(
+                named: "Marine",
+                color: .red,
+                fontSize: 10
+            )
+        }
+        let ember = UITraitCollection {
+            $0[PinwheelThemeTrait.self] = theme(
+                named: "Ember",
+                color: .blue,
+                fontSize: 10
+            )
+        }
+        XCTAssertTrue(marine.hasDifferentColorAppearance(comparedTo: ember), "UIKit re-resolves a dynamic UIColor only for a trait that declares it changes color appearance — without it a tint stays on the theme it was assigned under")
     }
 
     func testThemePickerStaysHiddenForASingleTheme() {
         let chrome = PinwheelChrome()
-        chrome.themes = [theme(named: "Marine", color: .red, fontSize: 10)]
+        chrome.themes = [
+            theme(
+                named: "Marine",
+                color: .red,
+                fontSize: 10
+            )
+        ]
         XCTAssertFalse(chrome.isThemePickerVisible, "a catalog with one theme has nothing to pick between")
     }
 }

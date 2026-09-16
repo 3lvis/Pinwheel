@@ -5,20 +5,60 @@ import UIKit
 @MainActor
 public enum PinDisplayListCapture {
     /// Set `liveControlsOnScreen` only when `view` is on-screen: off-screen, the key window cropped for UIKit controls is a foreign surface whose pixels would land on the controls.
-    public static func document<Content: SwiftUI.View>(_ view: Content, name: String, size: CGSize, screenHeight: CGFloat, liveControlsOnScreen: Bool = false) -> FigmaDocument? {
+    public static func document<Content: SwiftUI.View>(
+        _ view: Content,
+        name: String,
+        size: CGSize,
+        screenHeight: CGFloat,
+        liveControlsOnScreen: Bool = false
+    ) -> FigmaDocument? {
         // On a dark sim the "light" pass otherwise renders dark, so a token RGBA-matches the wrong (dark) value and imports invisible.
-        guard let light = singleDocument(view.environment(\.colorScheme, .light), name: name, size: size, screenHeight: screenHeight, liveControlsOnScreen: liveControlsOnScreen) else { return nil }
+        guard
+            let light = singleDocument(
+                view.environment(\.colorScheme, .light),
+                name: name,
+                size: size,
+                screenHeight: screenHeight,
+                liveControlsOnScreen: liveControlsOnScreen
+            )
+        else { return nil }
         // Rasterized nodes (SF Symbols, spinners) bake their tint into pixels, so render again forced-dark and graft the dark pixels on by position (identical structure zips).
-        guard let dark = singleDocument(view.environment(\.colorScheme, .dark), name: name, size: size, screenHeight: screenHeight, liveControlsOnScreen: liveControlsOnScreen) else { return light }
-        return FigmaDocument(width: light.width, height: light.height, root: withDarkVariants(light.root, dark.root),
-                             tokens: light.tokens, textStyles: light.textStyles)
+        guard
+            let dark = singleDocument(
+                view.environment(\.colorScheme, .dark),
+                name: name,
+                size: size,
+                screenHeight: screenHeight,
+                liveControlsOnScreen: liveControlsOnScreen
+            )
+        else { return light }
+        return FigmaDocument(
+            width: light.width,
+            height: light.height,
+            root: withDarkVariants(light.root, dark.root),
+            tokens: light.tokens,
+            textStyles: light.textStyles
+        )
     }
 
     /// Capture from an on-screen host: the live render is complete (every UIKit control has painted, nothing drops), cropped in the sim's current appearance.
-    public static func document<Content: SwiftUI.View>(_ view: Content, name: String, size: CGSize, screenHeight: CGFloat, liveHost: UIView) -> FigmaDocument? {
+    public static func document<Content: SwiftUI.View>(
+        _ view: Content,
+        name: String,
+        size: CGSize,
+        screenHeight: CGFloat,
+        liveHost: UIView
+    ) -> FigmaDocument? {
         // `drawHierarchy` on the key window paints controls in the sim's current appearance; a plain layer render returns stale pixels.
         guard let leaves = PinDisplayList.leaves(fromHost: liveHost, liveControlsOnScreen: true) else { return nil }
-        return build(view, name: name, leaves: leaves, host: liveHost, size: size, screenHeight: screenHeight)
+        return build(
+            view,
+            name: name,
+            leaves: leaves,
+            host: liveHost,
+            size: size,
+            screenHeight: screenHeight
+        )
     }
 
     // fillDark is the fallback for a fill no token names (e.g. a List separator's Apple color, which stayed light on dark without it); a tokenized fill adapts via the token.
@@ -33,17 +73,51 @@ public enum PinDisplayListCapture {
         return node
     }
 
-    private static func singleDocument<Content: SwiftUI.View>(_ view: Content, name: String, size: CGSize, screenHeight: CGFloat, liveControlsOnScreen: Bool) -> FigmaDocument? {
-        guard let (leaves, host, window) = PinDisplayList.read(view, size: size, liveControlsOnScreen: liveControlsOnScreen) else { return nil }
-        return withExtendedLifetime(window) { build(view, name: name, leaves: leaves, host: host, size: size, screenHeight: screenHeight) }
+    private static func singleDocument<Content: SwiftUI.View>(
+        _ view: Content,
+        name: String,
+        size: CGSize,
+        screenHeight: CGFloat,
+        liveControlsOnScreen: Bool
+    ) -> FigmaDocument? {
+        guard
+            let (leaves, host, window) = PinDisplayList.read(
+                view,
+                size: size,
+                liveControlsOnScreen: liveControlsOnScreen
+            )
+        else { return nil }
+        return withExtendedLifetime(window) {
+            build(
+                view,
+                name: name,
+                leaves: leaves,
+                host: host,
+                size: size,
+                screenHeight: screenHeight
+            )
+        }
     }
 
-    private static func build<Content: SwiftUI.View>(_ view: Content, name: String, leaves: [DisplayLeaf], host: UIView, size: CGSize, screenHeight: CGFloat) -> FigmaDocument? {
+    private static func build<Content: SwiftUI.View>(
+        _ view: Content,
+        name: String,
+        leaves: [DisplayLeaf],
+        host: UIView,
+        size: CGSize,
+        screenHeight: CGFloat
+    ) -> FigmaDocument? {
         // The screen fill spans the oversized host; trim it to the content so the root matches the real screen.
         let contentBottom = (leaves.map { $0.frame.maxY }.filter { $0 < size.height - 1 }.max() ?? size.height)
         let trimmed = leaves.map { leaf in
             leaf.frame.height >= size.height - 1
-                ? DisplayLeaf(frame: CGRect(x: leaf.frame.minX, y: leaf.frame.minY, width: leaf.frame.width, height: contentBottom + 24), kind: leaf.kind)
+                ? DisplayLeaf(
+                    frame: CGRect(
+                        x: leaf.frame.minX,
+                        y: leaf.frame.minY,
+                        width: leaf.frame.width,
+                        height: contentBottom + 24
+                    ), kind: leaf.kind)
                 : leaf
         }
         let root = containmentTree(trimmed)
@@ -59,18 +133,38 @@ public enum PinDisplayListCapture {
         if let structure = PinViewReflector.reflect(view) {
             let reflectedLeaves = leafCount(structure)
             let deepLeaves = components.flatMap(allLeaves)
-            let pool: [Box]? = reflectedLeaves == components.count ? components
+            let pool: [Box]? =
+                reflectedLeaves == components.count
+                ? components
                 : (reflectedLeaves == deepLeaves.count && hasMixedRow(structure) ? deepLeaves : nil)
             if var pool {
                 let backgrounds = collectBackgrounds(root)
-                let content = emitStructure(structure, host: host, backgrounds: backgrounds) { text in
+                let content = emitStructure(
+                    structure,
+                    host: host,
+                    backgrounds: backgrounds
+                ) { text in
                     let matched = pool.firstIndex { componentText($0) == text } ?? (pool.isEmpty ? nil : 0)
                     return matched.map { pool.remove(at: $0) }
                 }
                 if let content {
-                    var rootNode = screen(content, width: size.width, fill: screenFill, components: components, canvasHeight: size.height, oneScreen: screenHeight, safeAreaTop: host.safeAreaInsets.top)
+                    var rootNode = screen(
+                        content,
+                        width: size.width,
+                        fill: screenFill,
+                        components: components,
+                        canvasHeight: size.height,
+                        oneScreen: screenHeight,
+                        safeAreaTop: host.safeAreaInsets.top
+                    )
                     rootNode.name = name
-                    return FigmaDocument(width: size.width, height: rootNode.h, root: componentizeRepeatedChildren(stripDuplicateNestedBackground(rootNode)), tokens: colorTokens + PinFloatTokens.tokens, textStyles: textStyles)
+                    return FigmaDocument(
+                        width: size.width,
+                        height: rootNode.h,
+                        root: componentizeRepeatedChildren(stripDuplicateNestedBackground(rootNode)),
+                        tokens: colorTokens + PinFloatTokens.tokens,
+                        textStyles: textStyles
+                    )
                 }
             }
         }
@@ -80,10 +174,24 @@ public enum PinDisplayListCapture {
         let minY = components.map { $0.leaf.frame.minY }.min() ?? 0
         let maxY = components.map { $0.leaf.frame.maxY }.max() ?? 0
         if abs((minY + maxY) / 2 - size.height / 2) < screenHeight / 4, (maxY - minY) < screenHeight {
-            rootNode = screen(rootNode, width: size.width, fill: screenFill, components: components, canvasHeight: size.height, oneScreen: screenHeight, safeAreaTop: host.safeAreaInsets.top)
+            rootNode = screen(
+                rootNode,
+                width: size.width,
+                fill: screenFill,
+                components: components,
+                canvasHeight: size.height,
+                oneScreen: screenHeight,
+                safeAreaTop: host.safeAreaInsets.top
+            )
         }
         rootNode.name = name
-        return FigmaDocument(width: size.width, height: rootNode.h, root: componentizeRepeatedChildren(stripDuplicateNestedBackground(rootNode)), tokens: colorTokens + PinFloatTokens.tokens, textStyles: textStyles)
+        return FigmaDocument(
+            width: size.width,
+            height: rootNode.h,
+            root: componentizeRepeatedChildren(stripDuplicateNestedBackground(rootNode)),
+            tokens: colorTokens + PinFloatTokens.tokens,
+            textStyles: textStyles
+        )
     }
 
     // Sibling frames with an identical structural signature (everything but text content and per-instance
@@ -104,7 +212,10 @@ public enum PinDisplayListCapture {
         let matches = node.children.filter { $0.tag == "frame" && $0.fillToken == token && $0.radiusToken == node.radiusToken }
         guard matches.count == 1 else { return node }
         node.children = node.children.map { child in
-            guard child.tag == "frame", child.fillToken == token, child.radiusToken == node.radiusToken else { return child }
+            guard child.tag == "frame",
+                child.fillToken == token,
+                child.radiusToken == node.radiusToken
+            else { return child }
             var child = child
             child.fill = nil
             child.fillToken = nil
@@ -279,8 +390,11 @@ public enum PinDisplayListCapture {
         var index = 0
         while index < components.count {
             let current = components[index]
-            if index + 1 < components.count, isBareText(current), isBareImage(components[index + 1]),
-               sameRow(current.leaf.frame, components[index + 1].leaf.frame) {
+            if index + 1 < components.count,
+                isBareText(current),
+                isBareImage(components[index + 1]),
+                sameRow(current.leaf.frame, components[index + 1].leaf.frame)
+            {
                 let group = Box(DisplayLeaf(frame: current.leaf.frame.union(components[index + 1].leaf.frame), kind: .transparent))
                 group.children = [current, components[index + 1]]
                 result.append(group)
@@ -313,7 +427,12 @@ public enum PinDisplayListCapture {
         return overlapY && gap < 24
     }
 
-    private static func emitStructure(_ node: ReflectedNode, host: UIView, backgrounds: [Background], next: (String?) -> Box?) -> FigmaNode? {
+    private static func emitStructure(
+        _ node: ReflectedNode,
+        host: UIView,
+        backgrounds: [Background],
+        next: (String?) -> Box?
+    ) -> FigmaNode? {
         switch node {
         case .leaf(let text, let isButton, let fillWidth):
             guard let box = next(text) else { return nil }
@@ -322,28 +441,54 @@ public enum PinDisplayListCapture {
             if fillWidth { node = fillWidthCentered(node) }
             return node
         case .spacer:
-            return FigmaNode(tag: "spacer", x: 0, y: 0, w: 0, h: 0, grow: true, children: [])
+            return FigmaNode(
+                tag: "spacer",
+                x: 0,
+                y: 0,
+                w: 0,
+                h: 0,
+                grow: true,
+                children: []
+            )
         case .container(let container, let children):
-            let childNodes = children.compactMap { emitStructure($0, host: host, backgrounds: backgrounds, next: next) }
+            let childNodes = children.compactMap {
+                emitStructure(
+                    $0,
+                    host: host,
+                    backgrounds: backgrounds,
+                    next: next
+                )
+            }
             guard childNodes.contains(where: { $0.grow != true }) else { return nil }
             // Reflection sees a card's filled shape as a transparent container — re-attach its fill/radius/padding by matching the text set it wraps.
             let texts = childNodes.reduce(into: Set<String>()) { $0.formUnion(nodeTexts($1)) }
             let background = backgrounds.first { $0.texts == texts }
             var padding = background?.padding ?? EdgeInsets()
-            let fillsWidth = container.axis == .column && container.alignment == .leading
+            let fillsWidth =
+                container.axis == .column && container.alignment == .leading
                 && padding.trailing > padding.leading + 8
             if fillsWidth { padding.trailing = padding.leading }
             let layout = PinCaptureLayout(
-                axis: container.axis, spacing: container.spacing ?? 8,
-                padding: padding, alignment: container.alignment, mainAxisAlignment: .leading
+                axis: container.axis,
+                spacing: container.spacing ?? 8,
+                padding: padding,
+                alignment: container.alignment,
+                mainAxisAlignment: .leading
             )
             var node = FigmaNode(
-                tag: "frame", x: 0, y: 0, w: 0, h: 0,
-                fill: background?.fill.map(RGBA.init), fillToken: background?.fill.flatMap(tokenName(for:)),
+                tag: "frame",
+                x: 0,
+                y: 0,
+                w: 0,
+                h: 0,
+                fill: background?.fill.map(RGBA.init),
+                fillToken: background?.fill.flatMap(tokenName(for:)),
                 radius: background?.radius.map(Double.init),
                 radiusToken: radiusTokenName(background?.radius),
                 name: container.axis == .row ? "HStack" : "VStack",
-                layout: FigmaLayout(layout), ordered: true, children: childNodes
+                layout: FigmaLayout(layout),
+                ordered: true,
+                children: childNodes
             )
             let propagatesFill = childNodes.contains { $0.grow == true || $0.fillWidth == true }
             if fillsWidth || propagatesFill { node.fillWidth = true }
@@ -364,15 +509,28 @@ public enum PinDisplayListCapture {
 
     private static func bareButtonContainer(_ content: FigmaNode) -> FigmaNode {
         let layout = PinCaptureLayout(
-            axis: .row, spacing: .spacing2,
-            padding: EdgeInsets(top: .spacing3, leading: .spacing4, bottom: .spacing3, trailing: .spacing4),
-            alignment: .center, mainAxisAlignment: .center, minWidth: bareButtonMinWidth
+            axis: .row,
+            spacing: .spacing2,
+            padding: EdgeInsets(
+                top: .spacing3,
+                leading: .spacing4,
+                bottom: .spacing3,
+                trailing: .spacing4
+            ),
+            alignment: .center,
+            mainAxisAlignment: .center,
+            minWidth: bareButtonMinWidth
         )
         return FigmaNode(
-            tag: "frame", x: content.x, y: content.y,
+            tag: "frame",
+            x: content.x,
+            y: content.y,
             w: max(content.w + 2 * Double(CGFloat.spacing4), Double(bareButtonMinWidth)),
             h: content.h + 2 * Double(CGFloat.spacing3),
-            name: "Pill", layout: FigmaLayout(layout), ordered: true, children: [content]
+            name: "Pill",
+            layout: FigmaLayout(layout),
+            ordered: true,
+            children: [content]
         )
     }
 
@@ -388,8 +546,24 @@ public enum PinDisplayListCapture {
 
     // `.frame(maxWidth: .infinity)` centers the button at its own width rather than stretching it, so wrap it in a parent-filling centering frame.
     private static func fillWidthCentered(_ content: FigmaNode) -> FigmaNode {
-        let layout = PinCaptureLayout(axis: .column, spacing: 0, padding: EdgeInsets(), alignment: .center, mainAxisAlignment: .center)
-        var wrapper = FigmaNode(tag: "frame", x: content.x, y: content.y, w: 0, h: content.h, name: "Center", layout: FigmaLayout(layout), ordered: true, children: [content])
+        let layout = PinCaptureLayout(
+            axis: .column,
+            spacing: 0,
+            padding: EdgeInsets(),
+            alignment: .center,
+            mainAxisAlignment: .center
+        )
+        var wrapper = FigmaNode(
+            tag: "frame",
+            x: content.x,
+            y: content.y,
+            w: 0,
+            h: content.h,
+            name: "Center",
+            layout: FigmaLayout(layout),
+            ordered: true,
+            children: [content]
+        )
         wrapper.fillWidth = true
         return wrapper
     }
@@ -405,12 +579,19 @@ public enum PinDisplayListCapture {
             let isCard = box.children.contains { !$0.children.isEmpty } || box.children.count >= 2
             if isCard, let fill = fillColor(box.leaf.kind) {
                 let texts = box.children.reduce(into: Set<String>()) { $0.formUnion(boxTexts($1)) }
-                let union = box.children.map(\.leaf.frame).reduce(nil, unite) ?? box.leaf.frame
-                result.append(Background(
-                    texts: texts, fill: fill, radius: cornerRadius(box.leaf.kind),
-                    padding: EdgeInsets(top: max(union.minY - box.leaf.frame.minY, 0), leading: max(union.minX - box.leaf.frame.minX, 0),
-                                        bottom: max(box.leaf.frame.maxY - union.maxY, 0), trailing: max(box.leaf.frame.maxX - union.maxX, 0))
-                ))
+                let union = box.children.map { $0.leaf.frame }.reduce(nil, unite) ?? box.leaf.frame
+                result.append(
+                    Background(
+                        texts: texts,
+                        fill: fill,
+                        radius: cornerRadius(box.leaf.kind),
+                        padding: EdgeInsets(
+                            top: max(union.minY - box.leaf.frame.minY, 0),
+                            leading: max(union.minX - box.leaf.frame.minX, 0),
+                            bottom: max(box.leaf.frame.maxY - union.maxY, 0),
+                            trailing: max(box.leaf.frame.maxX - union.maxX, 0)
+                        )
+                    ))
             }
             box.children.forEach(visit)
         }
@@ -426,7 +607,7 @@ public enum PinDisplayListCapture {
     }
 
     private static func nodeTexts(_ node: FigmaNode) -> Set<String> {
-        var texts = Set(node.texts?.map(\.text) ?? [])
+        var texts = Set(node.texts?.map { $0.text } ?? [])
         node.children.forEach { texts.formUnion(nodeTexts($0)) }
         return texts
     }
@@ -439,8 +620,9 @@ public enum PinDisplayListCapture {
         node.strokeWidth = Double(border.width)
         // A Capsule border is a full pill; Figma clamps an oversized cornerRadius to half the shorter side,
         // so a large value renders as a pill without needing the frame's measured height.
-        if border.isPill { node.radius = 1000 }
-        else if border.cornerRadius > 0 {
+        if border.isPill {
+            node.radius = 1000
+        } else if border.cornerRadius > 0 {
             node.radius = Double(border.cornerRadius)
             node.radiusToken = radiusTokenName(border.cornerRadius)
         }
@@ -453,34 +635,86 @@ public enum PinDisplayListCapture {
             switch box.leaf.kind {
             case .text(let string, let font, let color, let underline, let strikethrough, let alignment):
                 return FigmaNode(
-                    tag: "text", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
-                    font: figmaFont(font, color: color, underline: underline, strikethrough: strikethrough),
-                    texts: [FigmaText(text: string, x: frame.minX, y: frame.minY, w: frame.width, h: frame.height)],
+                    tag: "text",
+                    x: frame.minX,
+                    y: frame.minY,
+                    w: frame.width,
+                    h: frame.height,
+                    font: figmaFont(
+                        font,
+                        color: color,
+                        underline: underline,
+                        strikethrough: strikethrough
+                    ),
+                    texts: [
+                        FigmaText(
+                            text: string,
+                            x: frame.minX,
+                            y: frame.minY,
+                            w: frame.width,
+                            h: frame.height
+                        )
+                    ],
                     textAlign: textAlignName(alignment),
                     children: []
                 )
             case .rasterizable:
-                return FigmaNode(tag: "image", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height, image: box.leaf.image, children: [])
+                return FigmaNode(
+                    tag: "image",
+                    x: frame.minX,
+                    y: frame.minY,
+                    w: frame.width,
+                    h: frame.height,
+                    image: box.leaf.image,
+                    children: []
+                )
             default:
-                return filledRect(frame, radius: cornerRadius(box.leaf.kind), color: fillColor(box.leaf.kind))
+                return filledRect(
+                    frame,
+                    radius: cornerRadius(box.leaf.kind),
+                    color: fillColor(box.leaf.kind)
+                )
             }
         }
         let ordered = orderedForLayout(box.children)
         let childNodes = ordered.map { componentNode($0, host: host) }
         let fill = fillColor(box.leaf.kind)
-        var layout = inferLayout(ordered.map(\.leaf.frame), in: frame)
+        var layout = inferLayout(ordered.map { $0.leaf.frame }, in: frame)
         // Keep the pill's rendered width (padding + min-width) so the hugging frame doesn't shrink.
-        layout = PinCaptureLayout(axis: layout.axis, spacing: layout.spacing, padding: layout.padding, alignment: layout.alignment, mainAxisAlignment: .center, minWidth: frame.width)
+        layout = PinCaptureLayout(
+            axis: layout.axis,
+            spacing: layout.spacing,
+            padding: layout.padding,
+            alignment: layout.alignment,
+            mainAxisAlignment: .center,
+            minWidth: frame.width
+        )
         return FigmaNode(
-            tag: "frame", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
-            fill: fill.map(RGBA.init), fillToken: fill.flatMap(tokenName(for:)),
+            tag: "frame",
+            x: frame.minX,
+            y: frame.minY,
+            w: frame.width,
+            h: frame.height,
+            fill: fill.map(RGBA.init),
+            fillToken: fill.flatMap(tokenName(for:)),
             radius: cornerRadius(box.leaf.kind).map(Double.init),
             radiusToken: radiusTokenName(cornerRadius(box.leaf.kind)),
-            name: "Pill", layout: FigmaLayout(layout), ordered: true, children: childNodes
+            name: "Pill",
+            layout: FigmaLayout(layout),
+            ordered: true,
+            children: childNodes
         )
     }
 
-    private static func screen(_ content: FigmaNode, width: CGFloat, fill: UIColor?, components: [Box], canvasHeight: CGFloat, oneScreen: CGFloat, safeAreaTop: CGFloat) -> FigmaNode {
+    private static func screen(
+        _ content: FigmaNode,
+        width: CGFloat,
+        fill: UIColor?,
+        components: [Box],
+        canvasHeight: CGFloat,
+        oneScreen: CGFloat,
+        safeAreaTop: CGFloat
+    ) -> FigmaNode {
         let minY = components.map { $0.leaf.frame.minY }.min() ?? 0
         let maxY = components.map { $0.leaf.frame.maxY }.max() ?? 0
         let minX = components.map { $0.leaf.frame.minX }.min() ?? 0
@@ -533,7 +767,7 @@ public enum PinDisplayListCapture {
         guard let first = leaves.first else { return nil }
         // Strictly larger than the union so it encloses even a lone leaf whose frame equals the union —
         // containmentTree refuses to nest a child sharing the parent's exact frame.
-        let bounds = leaves.dropFirst().map(\.frame).reduce(first.frame) { $0.union($1) }.insetBy(dx: -1, dy: -1)
+        let bounds = leaves.dropFirst().map { $0.frame }.reduce(first.frame) { $0.union($1) }.insetBy(dx: -1, dy: -1)
         let rooted = [DisplayLeaf(frame: bounds, kind: .transparent)] + leaves
         return emit(containmentTree(rooted), host: host)
     }
@@ -559,23 +793,57 @@ public enum PinDisplayListCapture {
             switch box.leaf.kind {
             case .text(let string, let font, let color, let underline, let strikethrough, let alignment):
                 return FigmaNode(
-                    tag: "text", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
-                    font: figmaFont(font, color: color, underline: underline, strikethrough: strikethrough),
-                    texts: [FigmaText(text: string, x: frame.minX, y: frame.minY, w: frame.width, h: frame.height)],
+                    tag: "text",
+                    x: frame.minX,
+                    y: frame.minY,
+                    w: frame.width,
+                    h: frame.height,
+                    font: figmaFont(
+                        font,
+                        color: color,
+                        underline: underline,
+                        strikethrough: strikethrough
+                    ),
+                    texts: [
+                        FigmaText(
+                            text: string,
+                            x: frame.minX,
+                            y: frame.minY,
+                            w: frame.width,
+                            h: frame.height
+                        )
+                    ],
                     textAlign: textAlignName(alignment),
                     children: []
                 )
             case .rasterizable:
                 return FigmaNode(
-                    tag: "image", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
-                    image: box.leaf.image, children: []
+                    tag: "image",
+                    x: frame.minX,
+                    y: frame.minY,
+                    w: frame.width,
+                    h: frame.height,
+                    image: box.leaf.image,
+                    children: []
                 )
             case .roundedRect(let radius, let color):
-                return filledRect(frame, radius: radius, color: color)
+                return filledRect(
+                    frame,
+                    radius: radius,
+                    color: color
+                )
             case .color(let color):
-                return filledRect(frame, radius: nil, color: color)
+                return filledRect(
+                    frame,
+                    radius: nil,
+                    color: color
+                )
             case .transparent, .unknown:
-                return filledRect(frame, radius: nil, color: nil)
+                return filledRect(
+                    frame,
+                    radius: nil,
+                    color: nil
+                )
             }
         }
         let fill = fillColor(box.leaf.kind)
@@ -585,25 +853,40 @@ public enum PinDisplayListCapture {
         // Judge the axis by direct children, not flattened leaves (which drop per-row backgrounds).
         let listLeaves = flattenLeaves(box.children)
         let bands = yBands(listLeaves)
-        if bands.count > 1, inferLayout(orderedForLayout(box.children).map(\.leaf.frame), in: frame).axis == .row {
+        if bands.count > 1, inferLayout(orderedForLayout(box.children).map({ $0.leaf.frame }), in: frame).axis == .row {
             let rowNodes = bands.map { $0.count == 1 ? emit($0[0], host: host) : absoluteRowGroup($0, host: host) }
             return FigmaNode(
-                tag: "frame", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
-                fill: fill.map(RGBA.init), fillToken: token,
+                tag: "frame",
+                x: frame.minX,
+                y: frame.minY,
+                w: frame.width,
+                h: frame.height,
+                fill: fill.map(RGBA.init),
+                fillToken: token,
                 radius: cornerRadius(box.leaf.kind).map(Double.init),
                 radiusToken: radiusTokenName(cornerRadius(box.leaf.kind)),
-                name: "List", children: rowNodes
+                name: "List",
+                children: rowNodes
             )
         }
         let orderedChildren = orderedForLayout(box.children)
-        var layout = inferLayout(orderedChildren.map(\.leaf.frame), in: frame)
-        let fillsWidth = layout.axis == .column && layout.alignment == .leading
+        var layout = inferLayout(orderedChildren.map { $0.leaf.frame }, in: frame)
+        let fillsWidth =
+            layout.axis == .column && layout.alignment == .leading
             && layout.padding.trailing > layout.padding.leading + 8
         if fillsWidth {
-            layout = PinCaptureLayout(axis: layout.axis, spacing: layout.spacing,
-                                      padding: EdgeInsets(top: layout.padding.top, leading: layout.padding.leading,
-                                                          bottom: layout.padding.bottom, trailing: layout.padding.leading),
-                                      alignment: layout.alignment, mainAxisAlignment: layout.mainAxisAlignment)
+            layout = PinCaptureLayout(
+                axis: layout.axis,
+                spacing: layout.spacing,
+                padding: EdgeInsets(
+                    top: layout.padding.top,
+                    leading: layout.padding.leading,
+                    bottom: layout.padding.bottom,
+                    trailing: layout.padding.leading
+                ),
+                alignment: layout.alignment,
+                mainAxisAlignment: layout.mainAxisAlignment
+            )
         }
         // A leading column pins children left, so a child centered on the axis but inset from the leading edge (a spacing bar sharing the column with a header) gets a full-width centering slot.
         let contentMinX = orderedChildren.map { $0.leaf.frame.minX }.min() ?? frame.minX
@@ -618,12 +901,19 @@ public enum PinDisplayListCapture {
             return (centeredOnAxis && insetFromLeading) ? fillWidthCentered(node) : node
         }
         var node = FigmaNode(
-            tag: "frame", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
-            fill: fill.map(RGBA.init), fillToken: token,
+            tag: "frame",
+            x: frame.minX,
+            y: frame.minY,
+            w: frame.width,
+            h: frame.height,
+            fill: fill.map(RGBA.init),
+            fillToken: token,
             radius: cornerRadius(box.leaf.kind).map(Double.init),
             radiusToken: radiusTokenName(cornerRadius(box.leaf.kind)),
             name: layout.axis == .row ? "Row" : "Column",
-            layout: FigmaLayout(layout), ordered: true, children: childNodes
+            layout: FigmaLayout(layout),
+            ordered: true,
+            children: childNodes
         )
         if fillsWidth { node.fillWidth = true }
         return node
@@ -641,7 +931,10 @@ public enum PinDisplayListCapture {
         let sorted = children.sorted { $0.leaf.frame.minY < $1.leaf.frame.minY }
         var bands: [[Box]] = []
         for box in sorted {
-            if !bands.isEmpty, let maxY = bands[bands.count - 1].map({ $0.leaf.frame.maxY }).max(), box.leaf.frame.minY < maxY - 1 {
+            if !bands.isEmpty,
+                let maxY = bands[bands.count - 1].map({ $0.leaf.frame.maxY }).max(),
+                box.leaf.frame.minY < maxY - 1
+            {
                 bands[bands.count - 1].append(box)
             } else {
                 bands.append([box])
@@ -651,9 +944,17 @@ public enum PinDisplayListCapture {
     }
 
     private static func absoluteRowGroup(_ band: [Box], host: UIView) -> FigmaNode {
-        let union = band.map(\.leaf.frame).reduce(band[0].leaf.frame) { $0.union($1) }
+        let union = band.map { $0.leaf.frame }.reduce(band[0].leaf.frame) { $0.union($1) }
         let children = orderedForLayout(band).map { emit($0, host: host) }
-        return FigmaNode(tag: "frame", x: union.minX, y: union.minY, w: union.width, h: union.height, name: "Row", children: children)
+        return FigmaNode(
+            tag: "frame",
+            x: union.minX,
+            y: union.minY,
+            w: union.width,
+            h: union.height,
+            name: "Row",
+            children: children
+        )
     }
 
     private static func radiusTokenName(_ radius: CGFloat?) -> String? {
@@ -669,11 +970,22 @@ public enum PinDisplayListCapture {
         }
     }
 
-    private static func filledRect(_ frame: CGRect, radius: CGFloat?, color: UIColor?) -> FigmaNode {
+    private static func filledRect(
+        _ frame: CGRect,
+        radius: CGFloat?,
+        color: UIColor?
+    ) -> FigmaNode {
         FigmaNode(
-            tag: "shape", x: frame.minX, y: frame.minY, w: frame.width, h: frame.height,
-            fill: color.map(RGBA.init), fillToken: color.flatMap(tokenName(for:)),
-            radius: radius.map(Double.init), radiusToken: radiusTokenName(radius), children: []
+            tag: "shape",
+            x: frame.minX,
+            y: frame.minY,
+            w: frame.width,
+            h: frame.height,
+            fill: color.map(RGBA.init),
+            fillToken: color.flatMap(tokenName(for:)),
+            radius: radius.map(Double.init),
+            radiusToken: radiusTokenName(radius),
+            children: []
         )
     }
 
@@ -699,7 +1011,12 @@ public enum PinDisplayListCapture {
 
     private static func inferLayout(_ frames: [CGRect], in parent: CGRect) -> PinCaptureLayout {
         guard frames.count > 1 else {
-            return PinCaptureLayout(axis: .column, spacing: 0, padding: padding(parent, frames), alignment: .center)
+            return PinCaptureLayout(
+                axis: .column,
+                spacing: 0,
+                padding: padding(parent, frames),
+                alignment: .center
+            )
         }
         let byY = frames.sorted { $0.minY < $1.minY }
         let stackedVertically = zip(byY, byY.dropFirst()).allSatisfy { $1.minY >= $0.maxY - 1 }
@@ -708,20 +1025,32 @@ public enum PinDisplayListCapture {
         let gaps = zip(ordered, ordered.dropFirst()).map { axis == .column ? $1.minY - $0.maxY : $1.minX - $0.maxX }
         let spacing = gaps.filter { $0 >= 0 }.min() ?? 0
         return PinCaptureLayout(
-            axis: axis, spacing: max(spacing, 0), padding: padding(parent, frames),
-            alignment: crossAlignment(ordered, in: parent, axis: axis)
+            axis: axis,
+            spacing: max(spacing, 0),
+            padding: padding(parent, frames),
+            alignment: crossAlignment(
+                ordered,
+                in: parent,
+                axis: axis
+            )
         )
     }
 
     private static func padding(_ parent: CGRect, _ children: [CGRect]) -> EdgeInsets {
         guard let union = children.reduce(nil, unite) else { return EdgeInsets() }
         return EdgeInsets(
-            top: max(union.minY - parent.minY, 0), leading: max(union.minX - parent.minX, 0),
-            bottom: max(parent.maxY - union.maxY, 0), trailing: max(parent.maxX - union.maxX, 0)
+            top: max(union.minY - parent.minY, 0),
+            leading: max(union.minX - parent.minX, 0),
+            bottom: max(parent.maxY - union.maxY, 0),
+            trailing: max(parent.maxX - union.maxX, 0)
         )
     }
 
-    private static func crossAlignment(_ frames: [CGRect], in parent: CGRect, axis: PinCaptureLayout.Axis) -> PinCaptureLayout.CrossAxis {
+    private static func crossAlignment(
+        _ frames: [CGRect],
+        in parent: CGRect,
+        axis: PinCaptureLayout.Axis
+    ) -> PinCaptureLayout.CrossAxis {
         guard let union = frames.reduce(nil, unite) else { return .center }
         if axis == .column {
             let centered = frames.allSatisfy { abs(($0.midX) - union.midX) < 2 }
@@ -735,12 +1064,20 @@ public enum PinDisplayListCapture {
         accumulated.map { $0.union(next) } ?? next
     }
 
-    static func figmaFont(_ font: UIFont?, color: UIColor?, underline: Bool, strikethrough: Bool = false) -> FigmaFont {
+    static func figmaFont(
+        _ font: UIFont?,
+        color: UIColor?,
+        underline: Bool,
+        strikethrough: Bool = false
+    ) -> FigmaFont {
         FigmaFont(
-            family: fontFamily(font), size: Double(font?.pointSize ?? 17), weight: cssWeight(font),
+            family: fontFamily(font),
+            size: Double(font?.pointSize ?? 17),
+            weight: cssWeight(font),
             color: color.map(RGBA.init) ?? RGBA(r: 0, g: 0, b: 0, a: 1),
             colorToken: color.flatMap(textColorToken(for:)),
-            style: font.flatMap { PinCaptureTokens.current.textStyleName(for: $0) }, underline: underline,
+            style: font.flatMap { PinCaptureTokens.current.textStyleName(for: $0) },
+            underline: underline,
             strikethrough: strikethrough
         )
     }
@@ -758,8 +1095,9 @@ public enum PinDisplayListCapture {
 
     private static func cssWeight(_ font: UIFont?) -> Int {
         guard let font,
-              let traits = font.fontDescriptor.object(forKey: .traits) as? [UIFontDescriptor.TraitKey: Any],
-              let weight = traits[.weight] as? CGFloat else { return 400 }
+            let traits = font.fontDescriptor.object(forKey: .traits) as? [UIFontDescriptor.TraitKey: Any],
+            let weight = traits[.weight] as? CGFloat
+        else { return 400 }
         switch weight {
         case ..<(-0.4): return 300
         case ..<0.1: return 400

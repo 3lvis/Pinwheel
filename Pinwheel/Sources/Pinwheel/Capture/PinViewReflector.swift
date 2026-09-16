@@ -40,10 +40,19 @@ enum PinViewReflector {
             let axis: PinCaptureLayout.Axis = typeName.hasPrefix("VStack") ? .column : .row
             let (spacing, alignment, content) = stackFields(value)
             let children = content.map { expandedChildren($0) } ?? []
-            return .container(ReflectedContainer(axis: axis, spacing: spacing, alignment: alignment), children)
+            return .container(
+                ReflectedContainer(
+                    axis: axis,
+                    spacing: spacing,
+                    alignment: alignment
+                ), children)
         }
         if isLeaf(typeName) {
-            return .leaf(text: leafText(value), isButton: typeName == "PinButton" || typeName.hasPrefix("PinButton<"), fillWidth: false)
+            return .leaf(
+                text: leafText(value),
+                isButton: typeName == "PinButton" || typeName.hasPrefix("PinButton<"),
+                fillWidth: false
+            )
         }
         if typeName.hasPrefix("Spacer") {
             return .spacer
@@ -60,12 +69,23 @@ enum PinViewReflector {
             // A fixed-size frame around an image is a sized thumbnail — a component the containment path keeps,
             // so reflection counts it as a leaf. (An intrinsic-size image — an SF Symbol — has no such frame and
             // stays dropped, matching containment which drops those.)
-            if isFixedFrame(modifier), let rawContent, isImageType(rawContent) {
-                return .leaf(text: nil, isButton: false, fillWidth: false)
+            if isFixedFrame(modifier),
+                let rawContent,
+                isImageType(rawContent)
+            {
+                return .leaf(
+                    text: nil,
+                    isButton: false,
+                    fillWidth: false
+                )
             }
             let node = rawContent.flatMap(walk)
             if isFillWidthFrame(modifier), case .leaf(let text, let isButton, _) = node {
-                return .leaf(text: text, isButton: isButton, fillWidth: true)
+                return .leaf(
+                    text: text,
+                    isButton: isButton,
+                    fillWidth: true
+                )
             }
             if let border = strokeBorder(modifier), let node {
                 if case .container(var container, let children) = node {
@@ -75,23 +95,48 @@ enum PinViewReflector {
                 // A bordered single element (a stepper drawn as one label) wraps into a bordered container so
                 // the border is carried and the leaf count stays 1 — matching containment, which groups a
                 // ring-enclosed control into one component.
-                return .container(ReflectedContainer(axis: .row, spacing: nil, alignment: .center, border: border), [node])
+                return .container(
+                    ReflectedContainer(
+                        axis: .row,
+                        spacing: nil,
+                        alignment: .center,
+                        border: border
+                    ), [node])
             }
             return node
         }
         if typeName.hasPrefix("TupleView") || typeName.hasPrefix("Group") || typeName.hasPrefix("Optional")
-            || typeName.hasPrefix("_ConditionalContent") {
+            || typeName.hasPrefix("_ConditionalContent")
+        {
             let children = flatten(value).compactMap(walk)
-            return children.count == 1 ? children.first : (children.isEmpty ? nil : .container(ReflectedContainer(axis: .column, spacing: nil, alignment: .leading), children))
+            return children.count == 1
+                ? children.first
+                : (children.isEmpty
+                    ? nil
+                    : .container(
+                        ReflectedContainer(
+                            axis: .column,
+                            spacing: nil,
+                            alignment: .leading
+                        ), children))
         }
         // A ForEach not directly inside a stack (e.g. ScrollView { ForEach }) — expand its real rows into a
         // column. Inside a stack, `expandedChildren` splices them as siblings instead.
         if typeName.hasPrefix("ForEach"), let rows = PinVariadicExpander.expand(value) {
-            return .container(ReflectedContainer(axis: .column, spacing: nil, alignment: .leading), rows.compactMap(walk))
+            return .container(
+                ReflectedContainer(
+                    axis: .column,
+                    spacing: nil,
+                    alignment: .leading
+                ), rows.compactMap(walk))
         }
         if isStructuralContainer(typeName) { return nil }
         if isShape(typeName) {
-            return .leaf(text: nil, isButton: false, fillWidth: false)
+            return .leaf(
+                text: nil,
+                isButton: false,
+                fillWidth: false
+            )
         }
         if isPrimitive(typeName) { return nil }
         // A SwiftUI primitive's or UIKit-bridge's `.body` traps if reached; skip so capture falls back to containment instead of crashing.
@@ -139,20 +184,24 @@ enum PinViewReflector {
         func search(_ value: Any, _ depth: Int) {
             if depth > 8 { return }
             let typeName = String(describing: type(of: value))
-            if let stroke = value as? StrokeStyle { width = stroke.lineWidth }
-            else if let strokeColor = value as? Color { color = strokeColor }
+            if let stroke = value as? StrokeStyle { width = stroke.lineWidth } else if let strokeColor = value as? Color { color = strokeColor }
             // The stroked shape sets the border's rounding: a Capsule is a full pill; a RoundedRectangle
             // carries its own radius (in a `cornerSize` CGSize). Read it so the imported frame isn't square.
-            if typeName == "Capsule" || typeName.hasPrefix("Capsule<") { isPill = true }
-            else if typeName.hasPrefix("RoundedRectangle"),
-                    let cornerSize = Mirror(reflecting: value).children.first(where: { $0.label == "cornerSize" })?.value as? CGSize {
+            if typeName == "Capsule" || typeName.hasPrefix("Capsule<") {
+                isPill = true
+            } else if typeName.hasPrefix("RoundedRectangle"), let cornerSize = Mirror(reflecting: value).children.first(where: { $0.label == "cornerSize" })?.value as? CGSize {
                 cornerRadius = cornerSize.width
             }
             for child in Mirror(reflecting: value).children { search(child.value, depth + 1) }
         }
         search(modifier, 0)
         guard let width, let color else { return nil }
-        return ReflectedBorder(color: color, width: width, isPill: isPill, cornerRadius: cornerRadius)
+        return ReflectedBorder(
+            color: color,
+            width: width,
+            isPill: isPill,
+            cornerRadius: cornerRadius
+        )
     }
 
     private static func leafText(_ value: Any) -> String? {
@@ -166,9 +215,11 @@ enum PinViewReflector {
         return nil
     }
 
-    private static let primitiveTypes = ["Text", "Image", "Color", "Divider", "EmptyView", "Rectangle",
-                                         "RoundedRectangle", "Circle", "Capsule", "Ellipse", "ProgressView",
-                                         "Toggle", "Slider", "Label", "Link"]
+    private static let primitiveTypes = [
+        "Text", "Image", "Color", "Divider", "EmptyView", "Rectangle",
+        "RoundedRectangle", "Circle", "Capsule", "Ellipse", "ProgressView",
+        "Toggle", "Slider", "Label", "Link",
+    ]
     private static func isPrimitive(_ typeName: String) -> Bool {
         primitiveTypes.contains { typeName == $0 || typeName.hasPrefix($0 + "<") }
     }
@@ -216,9 +267,8 @@ enum PinViewReflector {
     }
 
     private static func flatten(_ content: Any) -> [Any] {
-        if String(describing: type(of: content)).hasPrefix("TupleView"),
-           let tuple = Mirror(reflecting: content).children.first(where: { $0.label == "value" })?.value {
-            return Mirror(reflecting: tuple).children.map(\.value)
+        if String(describing: type(of: content)).hasPrefix("TupleView"), let tuple = Mirror(reflecting: content).children.first(where: { $0.label == "value" })?.value {
+            return Mirror(reflecting: tuple).children.map { $0.value }
         }
         return [content]
     }

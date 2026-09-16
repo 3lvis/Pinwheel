@@ -1,5 +1,5 @@
-import Foundation
 import CryptoKit
+import Foundation
 
 @MainActor
 @Observable
@@ -11,7 +11,8 @@ public final class PinCaptureVersions {
     private let storageKey = "PinCaptureVersions"
 
     private init() {
-        entries = UserDefaults.standard.data(forKey: storageKey)
+        entries =
+            UserDefaults.standard.data(forKey: storageKey)
             .flatMap { try? JSONDecoder().decode([String: Entry].self, from: $0) } ?? [:]
     }
 
@@ -28,8 +29,7 @@ public final class PinCaptureVersions {
     }
 
     private static func structureHash(_ document: FigmaDocument) -> String {
-        guard let data = try? JSONEncoder().encode(document),
-              let object = try? JSONSerialization.jsonObject(with: data) else { return "" }
+        guard let data = try? JSONEncoder().encode(document), let object = try? JSONSerialization.jsonObject(with: data) else { return "" }
         guard let normalized = try? JSONSerialization.data(withJSONObject: stripImages(object), options: [.sortedKeys]) else { return "" }
         return SHA256.hash(data: normalized).map { String(format: "%02x", $0) }.joined()
     }

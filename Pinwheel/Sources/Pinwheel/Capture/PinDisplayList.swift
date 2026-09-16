@@ -1,6 +1,6 @@
+import ObjectiveC
 import SwiftUI
 import UIKit
-import ObjectiveC
 
 // Reads SwiftUI's private, undocumented DisplayList via reflection — the internals shift across
 // toolchains, so all of it is contained to this file. Never ships.
@@ -16,13 +16,17 @@ struct DisplayLeaf {
     }
     let frame: CGRect
     let kind: Kind
-    var image: String? = nil
+    var image: String?
 }
 
 @MainActor
 enum PinDisplayList {
     // The window is returned so the caller keeps it alive.
-    static func read<Content: SwiftUI.View>(_ view: Content, size: CGSize, liveControlsOnScreen: Bool) -> (leaves: [DisplayLeaf], host: UIView, window: UIWindow)? {
+    static func read<Content: SwiftUI.View>(
+        _ view: Content,
+        size: CGSize,
+        liveControlsOnScreen: Bool
+    ) -> (leaves: [DisplayLeaf], host: UIView, window: UIWindow)? {
         let controller = UIHostingController(rootView: view)
         let hostView: UIView = controller.view
         hostView.frame = CGRect(origin: .zero, size: size)
@@ -38,61 +42,85 @@ enum PinDisplayList {
     static func leaves(fromHost hostView: UIView, liveControlsOnScreen: Bool) -> [DisplayLeaf]? {
         hostView.layoutIfNeeded()
         guard let list = displayList(of: hostView) else { return nil }
-        return fillRasterCrops(walk(list, origin: .zero), host: hostView, liveControlsOnScreen: liveControlsOnScreen)
+        return fillRasterCrops(
+            walk(list, origin: .zero),
+            host: hostView,
+            liveControlsOnScreen: liveControlsOnScreen
+        )
     }
 
     // SwiftUI's renderer returns a blank placeholder for platform-backed content (a List cell's
     // icon/toggle/chevron in the UIKit layer tree), so recover its pixels from a host-layer render.
-    private static func fillRasterCrops(_ leaves: [DisplayLeaf], host: UIView, liveControlsOnScreen: Bool) -> [DisplayLeaf] {
-        let needsCrop = leaves.contains { if case .rasterizable = $0.kind, $0.image == nil { return true }; return false }
+    private static func fillRasterCrops(
+        _ leaves: [DisplayLeaf],
+        host: UIView,
+        liveControlsOnScreen: Bool
+    ) -> [DisplayLeaf] {
+        let needsCrop = leaves.contains {
+            if case .rasterizable = $0.kind, $0.image == nil { return true }; return false
+        }
         guard needsCrop else { return leaves }
         return autoreleasepool {
-        let full = UIGraphicsImageRenderer(bounds: host.bounds).image { context in host.layer.render(in: context.cgContext) }
-        guard let cgImage = full.cgImage else { return leaves }
-        let scale = full.scale
-        // The layer render includes the safe-area inset but DisplayList frames don't, so crop at
-        // frame + inset (a UITableView-hosted List sits inside the safe area).
-        let inset = host.safeAreaInsets
-        // A UIKit control paints its real appearance only on the live screen (off-screen it's a flat
-        // blob). Crop the key window only when the caller vouches this component is the on-screen
-        // content — otherwise foreign controls (the catalog's) land on these leaves.
-        let controlCrops = liveControlsOnScreen ? keyWindowControlCrops() : []
-        let wideLeaves = leaves.indices
-            .filter { if case .rasterizable = leaves[$0].kind, leaves[$0].image == nil, leaves[$0].frame.width > 40 { return true }; return false }
-            .sorted { leaves[$0].frame.minY < leaves[$1].frame.minY }
-        let controlByLeaf = matchedControlCrops(
-            wideLeaves: wideLeaves.map { (index: $0, frame: leaves[$0].frame) },
-            crops: controlCrops
-        )
-        return leaves.enumerated().map { index, leaf in
-            guard case .rasterizable = leaf.kind, leaf.image == nil else { return leaf }
-            if let crop = controlByLeaf[index] {
-                // SwiftUI's DisplayList undersizes a platform view (the date picker captures 16pt
-                // narrower than it draws), so size the leaf to the real control bounds, keeping its origin.
-                var filled = DisplayLeaf(frame: CGRect(origin: leaf.frame.origin, size: crop.frame.size), kind: leaf.kind)
-                filled.image = crop.image
+            let full = UIGraphicsImageRenderer(bounds: host.bounds).image { context in host.layer.render(in: context.cgContext) }
+            guard let cgImage = full.cgImage else { return leaves }
+            let scale = full.scale
+            // The layer render includes the safe-area inset but DisplayList frames don't, so crop at
+            // frame + inset (a UITableView-hosted List sits inside the safe area).
+            let inset = host.safeAreaInsets
+            // A UIKit control paints its real appearance only on the live screen (off-screen it's a flat
+            // blob). Crop the key window only when the caller vouches this component is the on-screen
+            // content — otherwise foreign controls (the catalog's) land on these leaves.
+            let controlCrops = liveControlsOnScreen ? keyWindowControlCrops() : []
+            let wideLeaves = leaves.indices
+                .filter {
+                    if case .rasterizable = leaves[$0].kind,
+                        leaves[$0].image == nil,
+                        leaves[$0].frame.width > 40
+                    {
+                        return true
+                    }; return false
+                }
+                .sorted { leaves[$0].frame.minY < leaves[$1].frame.minY }
+            let controlByLeaf = matchedControlCrops(wideLeaves: wideLeaves.map { (index: $0, frame: leaves[$0].frame) }, crops: controlCrops)
+            return leaves.enumerated().map { index, leaf in
+                guard case .rasterizable = leaf.kind, leaf.image == nil else { return leaf }
+                if let crop = controlByLeaf[index] {
+                    // SwiftUI's DisplayList undersizes a platform view (the date picker captures 16pt
+                    // narrower than it draws), so size the leaf to the real control bounds, keeping its origin.
+                    var filled = DisplayLeaf(frame: CGRect(origin: leaf.frame.origin, size: crop.frame.size), kind: leaf.kind)
+                    filled.image = crop.image
+                    return filled
+                }
+                let rect = CGRect(
+                    x: (leaf.frame.minX + inset.left) * scale,
+                    y: (leaf.frame.minY + inset.top) * scale,
+                    width: leaf.frame.width * scale,
+                    height: leaf.frame.height * scale
+                )
+                guard rect.width >= 1,
+                    rect.height >= 1,
+                    let crop = cgImage.cropping(to: rect)
+                else { return leaf }
+                var filled = leaf
+                filled.image = UIImage(cgImage: crop).pngData()?.base64EncodedString()
                 return filled
             }
-            let rect = CGRect(x: (leaf.frame.minX + inset.left) * scale, y: (leaf.frame.minY + inset.top) * scale,
-                              width: leaf.frame.width * scale, height: leaf.frame.height * scale)
-            guard rect.width >= 1, rect.height >= 1, let crop = cgImage.cropping(to: rect) else { return leaf }
-            var filled = leaf
-            filled.image = UIImage(cgImage: crop).pngData()?.base64EncodedString()
-            return filled
-        }
         }
     }
 
     // Don't recurse into a control — a stepper's ± are inner buttons, not separate controls.
     private static func keyWindowControlCrops() -> [(frame: CGRect, image: String)] {
-        guard let window = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene })
-            .flatMap({ $0.windows }).first(where: { $0.isKeyWindow }) else { return [] }
+        guard
+            let window = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene })
+                .flatMap({ $0.windows }).first(where: { $0.isKeyWindow })
+        else { return [] }
         // Settle layout so control frames are final — mid-layout frames sort wrong and misassign crops.
         window.layoutIfNeeded()
         var controls: [UIView] = []
         func scan(_ view: UIView) {
             if view is UISwitch || view is UISegmentedControl || view is UISlider || view is UIStepper
-                || view is UIProgressView || view is UIDatePicker || view is UIActivityIndicatorView {
+                || view is UIProgressView || view is UIDatePicker || view is UIActivityIndicatorView
+            {
                 controls.append(view)
                 return
             }
@@ -109,18 +137,19 @@ enum PinDisplayList {
             let scale = full.scale
             return controls.compactMap { control in
                 let frame = control.convert(control.bounds, to: window)
-                let rect = CGRect(x: frame.minX * scale, y: frame.minY * scale, width: frame.width * scale, height: frame.height * scale)
-                guard let crop = cgImage.cropping(to: rect),
-                      let image = UIImage(cgImage: crop).pngData()?.base64EncodedString() else { return nil }
+                let rect = CGRect(
+                    x: frame.minX * scale,
+                    y: frame.minY * scale,
+                    width: frame.width * scale,
+                    height: frame.height * scale
+                )
+                guard let crop = cgImage.cropping(to: rect), let image = UIImage(cgImage: crop).pngData()?.base64EncodedString() else { return nil }
                 return (frame: frame, image: image)
             }
         }
     }
 
-    static func matchedControlCrops(
-        wideLeaves: [(index: Int, frame: CGRect)],
-        crops: [(frame: CGRect, image: String)]
-    ) -> [Int: (frame: CGRect, image: String)] {
+    static func matchedControlCrops(wideLeaves: [(index: Int, frame: CGRect)], crops: [(frame: CGRect, image: String)]) -> [Int: (frame: CGRect, image: String)] {
         guard !wideLeaves.isEmpty, wideLeaves.count == crops.count else { return [:] }
         let leaves = wideLeaves.sorted { $0.frame.minY < $1.frame.minY }
         let sortedCrops = crops.sorted { $0.frame.minY < $1.frame.minY }
@@ -134,30 +163,44 @@ enum PinDisplayList {
         // as an ObjC ivar Mirror hides — read it through the runtime so per-cell capture reaches the same
         // `viewGraph → renderer → lastList` path.
         guard let base = child(hostingView, "_base") ?? ivarObject(hostingView, "_base"),
-              let graphHost = child(base, "viewGraph"),
-              let rendererBox = child(graphHost, "renderer"),
-              let updater = unwrap(child(rendererBox, "renderer")) else { return nil }
+            let graphHost = child(base, "viewGraph"),
+            let rendererBox = child(graphHost, "renderer"),
+            let updater = unwrap(child(rendererBox, "renderer"))
+        else { return nil }
         return child(updater, "lastList")
     }
 
     private static func ivarObject(_ value: Any, _ name: String) -> Any? {
-        guard let object = value as AnyObject?,
-              let ivar = class_getInstanceVariable(type(of: object), name) else { return nil }
+        guard let object = value as AnyObject?, let ivar = class_getInstanceVariable(type(of: object), name) else { return nil }
         return object_getIvar(object, ivar)
     }
 
     private static func walk(_ list: Any, origin: CGPoint) -> [DisplayLeaf] {
         guard let items = child(list, "items") else { return [] }
         var leaves: [DisplayLeaf] = []
-        for item in Mirror(reflecting: items).children.map(\.value) {
+        for item in Mirror(reflecting: items).children.map { $0.value } {
             guard let localFrame = child(item, "frame") as? CGRect,
-                  let value = child(item, "value"), let (name, payload) = enumCase(value) else { continue }
+                let value = child(item, "value"),
+                let (name, payload) = enumCase(value)
+            else { continue }
             let frame = localFrame.offsetBy(dx: origin.x, dy: origin.y)
             if name == "content" {
                 let inner = child(payload, "value") ?? payload
-                if let (kind, data) = enumCase(inner), kind == "shape",
-                   let path = Mirror(reflecting: data).children.first?.value as? SwiftUI.Path, roundedRectRadius(path) == nil {
-                    leaves.append(DisplayLeaf(frame: frame, kind: .rasterizable, image: renderPath(path, color: deepColor(data), unitSize: frame.size)))
+                if let (kind, data) = enumCase(inner),
+                    kind == "shape",
+                    let path = Mirror(reflecting: data).children.first?.value as? SwiftUI.Path,
+                    roundedRectRadius(path) == nil
+                {
+                    leaves.append(
+                        DisplayLeaf(
+                            frame: frame,
+                            kind: .rasterizable,
+                            image: renderPath(
+                                path,
+                                color: deepColor(data),
+                                unitSize: frame.size
+                            )
+                        ))
                 } else if let kind = contentKind(inner) {
                     leaves.append(DisplayLeaf(frame: frame, kind: kind))
                 }
@@ -166,10 +209,21 @@ enum PinDisplayList {
                 // A clipShape(RoundedRectangle) rides a separate clip effect, not the fill, so round the
                 // fill it wraps by the clip's corner radius.
                 if let radius = clipCornerRadius(payload) {
-                    children = children.map { rounded($0, by: radius, matching: frame) }
+                    children = children.map {
+                        rounded(
+                            $0,
+                            by: radius,
+                            matching: frame
+                        )
+                    }
                 }
                 if isRasterUnit(frame, children) {
-                    leaves.append(DisplayLeaf(frame: frame, kind: .rasterizable, image: renderShapes(in: payload, unitSize: frame.size)))
+                    leaves.append(
+                        DisplayLeaf(
+                            frame: frame,
+                            kind: .rasterizable,
+                            image: renderShapes(in: payload, unitSize: frame.size)
+                        ))
                 } else if isBareButton(frame, children) {
                     leaves.append(DisplayLeaf(frame: frame, kind: .transparent))
                     leaves.append(contentsOf: children)
@@ -182,7 +236,10 @@ enum PinDisplayList {
     }
 
     private static func isRasterUnit(_ frame: CGRect, _ children: [DisplayLeaf]) -> Bool {
-        guard frame.width <= 40, frame.height <= 40, !children.isEmpty else { return false }
+        guard frame.width <= 40,
+            frame.height <= 40,
+            !children.isEmpty
+        else { return false }
         return children.allSatisfy { if case .text = $0.kind { return false } else { return true } }
     }
 
@@ -199,7 +256,11 @@ enum PinDisplayList {
         return nil
     }
 
-    private static func rounded(_ leaf: DisplayLeaf, by radius: CGFloat, matching frame: CGRect) -> DisplayLeaf {
+    private static func rounded(
+        _ leaf: DisplayLeaf,
+        by radius: CGFloat,
+        matching frame: CGRect
+    ) -> DisplayLeaf {
         guard abs(leaf.frame.width - frame.width) < 2, abs(leaf.frame.height - frame.height) < 2 else { return leaf }
         switch leaf.kind {
         case .color(let color): return DisplayLeaf(frame: leaf.frame, kind: .roundedRect(radius: radius, color: color))
@@ -221,11 +282,15 @@ enum PinDisplayList {
         guard textCount == 1 else { return false }
         // SwiftUI pads a button's box around its label (or hits the control min-width) but a multi-line
         // label fills its frame edge to edge — only the padded case is a button.
-        let content = children.map(\.frame).reduce(children[0].frame) { $0.union($1) }
+        let content = children.map { $0.frame }.reduce(children[0].frame) { $0.union($1) }
         return (frame.width - content.width) / 2 > 4
     }
 
-    private static func renderPath(_ path: SwiftUI.Path, color: UIColor?, unitSize: CGSize) -> String? {
+    private static func renderPath(
+        _ path: SwiftUI.Path,
+        color: UIColor?,
+        unitSize: CGSize
+    ) -> String? {
         let bounds = path.boundingRect
         let size = CGSize(width: max(unitSize.width, 1), height: max(unitSize.height, 1))
         let image = UIGraphicsImageRenderer(size: size).image { context in
@@ -242,14 +307,18 @@ enum PinDisplayList {
         func collect(_ payload: Any, _ origin: CGPoint) {
             for nested in nestedLists(in: payload) {
                 guard let items = child(nested, "items") else { continue }
-                for item in Mirror(reflecting: items).children.map(\.value) {
+                for item in Mirror(reflecting: items).children.map { $0.value } {
                     guard let localFrame = child(item, "frame") as? CGRect,
-                          let value = child(item, "value"), let (name, payload) = enumCase(value) else { continue }
+                        let value = child(item, "value"),
+                        let (name, payload) = enumCase(value)
+                    else { continue }
                     let childOrigin = CGPoint(x: origin.x + localFrame.minX, y: origin.y + localFrame.minY)
                     if name == "content" {
                         let inner = child(payload, "value") ?? payload
-                        if let (kind, data) = enumCase(inner), kind == "shape",
-                           let path = Mirror(reflecting: data).children.first?.value as? SwiftUI.Path {
+                        if let (kind, data) = enumCase(inner),
+                            kind == "shape",
+                            let path = Mirror(reflecting: data).children.first?.value as? SwiftUI.Path
+                        {
                             shapes.append((path, deepColor(data), childOrigin))
                         }
                     } else {
@@ -281,8 +350,14 @@ enum PinDisplayList {
         let underline = (attributes?[.underlineStyle] as? Int).map { $0 != 0 } ?? false
         let strikethrough = (attributes?[.strikethroughStyle] as? Int).map { $0 != 0 } ?? false
         let alignment = (attributes?[.paragraphStyle] as? NSParagraphStyle)?.alignment ?? .natural
-        return .text(string, font: attributes?[.font] as? UIFont, color: attributes?[.foregroundColor] as? UIColor,
-                     underline: underline, strikethrough: strikethrough, alignment: alignment)
+        return .text(
+            string,
+            font: attributes?[.font] as? UIFont,
+            color: attributes?[.foregroundColor] as? UIColor,
+            underline: underline,
+            strikethrough: strikethrough,
+            alignment: alignment
+        )
     }
 
     private static func contentKind(_ value: Any) -> DisplayLeaf.Kind? {
@@ -291,7 +366,7 @@ enum PinDisplayList {
         case "text":
             return textKind(from: deepAttributed(payload), fallback: deepString(payload))
         case "shape":
-            let mirror = Mirror(reflecting: payload).children.map(\.value)
+            let mirror = Mirror(reflecting: payload).children.map { $0.value }
             let color = mirror.count > 1 ? deepColor(mirror[1]) : nil
             if let radius = roundedRectRadius(mirror.first) { return .roundedRect(radius: radius, color: color) }
             return .rasterizable
@@ -306,7 +381,10 @@ enum PinDisplayList {
 
     // SwiftUI Path.storage is an enum; `.roundedRect(FixedRoundedRect)` exposes the exact corner size.
     private static func roundedRectRadius(_ path: Any?) -> CGFloat? {
-        guard let path, let storage = child(path, "storage"), let (kind, value) = enumCase(storage) else { return nil }
+        guard let path,
+            let storage = child(path, "storage"),
+            let (kind, value) = enumCase(storage)
+        else { return nil }
         if kind == "roundedRect" { return fixedRoundedRectRadius(value) }
         if kind == "rect" { return 0 }
         return nil
@@ -317,7 +395,10 @@ enum PinDisplayList {
     // nil sends the shape down the rasterizing path rather than inventing a radius for it.
     private static func fixedRoundedRectRadius(_ value: Any) -> CGFloat? {
         if let size = child(value, "cornerSize") as? CGSize { return size.width }
-        guard let radii = child(value, "radii"), let (kind, corners) = enumCase(radii), kind == "uniform" else { return nil }
+        guard let radii = child(value, "radii"),
+            let (kind, corners) = enumCase(radii),
+            kind == "uniform"
+        else { return nil }
         return corners as? CGFloat
     }
 
@@ -363,15 +444,24 @@ enum PinDisplayList {
     }
 
     private static func resolvedColor(_ value: Any) -> UIColor? {
-        let fields = Dictionary(uniqueKeysWithValues: Mirror(reflecting: value).children.compactMap { child -> (String, Float)? in
-            guard let label = child.label, let float = child.value as? Float else { return nil }
-            return (label, float)
-        })
-        guard let red = fields["linearRed"], let green = fields["linearGreen"], let blue = fields["linearBlue"] else { return nil }
+        let fields = Dictionary(
+            uniqueKeysWithValues: Mirror(reflecting: value).children.compactMap { child -> (String, Float)? in
+                guard let label = child.label, let float = child.value as? Float else { return nil }
+                return (label, float)
+            })
+        guard let red = fields["linearRed"],
+            let green = fields["linearGreen"],
+            let blue = fields["linearBlue"]
+        else { return nil }
         func toSRGB(_ linear: Float) -> CGFloat {
             let value = linear <= 0.0031308 ? linear * 12.92 : 1.055 * pow(linear, 1 / 2.4) - 0.055
             return CGFloat(min(max(value, 0), 1))
         }
-        return UIColor(red: toSRGB(red), green: toSRGB(green), blue: toSRGB(blue), alpha: CGFloat(fields["opacity"] ?? 1))
+        return UIColor(
+            red: toSRGB(red),
+            green: toSRGB(green),
+            blue: toSRGB(blue),
+            alpha: CGFloat(fields["opacity"] ?? 1)
+        )
     }
 }

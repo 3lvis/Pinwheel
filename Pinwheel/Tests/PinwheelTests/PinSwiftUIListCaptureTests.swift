@@ -1,6 +1,6 @@
-import XCTest
 import SwiftUI
 import UIKit
+import XCTest
 @testable import Pinwheel
 
 @MainActor
@@ -10,7 +10,6 @@ final class PinSwiftUIListCaptureTests: XCTestCase {
             List { ForEach(1...12, id: \.self) { SwiftUI.Text("Row \($0)") } }
         }
     }
-
 
     // A SwiftUI List hides each row behind a CellHostingView; capture must force-realize the backing
     // collection and read each cell's own DisplayList so rows land as editable text, not a flat image.
@@ -23,7 +22,12 @@ final class PinSwiftUIListCaptureTests: XCTestCase {
         controller.view.layoutIfNeeded()
 
         let document = try XCTUnwrap(
-            PinSwiftUIListCapture.document(name: "List", size: CGSize(width: 402, height: 800), screenHeight: 778, liveHost: controller.view),
+            PinSwiftUIListCapture.document(
+                name: "List",
+                size: CGSize(width: 402, height: 800),
+                screenHeight: 778,
+                liveHost: controller.view
+            ),
             "a SwiftUI List should capture its rows, not return nil"
         )
         var texts: [String] = []

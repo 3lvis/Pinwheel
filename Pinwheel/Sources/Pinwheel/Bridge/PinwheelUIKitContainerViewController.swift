@@ -23,7 +23,7 @@ final class PinwheelUIKitContainerViewController: UIViewController {
             content.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             content.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             content.topAnchor.constraint(equalTo: view.topAnchor),
-            content.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            content.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
     }
 }

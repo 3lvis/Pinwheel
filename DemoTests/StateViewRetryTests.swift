@@ -1,6 +1,6 @@
-import XCTest
 import SwiftUI
 import UIKit
+import XCTest
 @testable import Pinwheel
 
 @MainActor
@@ -26,18 +26,9 @@ final class StateViewRetryTests: XCTestCase {
             window.rootViewController = nil
         }
 
-        XCTAssertTrue(
-            HostedView.accessibilityLabels(in: window).contains("Oops!"),
-            "the failed state should render its title"
-        )
-        XCTAssertTrue(
-            HostedView.activateFirst(labelled: "Retry", in: window),
-            "the failed state's action should be reachable and activatable"
-        )
+        XCTAssertTrue(HostedView.accessibilityLabels(in: window).contains("Oops!"), "the failed state should render its title")
+        XCTAssertTrue(HostedView.activateFirst(labelled: "Retry", in: window), "the failed state's action should be reachable and activatable")
 
-        XCTAssertTrue(
-            HostedView.accessibilityLabels(in: window).contains("Loading..."),
-            "activating Retry should fire the action and switch the state view to loading"
-        )
+        XCTAssertTrue(HostedView.accessibilityLabels(in: window).contains("Loading..."), "activating Retry should fire the action and switch the state view to loading")
     }
 }

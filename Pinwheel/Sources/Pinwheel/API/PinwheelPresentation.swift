@@ -1,5 +1,5 @@
-import UIKit
 import SwiftUI
+import UIKit
 
 public enum PinwheelPresentation {
     case medium

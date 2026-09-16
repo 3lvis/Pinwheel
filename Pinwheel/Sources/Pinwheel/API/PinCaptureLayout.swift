@@ -15,7 +15,17 @@ public struct PinCaptureLayout {
     // A hugged cross axis collapses to the widest child, so centred alignment drifts off-centre.
     public let counterAxisFixed: Bool
 
-    public init(axis: Axis, spacing: CGFloat, padding: EdgeInsets = EdgeInsets(), spaceBetween: Bool = false, alignment: CrossAxis = .center, mainAxisAlignment: CrossAxis = .leading, minWidth: CGFloat? = nil, primaryAxisFixed: Bool = false, counterAxisFixed: Bool = false) {
+    public init(
+        axis: Axis,
+        spacing: CGFloat,
+        padding: EdgeInsets = EdgeInsets(),
+        spaceBetween: Bool = false,
+        alignment: CrossAxis = .center,
+        mainAxisAlignment: CrossAxis = .leading,
+        minWidth: CGFloat? = nil,
+        primaryAxisFixed: Bool = false,
+        counterAxisFixed: Bool = false
+    ) {
         self.axis = axis
         self.spacing = spacing
         self.padding = padding

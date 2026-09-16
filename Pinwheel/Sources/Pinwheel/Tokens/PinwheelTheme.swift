@@ -40,11 +40,25 @@ public nonisolated struct PinwheelTheme: Sendable {
     public let fonts: PinwheelFontProvider
     public let buttonShape: PinButtonShape
 
-    public init(name: String, colors: PinwheelColorProvider, fonts: PinwheelFontProvider) {
-        self.init(name: name, colors: colors, fonts: fonts, buttonShape: .rounded)
+    public init(
+        name: String,
+        colors: PinwheelColorProvider,
+        fonts: PinwheelFontProvider
+    ) {
+        self.init(
+            name: name,
+            colors: colors,
+            fonts: fonts,
+            buttonShape: .rounded
+        )
     }
 
-    public init(name: String, colors: PinwheelColorProvider, fonts: PinwheelFontProvider, buttonShape: PinButtonShape) {
+    public init(
+        name: String,
+        colors: PinwheelColorProvider,
+        fonts: PinwheelFontProvider,
+        buttonShape: PinButtonShape
+    ) {
         self.name = name
         self.colors = colors
         self.fonts = fonts

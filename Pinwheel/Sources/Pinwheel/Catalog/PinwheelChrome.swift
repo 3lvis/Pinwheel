@@ -60,7 +60,10 @@ final class PinwheelChrome {
     }
 
     var simulatedDevice: Device? {
-        guard let selectedDeviceIndex, let device = Device.all[safe: selectedDeviceIndex], !device.isCurrent else {
+        guard let selectedDeviceIndex,
+            let device = Device.all[safe: selectedDeviceIndex],
+            !device.isCurrent
+        else {
             return nil
         }
         return device

@@ -1,6 +1,6 @@
-import XCTest
 import SwiftUI
 import UIKit
+import XCTest
 @testable import Pinwheel
 
 // The concentric-radius clamp (max(outer - inset, 0)) is not reachable via @testable import Pinwheel:

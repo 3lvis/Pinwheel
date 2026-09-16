@@ -9,12 +9,12 @@ struct PinNumbersDemo: SwiftUI.View {
         ("spacing4", .spacing4),
         ("spacing5", .spacing5),
         ("spacing6", .spacing6),
-        ("spacing8", .spacing8)
+        ("spacing8", .spacing8),
     ]
 
     private let radii: [(String, CGFloat)] = [
         ("radiusM", .radiusM),
-        ("radiusL", .radiusL)
+        ("radiusL", .radiusL),
     ]
 
     private let concentricOuter: CGFloat = .radiusL

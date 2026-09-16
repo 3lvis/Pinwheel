@@ -1,6 +1,6 @@
-import XCTest
 import SwiftUI
 import UIKit
+import XCTest
 @testable import Pinwheel
 
 @MainActor
@@ -23,7 +23,11 @@ final class FillWidthCardPaddingTests: XCTestCase {
                 }
                 .padding(.spacing4)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .frame(
+                maxWidth: .infinity,
+                maxHeight: .infinity,
+                alignment: .top
+            )
             .background(.primaryBackground)
         }
     }
@@ -33,13 +37,26 @@ final class FillWidthCardPaddingTests: XCTestCase {
     }
 
     func testFullWidthCardHasSymmetricPaddingNotAGiantTrailingGap() throws {
-        let document = try XCTUnwrap(PinDisplayListCapture.document(
-            Fixture(), name: "Cards", size: CGSize(width: 402, height: 700), screenHeight: 700))
+        let document = try XCTUnwrap(
+            PinDisplayListCapture.document(
+                Fixture(),
+                name: "Cards",
+                size: CGSize(width: 402, height: 700),
+                screenHeight: 700
+            ))
         let card = try XCTUnwrap(cards(document.root).first, "should capture a secondaryBackground card frame")
         let pad = try XCTUnwrap(card.layout?.pad, "the card should carry auto-layout padding")
         // pad = [top, trailing, bottom, leading]
-        XCTAssertEqual(pad[1], pad[3], accuracy: 1.0,
-                       "trailing padding must match leading — a left-aligned card's right gap is fill space, not padding (got trailing=\(pad[1]), leading=\(pad[3]))")
-        XCTAssertEqual(card.fillWidth, true, "a full-width card should fill its parent, not force width via padding")
+        XCTAssertEqual(
+            pad[1],
+            pad[3],
+            accuracy: 1.0,
+            "trailing padding must match leading — a left-aligned card's right gap is fill space, not padding (got trailing=\(pad[1]), leading=\(pad[3]))"
+        )
+        XCTAssertEqual(
+            card.fillWidth,
+            true,
+            "a full-width card should fill its parent, not force width via padding"
+        )
     }
 }

@@ -10,10 +10,26 @@ struct PricingDemo: SwiftUI.View {
     }
 
     private let deals = [
-        Deal(title: "Wireless Earbuds Pro", now: "$129", was: "$159"),
-        Deal(title: "LED Desk Lamp", now: "$34", was: "$49"),
-        Deal(title: "Hardcover Notebook Set", now: "$18", was: "$25"),
-        Deal(title: "Insulated Water Bottle", now: "$21", was: "$28")
+        Deal(
+            title: "Wireless Earbuds Pro",
+            now: "$129",
+            was: "$159"
+        ),
+        Deal(
+            title: "LED Desk Lamp",
+            now: "$34",
+            was: "$49"
+        ),
+        Deal(
+            title: "Hardcover Notebook Set",
+            now: "$18",
+            was: "$25"
+        ),
+        Deal(
+            title: "Insulated Water Bottle",
+            now: "$21",
+            was: "$28"
+        ),
     ]
 
     var body: some SwiftUI.View {
@@ -35,7 +51,11 @@ struct PricingDemo: SwiftUI.View {
             }
             .padding(.spacing4)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .frame(
+            maxWidth: .infinity,
+            maxHeight: .infinity,
+            alignment: .top
+        )
         .background(.primaryBackground)
     }
 }

@@ -31,7 +31,11 @@ public struct PinTrayChoice: SwiftUI.View {
                 Spacer(minLength: .spacing4)
             }
             .padding(.horizontal, .spacing3)
-            .frame(maxWidth: .infinity, minHeight: .minimumControlHeight, alignment: .leading)
+            .frame(
+                maxWidth: .infinity,
+                minHeight: .minimumControlHeight,
+                alignment: .leading
+            )
             .background(
                 RoundedRectangle(cornerRadius: .radiusM)
                     .fill(isChosen ? Color.secondaryBackground : Color.clear)
