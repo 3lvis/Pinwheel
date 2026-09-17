@@ -192,9 +192,7 @@ final class PinTrayChassis: UIViewController {
     private func tearDown() {
         accessoryView.detach()
         standing?.detach()
-        willMove(toParent: nil)
-        view.removeFromSuperview()
-        removeFromParent()
+        detachFromParent()
         note("navigation", "torn down")
         onGone()
         PinwheelRecorder.stopFollowing()
@@ -262,6 +260,7 @@ final class PinTrayChassis: UIViewController {
         apply(machine.handle(.contentResized(measured)))
     }
 
+    // The other half of that seam: PinTrayPathSync pushes and pops through this.
     // oida:disable:next no_single_use_void_functions
     func show(_ tray: PinTray, isPush: Bool) {
         note("navigation", isPush ? "push" : "pop")
