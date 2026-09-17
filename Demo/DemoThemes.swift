@@ -55,7 +55,7 @@ struct DemoColorProvider: PinwheelColorProvider {
         let darkColor: UIColor = .init(hex: "404850")
         return .dynamicColor(defaultColor: defaultColor, darkModeColor: darkColor)
     }
-    
+
     var actionText: UIColor {
         return .init(hex: "00B1FF")
     }

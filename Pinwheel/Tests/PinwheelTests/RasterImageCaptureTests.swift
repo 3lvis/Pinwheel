@@ -1,6 +1,6 @@
-import XCTest
 import SwiftUI
 import UIKit
+import XCTest
 @testable import Pinwheel
 
 @MainActor
@@ -22,7 +22,11 @@ final class RasterImageCaptureTests: XCTestCase {
                 PinLabel("Photo").font(.body)
             }
             .padding(40)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .frame(
+                maxWidth: .infinity,
+                maxHeight: .infinity,
+                alignment: .top
+            )
             .background(.primaryBackground)
         }
     }
@@ -34,8 +38,13 @@ final class RasterImageCaptureTests: XCTestCase {
     // A raster image (a real photo, not an SF Symbol vector) must capture as an image node with pixels —
     // its DisplayList content kind is `image`, which was unhandled and dropped the photo entirely.
     func testRasterImageCapturesWithPixels() throws {
-        let document = try XCTUnwrap(PinDisplayListCapture.document(
-            Fixture(image: Self.swatch()), name: "Photo", size: CGSize(width: 402, height: 300), screenHeight: 300))
+        let document = try XCTUnwrap(
+            PinDisplayListCapture.document(
+                Fixture(image: Self.swatch()),
+                name: "Photo",
+                size: CGSize(width: 402, height: 300),
+                screenHeight: 300
+            ))
         let images = imageNodes(document.root)
         XCTAssertFalse(images.isEmpty, "a raster image must capture as an image node with pixels, not be dropped")
         let photo = try XCTUnwrap(images.first { abs($0.w - 80) < 4 && abs($0.h - 80) < 4 }, "the 80×80 swatch should capture at its size")

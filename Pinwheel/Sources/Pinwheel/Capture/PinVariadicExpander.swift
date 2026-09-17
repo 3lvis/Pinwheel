@@ -1,6 +1,6 @@
+import Darwin
 import SwiftUI
 import UIKit
-import Darwin
 
 // Expands a `ForEach` (which reflects to nothing — its content is an uncallable closure) into its real row
 // view *instances*, by driving SwiftUI's private variadic machinery and dereferencing each row's node out
@@ -33,7 +33,6 @@ enum PinVariadicExpander {
     /// Cached capability probe: only trust the deref if it recovers a known fixture's structure exactly.
     static let isHealthy: Bool = runSelfTest()
 
-
     private final class Sink {
         var rows: [Any] = []
         var failed = false
@@ -44,7 +43,12 @@ enum PinVariadicExpander {
         func body(children: _VariadicView.Children) -> some SwiftUI.View {
             for element in children {
                 guard let (attribute, type) = attributeAndType(element),
-                      let pointer = getValue?(attribute, 0, unsafeBitCast(type, to: UnsafeRawPointer.self)) else {
+                    let pointer = getValue?(
+                        attribute,
+                        0,
+                        unsafeBitCast(type, to: UnsafeRawPointer.self)
+                    )
+                else {
                     sink.failed = true
                     break
                 }
@@ -70,18 +74,18 @@ enum PinVariadicExpander {
         return _openExistential(view, do: host)
     }
 
-
     // A row's node carries `view: AGWeakAttribute` (id in `_details.identifier.rawValue`) and `viewType`
     // (the row's type metatype). Hunt for that pair inside the element.
     private static func attributeAndType(_ value: Any, _ depth: Int = 0) -> (UInt32, Any.Type)? {
         guard depth < 12 else { return nil }
         let mirror = Mirror(reflecting: value)
         if let weak = mirror.children.first(where: { $0.label == "view" })?.value,
-           String(describing: type(of: weak)) == "AGWeakAttribute",
-           let type = mirror.children.first(where: { $0.label == "viewType" })?.value as? Any.Type,
-           let details = child(weak, "_details"),
-           let identifier = child(details, "identifier"),
-           let raw = child(identifier, "rawValue") as? UInt32 {
+            String(describing: type(of: weak)) == "AGWeakAttribute",
+            let type = mirror.children.first(where: { $0.label == "viewType" })?.value as? Any.Type,
+            let details = child(weak, "_details"),
+            let identifier = child(details, "identifier"),
+            let raw = child(identifier, "rawValue") as? UInt32
+        {
             return (raw, type)
         }
         for element in mirror.children {
@@ -100,12 +104,13 @@ enum PinVariadicExpander {
         return _openExistential(type, do: project)
     }
 
-
     private struct ProbeRow: SwiftUI.View {
         let title: String
         let hasExtraLabel: Bool
         var body: some SwiftUI.View {
-            HStack { PinLabel(title); if hasExtraLabel { PinLabel("extra") } }
+            HStack {
+                PinLabel(title); if hasExtraLabel { PinLabel("extra") }
+            }
         }
     }
 

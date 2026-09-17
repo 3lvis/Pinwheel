@@ -1,7 +1,11 @@
 import UIKit
 
 public protocol UIPinTableViewCellDelegate: AnyObject {
-    func tableViewCell(_ tableViewCell: UIPinTableViewCell, didChangeBoolTableViewItem boolTableViewItem: UIPinBoolTableViewItem, atIndexPath indexPath: IndexPath)
+    func tableViewCell(
+        _ tableViewCell: UIPinTableViewCell,
+        didChangeBoolTableViewItem boolTableViewItem: UIPinBoolTableViewItem,
+        atIndexPath indexPath: IndexPath
+    )
 }
 
 open class UIPinTableViewCell: UITableViewCell {
@@ -38,14 +42,22 @@ open class UIPinTableViewCell: UITableViewCell {
     open lazy var switchControl: UISwitch = {
         let aSwitch = UISwitch(withAutoLayout: true)
         aSwitch.onTintColor = .actionText
-        aSwitch.addTarget(self, action: #selector(switchChanged), for: .valueChanged)
+        aSwitch.addTarget(
+            self,
+            action: #selector(switchChanged),
+            for: .valueChanged
+        )
         return aSwitch
     }()
 
     @objc func switchChanged(sender: UISwitch) {
         if let edited = tableViewItem as? UIPinBoolTableViewItem, let indexPath = indexPath {
             edited.isOn = sender.isOn
-            delegate?.tableViewCell(self, didChangeBoolTableViewItem: edited, atIndexPath: indexPath)
+            delegate?.tableViewCell(
+                self,
+                didChangeBoolTableViewItem: edited,
+                atIndexPath: indexPath
+            )
         }
     }
 
@@ -71,7 +83,32 @@ open class UIPinTableViewCell: UITableViewCell {
 
     public override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setup()
+        let selectedBackgroundView = UIView()
+        selectedBackgroundView.backgroundColor = .secondaryBackground
+        self.selectedBackgroundView = selectedBackgroundView
+        backgroundColor = .primaryBackground
+
+        contentView.addSubview(iconImageView)
+        contentView.addSubview(stackView)
+        contentView.addSubview(detailLabel)
+        contentView.addSubview(switchControl)
+
+        NSLayoutConstraint.activate([
+            iconImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            iconImageView.widthAnchor.constraint(equalToConstant: .spacing6),
+            iconImageView.heightAnchor.constraint(equalToConstant: .spacing6),
+
+            stackViewTopAnchorConstraint,
+            stackViewLeadingAnchorConstraint,
+            stackViewTrailingAnchorConstraint,
+            stackViewBottomAnchorConstraint,
+
+            detailLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            detailLabelTrailingConstraint,
+
+            switchControl.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            switchControlTrailingConstraint,
+        ])
     }
 
     required public init?(coder aDecoder: NSCoder) {
@@ -157,30 +194,4 @@ open class UIPinTableViewCell: UITableViewCell {
         iconImageView.image = nil
     }
 
-    private func setup() {
-        setDefaultSelectedBackgound()
-        backgroundColor = .primaryBackground
-
-        contentView.addSubview(iconImageView)
-        contentView.addSubview(stackView)
-        contentView.addSubview(detailLabel)
-        contentView.addSubview(switchControl)
-
-        NSLayoutConstraint.activate([
-            iconImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            iconImageView.widthAnchor.constraint(equalToConstant: .spacing6),
-            iconImageView.heightAnchor.constraint(equalToConstant: .spacing6),
-
-            stackViewTopAnchorConstraint,
-            stackViewLeadingAnchorConstraint,
-            stackViewTrailingAnchorConstraint,
-            stackViewBottomAnchorConstraint,
-
-            detailLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            detailLabelTrailingConstraint,
-
-            switchControl.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            switchControlTrailingConstraint
-            ])
-    }
 }

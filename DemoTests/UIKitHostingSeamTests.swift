@@ -1,6 +1,6 @@
-import XCTest
 import SwiftUI
 import UIKit
+import XCTest
 @testable import Pinwheel
 
 @MainActor
@@ -98,14 +98,8 @@ final class UIKitHostingSeamTests: XCTestCase {
         chrome.showsTweaks = true
         _ = try HostedView.attachedTray(in: window)
 
-        XCTAssertTrue(
-            HostedView.activateFirst(labelled: "Option 1", in: window),
-            "a UIKit Tweakable's tweaks should bridge into the tray"
-        )
-        XCTAssertTrue(
-            HostedView.accessibilityLabels(in: window).contains("You chose Option 1."),
-            "the tweak should drive the hosted view the catalog is showing, not an off-screen copy"
-        )
+        XCTAssertTrue(HostedView.activateFirst(labelled: "Option 1", in: window), "a UIKit Tweakable's tweaks should bridge into the tray")
+        XCTAssertTrue(HostedView.accessibilityLabels(in: window).contains("You chose Option 1."), "the tweak should drive the hosted view the catalog is showing, not an off-screen copy")
     }
 
     func testAUIKitViewControllersTweakDrivesTheControllerTheCatalogIsShowing() throws {
@@ -120,10 +114,7 @@ final class UIKitHostingSeamTests: XCTestCase {
         chrome.showsTweaks = true
         _ = try HostedView.attachedTray(in: window)
 
-        XCTAssertTrue(
-            HostedView.activateFirst(labelled: "Option 1", in: window),
-            "a UIKit view controller's tweaks should bridge into the tray"
-        )
+        XCTAssertTrue(HostedView.activateFirst(labelled: "Option 1", in: window), "a UIKit view controller's tweaks should bridge into the tray")
         XCTAssertEqual(
             controller.label.text,
             "You chose Option 1.",

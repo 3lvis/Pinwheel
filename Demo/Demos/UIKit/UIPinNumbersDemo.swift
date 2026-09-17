@@ -9,12 +9,12 @@ class UIPinNumbersDemo: UIPinView {
         ("spacing4", .spacing4),
         ("spacing5", .spacing5),
         ("spacing6", .spacing6),
-        ("spacing8", .spacing8)
+        ("spacing8", .spacing8),
     ]
 
     private let radii: [(String, CGFloat)] = [
         ("radiusM", .radiusM),
-        ("radiusL", .radiusL)
+        ("radiusL", .radiusL),
     ]
 
     private let concentricOuter: CGFloat = .radiusL
@@ -46,7 +46,7 @@ class UIPinNumbersDemo: UIPinView {
         NSLayoutConstraint.activate([
             stackView.topAnchor.constraint(equalTo: topAnchor, constant: .spacing8),
             stackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacing4),
-            stackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacing4)
+            stackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacing4),
         ])
     }
 
@@ -61,7 +61,11 @@ class UIPinNumbersDemo: UIPinView {
         let container = roundedView(color: .tertiaryText, radius: .radiusM)
         let box = roundedView(color: .actionBackground, radius: .radiusM)
         box.heightAnchor.constraint(equalToConstant: 44).isActive = true
-        embed(box, in: container, inset: margin)
+        embed(
+            box,
+            in: container,
+            inset: margin
+        )
         return column([captionLabel("\(title) \(Int(margin)) · radiusM \(Int(CGFloat.radiusM))"), container])
     }
 
@@ -92,7 +96,11 @@ class UIPinNumbersDemo: UIPinView {
         let outerView = roundedView(color: .tertiaryText, radius: concentricOuter)
         outerView.heightAnchor.constraint(equalToConstant: 96).isActive = true
         let innerView = roundedView(color: .primaryBackground, radius: inner)
-        embed(innerView, in: outerView, inset: inset)
+        embed(
+            innerView,
+            in: outerView,
+            inset: inset
+        )
 
         let caption = captionLabel("outer \(Int(concentricOuter)) · inset \(Int(inset)) → inner \(Int(inner))")
         return column([caption, outerView])
@@ -106,9 +114,17 @@ class UIPinNumbersDemo: UIPinView {
         let outerView = roundedView(color: .tertiaryText, radius: concentricOuter)
         outerView.heightAnchor.constraint(equalToConstant: 140).isActive = true
         let middleView = roundedView(color: .primaryBackground, radius: middle)
-        embed(middleView, in: outerView, inset: gap)
+        embed(
+            middleView,
+            in: outerView,
+            inset: gap
+        )
         let innerView = roundedView(color: .tertiaryText, radius: inner)
-        embed(innerView, in: middleView, inset: gap)
+        embed(
+            innerView,
+            in: middleView,
+            inset: gap
+        )
 
         let caption = captionLabel("3 layers · gap \(Int(gap)) → \(Int(concentricOuter)) / \(Int(middle)) / \(Int(inner))")
         return column([caption, outerView])
@@ -122,13 +138,17 @@ class UIPinNumbersDemo: UIPinView {
         return view
     }
 
-    private func embed(_ inner: UIView, in outer: UIView, inset: CGFloat) {
+    private func embed(
+        _ inner: UIView,
+        in outer: UIView,
+        inset: CGFloat
+    ) {
         outer.addSubview(inner)
         NSLayoutConstraint.activate([
             inner.leadingAnchor.constraint(equalTo: outer.leadingAnchor, constant: inset),
             inner.trailingAnchor.constraint(equalTo: outer.trailingAnchor, constant: -inset),
             inner.topAnchor.constraint(equalTo: outer.topAnchor, constant: inset),
-            inner.bottomAnchor.constraint(equalTo: outer.bottomAnchor, constant: -inset)
+            inner.bottomAnchor.constraint(equalTo: outer.bottomAnchor, constant: -inset),
         ])
     }
 

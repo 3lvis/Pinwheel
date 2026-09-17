@@ -12,10 +12,18 @@ struct PinTweakableDemo: SwiftUI.View {
     var body: some SwiftUI.View {
         PinLabel(isUppercase ? text.uppercased() : text)
             .padding(.spacing8)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignments[alignmentIndex])
+            .frame(
+                maxWidth: .infinity,
+                maxHeight: .infinity,
+                alignment: alignments[alignmentIndex]
+            )
             .background(.primaryBackground)
             .pinwheelTweaks {
-                PinwheelTweak("Alignment", options: alignmentTitles, selection: $alignmentIndex)
+                PinwheelTweak(
+                    "Alignment",
+                    options: alignmentTitles,
+                    selection: $alignmentIndex
+                )
                 PinwheelTweak("Uppercase", isOn: $isUppercase)
                 PinwheelTweak("Reset") {
                     alignmentIndex = 1

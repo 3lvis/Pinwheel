@@ -13,14 +13,24 @@ public struct PinCaptureTokens {
 
         /// A text color binds only to a text-eligible token — a background/surface token matched purely by
         /// value (a literal white == a light background) would flip the text dark on a dark-mode import.
-        public init(name: String, light: UIColor, dark: UIColor, isEligibleForText: Bool = true) {
+        public init(
+            name: String,
+            light: UIColor,
+            dark: UIColor,
+            isEligibleForText: Bool = true
+        ) {
             self.name = name
             self.light = RGBA(light)
             self.dark = RGBA(dark)
             self.isEligibleForText = isEligibleForText
         }
 
-        init(name: String, light: RGBA, dark: RGBA, isEligibleForText: Bool) {
+        init(
+            name: String,
+            light: RGBA,
+            dark: RGBA,
+            isEligibleForText: Bool
+        ) {
             self.name = name
             self.light = light
             self.dark = dark
@@ -42,7 +52,12 @@ public struct PinCaptureTokens {
         let family: String
         let size: Double
         let weight: Int
-        public init(name: String, family: String, size: Double, weight: Int) {
+        public init(
+            name: String,
+            family: String,
+            size: Double,
+            weight: Int
+        ) {
             self.name = name
             self.family = family
             self.size = size
@@ -58,7 +73,13 @@ public struct PinCaptureTokens {
     /// (non-system) fonts capture their real family, so this only names the fallback.
     public var systemFontFamily: String
 
-    public init(colors: [ColorToken], spacings: [FloatToken], radii: [FloatToken], systemFontFamily: String, textStyles: [TextStyleToken] = []) {
+    public init(
+        colors: [ColorToken],
+        spacings: [FloatToken],
+        radii: [FloatToken],
+        systemFontFamily: String,
+        textStyles: [TextStyleToken] = []
+    ) {
         self.colors = colors
         self.spacings = spacings
         self.radii = radii
@@ -72,19 +93,27 @@ public struct PinCaptureTokens {
     static var pinwheel: PinCaptureTokens {
         PinCaptureTokens(
             colors: PinColorToken.allCases.map {
-                ColorToken(name: $0.rawValue, light: RGBA($0.color, style: .light), dark: RGBA($0.color, style: .dark),
-                           isEligibleForText: !$0.rawValue.hasSuffix("Background"))
+                ColorToken(
+                    name: $0.rawValue,
+                    light: RGBA($0.color, style: .light),
+                    dark: RGBA($0.color, style: .dark),
+                    isEligibleForText: !$0.rawValue.hasSuffix("Background")
+                )
             },
             spacings: PinFloatTokens.spacing.map { FloatToken(name: $0.name, value: Double($0.value)) },
             radii: PinFloatTokens.radius.map { FloatToken(name: $0.name, value: Double($0.value)) },
             systemFontFamily: "SF Pro Rounded",
             textStyles: PinTextStyle.allCapturable.map {
                 let metrics = $0.captureMetrics
-                return TextStyleToken(name: $0.captureName, family: metrics.family, size: metrics.size, weight: metrics.weight)
+                return TextStyleToken(
+                    name: $0.captureName,
+                    family: metrics.family,
+                    size: metrics.size,
+                    weight: metrics.weight
+                )
             }
         )
     }
-
 
     func colorName(for color: UIColor, textRoleOnly: Bool = false) -> String? {
         let target = RGBA(color)
@@ -119,8 +148,9 @@ public struct PinCaptureTokens {
     // frame), so round down to the token at or just below it.
     func gapName(for value: Double) -> String? {
         guard value > 0.5,
-              let best = spacings.filter({ $0.value <= value + 0.5 }).max(by: { $0.value < $1.value }),
-              value - best.value < 3 else { return nil }
+            let best = spacings.filter({ $0.value <= value + 0.5 }).max(by: { $0.value < $1.value }),
+            value - best.value < 3
+        else { return nil }
         return best.name
     }
 
@@ -133,14 +163,33 @@ public struct PinCaptureTokens {
         abs(a.r - b.r) < 0.02 && abs(a.g - b.g) < 0.02 && abs(a.b - b.b) < 0.02 && abs(a.a - b.a) < 0.05
     }
 
-
     var figmaColorTokens: [FigmaToken] {
-        colors.map { FigmaToken(name: $0.name, type: "color", value: $0.light, dark: $0.dark) }
+        colors.map {
+            FigmaToken(
+                name: $0.name,
+                type: "color",
+                value: $0.light,
+                dark: $0.dark
+            )
+        }
     }
     var figmaFloatTokens: [FigmaToken] {
-        (spacings + radii).map { FigmaToken(name: $0.name, type: "float", float: $0.value) }
+        (spacings + radii).map {
+            FigmaToken(
+                name: $0.name,
+                type: "float",
+                float: $0.value
+            )
+        }
     }
     var figmaTextStyles: [FigmaTextStyle] {
-        textStyles.map { FigmaTextStyle(name: $0.name, family: $0.family, size: $0.size, weight: $0.weight) }
+        textStyles.map {
+            FigmaTextStyle(
+                name: $0.name,
+                family: $0.family,
+                size: $0.size,
+                weight: $0.weight
+            )
+        }
     }
 }

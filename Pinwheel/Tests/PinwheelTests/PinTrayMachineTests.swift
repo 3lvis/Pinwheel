@@ -3,29 +3,37 @@ import XCTest
 
 @MainActor
 final class PinTrayMachineTests: XCTestCase {
-    private let screen = PinTrayGeometry.Room(
-        containerHeight: 912,
-        safeAreaTop: 62,
-        safeAreaBottom: 34,
-        displayCornerRadius: 62
-    )
+    private let screen = PinTrayGeometry.Room(containerHeight: 912, safeAreaTop: 62, safeAreaBottom: 34, displayCornerRadius: 62)
 
     private func machine(standing height: CGFloat = 641, edits: Bool = false) -> PinTrayMachine {
         var machine = PinTrayMachine(room: screen)
         _ = machine.handle(.presented(contentHeight: height))
         if edits {
-            _ = machine.handle(.moved(contentHeight: height, edits: true, isPush: true))
+            _ = machine.handle(
+                .moved(
+                    contentHeight: height,
+                    edits: true,
+                    isPush: true
+                ))
             _ = machine.handle(.keyboardMeasured(311))
         }
         return machine
     }
 
-    func testATrayArrivesFromBelowItsOwnBottomEdge() {
+    func testATrayArrivesFromBelowItsOwnBottomEdge() throws {
         var machine = PinTrayMachine(room: screen)
         let reaction = machine.handle(.presented(contentHeight: 641))
-        let from = try! XCTUnwrap(reaction.from)
-        XCTAssertGreaterThan(from.translation, 0, "it starts below its place")
-        XCTAssertEqual(reaction.to.translation, 0, "and travels to it")
+        let from = try XCTUnwrap(reaction.from)
+        XCTAssertGreaterThan(
+            from.translation,
+            0,
+            "it starts below its place"
+        )
+        XCTAssertEqual(
+            reaction.to.translation,
+            0,
+            "and travels to it"
+        )
         XCTAssertEqual(reaction.timeline, .spring(bounce: trayResizeBounce, initialVelocity: 0))
     }
 
@@ -33,33 +41,61 @@ final class PinTrayMachineTests: XCTestCase {
         var machine = machine()
         let standing = machine.geometry
 
-        let push = machine.handle(.moved(contentHeight: 456, edits: true, isPush: true))
+        let push = machine.handle(
+            .moved(
+                contentHeight: 456,
+                edits: true,
+                isPush: true
+            ))
         XCTAssertTrue(machine.isAwaitingKeyboard)
-        XCTAssertEqual(push.timeline, .carriedByKeyboard, "the keyboard owns this move, so we start nothing")
+        XCTAssertEqual(
+            push.timeline,
+            .carriedByKeyboard,
+            "the keyboard owns this move, so we start nothing"
+        )
 
         let opening = machine.handle(.keyboardMeasured(311))
         XCTAssertEqual(opening.timeline, .carriedByKeyboard)
         let height = screen.containerHeight
         let top = { (g: PinTrayGeometry) in height - g.bottomInset - g.height }
-        XCTAssertLessThan(top(opening.to), top(standing), "the top only ever travels up")
+        XCTAssertLessThan(
+            top(opening.to),
+            top(standing),
+            "the top only ever travels up"
+        )
     }
 
     func testTheTopNeverReversesOnTheWayToTheKeyboard() {
         var machine = machine()
         let height = screen.containerHeight
         var tops = [height - machine.geometry.bottomInset - machine.geometry.height]
-        for event in [PinTrayMachine.Event.moved(contentHeight: 456, edits: true, isPush: true),
-                      .keyboardMeasured(311),
-                      .keyboardMeasured(311)] {
+        for event in [
+            PinTrayMachine.Event.moved(
+                contentHeight: 456,
+                edits: true,
+                isPush: true
+            ),
+            .keyboardMeasured(311),
+            .keyboardMeasured(311),
+        ] {
             let reaction = machine.handle(event)
             tops.append(height - reaction.to.bottomInset - reaction.to.height)
         }
-        XCTAssertEqual(tops, tops.sorted(by: >), "the top descends at no point: \(tops)")
+        XCTAssertEqual(
+            tops,
+            tops.sorted(by: >),
+            "the top descends at no point: \(tops)"
+        )
     }
 
     func testLeavingAnEditingTrayDismissesTheKeyboardDeliberately() {
         var machine = machine(edits: true)
-        let pop = machine.handle(.moved(contentHeight: 641, edits: false, isPush: false))
+        let pop = machine.handle(
+            .moved(
+                contentHeight: 641,
+                edits: false,
+                isPush: false
+            ))
         XCTAssertEqual(pop.effects, [.dismissKeyboard])
     }
 
@@ -67,23 +103,45 @@ final class PinTrayMachineTests: XCTestCase {
         var machine = machine()
         let standing = machine.geometry.height
 
-        _ = machine.handle(.moved(contentHeight: 456, edits: true, isPush: true))
+        _ = machine.handle(
+            .moved(
+                contentHeight: 456,
+                edits: true,
+                isPush: true
+            ))
         _ = machine.handle(.keyboardMeasured(311))
         _ = machine.handle(.keyboardMeasured(311))
 
         let keyboardAskedToGoButStillThere = true
         let pop = machine.handle(
-            .moved(contentHeight: standing, edits: keyboardAskedToGoButStillThere, isPush: false)
+            .moved(
+                contentHeight: standing,
+                edits: keyboardAskedToGoButStillThere,
+                isPush: false
+            )
         )
-        XCTAssertEqual(pop.to.height, standing, "it comes back to the height it left from")
+        XCTAssertEqual(
+            pop.to.height,
+            standing,
+            "it comes back to the height it left from"
+        )
     }
 
     func testCommandingTheKeyboardAwayCountsAsTheKeyboardLeaving() {
         var machine = machine(edits: true)
-        let pop = machine.handle(.moved(contentHeight: 641, edits: true, isPush: false))
+        let pop = machine.handle(
+            .moved(
+                contentHeight: 641,
+                edits: true,
+                isPush: false
+            ))
 
         XCTAssertEqual(pop.effects, [.dismissKeyboard])
-        XCTAssertEqual(machine.keyboard.height, 0, "it does not go on believing the keyboard is up")
+        XCTAssertEqual(
+            machine.keyboard.height,
+            0,
+            "it does not go on believing the keyboard is up"
+        )
         XCTAssertEqual(
             machine.handle(.keyboardMeasured(0)).to,
             pop.to,
@@ -95,7 +153,12 @@ final class PinTrayMachineTests: XCTestCase {
         var machine = PinTrayMachine(room: screen)
         _ = machine.handle(.fillsReported(true))
         _ = machine.handle(.presented(contentHeight: 0))
-        _ = machine.handle(.moved(contentHeight: 0, edits: true, isPush: true))
+        _ = machine.handle(
+            .moved(
+                contentHeight: 0,
+                edits: true,
+                isPush: true
+            ))
 
         let height = screen.containerHeight
         let top = { (geometry: PinTrayGeometry) in height - geometry.bottomInset - geometry.height }
@@ -106,8 +169,16 @@ final class PinTrayMachineTests: XCTestCase {
             tops.append(top(reaction.to))
             bottoms.append(reaction.to.bottomInset)
         }
-        XCTAssertEqual(Set(tops).count, 1, "the top never moves: \(tops)")
-        XCTAssertEqual(bottoms.min(), trayBottomMargin, "and the bottom stops at the floor: \(bottoms)")
+        XCTAssertEqual(
+            Set(tops).count,
+            1,
+            "the top never moves: \(tops)"
+        )
+        XCTAssertEqual(
+            bottoms.min(),
+            trayBottomMargin,
+            "and the bottom stops at the floor: \(bottoms)"
+        )
     }
 
     func testATrayLearningItFillsDrawsNothingUntilTheNextEventCarriesIt() {
@@ -116,20 +187,46 @@ final class PinTrayMachineTests: XCTestCase {
         _ = machine.handle(.moveBegan(isPush: true))
 
         let reported = machine.handle(.fillsReported(true))
-        XCTAssertEqual(reported.to, standing, "learning it fills moves nothing on its own")
-        XCTAssertEqual(reported.timeline, .carriedByKeyboard, "and starts nothing of ours")
+        XCTAssertEqual(
+            reported.to,
+            standing,
+            "learning it fills moves nothing on its own"
+        )
+        XCTAssertEqual(
+            reported.timeline,
+            .carriedByKeyboard,
+            "and starts nothing of ours"
+        )
 
-        let moved = machine.handle(.moved(contentHeight: 200, edits: false, isPush: true))
-        XCTAssertGreaterThan(moved.to.height, 200, "the next event stands it in the room it has")
+        let moved = machine.handle(
+            .moved(
+                contentHeight: 200,
+                edits: false,
+                isPush: true
+            ))
+        XCTAssertGreaterThan(
+            moved.to.height,
+            200,
+            "the next event stands it in the room it has"
+        )
     }
 
     func testATrayLearningItFillsAfterItHasArrivedStandsInTheRoomAtOnce() {
         var machine = machine()
         _ = machine.handle(.moveBegan(isPush: true))
-        _ = machine.handle(.moved(contentHeight: 200, edits: false, isPush: true))
+        _ = machine.handle(
+            .moved(
+                contentHeight: 200,
+                edits: false,
+                isPush: true
+            ))
 
         let reaction = machine.handle(.fillsReported(true))
-        XCTAssertGreaterThan(reaction.to.height, 200, "a tray that has arrived stands up when it learns")
+        XCTAssertGreaterThan(
+            reaction.to.height,
+            200,
+            "a tray that has arrived stands up when it learns"
+        )
     }
 
     func testATrayFillsTheRoomWhicheverOrderItsFlagAndItsMoveArriveIn() {
@@ -137,7 +234,12 @@ final class PinTrayMachineTests: XCTestCase {
             var machine = machine()
             _ = machine.handle(.moveBegan(isPush: true))
             if flagFirst { _ = machine.handle(.fillsReported(true)) }
-            let moved = machine.handle(.moved(contentHeight: 200, edits: false, isPush: true))
+            let moved = machine.handle(
+                .moved(
+                    contentHeight: 200,
+                    edits: false,
+                    isPush: true
+                ))
             let standing = flagFirst ? moved : machine.handle(.fillsReported(true))
 
             XCTAssertGreaterThan(
@@ -152,9 +254,22 @@ final class PinTrayMachineTests: XCTestCase {
         var machine = machine()
         _ = machine.handle(.moveBegan(isPush: true))
 
-        let pushed = machine.handle(.moved(contentHeight: 245, edits: false, isPush: true))
-        XCTAssertEqual(machine.phase, .standing, "nothing is coming, so nothing is waited for")
-        XCTAssertEqual(pushed.to.height, 245, "it stands at what it holds")
+        let pushed = machine.handle(
+            .moved(
+                contentHeight: 245,
+                edits: false,
+                isPush: true
+            ))
+        XCTAssertEqual(
+            machine.phase,
+            .standing,
+            "nothing is coming, so nothing is waited for"
+        )
+        XCTAssertEqual(
+            pushed.to.height,
+            245,
+            "it stands at what it holds"
+        )
     }
 
     func testAFillingTrayNeverWaitsBecauseItsTopCannotMove() {
@@ -162,8 +277,17 @@ final class PinTrayMachineTests: XCTestCase {
         _ = machine.handle(.moveBegan(isPush: true))
         _ = machine.handle(.fillsReported(true))
 
-        let pushed = machine.handle(.moved(contentHeight: 245, edits: true, isPush: true))
-        XCTAssertEqual(machine.phase, .standing, "it stands at once")
+        let pushed = machine.handle(
+            .moved(
+                contentHeight: 245,
+                edits: true,
+                isPush: true
+            ))
+        XCTAssertEqual(
+            machine.phase,
+            .standing,
+            "it stands at once"
+        )
 
         let height = screen.containerHeight
         let top = { (geometry: PinTrayGeometry) in height - geometry.bottomInset - geometry.height }
@@ -177,7 +301,12 @@ final class PinTrayMachineTests: XCTestCase {
 
     func testLeavingATrayThatWasNotEditingAsksNothingOfTheKeyboard() {
         var machine = machine()
-        let pop = machine.handle(.moved(contentHeight: 456, edits: false, isPush: false))
+        let pop = machine.handle(
+            .moved(
+                contentHeight: 456,
+                edits: false,
+                isPush: false
+            ))
         XCTAssertEqual(pop.effects, [])
     }
 
@@ -196,7 +325,11 @@ final class PinTrayMachineTests: XCTestCase {
     func testAReactionThatChangesNothingStartsNothing() {
         var machine = machine(edits: true)
         let settled = machine.handle(.keyboardMeasured(311))
-        XCTAssertEqual(settled.to, machine.geometry, "nothing about the tray changed")
+        XCTAssertEqual(
+            settled.to,
+            machine.geometry,
+            "nothing about the tray changed"
+        )
         XCTAssertEqual(
             settled.timeline,
             .carriedByKeyboard,
@@ -216,8 +349,16 @@ final class PinTrayMachineTests: XCTestCase {
 
         _ = machine.handle(.cardDragged(to: -80))
         let lifted = machine.geometry.translation
-        XCTAssertLessThan(lifted, 0, "a drag upward lifts it")
-        XCTAssertGreaterThan(lifted, -80, "by less than the finger came")
+        XCTAssertLessThan(
+            lifted,
+            0,
+            "a drag upward lifts it"
+        )
+        XCTAssertGreaterThan(
+            lifted,
+            -80,
+            "by less than the finger came"
+        )
     }
 
     func testAThrowIsJudgedByWhereItWouldLandNotByHowFastItLeft() {
@@ -243,7 +384,11 @@ final class PinTrayMachineTests: XCTestCase {
         _ = machine.handle(.cardDragged(to: -200))
         let released = machine.handle(.released(velocity: -900))
         XCTAssertFalse(released.dismisses, "a tray pulled away from the exit does not take it")
-        XCTAssertEqual(released.to.translation, 0, "it comes back to where it stood")
+        XCTAssertEqual(
+            released.to.translation,
+            0,
+            "it comes back to where it stood"
+        )
     }
 
     func testAReleasedDragSpringsBackUnlessItWentFarEnough() {
@@ -253,9 +398,13 @@ final class PinTrayMachineTests: XCTestCase {
         XCTAssertFalse(held.dismisses)
 
         _ = machine.handle(.cardDragged(to: machine.geometry.height))
-        let let_go = machine.handle(.released(velocity: 0))
-        XCTAssertTrue(let_go.dismisses, "carried its own height down, the way out is the nearer place")
-        XCTAssertGreaterThan(let_go.to.translation, 0, "it leaves the way it arrived")
+        let letGo = machine.handle(.released(velocity: 0))
+        XCTAssertTrue(letGo.dismisses, "carried its own height down, the way out is the nearer place")
+        XCTAssertGreaterThan(
+            letGo.to.translation,
+            0,
+            "it leaves the way it arrived"
+        )
     }
 
     func testATrayCaughtOnItsWayOutStopsLeaving() {
@@ -265,8 +414,16 @@ final class PinTrayMachineTests: XCTestCase {
         XCTAssertEqual(machine.phase, .leaving)
 
         _ = machine.handle(.caughtInFlight(at: 200))
-        XCTAssertEqual(machine.phase, .standing, "a hand on a leaving tray is a hand bringing it back")
-        XCTAssertEqual(machine.geometry.translation, 200, "and it carries on from where it had got to")
+        XCTAssertEqual(
+            machine.phase,
+            .standing,
+            "a hand on a leaving tray is a hand bringing it back"
+        )
+        XCTAssertEqual(
+            machine.geometry.translation,
+            200,
+            "and it carries on from where it had got to"
+        )
     }
 
     func testAFlickDismissesEvenFromCloseBy() {
@@ -280,9 +437,15 @@ final class PinTrayMachineTests: XCTestCase {
         let leaving = machine.handle(.dismissed)
         XCTAssertGreaterThan(leaving.to.translation, 0)
 
-        let late = machine.handle(.moved(contentHeight: 641, edits: false, isPush: true))
+        let late = machine.handle(
+            .moved(
+                contentHeight: 641,
+                edits: false,
+                isPush: true
+            ))
         XCTAssertGreaterThan(
-            late.to.translation, 0,
+            late.to.translation,
+            0,
             "a move that resolves on its way out cannot stand the tray back up"
         )
     }
@@ -294,7 +457,8 @@ final class PinTrayMachineTests: XCTestCase {
 
         let afterKeyboard = machine.handle(.keyboardMeasured(0))
         XCTAssertGreaterThan(
-            afterKeyboard.to.translation, 0,
+            afterKeyboard.to.translation,
+            0,
             "the keyboard reporting in cannot put a leaving tray back"
         )
     }
@@ -302,7 +466,11 @@ final class PinTrayMachineTests: XCTestCase {
     func testATrayLeavingBesideTheKeyboardIsMeasuredFromWhereItWillBe() {
         var machine = machine(edits: true)
         let leaving = machine.handle(.dismissed)
-        XCTAssertEqual(leaving.to.bottomInset, trayBottomMargin, "measured with the keyboard gone")
+        XCTAssertEqual(
+            leaving.to.bottomInset,
+            trayBottomMargin,
+            "measured with the keyboard gone"
+        )
     }
 
     func testATrayLeavingBesideTheKeyboardBorrowsItsClock() {
@@ -337,10 +505,18 @@ extension PinTrayMachineTests {
 
     func testAReducedMotionPreferenceTakesTheZoomOutOfAMove() {
         var machine = machine()
-        XCTAssertGreaterThan(machine.contentZoom, 1, "a move zooms the content it is leaving behind")
+        XCTAssertGreaterThan(
+            machine.contentZoom,
+            1,
+            "a move zooms the content it is leaving behind"
+        )
 
         machine.motionIsReduced = true
-        XCTAssertEqual(machine.contentZoom, 1, "asked for less motion, the content crossfades in place")
+        XCTAssertEqual(
+            machine.contentZoom,
+            1,
+            "asked for less motion, the content crossfades in place"
+        )
     }
 }
 
@@ -365,7 +541,12 @@ extension PinTrayMachineTests {
         _ = machine.handle(.bodyDragged(by: 40))
         let back = machine.handle(.bodyDragged(by: -60))
 
-        XCTAssertEqual(back.to.translation, 0, accuracy: 0.5, "the card is back where it stood")
+        XCTAssertEqual(
+            back.to.translation,
+            0,
+            accuracy: 0.5,
+            "the card is back where it stood"
+        )
         XCTAssertFalse(machine.cardIsBeingDraggedDown, "so the gesture is the list's again")
     }
 }
@@ -396,15 +577,23 @@ extension PinTrayMachineTests {
         let onItsWayOut = machine.geometry.translation
 
         let reported = machine.handle(.fillsReported(false))
-        XCTAssertEqual(machine.phase, .leaving, "measuring what a tray holds does not cancel its exit")
         XCTAssertEqual(
-            reported.to.translation, onItsWayOut, accuracy: 1,
+            machine.phase,
+            .leaving,
+            "measuring what a tray holds does not cancel its exit"
+        )
+        XCTAssertEqual(
+            reported.to.translation,
+            onItsWayOut,
+            accuracy: 1,
             "and it keeps answering with where it is going: \(reported.to.translation) against \(onItsWayOut)"
         )
 
         let resized = machine.handle(.contentResized(387))
         XCTAssertEqual(
-            resized.to.translation, onItsWayOut, accuracy: 1,
+            resized.to.translation,
+            onItsWayOut,
+            accuracy: 1,
             "nor does measuring it again: \(resized.to.translation) against \(onItsWayOut)"
         )
     }
@@ -418,13 +607,20 @@ extension PinTrayMachineTests {
         let onItsWayOut = machine.geometry.translation
 
         let resized = machine.handle(.contentResized(387))
-        XCTAssertEqual(machine.phase, .leaving, "measuring a filling tray does not cancel its exit")
         XCTAssertEqual(
-            resized.to.translation, onItsWayOut, accuracy: 1,
+            machine.phase,
+            .leaving,
+            "measuring a filling tray does not cancel its exit"
+        )
+        XCTAssertEqual(
+            resized.to.translation,
+            onItsWayOut,
+            accuracy: 1,
             "it keeps answering with where it is going: \(resized.to.translation) against \(onItsWayOut)"
         )
         XCTAssertEqual(
-            resized.timeline, .carriedByKeyboard,
+            resized.timeline,
+            .carriedByKeyboard,
             "and it starts nothing, so whatever is carrying it out keeps its completion"
         )
     }
@@ -437,11 +633,15 @@ extension PinTrayMachineTests {
 
         let reported = machine.handle(.fillsReported(false))
         XCTAssertEqual(
-            reported.to.height, onItsWayOut.height, accuracy: 1,
+            reported.to.height,
+            onItsWayOut.height,
+            accuracy: 1,
             "a tray on its way out holds its size: \(reported.to.height) against \(onItsWayOut.height)"
         )
         XCTAssertEqual(
-            reported.to.translation, onItsWayOut.translation, accuracy: 1,
+            reported.to.translation,
+            onItsWayOut.translation,
+            accuracy: 1,
             "and clears the same edge: \(reported.to.translation) against \(onItsWayOut.translation)"
         )
     }

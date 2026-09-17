@@ -1,5 +1,5 @@
-import XCTest
 import UIKit
+import XCTest
 @testable import Pinwheel
 
 @MainActor
@@ -13,8 +13,11 @@ final class ListBackgroundCaptureTests: XCTestCase {
         let transparent = UIView(); transparent.backgroundColor = .clear
         let collection = UIView()
         root.addSubview(transparent); transparent.addSubview(collection)
-        XCTAssertEqual(PinSwiftUIListCapture.opaqueBackground(above: collection), surface,
-                       "the screen background falls back to the opaque surface behind a transparent collection")
+        XCTAssertEqual(
+            PinSwiftUIListCapture.opaqueBackground(above: collection),
+            surface,
+            "the screen background falls back to the opaque surface behind a transparent collection"
+        )
     }
 
     // A fully transparent chain has no surface to fall back to — return nil rather than a bogus fill.

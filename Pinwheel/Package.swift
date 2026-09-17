@@ -10,9 +10,7 @@ let package = Package(
         .iOS(.v18)
     ],
     products: [
-        .library(
-            name: "Pinwheel",
-            targets: ["Pinwheel"]),
+        .library(name: "Pinwheel", targets: ["Pinwheel"])
     ],
     targets: [
         .target(
@@ -21,8 +19,6 @@ let package = Package(
                 .swiftLanguageMode(.v6),
                 .defaultIsolation(MainActor.self),
             ]),
-        .testTarget(
-            name: "PinwheelTests",
-            dependencies: ["Pinwheel"]),
+        .testTarget(name: "PinwheelTests", dependencies: ["Pinwheel"]),
     ]
 )

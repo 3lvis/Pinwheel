@@ -5,7 +5,11 @@ public struct PinList: SwiftUI.View {
     private let rows: [Row]
     private let onRetry: () -> Void
 
-    public init(state: PinState = .loaded, rows: [Row], onRetry: @escaping () -> Void = {}) {
+    public init(
+        state: PinState = .loaded,
+        rows: [Row],
+        onRetry: @escaping () -> Void = {}
+    ) {
         self.state = state
         self.rows = rows
         self.onRetry = onRetry
@@ -17,7 +21,14 @@ public struct PinList: SwiftUI.View {
             List {
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
                     row
-                        .listRowInsets(EdgeInsets(top: .spacing2, leading: .spacing3, bottom: .spacing2, trailing: .spacing3))
+                        .listRowInsets(
+                            EdgeInsets(
+                                top: .spacing2,
+                                leading: .spacing3,
+                                bottom: .spacing2,
+                                trailing: .spacing3
+                            )
+                        )
                         .listRowBackground(Color.primaryBackground)
                 }
             }
@@ -41,7 +52,11 @@ public extension PinList {
         private let icon: Image?
         private let kind: Kind
 
-        private init(title: String, icon: Image?, kind: Kind) {
+        private init(
+            title: String,
+            icon: Image?,
+            kind: Kind
+        ) {
             self.title = title
             self.icon = icon
             self.kind = kind
@@ -56,17 +71,47 @@ public extension PinList {
             enabled: Bool = true,
             action: (() -> Void)? = nil
         ) -> Row {
-            Row(title: title, icon: icon, kind: .text(subtitle: subtitle, detail: detail, chevron: chevron, enabled: enabled, action: action))
+            Row(
+                title: title,
+                icon: icon,
+                kind: .text(
+                    subtitle: subtitle,
+                    detail: detail,
+                    chevron: chevron,
+                    enabled: enabled,
+                    action: action
+                )
+            )
         }
 
-        public static func toggle(_ title: String, icon: Image? = nil, subtitle: String? = nil, enabled: Bool = true, isOn: Binding<Bool>) -> Row {
-            Row(title: title, icon: icon, kind: .toggle(subtitle: subtitle, enabled: enabled, isOn: isOn))
+        public static func toggle(
+            _ title: String,
+            icon: Image? = nil,
+            subtitle: String? = nil,
+            enabled: Bool = true,
+            isOn: Binding<Bool>
+        ) -> Row {
+            Row(
+                title: title,
+                icon: icon,
+                kind: .toggle(
+                    subtitle: subtitle,
+                    enabled: enabled,
+                    isOn: isOn
+                )
+            )
         }
 
         public var body: some SwiftUI.View {
             switch kind {
             case let .text(subtitle, detail, chevron, enabled, action):
-                textRow(subtitle: subtitle, detail: detail, chevron: chevron, enabled: enabled, action: action)
+                textRow(
+                    subtitle: subtitle,
+                    detail: detail,
+                    chevron: chevron,
+                    enabled: enabled,
+                    action: action
+                )
             case let .toggle(subtitle, enabled, isOn):
                 Toggle(isOn: isOn) {
                     HStack(spacing: .spacing2) {

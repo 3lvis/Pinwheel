@@ -10,7 +10,11 @@ struct PinLabelDemo: SwiftUI.View {
             PinLabel("Footnote").font(.footnote)
             PinLabel("Caption").font(.caption)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .frame(
+            maxWidth: .infinity,
+            maxHeight: .infinity,
+            alignment: .topLeading
+        )
         .padding(.spacing4)
         .background(.primaryBackground)
     }

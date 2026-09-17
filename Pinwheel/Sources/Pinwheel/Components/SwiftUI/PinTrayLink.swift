@@ -9,7 +9,11 @@ public struct PinTrayLink: SwiftUI.View {
 
     @Environment(\.pinwheelTheme) private var theme
 
-    public init(_ text: String, phrase: String, open: @escaping () -> Void) {
+    public init(
+        _ text: String,
+        phrase: String,
+        open: @escaping () -> Void
+    ) {
         self.text = text
         self.phrase = phrase
         self.open = open

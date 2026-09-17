@@ -4,7 +4,11 @@ import UIKit
 extension PinwheelTweak {
     init?(_ tweak: Tweak) {
         if let text = tweak as? TextTweak {
-            self.init(text.title, description: text.description, action: text.action)
+            self.init(
+                text.title,
+                description: text.description,
+                action: text.action
+            )
         } else if let toggle = tweak as? BoolTweak {
             // Back the toggle with captured locals, not a class: a @MainActor class
             // (the package's default isolation) has an isolated deinit that hops to
@@ -15,17 +19,18 @@ extension PinwheelTweak {
             self.init(
                 toggle.title,
                 description: toggle.description,
-                isOn: Binding(get: { isOn }, set: { isOn = $0; action($0) })
+                isOn: Binding(
+                    get: { isOn },
+                    set: {
+                        isOn = $0; action($0)
+                    })
             )
         } else if let select = tweak as? SelectTweak {
             self.init(
                 select.title,
                 description: select.description,
                 options: select.options,
-                selection: Binding(
-                    get: { select.chosenOption() },
-                    set: { select.action($0) }
-                )
+                selection: Binding(get: { select.chosenOption() }, set: { select.action($0) })
             )
         } else {
             return nil

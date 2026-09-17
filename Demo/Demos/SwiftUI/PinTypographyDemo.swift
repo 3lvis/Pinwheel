@@ -12,7 +12,7 @@ struct PinTypographyDemo: SwiftUI.View {
         ("Footnote", .footnote),
         ("Footnote Semibold", .footnoteSemibold),
         ("Caption", .caption),
-        ("Caption Semibold", .captionSemibold)
+        ("Caption Semibold", .captionSemibold),
     ]
 
     // VStack, not List: a List's UIKit-backed cells don't render off-screen, so Figma capture reads them empty.

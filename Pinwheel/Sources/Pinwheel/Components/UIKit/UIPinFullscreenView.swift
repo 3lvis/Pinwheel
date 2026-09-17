@@ -20,7 +20,18 @@ open class UIPinFullscreenView: UIView {
         backgroundColor = .primaryBackground
         translatesAutoresizingMaskIntoConstraints = false
 
-        setupSafeKeyboardNotifications()
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(safeKeyboardWillShow(_:)),
+            name: UIResponder.keyboardWillShowNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(safeKeyboardWillHide(_:)),
+            name: UIResponder.keyboardWillHideNotification,
+            object: nil
+        )
     }
 
     open func setup() {
@@ -72,11 +83,6 @@ open class UIPinFullscreenView: UIView {
         subviewSafeBottomConstraint.append(subview.bottomAnchor.constraint(equalTo: bottomAnchor, constant: constant))
         NSLayoutConstraint.deactivate(subviewKeyboardBottomConstraint)
         NSLayoutConstraint.activate(subviewSafeBottomConstraint)
-    }
-
-    private func setupSafeKeyboardNotifications() {
-        NotificationCenter.default.addObserver(self, selector: #selector(safeKeyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(safeKeyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
 
     @objc private func safeKeyboardWillShow(_ notification: NSNotification) {

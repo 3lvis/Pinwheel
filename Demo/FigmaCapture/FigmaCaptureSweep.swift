@@ -20,8 +20,11 @@ enum FigmaCatalog {
         DemoPinwheelSections.all.flatMap { section in
             section.items.map { item in
                 FigmaCatalogEntry(
-                    id: item.id, title: item.title, section: section.title,
-                    tags: item.tags.map(\.rawValue), item: item
+                    id: item.id,
+                    title: item.title,
+                    section: section.title,
+                    tags: item.tags.map { $0.rawValue },
+                    item: item
                 )
             }
         }
@@ -31,12 +34,28 @@ enum FigmaCatalog {
         entries.first { $0.id == id }
     }
 
+    // AppDelegate reaches the sweep through this and dumpManifest; both read launch arguments and drive
+    // the capture, which is work the app delegate has no business holding.
+    // oida:disable:next no_single_use_void_functions
     static func autoPush(id: String) {
         guard let entry = entry(id: id),
-              let document = PinDisplayListCapture.document(entry.item.swiftUIView(), name: entry.title, size: FigmaCatalog.captureCanvas, screenHeight: FigmaCatalog.oneScreen)
+            let document = PinDisplayListCapture.document(
+                entry.item.swiftUIView(),
+                name: entry.title,
+                size: FigmaCatalog.captureCanvas,
+                screenHeight: FigmaCatalog.oneScreen
+            )
         else { return }
         let version = PinCaptureVersions.shared.record(id: entry.id, document: document)
-        FigmaCaptureFile.pushCatalog(app: FigmaCatalog.appName, id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, version: version, document: document)
+        FigmaCaptureFile.pushCatalog(
+            app: FigmaCatalog.appName,
+            id: entry.id,
+            title: entry.title,
+            section: entry.section,
+            tags: entry.tags,
+            version: version,
+            document: document
+        )
     }
 
     static var requestedCaptureID: String? {
@@ -47,10 +66,18 @@ enum FigmaCatalog {
         ProcessInfo.processInfo.arguments.contains("-PinwheelManifest")
     }
 
+    // The sweep's other entry point, for the same reason.
+    // oida:disable:next no_single_use_void_functions
     static func dumpManifest() {
-        let skeleton = entries.map { ManifestItem(id: $0.id, title: $0.title, section: $0.section, tags: $0.tags) }
-        guard let data = try? JSONEncoder().encode(skeleton),
-              let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+        let skeleton = entries.map {
+            ManifestItem(
+                id: $0.id,
+                title: $0.title,
+                section: $0.section,
+                tags: $0.tags
+            )
+        }
+        guard let data = try? JSONEncoder().encode(skeleton), let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
             return
         }
         try? data.write(to: directory.appendingPathComponent("pinwheel-catalog.json"))
@@ -101,14 +128,15 @@ struct LiveCaptureHost: UIViewControllerRepresentable {
         // the taller of screen and content; drawHierarchy only sees the visible window, so keep short
         // content at screen height so its controls still paint on-window.
         let width = FigmaCatalog.captureCanvas.width
-        let screenHeight = UIApplication.shared.connectedScenes
+        let screenHeight =
+            UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }.first?.screen.bounds.height ?? FigmaCatalog.captureCanvas.height
         let contentHeight = host.sizeThatFits(in: CGSize(width: width, height: .greatestFiniteMagnitude)).height
         NSLayoutConstraint.activate([
             host.view.widthAnchor.constraint(equalToConstant: width),
             host.view.centerXAnchor.constraint(equalTo: container.view.centerXAnchor),
             host.view.topAnchor.constraint(equalTo: container.view.topAnchor),
-            host.view.heightAnchor.constraint(equalToConstant: max(screenHeight, contentHeight))
+            host.view.heightAnchor.constraint(equalToConstant: max(screenHeight, contentHeight)),
         ])
         host.didMove(toParent: container)
         // A UISwitch renders its knob only on-window, so capture after it has painted on-screen.
@@ -118,6 +146,10 @@ struct LiveCaptureHost: UIViewControllerRepresentable {
 
     func updateUIViewController(_ controller: UIViewController, context: Context) {}
 
+    // Deferred from makeUIViewController, which reads as build the container, defer the capture, return
+    // it. Written into that closure, fifty lines of routing would sit between the host being mounted and
+    // the container being handed back.
+    // oida:disable:next no_single_use_void_functions
     private func capture(host: UIViewController) {
         let size = host.view.bounds.size
         host.view.layoutIfNeeded()
@@ -126,18 +158,45 @@ struct LiveCaptureHost: UIViewControllerRepresentable {
         // it intercept a SwiftUI screen — e.g. it grabs a button's spinner views as stray crops and the
         // real pills/text never capture. (UIKit controls render only in the sim's own appearance, so the
         // sweep runs twice — sim light, then dark — and merges the two single-appearance documents.)
-        let displayList = { PinDisplayListCapture.document(entry.item.swiftUIView(), name: entry.title, size: size, screenHeight: FigmaCatalog.oneScreen, liveHost: host.view) }
+        let displayList = {
+            PinDisplayListCapture.document(
+                entry.item.swiftUIView(),
+                name: entry.title,
+                size: size,
+                screenHeight: FigmaCatalog.oneScreen,
+                liveHost: host.view
+            )
+        }
         // A SwiftUI `List` hides its rows behind per-cell hosting views the DisplayList can't see; capture
         // it via the backing-collection walk (nil for non-List SwiftUI screens, so they fall through).
-        let listCapture = { PinSwiftUIListCapture.document(name: entry.title, size: size, screenHeight: FigmaCatalog.oneScreen, liveHost: host.view) }
-        guard let document = entry.item.isUIKitHosted
-            ? (PinUIKitCapture.document(host: host.view, name: entry.title, size: size, screenHeight: FigmaCatalog.oneScreen) ?? displayList())
-            : (listCapture() ?? displayList())
+        let listCapture = {
+            PinSwiftUIListCapture.document(
+                name: entry.title,
+                size: size,
+                screenHeight: FigmaCatalog.oneScreen,
+                liveHost: host.view
+            )
+        }
+        guard
+            let document = entry.item.isUIKitHosted
+                ? (PinUIKitCapture.document(
+                    host: host.view,
+                    name: entry.title,
+                    size: size,
+                    screenHeight: FigmaCatalog.oneScreen
+                ) ?? displayList())
+                : (listCapture() ?? displayList())
         else { return }
         onCaptured?(document)
         let version = PinCaptureVersions.shared.record(id: entry.id, document: document)
         FigmaCaptureFile.pushCatalog(
-            app: FigmaCatalog.appName, id: entry.id, title: entry.title, section: entry.section, tags: entry.tags, version: version, document: document
+            app: FigmaCatalog.appName,
+            id: entry.id,
+            title: entry.title,
+            section: entry.section,
+            tags: entry.tags,
+            version: version,
+            document: document
         )
     }
 }

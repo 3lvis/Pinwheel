@@ -1,5 +1,5 @@
-import UIKit
 import SwiftUI
+import UIKit
 
 public struct PinTag: RawRepresentable, Hashable, Sendable {
     public let rawValue: String

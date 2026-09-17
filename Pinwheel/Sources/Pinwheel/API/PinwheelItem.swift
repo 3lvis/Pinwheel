@@ -1,5 +1,5 @@
-import UIKit
 import SwiftUI
+import UIKit
 
 @resultBuilder
 public enum PinwheelItemBuilder {
@@ -51,7 +51,7 @@ public struct PinwheelItem {
     }
 
     nonisolated public static func generatedID(title: String, tags: [PinTag] = []) -> String {
-        return (tags.map(\.rawValue) + [title]).joined(separator: " ").pinwheelGeneratedID
+        return (tags.map { $0.rawValue } + [title]).joined(separator: " ").pinwheelGeneratedID
     }
 
     public func swiftUIView() -> AnyView {
@@ -80,7 +80,11 @@ public struct PinwheelItem {
         self.makeSwiftUIView = makeSwiftUIView
     }
 
-    public init(title: String, viewController: UIViewController, tabletDisplayMode: PinwheelTabletDisplayMode = .fullscreen) {
+    public init(
+        title: String,
+        viewController: UIViewController,
+        tabletDisplayMode: PinwheelTabletDisplayMode = .fullscreen
+    ) {
         self.init(
             title: title,
             presentation: .fullscreen,
@@ -99,10 +103,7 @@ public struct PinwheelItem {
         )
     }
 
-    public init<ViewType: UIView>(
-        _ title: String,
-        view: ViewType.Type
-    ) {
+    public init<ViewType: UIView>(_ title: String, view: ViewType.Type) {
         var sharedHostedView: ViewType?
         self.init(
             title: title,
@@ -113,11 +114,13 @@ public struct PinwheelItem {
             tabletDisplayMode: .fullscreen,
             isUIKitHosted: true,
             makeSwiftUIView: {
-                let view = sharedHostedView ?? {
-                    let created = ViewType(frame: .zero)
-                    sharedHostedView = created
-                    return created
-                }()
+                let view =
+                    sharedHostedView
+                    ?? {
+                        let created = ViewType(frame: .zero)
+                        sharedHostedView = created
+                        return created
+                    }()
                 let tweaks = (view as? Tweakable)?.tweaks.compactMap { PinwheelTweak($0) } ?? []
                 return AnyView(
                     PinwheelUIKitViewController {
@@ -129,10 +132,7 @@ public struct PinwheelItem {
         )
     }
 
-    public init<Content: SwiftUI.View>(
-        _ title: String,
-        @ViewBuilder content: @escaping () -> Content
-    ) {
+    public init<Content: SwiftUI.View>(_ title: String, @ViewBuilder content: @escaping () -> Content) {
         self.init(
             title: title,
             presentation: .fullscreen,
@@ -147,10 +147,7 @@ public struct PinwheelItem {
         )
     }
 
-    public init(
-        _ title: String,
-        viewController: @escaping () -> UIViewController
-    ) {
+    public init(_ title: String, viewController: @escaping () -> UIViewController) {
         // Reuse the same controller across renders. The tweak controls hold onto it, so a
         // fresh one each render would leave them driving a hidden, discarded copy.
         var sharedViewController: UIViewController?
@@ -163,11 +160,13 @@ public struct PinwheelItem {
             tabletDisplayMode: .fullscreen,
             isUIKitHosted: true,
             makeSwiftUIView: {
-                let controller = sharedViewController ?? {
-                    let created = viewController()
-                    sharedViewController = created
-                    return created
-                }()
+                let controller =
+                    sharedViewController
+                    ?? {
+                        let created = viewController()
+                        sharedViewController = created
+                        return created
+                    }()
                 let tweaks = (controller as? Tweakable)?.tweaks.compactMap { PinwheelTweak($0) } ?? []
                 return AnyView(
                     PinwheelUIKitViewController { controller }

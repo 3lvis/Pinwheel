@@ -10,10 +10,18 @@ public struct PinwheelPreview: SwiftUI.View {
     @SwiftUI.State private var chrome = PinwheelChrome()
 
     public init(_ id: String, sections: [PinwheelSection]) {
-        self.init(id, sections: sections, themes: [.standard])
+        self.init(
+            id,
+            sections: sections,
+            themes: [.standard]
+        )
     }
 
-    public init(_ id: String, sections: [PinwheelSection], themes: [PinwheelTheme]) {
+    public init(
+        _ id: String,
+        sections: [PinwheelSection],
+        themes: [PinwheelTheme]
+    ) {
         self.id = id
         self.sections = sections
         self.themes = themes
@@ -56,18 +64,14 @@ public struct PinwheelPreview: SwiftUI.View {
         }
     }
 
-    static func resolve(
-        id rawID: String,
-        in sections: [PinwheelSection]
-    ) -> (section: PinwheelSection, item: PinwheelItem)? {
+    static func resolve(id rawID: String, in sections: [PinwheelSection]) -> (section: PinwheelSection, item: PinwheelItem)? {
         let trimmed = rawID.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
 
         if let slash = trimmed.firstIndex(of: "/") {
             let sectionID = String(trimmed[..<slash])
             let itemID = String(trimmed[trimmed.index(after: slash)...])
-            guard let section = sections.first(where: { $0.id == sectionID }),
-                  let item = section.items.first(where: { $0.id == itemID }) else {
+            guard let section = sections.first(where: { $0.id == sectionID }), let item = section.items.first(where: { $0.id == itemID }) else {
                 return nil
             }
             return (section, item)
@@ -88,13 +92,11 @@ public extension PinwheelPreview {
     /// launch argument or the `PINWHEEL_PREVIEW` env var, else nil.
     static var requestedID: String? {
         // `-key value` launch args are surfaced as UserDefaults values.
-        if let argument = UserDefaults.standard.string(forKey: "PinwheelPreview"),
-           !argument.isEmpty {
+        if let argument = UserDefaults.standard.string(forKey: "PinwheelPreview"), !argument.isEmpty {
             return argument
         }
 
-        if let environment = ProcessInfo.processInfo.environment["PINWHEEL_PREVIEW"],
-           !environment.isEmpty {
+        if let environment = ProcessInfo.processInfo.environment["PINWHEEL_PREVIEW"], !environment.isEmpty {
             return environment
         }
 
@@ -102,13 +104,11 @@ public extension PinwheelPreview {
     }
 
     static var requestedTheme: String? {
-        if let argument = UserDefaults.standard.string(forKey: "PinwheelPreviewTheme"),
-           !argument.isEmpty {
+        if let argument = UserDefaults.standard.string(forKey: "PinwheelPreviewTheme"), !argument.isEmpty {
             return argument
         }
 
-        if let environment = ProcessInfo.processInfo.environment["PINWHEEL_PREVIEW_THEME"],
-           !environment.isEmpty {
+        if let environment = ProcessInfo.processInfo.environment["PINWHEEL_PREVIEW_THEME"], !environment.isEmpty {
             return environment
         }
 
@@ -118,20 +118,17 @@ public extension PinwheelPreview {
     /// The tweak/variant to auto-apply on a preview launch: the
     /// `-PinwheelPreviewTweak <title>` launch argument or `PINWHEEL_PREVIEW_TWEAK`, else nil.
     static var requestedTweak: String? {
-        if let argument = UserDefaults.standard.string(forKey: "PinwheelPreviewTweak"),
-           !argument.isEmpty {
+        if let argument = UserDefaults.standard.string(forKey: "PinwheelPreviewTweak"), !argument.isEmpty {
             return argument
         }
 
-        if let environment = ProcessInfo.processInfo.environment["PINWHEEL_PREVIEW_TWEAK"],
-           !environment.isEmpty {
+        if let environment = ProcessInfo.processInfo.environment["PINWHEEL_PREVIEW_TWEAK"], !environment.isEmpty {
             return environment
         }
 
         return nil
     }
 }
-
 
 private struct PinwheelPreviewNotFound: SwiftUI.View {
     let requestedID: String

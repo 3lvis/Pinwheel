@@ -35,7 +35,12 @@ struct PinwheelFloatingControlsHost: UIViewRepresentable {
         if let scene = uiView.window?.windowScene {
             context.coordinator.attach(scene: scene, chrome: chrome)
         }
-        context.coordinator.update(showsFloatingControls: showsFloatingControls, tweakCount: tweakCount, colorScheme: colorScheme, theme: theme)
+        context.coordinator.update(
+            showsFloatingControls: showsFloatingControls,
+            tweakCount: tweakCount,
+            colorScheme: colorScheme,
+            theme: theme
+        )
     }
 
     static func dismantleUIView(_ uiView: ProbeView, coordinator: Coordinator) {
@@ -61,13 +66,18 @@ struct PinwheelFloatingControlsHost: UIViewRepresentable {
         func attach(scene: UIWindowScene, chrome: PinwheelChrome) {
             guard window == nil else { return }
             let window = PinwheelFloatingControlsWindow(windowScene: scene)
-            window.controller.onSettings = { [weak chrome] in chrome?.selectTweaks() }
+            window.controller.onSettings = { [weak chrome] in chrome?.showsTweaks = true }
             window.controller.onClose = { [weak chrome] in chrome?.selectClose() }
             window.controller.anchoringView.setControlsHidden(true, animated: false)
             self.window = window
         }
 
-        func update(showsFloatingControls: Bool, tweakCount: Int, colorScheme: ColorScheme?, theme: PinwheelTheme) {
+        func update(
+            showsFloatingControls: Bool,
+            tweakCount: Int,
+            colorScheme: ColorScheme?,
+            theme: PinwheelTheme
+        ) {
             guard let window else { return }
             window.controller.itemsCount = tweakCount
             window.controller.theme = theme
@@ -90,6 +100,9 @@ struct PinwheelFloatingControlsHost: UIViewRepresentable {
             }
         }
 
+        // The window and the flag it clears are this coordinator's own private state, so the call site
+        // above has nothing it could write instead.
+        // oida:disable:next no_single_use_void_functions
         func teardown() {
             floatingControlsAreShown = false
             window?.isHidden = true

@@ -1,2 +1,0 @@
-**Colors are trait-reactive for free; fonts are not.** A color token is a `UIColor(dynamicProvider:)` reading `traits[PinwheelThemeTrait.self]`, the same mechanism that gives light/dark, so every existing `.primaryText`-style call site became brand-reactive with no change. `UIFont` has no dynamic-provider counterpart, so a font token resolves once against the traits current at the read — which is why SwiftUI font call sites take the theme explicitly (`PinTextStyle.font(in:)`) rather than reading a static.
-*— Elvis, 2026-08-18 08:36*

@@ -38,7 +38,11 @@ final class PinTrayChassis: UIViewController {
         PinwheelRecorder.note(category, "\(mark)  \(message)")
     }
 
-    init(showing tray: PinTray, nestedIn displayCornerRadius: CGFloat, covering frame: CGRect) {
+    init(
+        showing tray: PinTray,
+        nestedIn displayCornerRadius: CGFloat,
+        covering frame: CGRect
+    ) {
         let container = UIView(frame: frame)
         let card = PinTrayCardView(nestedIn: displayCornerRadius)
         content = container
@@ -61,7 +65,50 @@ final class PinTrayChassis: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        build()
+        view.accessibilityViewIsModal = true
+
+        dimming.frame = view.bounds
+        dimming.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        dimming.backgroundColor = UIColor.black.withAlphaComponent(trayDimming)
+        dimming.alpha = 0
+        view.insertSubview(dimming, belowSubview: cardView)
+        dimming.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(dismissFromBackground)))
+
+        machine.motionIsReduced = UIAccessibility.isReduceMotionEnabled
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(motionPreferenceChanged),
+            name: UIAccessibility.reduceMotionStatusDidChangeNotification,
+            object: nil
+        )
+
+        for name in [UIResponder.keyboardWillShowNotification, UIResponder.keyboardWillHideNotification] {
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(keyboardAnnouncedItsMove),
+                name: name,
+                object: nil
+            )
+        }
+
+        PinwheelRecorder.noteIfAlreadyFollowing("tray \(mark)")
+        PinwheelRecorder.follow { [weak self] in
+            guard let self else { return [] }
+            let drawn = self.cardView.layer.presentation()
+            let top = (drawn?.frame.minY ?? self.cardView.frame.minY) + (drawn?.transform.m42 ?? 0)
+            let content =
+                self.standing?.contents.layer.presentation()?.bounds.height
+                ?? self.standing?.contents.bounds.height ?? 0
+            return [
+                ("cardTop", top),
+                ("cardHeight", drawn?.bounds.height ?? 0),
+                ("contentHeight", content),
+                ("contentBottom", top + content),
+                ("keyboard", self.measuredKeyboardHeight),
+            ]
+        }
+
+        cardView.reporting = self
     }
 
     override func didMove(toParent parent: UIViewController?) {
@@ -69,7 +116,9 @@ final class PinTrayChassis: UIViewController {
         guard parent != nil, standing == nil else { return }
         placement.followTheKeyboard()
         view.layoutIfNeeded()
-        present(arriving)
+        note("navigation", "present")
+        assemble(arriving)
+        apply(machine.handle(.presented(contentHeight: fittedHeight)))
     }
 
     private var room: PinTrayGeometry.Room {
@@ -91,7 +140,13 @@ final class PinTrayChassis: UIViewController {
             case .dismissKeyboard: view.endEditing(true)
             }
         }
-        reaction.from.map { placement.place($0, alongside: dim(to: $0), animated: false) }
+        reaction.from.map {
+            placement.place(
+                $0,
+                alongside: dim(to: $0),
+                animated: false
+            )
+        }
         note(
             "tray",
             "\(reaction.timeline)  card=\(Int(reaction.to.height)) inset=\(Int(reaction.to.bottomInset)) "
@@ -103,7 +158,12 @@ final class PinTrayChassis: UIViewController {
         let finish: () -> Void = reaction.dismisses ? { [weak self] in self?.tearDown() } : {}
         switch reaction.timeline {
         case .immediate:
-            placement.place(reaction.to, alongside: dim(to: reaction.to), animated: false, then: finish)
+            placement.place(
+                reaction.to,
+                alongside: dim(to: reaction.to),
+                animated: false,
+                then: finish
+            )
         case .carriedByKeyboard:
             placement.write(reaction.to)
             dim(to: reaction.to)()
@@ -118,10 +178,17 @@ final class PinTrayChassis: UIViewController {
                 then: finish
             )
         case .matching(let timing):
-            placement.place(reaction.to, alongside: dim(to: reaction.to), matching: timing, then: finish)
+            placement.place(
+                reaction.to,
+                alongside: dim(to: reaction.to),
+                matching: timing,
+                then: finish
+            )
         }
     }
 
+    // The completion closure below runs this; written there it puts eight statements inside a ternary.
+    // oida:disable:next no_single_use_void_functions
     private func tearDown() {
         accessoryView.detach()
         standing?.detach()
@@ -163,54 +230,6 @@ final class PinTrayChassis: UIViewController {
         return true
     }
 
-    private func build() {
-        view.accessibilityViewIsModal = true
-
-        dimming.frame = view.bounds
-        dimming.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        dimming.backgroundColor = UIColor.black.withAlphaComponent(trayDimming)
-        dimming.alpha = 0
-        view.insertSubview(dimming, belowSubview: cardView)
-        dimming.addGestureRecognizer(
-            UITapGestureRecognizer(target: self, action: #selector(dismissFromBackground))
-        )
-
-        machine.motionIsReduced = UIAccessibility.isReduceMotionEnabled
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(motionPreferenceChanged),
-            name: UIAccessibility.reduceMotionStatusDidChangeNotification,
-            object: nil
-        )
-
-        for name in [UIResponder.keyboardWillShowNotification, UIResponder.keyboardWillHideNotification] {
-            NotificationCenter.default.addObserver(
-                self,
-                selector: #selector(keyboardAnnouncedItsMove),
-                name: name,
-                object: nil
-            )
-        }
-
-        PinwheelRecorder.noteIfAlreadyFollowing("tray \(mark)")
-        PinwheelRecorder.follow { [weak self] in
-            guard let self else { return [] }
-            let drawn = self.cardView.layer.presentation()
-            let top = (drawn?.frame.minY ?? self.cardView.frame.minY) + (drawn?.transform.m42 ?? 0)
-            let content = self.standing?.contents.layer.presentation()?.bounds.height
-                ?? self.standing?.contents.bounds.height ?? 0
-            return [
-                ("cardTop", top),
-                ("cardHeight", drawn?.bounds.height ?? 0),
-                ("contentHeight", content),
-                ("contentBottom", top + content),
-                ("keyboard", self.measuredKeyboardHeight),
-            ]
-        }
-
-        cardView.reporting = self
-    }
-
     private var holdsFirstResponder: Bool {
         func search(_ view: UIView) -> Bool {
             view.isFirstResponder || view.subviews.contains(where: search)
@@ -219,10 +238,7 @@ final class PinTrayChassis: UIViewController {
     }
 
     @objc private func keyboardAnnouncedItsMove(_ notification: Notification) {
-        guard
-            let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval,
-            let curve = notification.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? Int
-        else { return }
+        guard let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval, let curve = notification.userInfo?[UIResponder.keyboardAnimationCurveUserInfoKey] as? Int else { return }
         machine.keyboardTiming = PinTrayMachine.KeyboardTiming(duration: duration, curve: curve)
     }
 
@@ -234,18 +250,19 @@ final class PinTrayChassis: UIViewController {
         apply(machine.handle(.keyboardMeasured(measured)))
     }
 
-    private func present(_ tray: PinTray) {
-        note("navigation", "present")
-        assemble(tray)
-        apply(machine.handle(.presented(contentHeight: fittedHeight)))
-    }
-
+    // PinTrayPathSync drives the chassis through refresh and show; inlining either would have that type
+    // reach past the chassis into the standing tray's own contents.
+    // oida:disable:next no_single_use_void_functions
     func refresh(_ tray: PinTray) {
         guard let standing else { return }
         standing.contents.show(titleBar: titleBarLeaf(tray), content: inset(tray.content))
-        settle()
+        let measured = fittedHeight
+        guard machine.resizes(to: measured) else { return }
+        note("reported", "content measures \(Int(measured))  standing=\(Int(machine.geometry.height))")
+        apply(machine.handle(.contentResized(measured)))
     }
 
+    // oida:disable:next no_single_use_void_functions
     func show(_ tray: PinTray, isPush: Bool) {
         note("navigation", isPush ? "push" : "pop")
         apply(machine.handle(.moveBegan(isPush: isPush)))
@@ -267,17 +284,16 @@ final class PinTrayChassis: UIViewController {
             leaving?.detach()
         }
 
-        reportTheMoveOnceTheArrivingTrayHasMounted(isPush: isPush)
-    }
-
-    private func reportTheMoveOnceTheArrivingTrayHasMounted(isPush: Bool) {
+        // A turn later, so the arriving tray has mounted and can be measured.
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            apply(machine.handle(.moved(
-                contentHeight: fittedHeight,
-                edits: holdsFirstResponder,
-                isPush: isPush
-            )))
+            apply(
+                machine.handle(
+                    .moved(
+                        contentHeight: fittedHeight,
+                        edits: holdsFirstResponder,
+                        isPush: isPush
+                    )))
         }
     }
 
@@ -304,11 +320,13 @@ final class PinTrayChassis: UIViewController {
     func accessory(for tray: PinTray) -> PinTrayAccessory {
         if let floating = tray.floating { return .floating(inset(floating)) }
         guard let commit = tray.commit else { return .nothing }
-        return .commitButton(inset(AnyView(
-            PinButton(commit.title, action: commit.action)
-                .style(.custom(text: .primaryBackground, background: .primaryText))
-                .fullWidth()
-        )))
+        return .commitButton(
+            inset(
+                AnyView(
+                    PinButton(commit.title, action: commit.action)
+                        .style(.custom(text: .primaryBackground, background: .primaryText))
+                        .fullWidth()
+                )))
     }
 
     private func assemble(_ tray: PinTray) {
@@ -348,7 +366,8 @@ final class PinTrayChassis: UIViewController {
         let width = view.bounds.width - trayMargin * 2
         let clearanceAboveAccessory = PinTrayGeometry.clearanceAboveAccessory(floats: tray.floating != nil)
         let accessoryHeight = accessoryView.height(fitting: width)
-        contents.clearance = accessoryHeight > 0
+        contents.clearance =
+            accessoryHeight > 0
             ? accessoryInset + accessoryHeight + clearanceAboveAccessory
             : contentBottomInset
         standing = Standing(description: tray, contents: contents)
@@ -362,14 +381,6 @@ final class PinTrayChassis: UIViewController {
     }
 
     private var accessoryInset: CGFloat { contentBottomInset }
-
-    func settle() {
-        let measured = fittedHeight
-        guard self.standing != nil, machine.resizes(to: measured) else { return }
-        let standing = machine.geometry.height
-        note("reported", "content measures \(Int(measured))  standing=\(Int(standing))")
-        apply(machine.handle(.contentResized(measured)))
-    }
 
     @objc private func dismissFromBackground() {
         note("navigation", "backdrop tapped")

@@ -7,7 +7,12 @@ import UIKit
 // full contentSize realizes everything).
 @MainActor
 public enum PinUIKitCapture {
-    public static func document(host: UIView, name: String, size: CGSize, screenHeight: CGFloat) -> FigmaDocument? {
+    public static func document(
+        host: UIView,
+        name: String,
+        size: CGSize,
+        screenHeight: CGFloat
+    ) -> FigmaDocument? {
         host.layoutIfNeeded()
         let children: [FigmaNode]
         if let scroll = firstCellContainer(in: host) {
@@ -19,30 +24,63 @@ public enum PinUIKitCapture {
             guard !walked.isEmpty else { return nil }
             children = walked
         }
-        return assemble(children: children, background: hostedBackground(host), safeAreaTop: host.safeAreaInsets.top, name: name, size: size, screenHeight: screenHeight)
+        return assemble(
+            children: children,
+            background: hostedBackground(host),
+            safeAreaTop: host.safeAreaInsets.top,
+            name: name,
+            size: size,
+            screenHeight: screenHeight
+        )
     }
 
     // Drop only the safe-area inset (the plugin's device frame draws the status bar), not the topmost
     // node's y — subtracting that would pin centered content (a lone centered label) to the top instead
     // of leaving it centered. Guard against overshoot for content that starts above the inset.
-    private static func assemble(children: [FigmaNode], background: UIColor?, safeAreaTop: CGFloat, name: String, size: CGSize, screenHeight: CGFloat) -> FigmaDocument {
+    private static func assemble(
+        children: [FigmaNode],
+        background: UIColor?,
+        safeAreaTop: CGFloat,
+        name: String,
+        size: CGSize,
+        screenHeight: CGFloat
+    ) -> FigmaDocument {
         let minY = children.map { $0.y }.min() ?? 0
         let lifted = children.map { shiftUp($0, by: min(Double(safeAreaTop), minY)) }
         let contentBottom = lifted.map { $0.y + $0.h }.max() ?? Double(size.height)
         let fill = background.flatMap { $0.cgColor.alpha > 0 ? $0 : nil }
         let root = FigmaNode(
-            tag: "screen", x: 0, y: 0, w: Double(size.width), h: max(Double(screenHeight), contentBottom),
-            fill: fill.map(RGBA.init), fillToken: fill.flatMap(PinDisplayListCapture.tokenName(for:)),
-            name: name, children: lifted
+            tag: "screen",
+            x: 0,
+            y: 0,
+            w: Double(size.width),
+            h: max(Double(screenHeight), contentBottom),
+            fill: fill.map(RGBA.init),
+            fillToken: fill.flatMap(PinDisplayListCapture.tokenName(for:)),
+            name: name,
+            children: lifted
         )
-        return FigmaDocument(width: Double(size.width), height: root.h, root: root,
-                             tokens: PinDisplayListCapture.colorTokens + PinFloatTokens.tokens, textStyles: PinDisplayListCapture.textStyles)
+        return FigmaDocument(
+            width: Double(size.width),
+            height: root.h,
+            root: root,
+            tokens: PinDisplayListCapture.colorTokens + PinFloatTokens.tokens,
+            textStyles: PinDisplayListCapture.textStyles
+        )
     }
 
     private static func shiftUp(_ node: FigmaNode, by offset: Double) -> FigmaNode {
         var lifted = node
         lifted.y -= offset
-        lifted.texts = node.texts?.map { FigmaText(text: $0.text, x: $0.x, y: $0.y - offset, w: $0.w, h: $0.h) }
+        lifted.texts = node.texts?.map {
+            FigmaText(
+                text: $0.text,
+                x: $0.x,
+                y: $0.y - offset,
+                w: $0.w,
+                h: $0.h
+            )
+        }
         lifted.children = node.children.map { shiftUp($0, by: offset) }
         return lifted
     }
@@ -50,9 +88,14 @@ public enum PinUIKitCapture {
     // The demo's own background (the full-bleed UIPinView), not the clear hosting layers above it.
     private static func hostedBackground(_ host: UIView) -> UIColor? {
         var best: UIColor?
+        // It walks the view tree by calling itself, so there is no call site to move these statements to.
+        // oida:disable:next no_single_use_void_functions
         func scan(_ view: UIView) {
-            if let color = view.backgroundColor, color.cgColor.alpha > 0.01,
-               view.bounds.width > host.bounds.width * 0.5, view.bounds.height > host.bounds.height * 0.5 {
+            if let color = view.backgroundColor,
+                color.cgColor.alpha > 0.01,
+                view.bounds.width > host.bounds.width * 0.5,
+                view.bounds.height > host.bounds.height * 0.5
+            {
                 best = color
             }
             view.subviews.forEach(scan)
@@ -60,7 +103,6 @@ public enum PinUIKitCapture {
         scan(host)
         return best
     }
-
 
     private static func viewNodes(in view: UIView, host: UIView) -> [FigmaNode] {
         var nodes: [FigmaNode] = []
@@ -92,8 +134,16 @@ public enum PinUIKitCapture {
         let shape = shapeFillNode(view, host: host)
         guard shape != nil || !children.isEmpty else { return nil }
         let frame = view.convert(view.bounds, to: host)
-        var node = shape ?? FigmaNode(tag: "frame", x: Double(frame.minX), y: Double(frame.minY),
-                                      w: Double(frame.width), h: Double(frame.height), children: [])
+        var node =
+            shape
+            ?? FigmaNode(
+                tag: "frame",
+                x: Double(frame.minX),
+                y: Double(frame.minY),
+                w: Double(frame.width),
+                h: Double(frame.height),
+                children: []
+            )
         node.children = children
         return node
     }
@@ -108,10 +158,17 @@ public enum PinUIKitCapture {
         }
         let fill = stack.backgroundColor.flatMap { $0.cgColor.alpha > 0.01 ? $0 : nil }
         return FigmaNode(
-            tag: "frame", x: Double(frame.minX), y: Double(frame.minY), w: Double(frame.width), h: Double(frame.height),
-            fill: fill.map(RGBA.init), fillToken: fill.flatMap(PinDisplayListCapture.tokenName(for:)),
+            tag: "frame",
+            x: Double(frame.minX),
+            y: Double(frame.minY),
+            w: Double(frame.width),
+            h: Double(frame.height),
+            fill: fill.map(RGBA.init),
+            fillToken: fill.flatMap(PinDisplayListCapture.tokenName(for:)),
             name: stack.axis == .vertical ? "VStack" : "HStack",
-            layout: FigmaLayout(stackLayout(stack)), ordered: true, children: children
+            layout: FigmaLayout(stackLayout(stack)),
+            ordered: true,
+            children: children
         )
     }
 
@@ -124,10 +181,22 @@ public enum PinUIKitCapture {
         default: alignment = .leading
         }
         let margins = stack.isLayoutMarginsRelativeArrangement ? stack.layoutMargins : .zero
-        let padding = EdgeInsets(top: margins.top, leading: margins.left, bottom: margins.bottom, trailing: margins.right)
+        let padding = EdgeInsets(
+            top: margins.top,
+            leading: margins.left,
+            bottom: margins.bottom,
+            trailing: margins.right
+        )
         // Keep the stack's real cross-axis width so `.center`/`.trailing` alignment (and `.fill` children)
         // position within it — a hugged cross axis collapses to the widest child and drifts off-center.
-        return PinCaptureLayout(axis: axis, spacing: stack.spacing, padding: padding, alignment: alignment, mainAxisAlignment: .leading, counterAxisFixed: true)
+        return PinCaptureLayout(
+            axis: axis,
+            spacing: stack.spacing,
+            padding: padding,
+            alignment: alignment,
+            mainAxisAlignment: .leading,
+            counterAxisFixed: true
+        )
     }
 
     private static func isHostingView(_ view: UIView) -> Bool {
@@ -137,19 +206,35 @@ public enum PinUIKitCapture {
     // Figma's createImage rejects a crop over 4096px per side and aborts the whole import, so cap the
     // raster scale at whatever keeps the longer side within the limit — never upscaling past the device.
     static func captureScale(for size: CGSize, deviceScale: CGFloat) -> CGFloat {
-        min(deviceScale, 4096 / max(size.width, size.height, 1))
+        min(
+            deviceScale,
+            4096
+                / max(
+                    size.width,
+                    size.height,
+                    1
+                ))
     }
 
     // A colored view with a corner radius is an intentional shape (concentric layer, card); a plain
     // colored container (radius 0) is just layout and would clutter the capture, so require a radius.
     private static func shapeFillNode(_ view: UIView, host: UIView) -> FigmaNode? {
-        guard let background = view.backgroundColor, background.cgColor.alpha > 0.01, view.layer.cornerRadius > 0.5 else { return nil }
+        guard let background = view.backgroundColor,
+            background.cgColor.alpha > 0.01,
+            view.layer.cornerRadius > 0.5
+        else { return nil }
         let frame = view.convert(view.bounds, to: host)
         let radius = view.layer.cornerRadius
         return FigmaNode(
-            tag: "frame", x: Double(frame.minX), y: Double(frame.minY), w: Double(frame.width), h: Double(frame.height),
-            fill: RGBA(background), fillToken: PinDisplayListCapture.tokenName(for: background),
-            radius: Double(radius), radiusToken: PinFloatTokens.radiusName(for: Double(radius)),
+            tag: "frame",
+            x: Double(frame.minX),
+            y: Double(frame.minY),
+            w: Double(frame.width),
+            h: Double(frame.height),
+            fill: RGBA(background),
+            fillToken: PinDisplayListCapture.tokenName(for: background),
+            radius: Double(radius),
+            radiusToken: PinFloatTokens.radiusName(for: Double(radius)),
             children: []
         )
     }
@@ -169,11 +254,23 @@ public enum PinUIKitCapture {
         // it in an extra frame. The label's alignment drives where the text sits.
         let justify: PinCaptureLayout.CrossAxis = label.textAlignment == .center ? .center : (label.textAlignment == .right ? .trailing : .leading)
         return FigmaNode(
-            tag: "frame", x: Double(frame.minX), y: Double(frame.minY), w: Double(frame.width), h: Double(frame.height),
-            fill: RGBA(background), fillToken: PinDisplayListCapture.tokenName(for: background),
+            tag: "frame",
+            x: Double(frame.minX),
+            y: Double(frame.minY),
+            w: Double(frame.width),
+            h: Double(frame.height),
+            fill: RGBA(background),
+            fillToken: PinDisplayListCapture.tokenName(for: background),
             radius: radius > 0.5 ? Double(radius) : nil,
             radiusToken: radius > 0.5 ? PinFloatTokens.radiusName(for: Double(radius)) : nil,
-            layout: FigmaLayout(PinCaptureLayout(axis: .row, spacing: 0, alignment: .center, mainAxisAlignment: justify, primaryAxisFixed: true)),
+            layout: FigmaLayout(
+                PinCaptureLayout(
+                    axis: .row,
+                    spacing: 0,
+                    alignment: .center,
+                    mainAxisAlignment: justify,
+                    primaryAxisFixed: true
+                )),
             ordered: true,
             children: [textNode]
         )
@@ -193,11 +290,32 @@ public enum PinUIKitCapture {
         case .right: originX = frame.maxX - width
         default: originX = frame.minX
         }
-        let box = CGRect(x: originX, y: frame.midY - height / 2, width: width, height: height)
+        let box = CGRect(
+            x: originX,
+            y: frame.midY - height / 2,
+            width: width,
+            height: height
+        )
         return FigmaNode(
-            tag: "text", x: Double(box.minX), y: Double(box.minY), w: Double(box.width), h: Double(box.height),
-            font: PinDisplayListCapture.figmaFont(label.font, color: label.textColor, underline: false),
-            texts: [FigmaText(text: text, x: Double(box.minX), y: Double(box.minY), w: Double(box.width), h: Double(box.height))],
+            tag: "text",
+            x: Double(box.minX),
+            y: Double(box.minY),
+            w: Double(box.width),
+            h: Double(box.height),
+            font: PinDisplayListCapture.figmaFont(
+                label.font,
+                color: label.textColor,
+                underline: false
+            ),
+            texts: [
+                FigmaText(
+                    text: text,
+                    x: Double(box.minX),
+                    y: Double(box.minY),
+                    w: Double(box.width),
+                    h: Double(box.height)
+                )
+            ],
             textAlign: PinDisplayListCapture.textAlignName(label.textAlignment),
             children: []
         )
@@ -211,14 +329,31 @@ public enum PinUIKitCapture {
         let inset = textView.textContainerInset
         let padding = textView.textContainer.lineFragmentPadding
         let box = CGRect(
-            x: frame.minX + inset.left + padding, y: frame.minY + inset.top,
+            x: frame.minX + inset.left + padding,
+            y: frame.minY + inset.top,
             width: max(frame.width - inset.left - inset.right - padding * 2, 1),
             height: max(frame.height - inset.top - inset.bottom, 1)
         )
         return FigmaNode(
-            tag: "text", x: Double(box.minX), y: Double(box.minY), w: Double(box.width), h: Double(box.height),
-            font: PinDisplayListCapture.figmaFont(textView.font, color: textView.textColor, underline: false),
-            texts: [FigmaText(text: text, x: Double(box.minX), y: Double(box.minY), w: Double(box.width), h: Double(box.height))],
+            tag: "text",
+            x: Double(box.minX),
+            y: Double(box.minY),
+            w: Double(box.width),
+            h: Double(box.height),
+            font: PinDisplayListCapture.figmaFont(
+                textView.font,
+                color: textView.textColor,
+                underline: false
+            ),
+            texts: [
+                FigmaText(
+                    text: text,
+                    x: Double(box.minX),
+                    y: Double(box.minY),
+                    w: Double(box.width),
+                    h: Double(box.height)
+                )
+            ],
             textAlign: PinDisplayListCapture.textAlignName(textView.textAlignment),
             children: []
         )
@@ -244,11 +379,15 @@ public enum PinUIKitCapture {
         }
         guard let image else { return nil }
         return FigmaNode(
-            tag: "image", x: Double(frame.minX), y: Double(frame.minY),
-            w: Double(frame.width), h: Double(frame.height), image: image, children: []
+            tag: "image",
+            x: Double(frame.minX),
+            y: Double(frame.minY),
+            w: Double(frame.width),
+            h: Double(frame.height),
+            image: image,
+            children: []
         )
     }
-
 
     private static func firstCellContainer(in view: UIView) -> UIScrollView? {
         if let table = view as? UITableView { return table }
@@ -270,8 +409,12 @@ public enum PinUIKitCapture {
     private static func withAllCellsRealized<T>(_ scroll: UIScrollView, _ body: () -> T) -> T {
         let savedFrame = scroll.frame
         let savedOffset = scroll.contentOffset
-        scroll.frame = CGRect(x: savedFrame.minX, y: savedFrame.minY,
-                              width: savedFrame.width, height: max(scroll.contentSize.height, savedFrame.height))
+        scroll.frame = CGRect(
+            x: savedFrame.minX,
+            y: savedFrame.minY,
+            width: savedFrame.width,
+            height: max(scroll.contentSize.height, savedFrame.height)
+        )
         scroll.contentOffset = .zero
         scroll.layoutIfNeeded()
         defer {
@@ -303,6 +446,8 @@ public enum PinUIKitCapture {
 
     private static func structureSignature(_ node: FigmaNode) -> String {
         var texts = 0, fills = 0
+        // It walks the node tree by calling itself, so there is no call site to move these statements to.
+        // oida:disable:next no_single_use_void_functions
         func walk(_ node: FigmaNode) {
             if node.texts?.isEmpty == false { texts += 1 }
             if node.fill != nil { fills += 1 }
@@ -331,25 +476,43 @@ public enum PinUIKitCapture {
         let background = (cell.backgroundColor ?? (cell as? UITableViewCell)?.contentView.backgroundColor)
             .flatMap { $0.cgColor.alpha > 0.01 ? $0 : nil }
         return FigmaNode(
-            tag: "frame", x: Double(frame.minX), y: Double(frame.minY),
-            w: Double(frame.width), h: Double(frame.height),
-            fill: background.map(RGBA.init), fillToken: background.flatMap(PinDisplayListCapture.tokenName(for:)),
-            name: "Row", children: children
+            tag: "frame",
+            x: Double(frame.minX),
+            y: Double(frame.minY),
+            w: Double(frame.width),
+            h: Double(frame.height),
+            fill: background.map(RGBA.init),
+            fillToken: background.flatMap(PinDisplayListCapture.tokenName(for:)),
+            name: "Row",
+            children: children
         )
     }
 
     private static func chevronNode(inRow row: CGRect) -> FigmaNode? {
         let configuration = UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold)
-        guard let symbol = UIImage(systemName: "chevron.right", withConfiguration: configuration)?
-            .withTintColor(.secondaryText, renderingMode: .alwaysOriginal) else { return nil }
+        guard
+            let symbol = UIImage(systemName: "chevron.right", withConfiguration: configuration)?
+                .withTintColor(.secondaryText, renderingMode: .alwaysOriginal)
+        else { return nil }
         let image = autoreleasepool {
             UIGraphicsImageRenderer(size: symbol.size).image { _ in symbol.draw(at: .zero) }.pngData()?.base64EncodedString()
         }
         guard let image else { return nil }
-        let box = CGRect(x: row.maxX - .spacing4 - symbol.size.width, y: row.midY - symbol.size.height / 2,
-                         width: symbol.size.width, height: symbol.size.height)
-        return FigmaNode(tag: "image", x: Double(box.minX), y: Double(box.minY),
-                         w: Double(box.width), h: Double(box.height), image: image, children: [])
+        let box = CGRect(
+            x: row.maxX - .spacing4 - symbol.size.width,
+            y: row.midY - symbol.size.height / 2,
+            width: symbol.size.width,
+            height: symbol.size.height
+        )
+        return FigmaNode(
+            tag: "image",
+            x: Double(box.minX),
+            y: Double(box.minY),
+            w: Double(box.width),
+            h: Double(box.height),
+            image: image,
+            children: []
+        )
     }
 
     // The table draws hairline separators between cells (not in any cell's tree). Reconstruct them from
@@ -360,10 +523,15 @@ public enum PinUIKitCapture {
         return rows.dropLast().enumerated().map { index, row in
             let next = rows[index + 1]
             return FigmaNode(
-                tag: "frame", x: row.x + Double(inset), y: next.y - 0.5,
-                w: row.w - Double(inset), h: 1,
-                fill: RGBA(color), fillToken: PinDisplayListCapture.tokenName(for: color),
-                name: "Separator", children: []
+                tag: "frame",
+                x: row.x + Double(inset),
+                y: next.y - 0.5,
+                w: row.w - Double(inset),
+                h: 1,
+                fill: RGBA(color),
+                fillToken: PinDisplayListCapture.tokenName(for: color),
+                name: "Separator",
+                children: []
             )
         }
     }

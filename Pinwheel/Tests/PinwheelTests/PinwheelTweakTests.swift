@@ -1,5 +1,5 @@
-import XCTest
 import SwiftUI
+import XCTest
 @testable import Pinwheel
 
 @MainActor
@@ -27,26 +27,41 @@ final class PinwheelTweakTests: XCTestCase {
 
     func testBoolTweakBridgesToAToggleThatForwardsToTheUIKitAction() {
         var received: Bool?
-        let bridged = PinwheelTweak(BoolTweak(title: "Option", isOn: false, action: { received = $0 }))
+        let bridged = PinwheelTweak(
+            BoolTweak(
+                title: "Option",
+                isOn: false,
+                action: { received = $0 }
+            ))
         guard case .toggle(let binding)? = bridged?.control else {
             return XCTFail("a BoolTweak should bridge to a toggle control")
         }
         binding.wrappedValue = true
-        XCTAssertEqual(received, true, "flipping the bridged binding forwards to the UIKit tweak's action")
+        XCTAssertEqual(
+            received,
+            true,
+            "flipping the bridged binding forwards to the UIKit tweak's action"
+        )
     }
 
     func testABridgedChoiceReportsTheOptionInForceRatherThanTheOneItWasBuiltWith() throws {
         var chosen = 0
-        let bridged = try XCTUnwrap(PinwheelTweak(SelectTweak(
-            title: "State",
-            options: ["Loading", "Loaded"],
-            chosenOption: { chosen },
-            action: { chosen = $0 }
-        )))
+        let bridged = try XCTUnwrap(
+            PinwheelTweak(
+                SelectTweak(
+                    title: "State",
+                    options: ["Loading", "Loaded"],
+                    chosenOption: { chosen },
+                    action: { chosen = $0 }
+                )))
 
         bridged.applyAsPreviewVariant(named: "Loaded")
 
-        XCTAssertEqual(chosen, 1, "choosing an option reaches the UIKit tweak's action")
+        XCTAssertEqual(
+            chosen,
+            1,
+            "choosing an option reaches the UIKit tweak's action"
+        )
         XCTAssertEqual(
             bridged.selectedOption,
             1,
@@ -65,7 +80,11 @@ final class PinwheelTweakTests: XCTestCase {
     func testAnOptionListIsAddressableByEachOptionSoTheSweepStillCapturesEveryVariant() {
         var selection = 0
         let binding = Binding(get: { selection }, set: { selection = $0 })
-        let tweak = PinwheelTweak("State", options: ["Loading", "Loaded", "Empty"], selection: binding)
+        let tweak = PinwheelTweak(
+            "State",
+            options: ["Loading", "Loaded", "Empty"],
+            selection: binding
+        )
 
         XCTAssertEqual(
             tweak.previewVariantTitles,
@@ -77,7 +96,11 @@ final class PinwheelTweakTests: XCTestCase {
     func testApplyingAPreviewVariantByNameSelectsThatOption() {
         var selection = 0
         let binding = Binding(get: { selection }, set: { selection = $0 })
-        let tweak = PinwheelTweak("State", options: ["Loading", "Loaded", "Empty"], selection: binding)
+        let tweak = PinwheelTweak(
+            "State",
+            options: ["Loading", "Loaded", "Empty"],
+            selection: binding
+        )
 
         tweak.applyAsPreviewVariant(named: "Empty")
 
@@ -87,10 +110,18 @@ final class PinwheelTweakTests: XCTestCase {
     func testAChangedSelectionMakesTheTweakUnequalSoThePreferencePropagates() {
         var selection = 0
         let binding = Binding(get: { selection }, set: { selection = $0 })
-        let before = PinwheelTweak("State", options: ["Basket", "Simple"], selection: binding)
+        let before = PinwheelTweak(
+            "State",
+            options: ["Basket", "Simple"],
+            selection: binding
+        )
 
         selection = 1
-        let after = PinwheelTweak("State", options: ["Basket", "Simple"], selection: binding)
+        let after = PinwheelTweak(
+            "State",
+            options: ["Basket", "Simple"],
+            selection: binding
+        )
 
         XCTAssertNotEqual(
             before,

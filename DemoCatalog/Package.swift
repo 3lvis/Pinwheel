@@ -8,17 +8,17 @@ let package = Package(
         .iOS(.v18)
     ],
     products: [
-        .library(name: "DemoCatalog", targets: ["DemoCatalog"]),
+        .library(name: "DemoCatalog", targets: ["DemoCatalog"])
     ],
     dependencies: [
-        .package(path: "../Pinwheel"),
+        .package(path: "../Pinwheel")
     ],
     targets: [
         .target(
             name: "DemoCatalog",
             dependencies: ["Pinwheel"],
             swiftSettings: [
-                .swiftLanguageMode(.v6),
-            ]),
+                .swiftLanguageMode(.v6)
+            ])
     ]
 )

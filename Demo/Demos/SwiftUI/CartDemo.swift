@@ -12,10 +12,30 @@ struct CartDemo: SwiftUI.View {
     }
 
     private let items = [
-        Item(title: "Wireless Earbuds Pro", now: "$129", was: "$159", quantity: 1),
-        Item(title: "LED Desk Lamp", now: "$34", was: "$49", quantity: 1),
-        Item(title: "Cotton Crew T-Shirt", now: "$24", was: nil, quantity: 2),
-        Item(title: "Insulated Water Bottle", now: "$21", was: "$28", quantity: 1)
+        Item(
+            title: "Wireless Earbuds Pro",
+            now: "$129",
+            was: "$159",
+            quantity: 1
+        ),
+        Item(
+            title: "LED Desk Lamp",
+            now: "$34",
+            was: "$49",
+            quantity: 1
+        ),
+        Item(
+            title: "Cotton Crew T-Shirt",
+            now: "$24",
+            was: nil,
+            quantity: 2
+        ),
+        Item(
+            title: "Insulated Water Bottle",
+            now: "$21",
+            was: "$28",
+            quantity: 1
+        ),
     ]
 
     var body: some SwiftUI.View {
@@ -54,7 +74,11 @@ struct CartDemo: SwiftUI.View {
             }
             .padding(.spacing4)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .frame(
+            maxWidth: .infinity,
+            maxHeight: .infinity,
+            alignment: .top
+        )
         .background(.primaryBackground)
     }
 }

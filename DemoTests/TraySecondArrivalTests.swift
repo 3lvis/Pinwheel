@@ -27,10 +27,7 @@ final class TraySecondArrivalTests: XCTestCase {
     }
 
     func testASecondTrayRestsOnTheFloorJustAsTheFirstDid() throws {
-        let scene = try XCTUnwrap(
-            UIApplication.shared.connectedScenes.first as? UIWindowScene,
-            "the host app has no window scene"
-        )
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.first as? UIWindowScene, "the host app has no window scene")
         let window = UIWindow(windowScene: scene)
         window.frame = scene.screen.bounds
         let root = UIViewController()
@@ -40,7 +37,9 @@ final class TraySecondArrivalTests: XCTestCase {
         let first = openATray(in: root, of: window)
         let restingPlace = first.cardBottom
         XCTAssertEqual(
-            restingPlace, first.view.bounds.maxY - trayBottomMargin, accuracy: 1,
+            restingPlace,
+            first.view.bounds.maxY - trayBottomMargin,
+            accuracy: 1,
             "the first tray rests a bottom margin above the floor"
         )
 
@@ -49,7 +48,9 @@ final class TraySecondArrivalTests: XCTestCase {
 
         let second = openATray(in: root, of: window)
         XCTAssertEqual(
-            second.cardBottom, restingPlace, accuracy: 1,
+            second.cardBottom,
+            restingPlace,
+            accuracy: 1,
             "a second tray stands where the first did, rather than floating up with nothing pinning it: "
                 + "\(second.cardBottom) against \(restingPlace)"
         )

@@ -15,11 +15,26 @@ public struct PinStateView: SwiftUI.View {
         case .loaded:
             SwiftUI.Color.clear
         case .loading(let title, let subtitle):
-            placeholder(title: title, subtitle: subtitle, showsSpinner: true, actionTitle: nil)
+            placeholder(
+                title: title,
+                subtitle: subtitle,
+                showsSpinner: true,
+                actionTitle: nil
+            )
         case .empty(let title, let subtitle):
-            placeholder(title: title, subtitle: subtitle, showsSpinner: false, actionTitle: nil)
+            placeholder(
+                title: title,
+                subtitle: subtitle,
+                showsSpinner: false,
+                actionTitle: nil
+            )
         case .failed(let title, let subtitle, let actionTitle):
-            placeholder(title: title, subtitle: subtitle, showsSpinner: false, actionTitle: actionTitle)
+            placeholder(
+                title: title,
+                subtitle: subtitle,
+                showsSpinner: false,
+                actionTitle: actionTitle
+            )
         }
     }
 

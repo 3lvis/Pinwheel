@@ -46,11 +46,31 @@ final class PinTrayAccessoryView: UIView {
         CGSize(width: UIView.noIntrinsicMetric, height: height)
     }
 
-    func show(_ accessory: PinTrayAccessory, replacing: Bool, over duration: TimeInterval) {
+    // The tray's parts each take their content through `show`, and each writes a stored property of
+    // its own. Written at the call site the chassis would reach two levels down, past the part into
+    // what it hosts.
+    // oida:disable:next no_single_use_void_functions
+    func show(
+        _ accessory: PinTrayAccessory,
+        replacing: Bool,
+        over duration: TimeInterval
+    ) {
         let leaving = standing
         guard let leaf = accessory.leaf else {
             standing = .nothing
-            fade(leaving.view, to: 0, animated: replacing, over: duration) { $0.detach() }
+            if let view = leaving.view {
+                if replacing {
+                    UIView.animate(withDuration: duration) {
+                        view.alpha = 0
+                    } completion: { _ in
+                        view.detach()
+                        view.removeFromSuperview()
+                    }
+                } else {
+                    view.detach()
+                    view.removeFromSuperview()
+                }
+            }
             return
         }
 
@@ -85,23 +105,10 @@ final class PinTrayAccessoryView: UIView {
         }
     }
 
-    private func fade(
-        _ view: PinTrayLeafView?,
-        to alpha: CGFloat,
-        animated: Bool,
-        over duration: TimeInterval,
-        then finish: @escaping (PinTrayLeafView) -> Void
-    ) {
-        guard let view else { return }
-        guard animated else { finish(view); view.removeFromSuperview(); return }
-        UIView.animate(withDuration: duration) {
-            view.alpha = alpha
-        } completion: { _ in
-            finish(view)
-            view.removeFromSuperview()
-        }
-    }
-
+    // Each tray part detaches itself and its own children, which is the vocabulary the chassis tears
+    // the tray down through. Written at the call site a parent would reach past the part into what
+    // it hosts.
+    // oida:disable:next no_single_use_void_functions
     func detach() {
         standing.view?.detach()
         standing = .nothing

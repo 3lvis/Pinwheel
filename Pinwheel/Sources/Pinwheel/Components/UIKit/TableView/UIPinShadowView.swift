@@ -17,10 +17,11 @@ public class UIPinShadowView: UIView {
     }
 
     public func update(with scrollView: UIScrollView) {
-        let contentFrame = CGRect(x: -scrollView.contentOffset.x,
-                                  y: scrollView.frame.minY - scrollView.contentOffset.y - scrollView.contentInset.top,
-                                  width: scrollView.contentSize.width,
-                                  height: scrollView.contentSize.height + scrollView.contentInset.top)
+        let contentFrame = CGRect(
+            x: -scrollView.contentOffset.x,
+            y: scrollView.frame.minY - scrollView.contentOffset.y - scrollView.contentInset.top,
+            width: scrollView.contentSize.width,
+            height: scrollView.contentSize.height + scrollView.contentInset.top)
 
         let intersection = contentFrame.intersection(frame)
         layer.shadowRadius = min(intersection.height * 0.2, 3)

@@ -14,10 +14,7 @@ final class TrayOnlyOneTests: XCTestCase {
     }
 
     func testATrayRescuedOnItsWayOutIsTheOneThatOpensNextTime() throws {
-        let scene = try XCTUnwrap(
-            UIApplication.shared.connectedScenes.first as? UIWindowScene,
-            "the host app has no window scene"
-        )
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.first as? UIWindowScene, "the host app has no window scene")
         let window = UIWindow(windowScene: scene)
         window.frame = scene.screen.bounds
         let presenter = UIViewController()
@@ -30,10 +27,7 @@ final class TrayOnlyOneTests: XCTestCase {
         sync.sync(path: [0], from: presenter) { _ in tray() }
         spin(window, for: 0.6)
 
-        let leaving = try XCTUnwrap(
-            presenter.children.compactMap { $0 as? PinTrayChassis }.first,
-            "a tray is standing"
-        )
+        let leaving = try XCTUnwrap(presenter.children.compactMap { $0 as? PinTrayChassis }.first, "a tray is standing")
 
         sync.sync(path: [], from: presenter) { _ in tray() }
         spin(window, for: 0.05)
@@ -46,16 +40,14 @@ final class TrayOnlyOneTests: XCTestCase {
 
         let trays = presenter.children.compactMap { $0 as? PinTrayChassis }
         XCTAssertEqual(
-            trays.count, 1,
+            trays.count,
+            1,
             "one tray stands at a time — reopening while the last is still leaving must reuse it, not stack: \(trays.count)"
         )
     }
 
     func testARescuedTrayNeverTellsTheAppItWent() throws {
-        let scene = try XCTUnwrap(
-            UIApplication.shared.connectedScenes.first as? UIWindowScene,
-            "the host app has no window scene"
-        )
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.first as? UIWindowScene, "the host app has no window scene")
         let window = UIWindow(windowScene: scene)
         window.frame = scene.screen.bounds
         let presenter = UIViewController()
@@ -70,10 +62,7 @@ final class TrayOnlyOneTests: XCTestCase {
         }
         spin(window, for: 0.6)
 
-        let tray = try XCTUnwrap(
-            presenter.children.compactMap { $0 as? PinTrayChassis }.first,
-            "a tray is standing"
-        )
+        let tray = try XCTUnwrap(presenter.children.compactMap { $0 as? PinTrayChassis }.first, "a tray is standing")
 
         tray.cardDragged(to: 400)
         tray.cardEndedDragging(withVelocity: 2_000)
@@ -82,9 +71,9 @@ final class TrayOnlyOneTests: XCTestCase {
         spin(window, for: 0.5)
 
         XCTAssertEqual(
-            cleared, 0,
+            cleared,
+            0,
             "a tray caught and stood back up never left, so the path it was opened from still holds it"
         )
     }
 }
-

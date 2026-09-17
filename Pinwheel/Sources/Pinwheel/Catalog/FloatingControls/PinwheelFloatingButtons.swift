@@ -25,15 +25,27 @@ struct PinwheelFloatingButtons: SwiftUI.View {
 
     private var stack: some SwiftUI.View {
         VStack(spacing: .spacing3) {
-            button("slider.horizontal.3", label: "Tweaks", action: onTweaks)
-                .accessibilityIdentifier("pinwheel.settings")
-            button("xmark", label: "Close", action: onClose)
-                .accessibilityIdentifier("pinwheel.close")
+            button(
+                "slider.horizontal.3",
+                label: "Tweaks",
+                action: onTweaks
+            )
+            .accessibilityIdentifier("pinwheel.settings")
+            button(
+                "xmark",
+                label: "Close",
+                action: onClose
+            )
+            .accessibilityIdentifier("pinwheel.close")
         }
     }
 
     @ViewBuilder
-    private func button(_ symbol: String, label: String, action: @escaping () -> Void) -> some SwiftUI.View {
+    private func button(
+        _ symbol: String,
+        label: String,
+        action: @escaping () -> Void
+    ) -> some SwiftUI.View {
         let content = SwiftUI.Button(action: action) {
             Image(systemName: symbol)
                 .font(PinTextStyle.body.font(in: theme))
@@ -51,7 +63,12 @@ struct PinwheelFloatingButtons: SwiftUI.View {
         } else {
             content
                 .background(Circle().fill(Color.secondaryBackground))
-                .shadow(color: .black.opacity(0.2), radius: 6, x: 0, y: 6)
+                .shadow(
+                    color: .black.opacity(0.2),
+                    radius: 6,
+                    x: 0,
+                    y: 6
+                )
         }
     }
 

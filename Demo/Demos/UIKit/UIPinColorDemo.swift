@@ -16,7 +16,7 @@ class UIPinColorDemo: UIPinView {
         ColorItem(color: .primaryBackground, title: "Primary Background"),
         ColorItem(color: .secondaryBackground, title: "Secondary Background"),
         ColorItem(color: .actionBackground, title: "Action Background"),
-        ColorItem(color: .criticalBackground, title: "Critical Background")
+        ColorItem(color: .criticalBackground, title: "Critical Background"),
     ]
 
     // A VStack of colored rows (not a UITableView): eager and fully in the view tree, so every row
@@ -33,7 +33,7 @@ class UIPinColorDemo: UIPinView {
         NSLayoutConstraint.activate([
             stack.topAnchor.constraint(equalTo: topAnchor),
             stack.leadingAnchor.constraint(equalTo: leadingAnchor),
-            stack.trailingAnchor.constraint(equalTo: trailingAnchor)
+            stack.trailingAnchor.constraint(equalTo: trailingAnchor),
         ])
     }
 
@@ -45,7 +45,12 @@ class UIPinColorDemo: UIPinView {
         row.backgroundColor = item.color
         row.isLayoutMarginsRelativeArrangement = true
         row.insetsLayoutMarginsFromSafeArea = false
-        row.layoutMargins = UIEdgeInsets(top: .spacing3, left: .spacing4, bottom: .spacing3, right: .spacing4)
+        row.layoutMargins = UIEdgeInsets(
+            top: .spacing3,
+            left: .spacing4,
+            bottom: .spacing3,
+            right: .spacing4
+        )
         return row
     }
 

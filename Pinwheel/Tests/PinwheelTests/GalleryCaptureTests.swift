@@ -1,6 +1,6 @@
-import XCTest
 import SwiftUI
 import UIKit
+import XCTest
 @testable import Pinwheel
 
 // A plain thumbnail + text-column row (the canonical list cell) collapses to one component in containment
@@ -31,7 +31,11 @@ final class GalleryCaptureTests: XCTestCase {
                     }
                 }.padding(.spacing4)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top).background(.primaryBackground)
+            .frame(
+                maxWidth: .infinity,
+                maxHeight: .infinity,
+                alignment: .top
+            ).background(.primaryBackground)
         }
     }
 
@@ -43,14 +47,23 @@ final class GalleryCaptureTests: XCTestCase {
         window.rootViewController = controller
         window.isHidden = false
         controller.view.layoutIfNeeded()
-        let document = try XCTUnwrap(PinDisplayListCapture.document(Gallery(), name: "Gallery", size: size, screenHeight: 778, liveHost: controller.view))
-        XCTAssertEqual(document.root.tag, "screen",
-                       "a thumbnail + text-column row captures through reflection (structured), not the containment path (scrambled)")
+        let document = try XCTUnwrap(
+            PinDisplayListCapture.document(
+                Gallery(),
+                name: "Gallery",
+                size: size,
+                screenHeight: 778,
+                liveHost: controller.view
+            ))
+        XCTAssertEqual(
+            document.root.tag,
+            "screen",
+            "a thumbnail + text-column row captures through reflection (structured), not the containment path (scrambled)"
+        )
         func hasFill(_ node: FigmaNode) -> Bool {
             node.fillToken == "secondaryBackground" || node.children.contains(where: hasFill)
         }
-        XCTAssertTrue(hasFill(document.root),
-                      "the row keeps its card background fill — the reflection path must re-attach a flat-content card's fill, not drop it")
+        XCTAssertTrue(hasFill(document.root), "the row keeps its card background fill — the reflection path must re-attach a flat-content card's fill, not drop it")
         withExtendedLifetime(window) {}
     }
 }

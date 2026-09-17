@@ -2,13 +2,21 @@ import UIKit
 
 public protocol UIPinTableViewDelegate: AnyObject {
     func tableView(_ tableView: UIPinTableView, didSelectItemAtIndex index: Int)
-    func tableView(_ tableView: UIPinTableView, didSwitchItem boolTableViewItem: UIPinBoolTableViewItem, atIndex index: Int)
+    func tableView(
+        _ tableView: UIPinTableView,
+        didSwitchItem boolTableViewItem: UIPinBoolTableViewItem,
+        atIndex index: Int
+    )
     func tableViewDidSelectFailedStateAction(_ tableView: UIPinTableView)
 }
 
 public extension UIPinTableViewDelegate {
-    func tableView(_ tableView: UIPinTableView, didSwitchItem boolTableViewItem: UIPinBoolTableViewItem, atIndex index: Int) {}
-    func tableViewDidSelectFailedStateAction(_ tableView: UIPinTableView) { }
+    func tableView(
+        _ tableView: UIPinTableView,
+        didSwitchItem boolTableViewItem: UIPinBoolTableViewItem,
+        atIndex index: Int
+    ) {}
+    func tableViewDidSelectFailedStateAction(_ tableView: UIPinTableView) {}
 }
 
 public protocol UIPinTableViewDataSource: AnyObject {
@@ -67,7 +75,11 @@ open class UIPinTableView: UIPinShadowScrollView {
                 stateView.state = .empty(title: title, subtitle: subtitle)
             case .failed(let title, let subtitle, let actionTitle):
                 tableView.alpha = 0
-                stateView.state = .failed(title: title, subtitle: subtitle, actionTitle: actionTitle)
+                stateView.state = .failed(
+                    title: title,
+                    subtitle: subtitle,
+                    actionTitle: actionTitle
+                )
             }
         }
     }
@@ -109,7 +121,11 @@ open class UIPinTableView: UIPinShadowScrollView {
         addSubview(stateView, filling: .all)
 
         if showsShadowWhenScrolling {
-            insertSubview(tableView, belowSubview: topShadowView, filling: .all)
+            insertSubview(
+                tableView,
+                belowSubview: topShadowView,
+                filling: .all
+            )
             let anchor = topShadowView.bottomAnchor.constraint(equalTo: topAnchor)
             anchor.isActive = true
         } else {
@@ -167,9 +183,21 @@ extension UIPinTableView: UITableViewDataSource {
 }
 
 extension UIPinTableView: UIPinTableViewCellDelegate {
-    public func tableViewCell(_ tableViewCell: UIPinTableViewCell, didChangeBoolTableViewItem boolTableViewItem: UIPinBoolTableViewItem, atIndexPath indexPath: IndexPath) {
-        self.tableView.selectRow(at: indexPath, animated: true, scrollPosition: .none)
-        self.delegate?.tableView(self, didSwitchItem: boolTableViewItem, atIndex: indexPath.row)
+    public func tableViewCell(
+        _ tableViewCell: UIPinTableViewCell,
+        didChangeBoolTableViewItem boolTableViewItem: UIPinBoolTableViewItem,
+        atIndexPath indexPath: IndexPath
+    ) {
+        self.tableView.selectRow(
+            at: indexPath,
+            animated: true,
+            scrollPosition: .none
+        )
+        self.delegate?.tableView(
+            self,
+            didSwitchItem: boolTableViewItem,
+            atIndex: indexPath.row
+        )
     }
 }
 

@@ -13,7 +13,9 @@ class UIPinTweakableDemo: UIPinView, Tweakable {
                 title: "Alignment",
                 options: alignmentTitles,
                 chosenOption: { self.alignmentIndex },
-                action: { self.alignmentIndex = $0; self.reload() }
+                action: {
+                    self.alignmentIndex = $0; self.reload()
+                }
             ),
             BoolTweak(title: "Uppercase") { isUppercase in
                 self.isUppercase = isUppercase
@@ -23,7 +25,7 @@ class UIPinTweakableDemo: UIPinView, Tweakable {
                 self.alignmentIndex = 1
                 self.isUppercase = false
                 self.reload()
-            }
+            },
         ]
     }()
 
@@ -44,7 +46,7 @@ class UIPinTweakableDemo: UIPinView, Tweakable {
         NSLayoutConstraint.activate([
             stack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacing8),
             stack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacing8),
-            stack.centerYAnchor.constraint(equalTo: centerYAnchor)
+            stack.centerYAnchor.constraint(equalTo: centerYAnchor),
         ])
         reload()
     }

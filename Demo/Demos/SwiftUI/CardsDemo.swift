@@ -31,7 +31,11 @@ struct CardsDemo: SwiftUI.View {
             }
             .padding(.spacing4)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .frame(
+            maxWidth: .infinity,
+            maxHeight: .infinity,
+            alignment: .top
+        )
         .background(.primaryBackground)
     }
 }

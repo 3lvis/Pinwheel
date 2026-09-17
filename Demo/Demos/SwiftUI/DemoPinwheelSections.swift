@@ -1,5 +1,5 @@
-import DemoCatalog
 import SwiftUI
+import DemoCatalog
 
 @MainActor
 enum DemoPinwheelSections {
@@ -57,9 +57,9 @@ enum DemoPinwheelSections {
 }
 
 #if DEBUG
-private let previewComponentID = Catalog.numbers.id()
+    private let previewComponentID = Catalog.numbers.id()
 
-#Preview("Pinwheel Component") {
-    PinwheelPreview(previewComponentID, sections: DemoPinwheelSections.all)
-}
+    #Preview("Pinwheel Component") {
+        PinwheelPreview(previewComponentID, sections: DemoPinwheelSections.all)
+    }
 #endif

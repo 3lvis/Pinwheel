@@ -9,7 +9,12 @@ class CollectionViewGridDemo: UIPinView {
         let layout = UICollectionViewFlowLayout()
         layout.minimumInteritemSpacing = .spacing3
         layout.minimumLineSpacing = .spacing3
-        layout.sectionInset = UIEdgeInsets(top: .spacing4, left: .spacing4, bottom: .spacing4, right: .spacing4)
+        layout.sectionInset = UIEdgeInsets(
+            top: .spacing4,
+            left: .spacing4,
+            bottom: .spacing4,
+            right: .spacing4
+        )
         let view = UICollectionView(frame: .zero, collectionViewLayout: layout)
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = .clear
@@ -34,18 +39,22 @@ extension CollectionViewGridDemo: UICollectionViewDataSource {
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if indexPath.section == 0 {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MetricCardCell.reuseIdentifier, for: indexPath) as! MetricCardCell
+            let cell = collectionView.dequeue(MetricCardCell.self, for: indexPath)
             cell.configure(title: metrics[indexPath.item])
             return cell
         }
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TagCardCell.reuseIdentifier, for: indexPath) as! TagCardCell
+        let cell = collectionView.dequeue(TagCardCell.self, for: indexPath)
         cell.configure(title: tags[indexPath.item])
         return cell
     }
 }
 
 extension CollectionViewGridDemo: UICollectionViewDelegateFlowLayout {
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+    func collectionView(
+        _ collectionView: UICollectionView,
+        layout collectionViewLayout: UICollectionViewLayout,
+        sizeForItemAt indexPath: IndexPath
+    ) -> CGSize {
         let columns: CGFloat = 2
         let available = collectionView.bounds.width - .spacing4 * 2 - .spacing3 * (columns - 1)
         let width = floor(available / columns)
@@ -70,7 +79,7 @@ private final class MetricCardCell: UICollectionViewCell {
             label.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             label.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             label.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor, constant: .spacing2),
-            label.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -.spacing2)
+            label.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -.spacing2),
         ])
     }
 
@@ -93,7 +102,7 @@ private final class TagCardCell: UICollectionViewCell {
         contentView.addSubview(label)
         NSLayoutConstraint.activate([
             label.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: contentView.centerYAnchor)
+            label.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
         ])
     }
 

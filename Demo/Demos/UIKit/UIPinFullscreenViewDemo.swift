@@ -24,17 +24,17 @@ class UIPinFullscreenViewDemo: UIPinFullscreenView {
         textView.textColor = .primaryText
         textView.backgroundColor = .clear
         textView.text = """
-        UIPinFullscreenView is a UIKit base class for keyboard-aware full-screen \
-        screens (forms, composers, editors). Subclass it, override setup(), and anchor \
-        bottom content with safeAnchorToKeyboardTopAndSafeAreaBottom(subview:).
+            UIPinFullscreenView is a UIKit base class for keyboard-aware full-screen \
+            screens (forms, composers, editors). Subclass it, override setup(), and anchor \
+            bottom content with safeAnchorToKeyboardTopAndSafeAreaBottom(subview:).
 
-        Edit this text: the two labels below ride up above the keyboard while editing, \
-        and drop back to the safe-area bottom when it dismisses (tap Return). It also \
-        gives a viewDidFirstAppear() lifecycle hook a bare UIView lacks.
+            Edit this text: the two labels below ride up above the keyboard while editing, \
+            and drop back to the safe-area bottom when it dismisses (tap Return). It also \
+            gives a viewDidFirstAppear() lifecycle hook a bare UIView lacks.
 
-        SwiftUI needs no equivalent — keyboard avoidance and onAppear are built in — \
-        which is why this stays a UIKit-only surface.
-        """
+            SwiftUI needs no equivalent — keyboard avoidance and onAppear are built in — \
+            which is why this stays a UIKit-only surface.
+            """
         addSubview(textView)
         addSubview(rightAnchoredLabel)
         addSubview(leftAnchoredLabel)
@@ -62,7 +62,11 @@ extension UIPinFullscreenViewDemo: UITextViewDelegate {
         return true
     }
 
-    func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+    func textView(
+        _ textView: UITextView,
+        shouldChangeTextIn range: NSRange,
+        replacementText text: String
+    ) -> Bool {
         if text == "\n" {
             textView.resignFirstResponder()
             return false

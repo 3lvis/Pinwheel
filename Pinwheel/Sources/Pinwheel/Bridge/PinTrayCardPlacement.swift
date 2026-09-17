@@ -17,14 +17,8 @@ final class PinTrayCardPlacement {
         height.priority = .defaultHigh
         self.height = height
 
-        let offset = card.bottomAnchor.constraint(
-            equalTo: parent.keyboardLayoutGuide.topAnchor,
-            constant: -trayBottomMargin
-        )
-        let lifted = card.bottomAnchor.constraint(
-            equalTo: parent.keyboardLayoutGuide.topAnchor,
-            constant: -trayKeyboardMargin
-        )
+        let offset = card.bottomAnchor.constraint(equalTo: parent.keyboardLayoutGuide.topAnchor, constant: -trayBottomMargin)
+        let lifted = card.bottomAnchor.constraint(equalTo: parent.keyboardLayoutGuide.topAnchor, constant: -trayKeyboardMargin)
         offset.priority = UILayoutPriority(999)
         lifted.priority = UILayoutPriority(999)
         self.offset = offset
@@ -34,17 +28,16 @@ final class PinTrayCardPlacement {
         NSLayoutConstraint.activate([
             card.leadingAnchor.constraint(equalTo: parent.leadingAnchor, constant: trayMargin),
             card.trailingAnchor.constraint(equalTo: parent.trailingAnchor, constant: -trayMargin),
-            card.topAnchor.constraint(
-                greaterThanOrEqualTo: parent.safeAreaLayoutGuide.topAnchor,
-                constant: trayMargin
-            ),
+            card.topAnchor.constraint(greaterThanOrEqualTo: parent.safeAreaLayoutGuide.topAnchor, constant: trayMargin),
             height,
         ])
     }
 
+    // The placement owns the card's constraints, and the chassis drives it through this and place.
+    // Written at the call site the chassis would hold constraints belonging to another type.
     /// A keyboard layout guide only tracks once its view belongs to a scene. Armed any earlier the swap
     /// never registers, the card's bottom is pinned to nothing, and it floats to the top of the screen.
-    func followTheKeyboard() {
+    func followTheKeyboard() {  // oida:disable:this no_single_use_void_functions
         parent.keyboardLayoutGuide.usesBottomSafeArea = false
         parent.keyboardLayoutGuide.setConstraints([offset], activeWhenNearEdge: .bottom)
         parent.keyboardLayoutGuide.setConstraints([lifted], activeWhenAwayFrom: .bottom)
@@ -65,6 +58,8 @@ final class PinTrayCardPlacement {
         offset.constant = -geometry.clearanceAboveGuide
     }
 
+    // The same seam as followTheKeyboard: this is how the chassis moves the card.
+    // oida:disable:next no_single_use_void_functions
     func place(
         _ geometry: PinTrayGeometry,
         alongside: @escaping () -> Void,

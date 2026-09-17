@@ -14,16 +14,17 @@ final class PinTrayBodyTests: XCTestCase {
         )
     }
 
-    private func attachedBody(
-        showing content: AnyView,
-        reporting to: PinTrayBodyCoordinating = PinTrayBodyReports()
-    ) -> PinTrayBodyView {
+    private func attachedBody(showing content: AnyView, reporting to: PinTrayBodyCoordinating = PinTrayBodyReports()) -> PinTrayBodyView {
         let parent = UIViewController()
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 400, height: 500))
         window.rootViewController = parent
         window.isHidden = false
 
-        let body = PinTrayBodyView(showing: content, in: parent, reporting: to)
+        let body = PinTrayBodyView(
+            showing: content,
+            in: parent,
+            reporting: to
+        )
         parent.view.addSubview(body)
         body.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -39,7 +40,11 @@ final class PinTrayBodyTests: XCTestCase {
     func testRowsShownAfterAttachAreLaidOutAsTallAsTheyMeasure() {
         let body = attachedBody(showing: rows(1))
         let single = body.scrollableHeight
-        XCTAssertGreaterThan(single, 0, "one row has to have drawn before sixty can be compared to it")
+        XCTAssertGreaterThan(
+            single,
+            0,
+            "one row has to have drawn before sixty can be compared to it"
+        )
 
         body.show(rows(60))
         body.superview?.layoutIfNeeded()
@@ -57,39 +62,26 @@ final class PinTrayBodyTests: XCTestCase {
         body.clearance = 24
 
         let asked = body.contentHeight(fitting: 400)
-        body.window?.frame = CGRect(x: 0, y: 0, width: 400, height: asked)
+        body.window?.frame = CGRect(
+            x: 0,
+            y: 0,
+            width: 400,
+            height: asked
+        )
         body.superview?.layoutIfNeeded()
 
-        XCTAssertFalse(
-            body.overflows,
-            "a card built to the height the body asked for leaves the body nothing to scroll"
-        )
+        XCTAssertFalse(body.overflows, "a card built to the height the body asked for leaves the body nothing to scroll")
     }
 
     func testTheCardKeepsAPullUntilTheFingerGivesItBack() {
-        XCTAssertTrue(
-            PinTrayBodyView.cardTakes(30, alreadyPulling: false),
-            "a pull past the top belongs to the card"
-        )
-        XCTAssertTrue(
-            PinTrayBodyView.cardTakes(-20, alreadyPulling: true),
-            "and it keeps the rest of that gesture, so the finger can bring the card back"
-        )
-        XCTAssertFalse(
-            PinTrayBodyView.cardTakes(-20, alreadyPulling: false),
-            "a drag up that never pulled is the list's"
-        )
+        XCTAssertTrue(PinTrayBodyView.cardTakes(30, alreadyPulling: false), "a pull past the top belongs to the card")
+        XCTAssertTrue(PinTrayBodyView.cardTakes(-20, alreadyPulling: true), "and it keeps the rest of that gesture, so the finger can bring the card back")
+        XCTAssertFalse(PinTrayBodyView.cardTakes(-20, alreadyPulling: false), "a drag up that never pulled is the list's")
     }
 
     func testOnlyABodyOutgrowingItsRoomScrolls() {
-        XCTAssertFalse(
-            attachedBody(showing: rows(2)).scrolls,
-            "rows that already fit have nowhere to go, so the body must not scroll at all"
-        )
-        XCTAssertTrue(
-            attachedBody(showing: rows(60)).scrolls,
-            "rows that outgrow the body still scroll"
-        )
+        XCTAssertFalse(attachedBody(showing: rows(2)).scrolls, "rows that already fit have nowhere to go, so the body must not scroll at all")
+        XCTAssertTrue(attachedBody(showing: rows(60)).scrolls, "rows that outgrow the body still scroll")
     }
 
     func testABodyReportsEachSliceOfAPullAndKeepsNoRunningTotal() {
@@ -100,6 +92,10 @@ final class PinTrayBodyTests: XCTestCase {
         body.wasPulled(pastTheTop: 10)
         body.wasPulled(pastTheTop: 10)
 
-        XCTAssertEqual(reports.drags, [10, 10, 10], "each frame's own slice, added up by whoever holds it")
+        XCTAssertEqual(
+            reports.drags,
+            [10, 10, 10],
+            "each frame's own slice, added up by whoever holds it"
+        )
     }
 }

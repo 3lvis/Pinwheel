@@ -58,7 +58,13 @@ final class CaptureVersionTests: XCTestCase {
     }
 
     private func document(root: FigmaNode) -> FigmaDocument {
-        FigmaDocument(width: 100, height: 50, root: root, tokens: [], textStyles: [])
+        FigmaDocument(
+            width: 100,
+            height: 50,
+            root: root,
+            tokens: [],
+            textStyles: []
+        )
     }
 
     private func node(
@@ -69,12 +75,29 @@ final class CaptureVersionTests: XCTestCase {
         children: [FigmaNode] = []
     ) -> FigmaNode {
         FigmaNode(
-            tag: tag, x: 0, y: 0, w: 100, h: 50,
-            fill: fill, fillToken: nil, fillDark: nil,
-            radius: nil, radiusToken: nil, component: nil, name: nil,
-            font: nil, texts: nil, textAlign: nil, opacity: nil,
-            image: image, imageDark: imageDark, layout: nil,
-            grow: nil, ordered: nil, fillWidth: nil, children: children
+            tag: tag,
+            x: 0,
+            y: 0,
+            w: 100,
+            h: 50,
+            fill: fill,
+            fillToken: nil,
+            fillDark: nil,
+            radius: nil,
+            radiusToken: nil,
+            component: nil,
+            name: nil,
+            font: nil,
+            texts: nil,
+            textAlign: nil,
+            opacity: nil,
+            image: image,
+            imageDark: imageDark,
+            layout: nil,
+            grow: nil,
+            ordered: nil,
+            fillWidth: nil,
+            children: children
         )
     }
 }

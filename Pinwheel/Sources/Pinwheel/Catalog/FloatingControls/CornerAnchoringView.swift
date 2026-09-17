@@ -26,9 +26,11 @@ final class CornerAnchoringView: UIView {
         return views
     }()
 
+    // The constraints run between the given view and this view's own buttonsContent, so the controller
+    // calling it would be constraining a subview two levels down.
     /// The caller parents the hosting controller: the theme rides a trait, which only reaches a view
     /// whose controller is in the hierarchy.
-    func setButtonsContent(_ view: UIView) {
+    func setButtonsContent(_ view: UIView) {  // oida:disable:this no_single_use_void_functions
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = .clear
         buttonsContent.addSubview(view)
@@ -56,13 +58,22 @@ final class CornerAnchoringView: UIView {
 
     var onItemsCountChange: ((Int) -> Void)?
 
-    func setControlsHidden(_ hidden: Bool, animated: Bool, completion: (() -> Void)? = nil) {
+    func setControlsHidden(
+        _ hidden: Bool,
+        animated: Bool,
+        completion: (() -> Void)? = nil
+    ) {
         let apply = {
             self.buttonsView.alpha = hidden ? 0 : 1
             self.buttonsView.transform = hidden ? CGAffineTransform(scaleX: 0.6, y: 0.6) : .identity
         }
         if animated {
-            UIView.animate(withDuration: 0.22, delay: 0, options: [.curveEaseOut], animations: apply) { _ in
+            UIView.animate(
+                withDuration: 0.22,
+                delay: 0,
+                options: [.curveEaseOut],
+                animations: apply
+            ) { _ in
                 completion?()
             }
         } else {
@@ -120,7 +131,7 @@ final class CornerAnchoringView: UIView {
 
             bottomLeftView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: .spacing4 + buttonWidth / 2),
 
-            bottomRightView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacing4 - buttonWidth / 2)
+            bottomRightView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacing4 - buttonWidth / 2),
         ])
 
         bottomLeftViewKeyboardBottomConstraint = bottomLeftView.bottomAnchor.constraint(equalTo: keyboardLayoutGuide.topAnchor, constant: -.spacing4 - buttonHeight / 2)
@@ -139,62 +150,81 @@ final class CornerAnchoringView: UIView {
         panRecognizer.delaysTouchesEnded = false
         buttonsView.addGestureRecognizer(panRecognizer)
 
-        setupKeyboardNotifications()
-    }
-
-    /// The FAB lives in an overlay window above the app, so nothing else moves it
-    /// clear of the keyboard. These notifications swap each bottom corner between
-    /// its safe-area and `keyboardLayoutGuide.topAnchor` constraints so the
-    /// buttons stay tappable on keyboard-bearing screens.
-    private func setupKeyboardNotifications() {
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
+        // The FAB lives in an overlay window above the app, so nothing else moves it clear of the
+        // keyboard. These two swap each bottom corner between its safe-area and
+        // `keyboardLayoutGuide.topAnchor` constraints so the buttons stay tappable on keyboard-bearing
+        // screens.
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(keyboardWillShow(_:)),
+            name: UIResponder.keyboardWillShowNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(keyboardWillHide(_:)),
+            name: UIResponder.keyboardWillHideNotification,
+            object: nil
+        )
     }
 
     @objc func keyboardWillShow(_ notification: NSNotification) {
         guard let userInfo = notification.userInfo,
-              let animationDuration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber,
-              let animationCurveRawNSN = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber else {
+            let animationDuration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber,
+            let animationCurveRawNSN = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber
+        else {
             return
         }
 
         let animationCurveRaw = animationCurveRawNSN.uintValue
         let animationCurve = UIView.AnimationOptions(rawValue: animationCurveRaw << 16)
 
-        UIView.animate(withDuration: animationDuration.doubleValue, delay: 0, options: animationCurve, animations: {
-            self.bottomLeftViewSafeBottomConstraint?.isActive = false
-            self.bottomLeftViewKeyboardBottomConstraint?.isActive = true
+        UIView.animate(
+            withDuration: animationDuration.doubleValue,
+            delay: 0,
+            options: animationCurve,
+            animations: {
+                self.bottomLeftViewSafeBottomConstraint?.isActive = false
+                self.bottomLeftViewKeyboardBottomConstraint?.isActive = true
 
-            self.bottomRightViewSafeBottomConstraint?.isActive = false
-            self.bottomRightViewKeyboardBottomConstraint?.isActive = true
-            self.layoutIfNeeded()
-        }, completion: nil)
+                self.bottomRightViewSafeBottomConstraint?.isActive = false
+                self.bottomRightViewKeyboardBottomConstraint?.isActive = true
+                self.layoutIfNeeded()
+            },
+            completion: nil
+        )
     }
 
     @objc func keyboardWillHide(_ notification: NSNotification) {
         guard let userInfo = notification.userInfo,
-              let animationDuration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber,
-              let animationCurveRawNSN = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber else {
+            let animationDuration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? NSNumber,
+            let animationCurveRawNSN = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? NSNumber
+        else {
             return
         }
 
         let animationCurveRaw = animationCurveRawNSN.uintValue
         let animationCurve = UIView.AnimationOptions(rawValue: animationCurveRaw << 16)
 
-        UIView.animate(withDuration: animationDuration.doubleValue, delay: 0, options: animationCurve, animations: {
-            self.bottomLeftViewKeyboardBottomConstraint?.isActive = false
-            self.bottomLeftViewSafeBottomConstraint?.isActive = true
+        UIView.animate(
+            withDuration: animationDuration.doubleValue,
+            delay: 0,
+            options: animationCurve,
+            animations: {
+                self.bottomLeftViewKeyboardBottomConstraint?.isActive = false
+                self.bottomLeftViewSafeBottomConstraint?.isActive = true
 
-            self.bottomRightViewKeyboardBottomConstraint?.isActive = false
-            self.bottomRightViewSafeBottomConstraint?.isActive = true
-            self.layoutIfNeeded()
-        }, completion: nil)
+                self.bottomRightViewKeyboardBottomConstraint?.isActive = false
+                self.bottomRightViewSafeBottomConstraint?.isActive = true
+                self.layoutIfNeeded()
+            },
+            completion: nil
+        )
     }
 
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
-
 
     override func layoutSubviews() {
         super.layoutSubviews()
@@ -212,7 +242,7 @@ final class CornerAnchoringView: UIView {
         anchorAreaViews.append(view)
         NSLayoutConstraint.activate([
             view.widthAnchor.constraint(equalToConstant: 0),
-            view.heightAnchor.constraint(equalToConstant: 0)
+            view.heightAnchor.constraint(equalToConstant: 0),
         ])
         view.isUserInteractionEnabled = false
         return view
@@ -228,17 +258,26 @@ final class CornerAnchoringView: UIView {
         case .ended, .cancelled:
             let decelerationRate = UIScrollView.DecelerationRate.normal.rawValue
             let velocity = recognizer.velocity(in: self)
-            let projectedPosition = CGPoint(
-                x: buttonsView.center.x + project(initialVelocity: velocity.x, decelerationRate: decelerationRate),
-                y: buttonsView.center.y + project(initialVelocity: velocity.y, decelerationRate: decelerationRate)
-            )
+            let projectedPosition = CGPoint(x: buttonsView.center.x + project(initialVelocity: velocity.x, decelerationRate: decelerationRate), y: buttonsView.center.y + project(initialVelocity: velocity.y, decelerationRate: decelerationRate))
             let (index, nearestCornerPosition) = nearestCorner(to: projectedPosition)
             let relativeInitialVelocity = CGVector(
-                dx: relativeVelocity(forVelocity: velocity.x, from: buttonsView.center.x, to: nearestCornerPosition.x),
-                dy: relativeVelocity(forVelocity: velocity.y, from: buttonsView.center.y, to: nearestCornerPosition.y)
+                dx: relativeVelocity(
+                    forVelocity: velocity.x,
+                    from: buttonsView.center.x,
+                    to: nearestCornerPosition.x
+                ),
+                dy: relativeVelocity(
+                    forVelocity: velocity.y,
+                    from: buttonsView.center.y,
+                    to: nearestCornerPosition.y
+                )
             )
             PinwheelStateStore.floatingControlsCorner = index
-            let timingParameters = UISpringTimingParameters(damping: 1, response: 0.4, initialVelocity: relativeInitialVelocity)
+            let timingParameters = UISpringTimingParameters(
+                damping: 1,
+                response: 0.4,
+                initialVelocity: relativeInitialVelocity
+            )
             let animator = UIViewPropertyAnimator(duration: 0, timingParameters: timingParameters)
             animator.addAnimations {
                 self.buttonsView.center = nearestCornerPosition
@@ -268,7 +307,11 @@ final class CornerAnchoringView: UIView {
         return (arrayIndex, closestPosition)
     }
 
-    private func relativeVelocity(forVelocity velocity: CGFloat, from currentValue: CGFloat, to targetValue: CGFloat) -> CGFloat {
+    private func relativeVelocity(
+        forVelocity velocity: CGFloat,
+        from currentValue: CGFloat,
+        to targetValue: CGFloat
+    ) -> CGFloat {
         guard currentValue - targetValue != 0 else { return 0 }
         return velocity / (targetValue - currentValue)
     }
@@ -279,16 +322,24 @@ final class CornerAnchoringView: UIView {
         })
     }
 
-
 }
 
 extension UISpringTimingParameters {
 
     /// `damping` must be between 0 and 1.
-    convenience init(damping: CGFloat, response: CGFloat, initialVelocity: CGVector = .zero) {
+    convenience init(
+        damping: CGFloat,
+        response: CGFloat,
+        initialVelocity: CGVector = .zero
+    ) {
         let stiffness = pow(2 * .pi / response, 2)
         let damp = 4 * .pi * damping / response
-        self.init(mass: 1, stiffness: stiffness, damping: damp, initialVelocity: initialVelocity)
+        self.init(
+            mass: 1,
+            stiffness: stiffness,
+            damping: damp,
+            initialVelocity: initialVelocity
+        )
     }
 
 }

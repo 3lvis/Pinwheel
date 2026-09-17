@@ -1,5 +1,5 @@
-import XCTest
 import UIKit
+import XCTest
 @testable import Pinwheel
 
 @MainActor
@@ -14,7 +14,12 @@ final class PinUIKitCaptureTests: XCTestCase {
         window.isHidden = false
         window.layoutIfNeeded()
         return withExtendedLifetime(window) {
-            PinUIKitCapture.document(host: host, name: "Test", size: canvas, screenHeight: oneScreen)
+            PinUIKitCapture.document(
+                host: host,
+                name: "Test",
+                size: canvas,
+                screenHeight: oneScreen
+            )
         }
     }
 
@@ -43,7 +48,11 @@ final class PinUIKitCaptureTests: XCTestCase {
         ])
         let document = try XCTUnwrap(capture(host), "a centered label should capture")
         let node = try XCTUnwrap(firstText(document.root, "Centered"))
-        XCTAssertGreaterThan(node.y, 200, "centered content must not be lifted to the top of the frame")
+        XCTAssertGreaterThan(
+            node.y,
+            200,
+            "centered content must not be lifted to the top of the frame"
+        )
     }
 
     func testTableCellBackgroundBecomesTheRowFillToken() throws {
@@ -63,8 +72,16 @@ final class PinUIKitCaptureTests: XCTestCase {
         ])
         let document = try withExtendedLifetime(source) { try XCTUnwrap(capture(host), "the table should capture") }
         let rows = document.root.children.filter { $0.name == "Row" }
-        XCTAssertEqual(rows.first?.fillToken, "actionText", "the cell's background color is the row's fill")
-        XCTAssertEqual(rows.count, 2, "both color rows capture")
+        XCTAssertEqual(
+            rows.first?.fillToken,
+            "actionText",
+            "the cell's background color is the row's fill"
+        )
+        XCTAssertEqual(
+            rows.count,
+            2,
+            "both color rows capture"
+        )
     }
 
     func testLabelWithBackgroundCapturesTokenFillAndRadius() throws {
@@ -82,9 +99,12 @@ final class PinUIKitCaptureTests: XCTestCase {
             label.heightAnchor.constraint(equalToConstant: 60),
         ])
         let document = try XCTUnwrap(capture(host))
-        let bar = try XCTUnwrap(firstNode(document.root) { $0.fillToken == "actionBackground" },
-                                "the label's background captures as a token fill")
-        XCTAssertEqual(bar.radiusToken, "radius-m", "the label's corner radius tokenizes")
+        let bar = try XCTUnwrap(firstNode(document.root) { $0.fillToken == "actionBackground" }, "the label's background captures as a token fill")
+        XCTAssertEqual(
+            bar.radiusToken,
+            "radius-m",
+            "the label's corner radius tokenizes"
+        )
         XCTAssertFalse(textNodes(bar).isEmpty, "the bar still carries its text")
     }
 
@@ -103,7 +123,11 @@ final class PinUIKitCaptureTests: XCTestCase {
         ])
         let document = try XCTUnwrap(capture(host))
         let node = try XCTUnwrap(firstText(document.root, "Hi"))
-        XCTAssertLessThan(node.w, 100, "a 2-character string must not span the full-width label frame")
+        XCTAssertLessThan(
+            node.w,
+            100,
+            "a 2-character string must not span the full-width label frame"
+        )
     }
 
     func testThemedTextViewCapturesItsColorToken() throws {
@@ -121,7 +145,11 @@ final class PinUIKitCaptureTests: XCTestCase {
         ])
         let document = try XCTUnwrap(capture(host))
         let node = try XCTUnwrap(firstText(document.root, "Body copy"))
-        XCTAssertEqual(node.font?.colorToken, "primaryText", "a themed textview tokenizes so it adapts in dark")
+        XCTAssertEqual(
+            node.font?.colorToken,
+            "primaryText",
+            "a themed textview tokenizes so it adapts in dark"
+        )
     }
 
     // A recycled table only realizes its visible window; the capture must force every cell to realize,
@@ -136,7 +164,11 @@ final class PinUIKitCaptureTests: XCTestCase {
         host.addSubview(table)
         let document = try withExtendedLifetime(source) { try XCTUnwrap(capture(host)) }
         let rows = document.root.children.filter { $0.name == "Row" }
-        XCTAssertEqual(rows.count, 30, "all 30 rows must capture, not just the ~7 that fit the 300pt viewport")
+        XCTAssertEqual(
+            rows.count,
+            30,
+            "all 30 rows must capture, not just the ~7 that fit the 300pt viewport"
+        )
     }
 
     // Text must bind a typography token (its PinTextStyle), derived from the resolved font, so Figma maps
@@ -154,7 +186,11 @@ final class PinUIKitCaptureTests: XCTestCase {
         ])
         let document = try XCTUnwrap(capture(host))
         let node = try XCTUnwrap(firstText(document.root, "Heading"))
-        XCTAssertEqual(node.font?.style, "subtitle", "text binds its typography token so Figma maps a text style")
+        XCTAssertEqual(
+            node.font?.style,
+            "subtitle",
+            "text binds its typography token so Figma maps a text style"
+        )
         XCTAssertFalse(document.textStyles.isEmpty, "the document ships the typography tokens")
     }
 
@@ -190,7 +226,11 @@ final class PinUIKitCaptureTests: XCTestCase {
         ])
         let document = try XCTUnwrap(capture(host))
         let node = try XCTUnwrap(firstText(document.root, "Heading"))
-        XCTAssertEqual(node.font?.style, "titleSemibold", "a semibold must not collapse onto its regular-weight token")
+        XCTAssertEqual(
+            node.font?.style,
+            "titleSemibold",
+            "a semibold must not collapse onto its regular-weight token"
+        )
     }
 
     // A colored label captures as an auto-layout frame, so the plugin renders its text inline instead of
@@ -210,14 +250,27 @@ final class PinUIKitCaptureTests: XCTestCase {
             label.topAnchor.constraint(equalTo: host.topAnchor, constant: 40),
             label.leadingAnchor.constraint(equalTo: host.leadingAnchor),
             label.widthAnchor.constraint(equalToConstant: 200),
-            label.heightAnchor.constraint(equalToConstant: 40)
+            label.heightAnchor.constraint(equalToConstant: 40),
         ])
         let document = try XCTUnwrap(capture(host))
         let bar = try XCTUnwrap(firstNode(document.root) { $0.fillToken == "tertiaryText" })
         XCTAssertNotNil(bar.layout, "a colored label is an auto-layout frame so its text renders inline")
-        XCTAssertEqual(bar.w, 200, accuracy: 1, "the bar keeps its captured width")
-        XCTAssertEqual(bar.layout?.primarySizing, "FIXED", "the bar's width is fixed so the plugin holds it instead of hugging the text")
-        XCTAssertEqual(bar.layout?.justify, "center", "centered text stays centered within the fixed-width bar")
+        XCTAssertEqual(
+            bar.w,
+            200,
+            accuracy: 1,
+            "the bar keeps its captured width"
+        )
+        XCTAssertEqual(
+            bar.layout?.primarySizing,
+            "FIXED",
+            "the bar's width is fixed so the plugin holds it instead of hugging the text"
+        )
+        XCTAssertEqual(
+            bar.layout?.justify,
+            "center",
+            "centered text stays centered within the fixed-width bar"
+        )
     }
 
     // A UIStackView maps directly to Figma auto-layout — it must capture as an auto-layout frame, not
@@ -236,12 +289,16 @@ final class PinUIKitCaptureTests: XCTestCase {
         host.addSubview(stack)
         NSLayoutConstraint.activate([
             stack.topAnchor.constraint(equalTo: host.topAnchor, constant: 40),
-            stack.leadingAnchor.constraint(equalTo: host.leadingAnchor, constant: 16)
+            stack.leadingAnchor.constraint(equalTo: host.leadingAnchor, constant: 16),
         ])
         let document = try XCTUnwrap(capture(host))
-        let frame = try XCTUnwrap(firstNode(document.root) { $0.layout?.mode == "column" && $0.children.count == 2 },
-                                  "a UIStackView should capture as an auto-layout column frame with its arranged subviews as children")
-        XCTAssertEqual(frame.layout?.rowGap ?? -1, Double(CGFloat.spacing3), accuracy: 0.5, "the stack spacing becomes the row gap")
+        let frame = try XCTUnwrap(firstNode(document.root) { $0.layout?.mode == "column" && $0.children.count == 2 }, "a UIStackView should capture as an auto-layout column frame with its arranged subviews as children")
+        XCTAssertEqual(
+            frame.layout?.rowGap ?? -1,
+            Double(CGFloat.spacing3),
+            accuracy: 0.5,
+            "the stack spacing becomes the row gap"
+        )
     }
 
     // Figma's createImage rejects any crop over 4096px per side and aborts the whole import; a tall
@@ -262,8 +319,16 @@ final class PinUIKitCaptureTests: XCTestCase {
         let node = try XCTUnwrap(firstNode(document.root) { $0.image != nil }, "the tall image view should capture as a crop")
         let data = try XCTUnwrap(Data(base64Encoded: try XCTUnwrap(node.image)))
         let decoded = try XCTUnwrap(UIImage(data: data))
-        XCTAssertLessThanOrEqual(decoded.size.width, 4096, "crop width must stay within Figma's image limit")
-        XCTAssertLessThanOrEqual(decoded.size.height, 4096, "crop height must stay within Figma's image limit")
+        XCTAssertLessThanOrEqual(
+            decoded.size.width,
+            4096,
+            "crop width must stay within Figma's image limit"
+        )
+        XCTAssertLessThanOrEqual(
+            decoded.size.height,
+            4096,
+            "crop height must stay within Figma's image limit"
+        )
     }
 
     // A centered label's text node must carry center alignment — otherwise a full-width (fillWidth) text
@@ -279,11 +344,15 @@ final class PinUIKitCaptureTests: XCTestCase {
         NSLayoutConstraint.activate([
             label.topAnchor.constraint(equalTo: host.topAnchor, constant: 40),
             label.leadingAnchor.constraint(equalTo: host.leadingAnchor),
-            label.trailingAnchor.constraint(equalTo: host.trailingAnchor)
+            label.trailingAnchor.constraint(equalTo: host.trailingAnchor),
         ])
         let document = try XCTUnwrap(capture(host))
         let text = try XCTUnwrap(firstText(document.root, "Centered"))
-        XCTAssertEqual(text.textAlign, "center", "a centered label's text node must carry center alignment")
+        XCTAssertEqual(
+            text.textAlign,
+            "center",
+            "a centered label's text node must carry center alignment"
+        )
     }
 
     // A center-aligned stack wider than its children must keep its width, or the plugin hugs it to the
@@ -306,13 +375,21 @@ final class PinUIKitCaptureTests: XCTestCase {
         NSLayoutConstraint.activate([
             stack.topAnchor.constraint(equalTo: host.topAnchor, constant: 40),
             stack.leadingAnchor.constraint(equalTo: host.leadingAnchor),
-            stack.trailingAnchor.constraint(equalTo: host.trailingAnchor)
+            stack.trailingAnchor.constraint(equalTo: host.trailingAnchor),
         ])
         let document = try XCTUnwrap(capture(host))
         let frame = try XCTUnwrap(firstNode(document.root) { $0.layout?.mode == "column" && $0.children.count == 2 })
-        XCTAssertGreaterThan(frame.w, 380, "the stack spans the width")
+        XCTAssertGreaterThan(
+            frame.w,
+            380,
+            "the stack spans the width"
+        )
         XCTAssertEqual(frame.layout?.align, "center")
-        XCTAssertEqual(frame.layout?.counterSizing, "FIXED", "a centered stack keeps its cross-axis width so its children stay centered, not hug to the widest child")
+        XCTAssertEqual(
+            frame.layout?.counterSizing,
+            "FIXED",
+            "a centered stack keeps its cross-axis width so its children stay centered, not hug to the widest child"
+        )
     }
 
     // A colored UIStackView (a color-demo row) must carry its background as the frame's fill and its
@@ -324,7 +401,12 @@ final class PinUIKitCaptureTests: XCTestCase {
         row.backgroundColor = .actionBackground
         row.isLayoutMarginsRelativeArrangement = true
         row.insetsLayoutMarginsFromSafeArea = false
-        row.layoutMargins = UIEdgeInsets(top: .spacing3, left: .spacing4, bottom: .spacing3, right: .spacing4)
+        row.layoutMargins = UIEdgeInsets(
+            top: .spacing3,
+            left: .spacing4,
+            bottom: .spacing3,
+            right: .spacing4
+        )
         let label = UILabel()
         label.text = "Action"
         label.textColor = .black
@@ -334,12 +416,21 @@ final class PinUIKitCaptureTests: XCTestCase {
         NSLayoutConstraint.activate([
             row.topAnchor.constraint(equalTo: host.topAnchor, constant: 40),
             row.leadingAnchor.constraint(equalTo: host.leadingAnchor),
-            row.trailingAnchor.constraint(equalTo: host.trailingAnchor)
+            row.trailingAnchor.constraint(equalTo: host.trailingAnchor),
         ])
         let document = try XCTUnwrap(capture(host))
         let frame = try XCTUnwrap(firstNode(document.root) { $0.layout?.mode == "row" && $0.children.count == 1 })
-        XCTAssertEqual(frame.fillToken, "actionBackground", "a UIStackView's background color captures as the frame's fill")
-        XCTAssertEqual(frame.layout?.pad.first ?? -1, Double(CGFloat.spacing3), accuracy: 0.5, "layoutMargins capture as the frame's padding")
+        XCTAssertEqual(
+            frame.fillToken,
+            "actionBackground",
+            "a UIStackView's background color captures as the frame's fill"
+        )
+        XCTAssertEqual(
+            frame.layout?.pad.first ?? -1,
+            Double(CGFloat.spacing3),
+            accuracy: 0.5,
+            "layoutMargins capture as the frame's padding"
+        )
     }
 
     // Cells of the same class and structure are one template: the capture stamps them a shared component
@@ -352,7 +443,11 @@ final class PinUIKitCaptureTests: XCTestCase {
         let rows = document.root.children.filter { $0.name == "Row" }
         XCTAssertEqual(rows.count, 3)
         let keys = Set(rows.compactMap { $0.component })
-        XCTAssertEqual(keys.count, 1, "three identical cells share one component key")
+        XCTAssertEqual(
+            keys.count,
+            1,
+            "three identical cells share one component key"
+        )
         XCTAssertNotNil(rows.first?.component, "repeated identical cells are componentized")
     }
 

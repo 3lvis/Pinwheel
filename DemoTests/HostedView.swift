@@ -40,7 +40,6 @@ enum HostedView {
         return labels
     }
 
-
     @discardableResult
     static func activateFirst(
         labelled label: String,
@@ -69,7 +68,6 @@ enum HostedView {
         }
         throw PresentationNeverAttached(presented: arrived)
     }
-
 
     /// A tray is a child of what it covers rather than a presentation, so waiting for one means waiting
     /// for its card to stand and measure.
@@ -136,7 +134,6 @@ enum HostedView {
         return nil
     }
 }
-
 
 struct PresentationNeverAttached: Error, CustomStringConvertible {
     let presented: Bool

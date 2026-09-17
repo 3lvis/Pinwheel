@@ -1,6 +1,6 @@
-import XCTest
 import SwiftUI
 import UIKit
+import XCTest
 @testable import Demo
 @testable import Pinwheel
 

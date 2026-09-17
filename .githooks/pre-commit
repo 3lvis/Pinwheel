@@ -1,0 +1,5 @@
+#!/bin/sh
+# Lints and formats before each commit, so what CI checks is what you push.
+# Enable once per clone: ./Scripts/setup.sh (or git config core.hooksPath .githooks)
+set -e
+exec "$(git rev-parse --show-toplevel)/bin/lint" --staged

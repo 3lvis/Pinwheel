@@ -39,7 +39,7 @@ final class PinwheelFloatingControlsViewController: UIViewController, CornerAnch
             anchoringView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
             anchoringView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
             anchoringView.topAnchor.constraint(equalTo: container.topAnchor),
-            anchoringView.bottomAnchor.constraint(equalTo: container.bottomAnchor)
+            anchoringView.bottomAnchor.constraint(equalTo: container.bottomAnchor),
         ])
         view = container
 

@@ -15,14 +15,22 @@ class UIPinButtonDemo: UIPinView {
 
     override func setup() {
         primary = UIPinButton(title: "Press me")
-        primary.addTarget(self, action: #selector(tapped), for: .touchUpInside)
+        primary.addTarget(
+            self,
+            action: #selector(tapped),
+            for: .touchUpInside
+        )
 
         primaryDisabled = UIPinButton(title: "Save")
         primaryDisabled.isEnabled = false
 
         primaryLoading = UIPinButton(title: "Saving")
         primaryLoading.showActivityIndicator(true)
-        primaryLoading.addTarget(self, action: #selector(loadingPressed(_:)), for: .touchUpInside)
+        primaryLoading.addTarget(
+            self,
+            action: #selector(loadingPressed(_:)),
+            for: .touchUpInside
+        )
 
         primaryLoadingDisabled = UIPinButton(title: "Saving")
         primaryLoadingDisabled.isEnabled = false
@@ -32,26 +40,50 @@ class UIPinButtonDemo: UIPinView {
         primarySymbolOnly = UIPinButton(systemImage: "arrow.right")
 
         secondary = UIPinButton(title: "Long toggle loading", style: .secondary)
-        secondary.addTarget(self, action: #selector(loading), for: .touchUpInside)
+        secondary.addTarget(
+            self,
+            action: #selector(loading),
+            for: .touchUpInside
+        )
 
         let secondaryDisabled = UIPinButton(title: "Disabled", style: .secondary)
         secondaryDisabled.isEnabled = false
 
         tertiary = UIPinButton(title: "Update titles", style: .tertiary)
-        tertiary.addTarget(self, action: #selector(updateTitles), for: .touchUpInside)
+        tertiary.addTarget(
+            self,
+            action: #selector(updateTitles),
+            for: .touchUpInside
+        )
 
         let tertiaryDisabled = UIPinButton(title: "Disabled", style: .tertiary)
         tertiaryDisabled.isEnabled = false
 
-        custom = UIPinButton(title: "Custom", font: .caption, style: .custom(textColor: .green, backgroundColor: .red))
-        custom.addTarget(self, action: #selector(shrinkTitles), for: .touchUpInside)
+        custom = UIPinButton(
+            title: "Custom",
+            font: .caption,
+            style: .custom(textColor: .green, backgroundColor: .red)
+        )
+        custom.addTarget(
+            self,
+            action: #selector(shrinkTitles),
+            for: .touchUpInside
+        )
 
-        let customDisabled = UIPinButton(title: "Custom", font: .caption, style: .custom(textColor: .green, backgroundColor: .red))
+        let customDisabled = UIPinButton(
+            title: "Custom",
+            font: .caption,
+            style: .custom(textColor: .green, backgroundColor: .red)
+        )
         customDisabled.isEnabled = false
 
         primaryFloating = UIPinButton(title: "Continue")
 
-        let stackView = UIStackView(axis: .vertical, spacing: .spacing3, alignment: .center)
+        let stackView = UIStackView(
+            axis: .vertical,
+            spacing: .spacing3,
+            alignment: .center
+        )
         stackView.addArrangedSubviews([
             primary,
             primaryDisabled,
@@ -64,15 +96,20 @@ class UIPinButtonDemo: UIPinView {
             tertiary,
             tertiaryDisabled,
             custom,
-            customDisabled
+            customDisabled,
         ])
-        addSubview(stackView, filling: safeAreaLayoutGuide, edges: [.top, .leading, .trailing], margin: .spacing8)
+        addSubview(
+            stackView,
+            filling: safeAreaLayoutGuide,
+            edges: [.top, .leading, .trailing],
+            margin: .spacing8
+        )
 
         addSubview(primaryFloating)
         NSLayoutConstraint.activate([
             primaryFloating.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: .spacing3),
             primaryFloating.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -.spacing3),
-            primaryFloating.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -.spacing3)
+            primaryFloating.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -.spacing3),
         ])
     }
 

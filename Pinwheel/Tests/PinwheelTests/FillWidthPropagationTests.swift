@@ -1,6 +1,6 @@
-import XCTest
 import SwiftUI
 import UIKit
+import XCTest
 @testable import Pinwheel
 
 // A row whose fill-width comes from a Spacer nested inside its text column (a receipt row: thumbnail +
@@ -28,7 +28,11 @@ final class FillWidthPropagationTests: XCTestCase {
                     }
                 }.padding(.spacing4)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top).background(.primaryBackground)
+            .frame(
+                maxWidth: .infinity,
+                maxHeight: .infinity,
+                alignment: .top
+            ).background(.primaryBackground)
         }
     }
 
@@ -40,7 +44,14 @@ final class FillWidthPropagationTests: XCTestCase {
         window.rootViewController = controller
         window.isHidden = false
         controller.view.layoutIfNeeded()
-        let document = try XCTUnwrap(PinDisplayListCapture.document(Row(), name: "Row", size: size, screenHeight: 778, liveHost: controller.view))
+        let document = try XCTUnwrap(
+            PinDisplayListCapture.document(
+                Row(),
+                name: "Row",
+                size: size,
+                screenHeight: 778,
+                liveHost: controller.view
+            ))
         // The card row (secondaryBackground fill) must fill width, not hug its content.
         func findCard(_ node: FigmaNode) -> FigmaNode? {
             if node.fillToken == "secondaryBackground" { return node }
@@ -48,7 +59,11 @@ final class FillWidthPropagationTests: XCTestCase {
             return nil
         }
         let card = try XCTUnwrap(findCard(document.root), "the card row captures with its fill")
-        XCTAssertEqual(card.fillWidth, true, "the card row fills the width (from its nested Spacer), so it doesn't hug and centre")
+        XCTAssertEqual(
+            card.fillWidth,
+            true,
+            "the card row fills the width (from its nested Spacer), so it doesn't hug and centre"
+        )
         withExtendedLifetime(window) {}
     }
 }

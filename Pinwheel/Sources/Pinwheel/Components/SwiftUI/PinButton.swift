@@ -70,7 +70,13 @@ public struct PinButton: SwiftUI.View {
         } label: {
             label
         }
-        .buttonStyle(PinButtonStyle(style: style, hasTitle: title != nil, isFullWidth: isFullWidth))
+        .buttonStyle(
+            PinButtonStyle(
+                style: style,
+                hasTitle: title != nil,
+                isFullWidth: isFullWidth
+            )
+        )
         .sensoryFeedback(.impact(weight: style.isPrimary ? .medium : .light), trigger: tapCount)
     }
 
@@ -103,7 +109,12 @@ private struct PinButtonStyle: SwiftUI.ButtonStyle {
     let isFullWidth: Bool
 
     func makeBody(configuration: Configuration) -> some SwiftUI.View {
-        Container(configuration: configuration, style: style, hasTitle: hasTitle, isFullWidth: isFullWidth)
+        Container(
+            configuration: configuration,
+            style: style,
+            hasTitle: hasTitle,
+            isFullWidth: isFullWidth
+        )
     }
 
     private struct Container: SwiftUI.View {

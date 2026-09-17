@@ -25,12 +25,28 @@ struct AppleControlsDemo: SwiftUI.View {
                 .pickerStyle(.segmented)
             }
             control("Slider") { Slider(value: $amount) }
-            control("Stepper") { Stepper("", value: $count, in: 0...9).labelsHidden() }
+            control("Stepper") {
+                Stepper(
+                    "",
+                    value: $count,
+                    in: 0...9
+                ).labelsHidden()
+            }
             control("Progress") { ProgressView(value: amount).tint(.actionText) }
-            control("DatePicker") { DatePicker("", selection: $date, displayedComponents: .date).labelsHidden() }
+            control("DatePicker") {
+                DatePicker(
+                    "",
+                    selection: $date,
+                    displayedComponents: .date
+                ).labelsHidden()
+            }
         }
         .padding(.spacing4)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .frame(
+            maxWidth: .infinity,
+            maxHeight: .infinity,
+            alignment: .topLeading
+        )
         .background(.primaryBackground)
     }
 

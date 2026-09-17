@@ -37,6 +37,10 @@ final class PinTrayCardView: UIView {
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError("PinTrayCardView is made in code") }
 
+    // The tray's parts each take their content through `show`, and each writes a stored property of
+    // its own. Written at the call site the chassis would reach two levels down, past the part into
+    // what it hosts.
+    // oida:disable:next no_single_use_void_functions
     func show(_ geometry: PinTrayGeometry) {
         layer.cornerRadius = geometry.bottomCornerRadius
     }
@@ -48,10 +52,7 @@ extension PinTrayCardView {
         switch gesture.state {
         case .began:
             reporting?.cardWillBeginDragging()
-            gesture.setTranslation(
-                CGPoint(x: 0, y: reporting?.dragInProgress ?? 0),
-                in: superview
-            )
+            gesture.setTranslation(CGPoint(x: 0, y: reporting?.dragInProgress ?? 0), in: superview)
         case .changed:
             reporting?.cardDragged(to: translation)
         case .ended, .cancelled:

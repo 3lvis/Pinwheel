@@ -20,7 +20,11 @@ public enum UIPinStateViewState {
         case .empty(let title, let subtitle):
             return .empty(title: title, subtitle: subtitle)
         case .failed(let title, let subtitle, let actionTitle):
-            return .failed(title: title, subtitle: subtitle, actionTitle: actionTitle)
+            return .failed(
+                title: title,
+                subtitle: subtitle,
+                actionTitle: actionTitle
+            )
         }
     }
 
@@ -40,7 +44,7 @@ public final class UIPinStateView: UIView {
     public var state: UIPinStateViewState = .loaded {
         didSet {
             alpha = state.isLoaded ? 0 : 1
-            reload()
+            host?.rootView = makeRootView()
         }
     }
 
@@ -60,16 +64,12 @@ public final class UIPinStateView: UIView {
             host.trailingAnchor.constraint(equalTo: trailingAnchor),
             host.centerYAnchor.constraint(equalTo: centerYAnchor),
             host.topAnchor.constraint(greaterThanOrEqualTo: topAnchor),
-            host.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor)
+            host.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor),
         ])
     }
 
     public required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-
-    private func reload() {
-        host?.rootView = makeRootView()
     }
 
     private func makeRootView() -> PinStateView {

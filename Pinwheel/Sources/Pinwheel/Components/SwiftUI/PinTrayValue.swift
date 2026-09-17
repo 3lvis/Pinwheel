@@ -6,7 +6,11 @@ public struct PinTrayValue: SwiftUI.View {
     private let value: String
     private let open: () -> Void
 
-    public init(_ label: String, value: String, open: @escaping () -> Void) {
+    public init(
+        _ label: String,
+        value: String,
+        open: @escaping () -> Void
+    ) {
         self.label = label
         self.value = value
         self.open = open

@@ -11,7 +11,11 @@ struct PinStateViewDemo: SwiftUI.View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.primaryBackground)
         .pinwheelTweaks {
-            PinwheelTweak("State", options: DemoStateFixture.titles, selection: $stateIndex)
+            PinwheelTweak(
+                "State",
+                options: DemoStateFixture.titles,
+                selection: $stateIndex
+            )
         }
     }
 }

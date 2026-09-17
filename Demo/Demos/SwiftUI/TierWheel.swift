@@ -1,6 +1,6 @@
-import Pinwheel
 import SwiftUI
 import UIKit
+import Pinwheel
 
 /// A tier and what it costs. The wheel's row.
 struct Tier: Hashable {
@@ -25,14 +25,22 @@ struct TierWheel: UIViewRepresentable {
         let wheel = UIPickerView()
         wheel.dataSource = context.coordinator
         wheel.delegate = context.coordinator
-        wheel.selectRow(selection, inComponent: 0, animated: false)
+        wheel.selectRow(
+            selection,
+            inComponent: 0,
+            animated: false
+        )
         return wheel
     }
 
     func updateUIView(_ wheel: UIPickerView, context: Context) {
         context.coordinator.wheel = self
         guard wheel.selectedRow(inComponent: 0) != selection else { return }
-        wheel.selectRow(selection, inComponent: 0, animated: travels)
+        wheel.selectRow(
+            selection,
+            inComponent: 0,
+            animated: travels
+        )
     }
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
@@ -48,7 +56,11 @@ struct TierWheel: UIViewRepresentable {
             wheel.tiers.count
         }
 
-        func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+        func pickerView(
+            _ pickerView: UIPickerView,
+            didSelectRow row: Int,
+            inComponent component: Int
+        ) {
             wheel.selection = row
         }
 
@@ -76,7 +88,10 @@ struct TierWheel: UIViewRepresentable {
             content.alignment = .center
             content.isLayoutMarginsRelativeArrangement = true
             content.directionalLayoutMargins = NSDirectionalEdgeInsets(
-                top: 0, leading: .spacing4, bottom: 0, trailing: .spacing4
+                top: 0,
+                leading: .spacing4,
+                bottom: 0,
+                trailing: .spacing4
             )
             return content
         }

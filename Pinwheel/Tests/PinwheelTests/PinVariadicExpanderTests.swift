@@ -1,5 +1,5 @@
-import XCTest
 import SwiftUI
+import XCTest
 @testable import Pinwheel
 
 // Heavy coverage of the private-internals ForEach expander. These are the canary: if a new iOS changes
@@ -17,14 +17,15 @@ final class PinVariadicExpanderTests: XCTestCase {
 
     // THE canary. If this fails on a new OS, the private path broke — fix or accept the containment fallback.
     func testExpanderIsHealthyOnThisOS() {
-        XCTAssertTrue(PinVariadicExpander.isHealthy,
-                      "the ForEach expander self-test failed — SwiftUI/AttributeGraph internals changed; capture will fall back to containment")
+        XCTAssertTrue(PinVariadicExpander.isHealthy, "the ForEach expander self-test failed — SwiftUI/AttributeGraph internals changed; capture will fall back to containment")
     }
 
     // A plain ForEach expands to its real row instances, reflectable to correct structure.
     func testExpandsRowsToRealInstances() throws {
         let forEach = ForEach(["Revenue", "Orders", "Users"], id: \.self) { title in
-            HStack { PinLabel(title); Spacer(); PinLabel("$1") }
+            HStack {
+                PinLabel(title); Spacer(); PinLabel("$1")
+            }
         }
         let rows = try XCTUnwrap(PinVariadicExpander.expand(forEach), "healthy expander returns rows")
         XCTAssertEqual(rows.count, 3)
@@ -34,12 +35,22 @@ final class PinVariadicExpanderTests: XCTestCase {
     // The decisive property: a runtime conditional resolves per-row (the metatype path could not).
     func testResolvesRuntimeConditionalPerRow() throws {
         let forEach = ForEach(["A", "B"], id: \.self) { name in
-            HStack { PinLabel(name); if name == "A" { PinLabel("SALE") }; Spacer() }
+            HStack {
+                PinLabel(name); if name == "A" { PinLabel("SALE") }; Spacer()
+            }
         }
         let rows = try XCTUnwrap(PinVariadicExpander.expand(forEach))
         XCTAssertEqual(rows.count, 2)
-        XCTAssertEqual(leaves(PinViewReflector.reflect(rows[0])), 2, "row A keeps the conditional badge")
-        XCTAssertEqual(leaves(PinViewReflector.reflect(rows[1])), 1, "row B drops it")
+        XCTAssertEqual(
+            leaves(PinViewReflector.reflect(rows[0])),
+            2,
+            "row A keeps the conditional badge"
+        )
+        XCTAssertEqual(
+            leaves(PinViewReflector.reflect(rows[1])),
+            1,
+            "row B drops it"
+        )
     }
 
     // A nested 2-D row (the Cart shape) recovers its full structure — the whole point.
@@ -47,15 +58,20 @@ final class PinVariadicExpanderTests: XCTestCase {
         let forEach = ForEach(["A", "B"], id: \.self) { name in
             HStack {
                 RoundedRectangle(cornerRadius: 8).frame(width: 40, height: 40)
-                VStack(alignment: .leading) { PinLabel(name); PinLabel("$10") }
+                VStack(alignment: .leading) {
+                    PinLabel(name); PinLabel("$10")
+                }
                 Spacer()
                 PinLabel("×1")
             }
         }
         let rows = try XCTUnwrap(PinVariadicExpander.expand(forEach))
         XCTAssertEqual(rows.count, 2)
-        XCTAssertEqual(leaves(PinViewReflector.reflect(rows[0])), 4,
-                       "thumbnail shape + name + $10 + ×1 — the filled shape reflects as a leaf, matching the fill box containment keeps")
+        XCTAssertEqual(
+            leaves(PinViewReflector.reflect(rows[0])),
+            4,
+            "thumbnail shape + name + $10 + ×1 — the filled shape reflects as a leaf, matching the fill box containment keeps"
+        )
     }
 
     // A non-view returns nil (never crashes the caller).

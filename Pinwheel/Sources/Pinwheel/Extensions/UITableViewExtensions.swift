@@ -18,11 +18,17 @@ public extension UITableView {
     }
 
     func dequeue<T>(_ cellClass: T.Type, for indexPath: IndexPath) -> T where T: UITableViewCell {
-        return dequeueReusableCell(withIdentifier: cellClass.reuseIdentifier, for: indexPath) as! T
+        guard let cell = dequeueReusableCell(withIdentifier: cellClass.reuseIdentifier, for: indexPath) as? T else {
+            preconditionFailure("\(cellClass.reuseIdentifier) is registered to a different class than \(T.self)")
+        }
+        return cell
     }
 
     func dequeue<T>(_ headerFooterClass: T.Type) -> T where T: UITableViewHeaderFooterView {
-        return dequeueReusableHeaderFooterView(withIdentifier: headerFooterClass.reuseIdentifier) as! T
+        guard let headerFooter = dequeueReusableHeaderFooterView(withIdentifier: headerFooterClass.reuseIdentifier) as? T else {
+            preconditionFailure("\(headerFooterClass.reuseIdentifier) is registered to a different class than \(T.self)")
+        }
+        return headerFooter
     }
 
     func stopScrolling() {

@@ -1,6 +1,6 @@
-import XCTest
 import SwiftUI
 import UIKit
+import XCTest
 @testable import Pinwheel
 
 @MainActor
@@ -47,14 +47,8 @@ final class TweakChainTests: XCTestCase {
         chrome.showsTweaks = true
         _ = try HostedView.attachedTray(in: window)
 
-        XCTAssertTrue(
-            HostedView.activateFirst(labelled: "Option 1", in: window),
-            "the tweak should be listed in the tray and activatable"
-        )
-        XCTAssertTrue(
-            HostedView.accessibilityLabels(in: window).contains("You chose Option 1."),
-            "activating a tweak should re-render the component behind the tray"
-        )
+        XCTAssertTrue(HostedView.activateFirst(labelled: "Option 1", in: window), "the tweak should be listed in the tray and activatable")
+        XCTAssertTrue(HostedView.accessibilityLabels(in: window).contains("You chose Option 1."), "activating a tweak should re-render the component behind the tray")
     }
 
     func testASecondTweakStillUpdatesTheComponentAfterTheTrayReopens() throws {
@@ -74,13 +68,7 @@ final class TweakChainTests: XCTestCase {
         chrome.showsTweaks = true
         _ = try HostedView.attachedTray(in: window)
 
-        XCTAssertTrue(
-            HostedView.activateFirst(labelled: "Option 2", in: window),
-            "the tweaks should survive the tray closing and the playground re-rendering"
-        )
-        XCTAssertTrue(
-            HostedView.accessibilityLabels(in: window).contains("You chose Option 2."),
-            "a second tweak selection should still update the component"
-        )
+        XCTAssertTrue(HostedView.activateFirst(labelled: "Option 2", in: window), "the tweaks should survive the tray closing and the playground re-rendering")
+        XCTAssertTrue(HostedView.accessibilityLabels(in: window).contains("You chose Option 2."), "a second tweak selection should still update the component")
     }
 }

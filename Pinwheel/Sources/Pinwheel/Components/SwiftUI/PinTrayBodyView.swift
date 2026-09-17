@@ -12,7 +12,11 @@ final class PinTrayBodyView: UIView {
         didSet { scroll.contentInset.bottom = clearance }
     }
 
-    init(showing content: AnyView, in parent: UIViewController, reporting to: PinTrayBodyCoordinating) {
+    init(
+        showing content: AnyView,
+        in parent: UIViewController,
+        reporting to: PinTrayBodyCoordinating
+    ) {
         coordinating = to
         hosting = UIHostingController(rootView: content)
         super.init(frame: .zero)
@@ -57,6 +61,10 @@ final class PinTrayBodyView: UIView {
         scroll.isScrollEnabled = overflows
     }
 
+    // The tray's parts each take their content through `show`, and each writes a stored property of
+    // its own. Written at the call site the chassis would reach two levels down, past the part into
+    // what it hosts.
+    // oida:disable:next no_single_use_void_functions
     func show(_ content: AnyView) {
         hosting.rootView = content
     }
@@ -80,6 +88,18 @@ final class PinTrayBodyView: UIView {
         set { alpha = newValue }
     }
 
+    // How the body reports a pull, and the point testABodyReportsEachSliceOfAPullAndKeepsNoRunningTotal
+    // drives: each frame's own slice, never a running total, which is the bug that made a 400-point drag
+    // move the card nine points.
+    // oida:disable:next no_single_use_void_functions
+    func wasPulled(pastTheTop past: CGFloat) {
+        coordinating?.bodyDragged(by: past)
+    }
+
+    // Each tray part detaches itself and its own children, which is the vocabulary the chassis tears
+    // the tray down through. Written at the call site a parent would reach past the part into what
+    // it hosts.
+    // oida:disable:next no_single_use_void_functions
     func detach() {
         hosting.willMove(toParent: nil)
         hosting.view.removeFromSuperview()
@@ -90,10 +110,6 @@ final class PinTrayBodyView: UIView {
 extension PinTrayBodyView {
     static func cardTakes(_ past: CGFloat, alreadyPulling: Bool) -> Bool {
         past > 0 || alreadyPulling
-    }
-
-    func wasPulled(pastTheTop past: CGFloat) {
-        coordinating?.bodyDragged(by: past)
     }
 }
 

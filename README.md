@@ -98,10 +98,10 @@ PinwheelCatalog(themes: [.marine, .ember]) { /* ... */ }
 The theme reaches UIKit as well as SwiftUI: it is an `EnvironmentValues.pinwheelTheme` bridged to a
 `PinwheelThemeTrait`, so a `UIColor` token resolves the selected theme wherever it is read — including
 inside a `PinwheelItem(_:view:)` and inside the floating-controls window, which sits outside the SwiftUI
-tree. `UIFont` has no dynamic counterpart, so a UIKit view that caches a font re-reads it on a
+tree. `UIFont` leaves that to you, so a UIKit view that caches a font re-reads it on a
 trait change. The window takes the theme's `actionText` as its `tintColor` as well, so the chrome
-the system presents for you — a `UIAlertController` and its kind, which read no trait of ours —
-comes out in the brand with no tinting code of your own.
+the system presents for you — a `UIAlertController` and its kind, which read `tintColor` alone —
+comes out in the brand, and your own code stays free of tinting.
 
 A theme also decides its buttons' silhouette, since that is a brand's signature as much as its palette:
 
@@ -238,7 +238,7 @@ PinwheelItem("Button") { PinButtonDemo() }                   // id "button"
 PinwheelItem("Button", view: ButtonView.self).tags(.uiKit)   // id "uikit-button"
 ```
 
-A pill appears for a tag that tells items apart — a lone `UIKit` pill in a section of otherwise untagged items filters down to the UIKit takes, and a tag every item carries earns no pill.
+A pill appears for a tag that tells items apart — a lone `UIKit` pill in a section of otherwise untagged items filters down to the UIKit takes, while a tag every item carries stays silent.
 
 `PinTag` is open — the library ships `.swiftUI`/`.uiKit`, and you add your own axis with a static extension:
 
@@ -249,7 +249,7 @@ PinwheelItem("Apple Controls") { AppleControlsDemo() }.tags(.figma)   // id "fig
 
 ## Typed component names
 
-Titles and ids are strings by default. To make them typed and refactor-safe, declare a `String` enum conforming to `PinwheelComponent` — you get typed item creation and a matching deep-link id, with no hand-written slug:
+Titles and ids are strings by default. To make them typed and refactor-safe, declare a `String` enum conforming to `PinwheelComponent` — you get typed item creation and a matching deep-link id, each slug derived for you:
 
 ```swift
 enum Catalog: String, PinwheelComponent {
@@ -260,7 +260,7 @@ enum Catalog: String, PinwheelComponent {
 PinwheelItem(Catalog.button, view: ButtonView.self).tags(.uiKit)   // id "uikit-button"
 ```
 
-Put that enum in a module your app **and** its UI-test target import (a UI-test target runs in a separate process and can't import the app). Then a preview or test deep-links by deriving the id from the same enum — one source of truth, no copied slug:
+Put that enum in a module your app **and** its UI-test target import, since a UI-test target runs in a separate process and reaches the app only through what both import. A preview or test then deep-links by deriving the id from that same enum, which keeps one source of truth:
 
 ```swift
 app.launchArguments += ["-PinwheelPreview", Catalog.stateView.id(.uiKit)]   // "uikit-stateview"
@@ -268,7 +268,7 @@ app.launchArguments += ["-PinwheelPreview", Catalog.stateView.id(.uiKit)]   // "
 
 ## Previewing a Single Component
 
-Every catalog item is addressable by id, so you can render one component in isolation — no hand-written `#Preview` scaffolding. The `PinwheelSection`/`PinwheelItem` registry doubles as the preview index.
+Every catalog item is addressable by id, so you can render one component in isolation and the `PinwheelSection`/`PinwheelItem` registry doubles as the preview index — the scaffolding a `#Preview` would take is already there.
 
 In SwiftUI (including an Xcode `#Preview`):
 
@@ -326,7 +326,7 @@ PinwheelUIKitViewController {
 }
 ```
 
-And the reverse direction: drop a SwiftUI-first `Pin*` component into a UIKit `UIStackView` / Auto Layout hierarchy with `PinHostView`, a self-sizing `UIView` that needs no SwiftUI knowledge at the call site. Theming and light/dark/Dynamic Type propagate across the boundary:
+And the reverse direction: drop a SwiftUI-first `Pin*` component into a UIKit `UIStackView` / Auto Layout hierarchy with `PinHostView`, a self-sizing `UIView` that reads as ordinary UIKit at the call site. Theming and light/dark/Dynamic Type propagate across the boundary:
 
 ```swift
 let host = PinHostView(rootView: PinButton("Save") { save() })
@@ -341,7 +341,7 @@ Pinwheel can preview a demo in known iPhone sizes from the device list in the tw
 
 ## Figma Capture
 
-Pinwheel can export your running catalog to editable Figma — every component captured 1:1 with the simulator, in light and dark, as real text/color/number nodes (not a flat screenshot). Components capture with **zero cooperation**: there's no capture code or markers in your views. The engine reads what a component renders (its structure from geometry, its names from reflection) and value-matches the rendered colors, spacing, radii, and fonts against your registered tokens so they import as named, editable Figma variables.
+Pinwheel can export your running catalog to editable Figma — every component captured 1:1 with the simulator, in light and dark, as real text/color/number nodes you can edit in place. Components capture with **zero cooperation**: your views stay exactly as you wrote them. The engine reads what a component renders (its structure from geometry, its names from reflection) and value-matches the rendered colors, spacing, radii, and fonts against your registered tokens so they import as named, editable Figma variables.
 
 Register your design tokens once so the match can happen:
 
@@ -360,7 +360,7 @@ PinCaptureTokens.current = PinCaptureTokens(
 )
 ```
 
-Build capturable screens as eager SwiftUI (`ScrollView { VStack { ForEach } }`) — including bespoke 2-D rows (a thumbnail, a stacked text column, a trailing control), which capture with their real nested layout, not a flattened one. A `List` is UIKit-backed and captures lazily; route lists through `PinList` for a full capture. The capture flow itself (the sweep script, the local serve, and the "Pinwheel Capture Import" Figma plugin) is a developer tool that lives in the repo, not something your app links against.
+Build capturable screens as eager SwiftUI (`ScrollView { VStack { ForEach } }`) — including bespoke 2-D rows (a thumbnail, a stacked text column, a trailing control), which capture with their real nested layout intact. A `List` is UIKit-backed and realizes rows lazily; route lists through `PinList` for a full capture. The capture flow itself (the sweep script, the local serve, and the "Pinwheel Capture Import" Figma plugin) is a developer tool that lives in the repo, so your app ships without it.
 
 ## Demo App
 
