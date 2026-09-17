@@ -41,8 +41,6 @@ final class PinTrayLeafView: UIView {
     }
 
     func detach() {
-        hosting.willMove(toParent: nil)
-        hosting.view.removeFromSuperview()
-        hosting.removeFromParent()
+        hosting.detachFromParent()
     }
 }

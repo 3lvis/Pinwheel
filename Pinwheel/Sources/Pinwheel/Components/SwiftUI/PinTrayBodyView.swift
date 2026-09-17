@@ -101,9 +101,7 @@ final class PinTrayBodyView: UIView {
     // it hosts.
     // oida:disable:next no_single_use_void_functions
     func detach() {
-        hosting.willMove(toParent: nil)
-        hosting.view.removeFromSuperview()
-        hosting.removeFromParent()
+        hosting.detachFromParent()
     }
 }
 
