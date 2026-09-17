@@ -573,8 +573,6 @@ public enum PinDisplayListCapture {
 
     private static func collectBackgrounds(_ box: Box) -> [Background] {
         var result: [Background] = []
-        // It walks the box tree by calling itself, so there is no call site to move these statements to.
-        // oida:disable:next no_single_use_void_functions
         func visit(_ box: Box) {
             // A card's fill wraps its content: either a box with nested groups, or a flat box holding 2+
             // children (a simple card — thumbnail + text column, or a title + price line). A single-child

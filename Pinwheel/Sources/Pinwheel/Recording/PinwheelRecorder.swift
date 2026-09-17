@@ -36,8 +36,7 @@ public enum PinwheelRecorder {
     }
 
     // A facade over the private `session`, which a caller outside this type can reach no other way.
-    // oida:disable:next no_single_use_void_functions
-    static func stopFollowing() {
+    static func stopFollowing() {  // oida:disable:this no_single_use_void_functions
         session?.follow(nil)
     }
 
@@ -110,8 +109,7 @@ public enum PinwheelRecorder {
 
         // Reached through `session?` from the static facade above, so the caller holds an optional chain
         // rather than a statement it could write itself.
-        // oida:disable:next no_single_use_void_functions
-        func noteIfFollowing(_ who: String) {
+        func noteIfFollowing(_ who: String) {  // oida:disable:this no_single_use_void_functions
             guard sample != nil else { return }
             write("session", "\(who) began following while something else still was — two are on screen")
         }
@@ -193,9 +191,6 @@ public enum PinwheelRecorder {
         ) -> String? {
             var best: (area: CGFloat, name: String)?
 
-            // It walks the accessibility tree by calling itself, so there is no call site to move these
-            // statements to.
-            // oida:disable:next no_single_use_void_functions
             func consider(_ node: AnyObject) {
                 let frame = node.accessibilityFrame ?? .zero
                 let area = frame.width * frame.height
