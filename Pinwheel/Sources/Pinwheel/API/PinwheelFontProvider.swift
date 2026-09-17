@@ -17,9 +17,9 @@ public nonisolated protocol PinwheelFontProvider: Sendable {
 
 // Semibold variants default to the regular size at semibold weight, so an existing provider gets them
 // for free (and can still override any one).
-public nonisolated extension PinwheelFontProvider {
-    var titleSemibold: UIFont { font(ofSize: 20, weight: .semibold).scaledFont(forTextStyle: .headline) }
-    var bodySemibold: UIFont { font(ofSize: 16, weight: .semibold).scaledFont(forTextStyle: .body) }
-    var footnoteSemibold: UIFont { font(ofSize: 13, weight: .semibold).scaledFont(forTextStyle: .footnote) }
-    var captionSemibold: UIFont { font(ofSize: 11, weight: .semibold).scaledFont(forTextStyle: .caption1) }
+nonisolated extension PinwheelFontProvider {
+    public var titleSemibold: UIFont { font(ofSize: 20, weight: .semibold).scaledFont(forTextStyle: .headline) }
+    public var bodySemibold: UIFont { font(ofSize: 16, weight: .semibold).scaledFont(forTextStyle: .body) }
+    public var footnoteSemibold: UIFont { font(ofSize: 13, weight: .semibold).scaledFont(forTextStyle: .footnote) }
+    public var captionSemibold: UIFont { font(ofSize: 11, weight: .semibold).scaledFont(forTextStyle: .caption1) }
 }

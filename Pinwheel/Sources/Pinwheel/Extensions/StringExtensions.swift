@@ -1,7 +1,7 @@
 import UIKit
 
-public extension String {
-    func height(withConstrainedWidth width: CGFloat, font: UIFont) -> CGFloat {
+extension String {
+    public func height(withConstrainedWidth width: CGFloat, font: UIFont) -> CGFloat {
         let constraintRect = CGSize(width: width, height: .greatestFiniteMagnitude)
         let boundingBox = (self as NSString).boundingRect(
             with: constraintRect,
@@ -13,7 +13,7 @@ public extension String {
         return ceil(boundingBox.height)
     }
 
-    func width(withConstrainedHeight height: CGFloat, font: UIFont) -> CGFloat {
+    public func width(withConstrainedHeight height: CGFloat, font: UIFont) -> CGFloat {
         let constraintRect = CGSize(width: .greatestFiniteMagnitude, height: height)
         let boundingBox = (self as NSString).boundingRect(
             with: constraintRect,
@@ -25,7 +25,7 @@ public extension String {
         return ceil(boundingBox.width)
     }
 
-    func attributedStringWithLineSpacing(_ space: CGFloat) -> NSAttributedString {
+    public func attributedStringWithLineSpacing(_ space: CGFloat) -> NSAttributedString {
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.lineSpacing = space
 
@@ -39,7 +39,7 @@ public extension String {
         return attrString
     }
 
-    func asAttributedString(attributes: [NSAttributedString.Key: Any]? = nil) -> NSAttributedString {
+    public func asAttributedString(attributes: [NSAttributedString.Key: Any]? = nil) -> NSAttributedString {
         NSAttributedString(string: self, attributes: attributes)
     }
 }
@@ -53,8 +53,8 @@ extension Optional where Wrapped == String {
     }
 }
 
-public extension String {
-    var capitalizingFirstLetter: String {
+extension String {
+    public var capitalizingFirstLetter: String {
         return prefix(1).uppercased() + dropFirst()
     }
 }

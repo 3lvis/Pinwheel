@@ -1,12 +1,12 @@
 import SwiftUI
 
-public extension SwiftUI.View {
-    func pinConcentricContainer(cornerRadius: CGFloat = .radiusM) -> some SwiftUI.View {
+extension SwiftUI.View {
+    public func pinConcentricContainer(cornerRadius: CGFloat = .radiusM) -> some SwiftUI.View {
         modifier(PinConcentricContainer(cornerRadius: cornerRadius))
     }
 
     // `inset` is used only below iOS 26 (which can't measure it); pass the inset the content is actually laid out at.
-    func pinConcentricBackground(_ token: PinColorToken, inset: CGFloat) -> some SwiftUI.View {
+    public func pinConcentricBackground(_ token: PinColorToken, inset: CGFloat) -> some SwiftUI.View {
         modifier(PinConcentricBackground(token: token, inset: inset))
     }
 }
@@ -15,8 +15,8 @@ private struct PinContainerCornerRadiusKey: EnvironmentKey {
     static let defaultValue: CGFloat = .radiusM
 }
 
-private extension EnvironmentValues {
-    var pinContainerCornerRadius: CGFloat {
+extension EnvironmentValues {
+    fileprivate var pinContainerCornerRadius: CGFloat {
         get { self[PinContainerCornerRadiusKey.self] }
         set { self[PinContainerCornerRadiusKey.self] = newValue }
     }

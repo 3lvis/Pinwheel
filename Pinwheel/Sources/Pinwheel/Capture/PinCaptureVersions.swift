@@ -6,7 +6,10 @@ import Foundation
 public final class PinCaptureVersions {
     public static let shared = PinCaptureVersions()
 
-    private struct Entry: Codable { var version: Int; var hash: String }
+    private struct Entry: Codable {
+        var version: Int
+        var hash: String
+    }
     private var entries: [String: Entry]
     private let storageKey = "PinCaptureVersions"
 

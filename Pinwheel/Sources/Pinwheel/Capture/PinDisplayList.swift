@@ -57,7 +57,8 @@ enum PinDisplayList {
         liveControlsOnScreen: Bool
     ) -> [DisplayLeaf] {
         let needsCrop = leaves.contains {
-            if case .rasterizable = $0.kind, $0.image == nil { return true }; return false
+            if case .rasterizable = $0.kind, $0.image == nil { return true }
+            return false
         }
         guard needsCrop else { return leaves }
         return autoreleasepool {
@@ -78,7 +79,8 @@ enum PinDisplayList {
                         leaves[$0].frame.width > 40
                     {
                         return true
-                    }; return false
+                    }
+                    return false
                 }
                 .sorted { leaves[$0].frame.minY < leaves[$1].frame.minY }
             let controlByLeaf = matchedControlCrops(wideLeaves: wideLeaves.map { (index: $0, frame: leaves[$0].frame) }, crops: controlCrops)

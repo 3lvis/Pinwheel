@@ -1,7 +1,7 @@
 import UIKit
 
-public extension UIView {
-    func addSubview(
+extension UIView {
+    public func addSubview(
         _ view: UIView,
         filling edges: NSDirectionalRectEdge,
         insets: UIEdgeInsets = .zero
@@ -14,7 +14,7 @@ public extension UIView {
         )
     }
 
-    func addSubview(
+    public func addSubview(
         _ view: UIView,
         filling edges: NSDirectionalRectEdge,
         margin: CGFloat
@@ -26,7 +26,7 @@ public extension UIView {
         )
     }
 
-    func addSubview(
+    public func addSubview(
         _ view: UIView,
         filling guide: UILayoutGuide,
         edges: NSDirectionalRectEdge = .all,
@@ -40,7 +40,7 @@ public extension UIView {
         )
     }
 
-    func addSubview(
+    public func addSubview(
         _ view: UIView,
         filling guide: UILayoutGuide,
         edges: NSDirectionalRectEdge = .all,
@@ -54,7 +54,7 @@ public extension UIView {
         )
     }
 
-    func addSubview(
+    public func addSubview(
         _ view: UIView,
         top: NSLayoutYAxisAnchor,
         leading: NSLayoutXAxisAnchor,
@@ -70,7 +70,7 @@ public extension UIView {
         )
     }
 
-    func insertSubview(
+    public func insertSubview(
         _ view: UIView,
         belowSubview sibling: UIView,
         filling edges: NSDirectionalRectEdge,
@@ -92,12 +92,12 @@ private typealias PinnedEdges = (
     bottom: NSLayoutYAxisAnchor
 )
 
-private extension UIView {
-    var ownAnchors: PinnedEdges {
+extension UIView {
+    fileprivate var ownAnchors: PinnedEdges {
         (topAnchor, leadingAnchor, trailingAnchor, bottomAnchor)
     }
 
-    func pin(
+    fileprivate func pin(
         to target: PinnedEdges,
         edges: NSDirectionalRectEdge,
         insets: UIEdgeInsets
@@ -119,8 +119,8 @@ private extension UIView {
     }
 }
 
-private extension UIEdgeInsets {
-    init(_ margin: CGFloat) {
+extension UIEdgeInsets {
+    fileprivate init(_ margin: CGFloat) {
         self.init(
             top: margin,
             leading: margin,

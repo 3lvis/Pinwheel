@@ -87,10 +87,10 @@ public struct PinwheelPreview: SwiftUI.View {
     }
 }
 
-public extension PinwheelPreview {
+extension PinwheelPreview {
     /// The component id for an isolated preview launch: the `-PinwheelPreview <id>`
     /// launch argument or the `PINWHEEL_PREVIEW` env var, else nil.
-    static var requestedID: String? {
+    public static var requestedID: String? {
         // `-key value` launch args are surfaced as UserDefaults values.
         if let argument = UserDefaults.standard.string(forKey: "PinwheelPreview"), !argument.isEmpty {
             return argument
@@ -103,7 +103,7 @@ public extension PinwheelPreview {
         return nil
     }
 
-    static var requestedTheme: String? {
+    public static var requestedTheme: String? {
         if let argument = UserDefaults.standard.string(forKey: "PinwheelPreviewTheme"), !argument.isEmpty {
             return argument
         }
@@ -117,7 +117,7 @@ public extension PinwheelPreview {
 
     /// The tweak/variant to auto-apply on a preview launch: the
     /// `-PinwheelPreviewTweak <title>` launch argument or `PINWHEEL_PREVIEW_TWEAK`, else nil.
-    static var requestedTweak: String? {
+    public static var requestedTweak: String? {
         if let argument = UserDefaults.standard.string(forKey: "PinwheelPreviewTweak"), !argument.isEmpty {
             return argument
         }

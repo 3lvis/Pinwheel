@@ -109,7 +109,8 @@ enum PinVariadicExpander {
         let hasExtraLabel: Bool
         var body: some SwiftUI.View {
             HStack {
-                PinLabel(title); if hasExtraLabel { PinLabel("extra") }
+                PinLabel(title)
+                if hasExtraLabel { PinLabel("extra") }
             }
         }
     }

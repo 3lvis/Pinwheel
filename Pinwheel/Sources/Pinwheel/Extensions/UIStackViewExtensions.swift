@@ -1,7 +1,7 @@
 import UIKit
 
-public extension UIStackView {
-    convenience init(
+extension UIStackView {
+    public convenience init(
         axis: NSLayoutConstraint.Axis,
         spacing: CGFloat? = nil,
         alignment: UIStackView.Alignment? = nil,
@@ -26,14 +26,14 @@ public extension UIStackView {
         }
     }
 
-    func removeArrangedSubviews() {
+    public func removeArrangedSubviews() {
         for oldSubview in arrangedSubviews {
             removeArrangedSubview(oldSubview)
             oldSubview.removeFromSuperview()
         }
     }
 
-    func addArrangedSubviews(_ subviews: [UIView]) {
+    public func addArrangedSubviews(_ subviews: [UIView]) {
         subviews.forEach(addArrangedSubview)
     }
 }

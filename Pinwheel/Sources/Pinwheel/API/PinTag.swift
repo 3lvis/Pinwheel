@@ -6,7 +6,7 @@ public struct PinTag: RawRepresentable, Hashable, Sendable {
     public nonisolated init(rawValue: String) { self.rawValue = rawValue }
 }
 
-public extension PinTag {
-    nonisolated static let swiftUI = PinTag(rawValue: "SwiftUI")
-    nonisolated static let uiKit = PinTag(rawValue: "UIKit")
+extension PinTag {
+    public nonisolated static let swiftUI = PinTag(rawValue: "SwiftUI")
+    public nonisolated static let uiKit = PinTag(rawValue: "UIKit")
 }

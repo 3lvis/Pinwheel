@@ -443,7 +443,8 @@ public enum PinUIKitCapture {
     }
 
     private static func structureSignature(_ node: FigmaNode) -> String {
-        var texts = 0, fills = 0
+        var texts = 0
+        var fills = 0
         func walk(_ node: FigmaNode) {
             if node.texts?.isEmpty == false { texts += 1 }
             if node.fill != nil { fills += 1 }

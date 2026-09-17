@@ -33,8 +33,10 @@ struct ImageGalleryDemo: SwiftUI.View {
 
     private static func swatch(_ top: UIColor, _ bottom: UIColor) -> UIImage {
         UIGraphicsImageRenderer(size: CGSize(width: 120, height: 120)).image { context in
-            top.setFill(); context.fill(CGRect(x: 0, y: 0, width: 120, height: 60))
-            bottom.setFill(); context.fill(CGRect(x: 0, y: 60, width: 120, height: 60))
+            top.setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 120, height: 60))
+            bottom.setFill()
+            context.fill(CGRect(x: 0, y: 60, width: 120, height: 60))
         }
     }
 

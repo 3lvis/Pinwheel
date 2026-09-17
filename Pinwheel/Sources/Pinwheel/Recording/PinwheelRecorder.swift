@@ -118,7 +118,10 @@ public enum PinwheelRecorder {
             self.sample = sample
             previous = []
             link?.invalidate()
-            guard sample != nil else { return link = nil }
+            guard sample != nil else {
+                link = nil
+                return
+            }
             let link = CADisplayLink(target: self, selector: #selector(tick))
             link.add(to: .main, forMode: .common)
             self.link = link
@@ -204,8 +207,8 @@ public enum PinwheelRecorder {
                         best = (area, found)
                     }
                 }
-                (node.accessibilityElements ?? nil)?.forEach { consider($0 as AnyObject) }
-                (node as? UIView)?.subviews.forEach { consider($0) }
+                for element in (node.accessibilityElements ?? nil) ?? [] { consider(element as AnyObject) }
+                for subview in (node as? UIView)?.subviews ?? [] { consider(subview) }
             }
             consider(host)
             if let best { return best.name }

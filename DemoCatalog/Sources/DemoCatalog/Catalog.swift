@@ -34,6 +34,6 @@ public enum CatalogSection: String {
     case screens = "Screens"
 }
 
-public extension PinTag {
-    nonisolated static let figma = PinTag(rawValue: "Figma")
+extension PinTag {
+    public nonisolated static let figma = PinTag(rawValue: "Figma")
 }

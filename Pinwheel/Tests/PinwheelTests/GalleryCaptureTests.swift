@@ -11,7 +11,8 @@ import XCTest
 final class GalleryCaptureTests: XCTestCase {
     private struct Gallery: SwiftUI.View {
         static let swatch = UIGraphicsImageRenderer(size: CGSize(width: 120, height: 120)).image { context in
-            UIColor.systemOrange.setFill(); context.fill(CGRect(x: 0, y: 0, width: 120, height: 120))
+            UIColor.systemOrange.setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 120, height: 120))
         }
         let rows = ["Sunset Ridge", "Ocean Deep", "Forest Trail"]
         var body: some SwiftUI.View {

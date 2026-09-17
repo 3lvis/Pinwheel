@@ -91,7 +91,10 @@ final class PinTrayCardPlacement {
             alongside()
         }
         stopTravelling()
-        guard animated else { draw(); return finish() }
+        guard animated else {
+            draw()
+            return finish()
+        }
         let animator = UIViewPropertyAnimator(
             duration: trayResizeDuration,
             timingParameters: UISpringTimingParameters(

@@ -352,7 +352,8 @@ public enum PinDisplayListCapture {
 
     private static func hasMixedRow(_ node: ReflectedNode) -> Bool {
         guard case .container(_, let children) = node else { return false }
-        var hasLeaf = false, hasContainer = false
+        var hasLeaf = false
+        var hasContainer = false
         for child in children {
             if case .leaf = child { hasLeaf = true }
             if case .container = child { hasContainer = true }
@@ -569,7 +570,12 @@ public enum PinDisplayListCapture {
         return wrapper
     }
 
-    private struct Background { let texts: Set<String>; let fill: UIColor?; let radius: CGFloat?; let padding: EdgeInsets }
+    private struct Background {
+        let texts: Set<String>
+        let fill: UIColor?
+        let radius: CGFloat?
+        let padding: EdgeInsets
+    }
 
     private static func collectBackgrounds(_ box: Box) -> [Background] {
         var result: [Background] = []
@@ -603,13 +609,13 @@ public enum PinDisplayListCapture {
     private static func boxTexts(_ box: Box) -> Set<String> {
         var texts = Set<String>()
         if case .text(let string, _, _, _, _, _) = box.leaf.kind { texts.insert(string) }
-        box.children.forEach { texts.formUnion(boxTexts($0)) }
+        for child in box.children { texts.formUnion(boxTexts(child)) }
         return texts
     }
 
     private static func nodeTexts(_ node: FigmaNode) -> Set<String> {
         var texts = Set(node.texts?.map { $0.text } ?? [])
-        node.children.forEach { texts.formUnion(nodeTexts($0)) }
+        for child in node.children { texts.formUnion(nodeTexts(child)) }
         return texts
     }
 
@@ -724,7 +730,9 @@ public enum PinDisplayListCapture {
         // A short content screen can also land near the canvas center, so require content to actually float (start well below the safe area) before centering, else top-anchor it.
         let floatsBelowSafeArea = (minY - safeAreaTop) > oneScreen / 6
         let centeredInCanvas = floatsBelowSafeArea && abs((minY + maxY) / 2 - canvasHeight / 2) < oneScreen / 4 && contentHeight < oneScreen
-        let topPad: CGFloat, bottomPad: CGFloat, height: CGFloat
+        let topPad: CGFloat
+        let bottomPad: CGFloat
+        let height: CGFloat
         if centeredInCanvas {
             topPad = (oneScreen - contentHeight) / 2
             bottomPad = topPad

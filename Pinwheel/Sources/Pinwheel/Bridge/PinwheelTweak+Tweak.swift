@@ -22,7 +22,8 @@ extension PinwheelTweak {
                 isOn: Binding(
                     get: { isOn },
                     set: {
-                        isOn = $0; action($0)
+                        isOn = $0
+                        action($0)
                     })
             )
         } else if let select = tweak as? SelectTweak {

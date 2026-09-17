@@ -27,7 +27,7 @@ class UIPinColorDemo: UIPinView {
         stack.axis = .vertical
         stack.alignment = .fill
         stack.spacing = 0
-        items.forEach { stack.addArrangedSubview(row($0)) }
+        for item in items { stack.addArrangedSubview(row(item)) }
 
         addSubview(stack)
         NSLayoutConstraint.activate([

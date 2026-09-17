@@ -1,6 +1,6 @@
 import Foundation
 
-public extension CGFloat {
-    static let radiusM: CGFloat = 12
-    static let radiusL: CGFloat = 24
+extension CGFloat {
+    public static let radiusM: CGFloat = 12
+    public static let radiusL: CGFloat = 24
 }

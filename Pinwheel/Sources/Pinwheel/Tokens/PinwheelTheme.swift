@@ -76,23 +76,23 @@ nonisolated extension PinwheelTheme: Equatable {
     }
 }
 
-public nonisolated extension PinwheelTheme {
-    static let standard = PinwheelTheme(
+nonisolated extension PinwheelTheme {
+    public static let standard = PinwheelTheme(
         name: "Standard",
         colors: PinwheelDefaultColorProvider(),
         fonts: PinwheelDefaultFontProvider()
     )
 }
 
-public extension ShapeStyle where Self == Color {
-    static var primaryText: Color { Color(uiColor: .primaryText) }
-    static var secondaryText: Color { Color(uiColor: .secondaryText) }
-    static var tertiaryText: Color { Color(uiColor: .tertiaryText) }
-    static var actionText: Color { Color(uiColor: .actionText) }
-    static var criticalText: Color { Color(uiColor: .criticalText) }
+extension ShapeStyle where Self == Color {
+    public static var primaryText: Color { Color(uiColor: .primaryText) }
+    public static var secondaryText: Color { Color(uiColor: .secondaryText) }
+    public static var tertiaryText: Color { Color(uiColor: .tertiaryText) }
+    public static var actionText: Color { Color(uiColor: .actionText) }
+    public static var criticalText: Color { Color(uiColor: .criticalText) }
 
-    static var primaryBackground: Color { Color(uiColor: .primaryBackground) }
-    static var secondaryBackground: Color { Color(uiColor: .secondaryBackground) }
-    static var actionBackground: Color { Color(uiColor: .actionBackground) }
-    static var criticalBackground: Color { Color(uiColor: .criticalBackground) }
+    public static var primaryBackground: Color { Color(uiColor: .primaryBackground) }
+    public static var secondaryBackground: Color { Color(uiColor: .secondaryBackground) }
+    public static var actionBackground: Color { Color(uiColor: .actionBackground) }
+    public static var criticalBackground: Color { Color(uiColor: .criticalBackground) }
 }

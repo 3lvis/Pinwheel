@@ -46,8 +46,8 @@ struct PinwheelShakeToShowBuild: UIViewControllerRepresentable {
     }
 }
 
-private extension UIViewController {
-    var topmost: UIViewController {
+extension UIViewController {
+    fileprivate var topmost: UIViewController {
         presentedViewController?.topmost ?? self
     }
 }

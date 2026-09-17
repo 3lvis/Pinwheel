@@ -45,8 +45,8 @@ private struct PinCaptureSinkKey: EnvironmentKey {
     nonisolated static let defaultValue: (@MainActor @Sendable (String) -> Void)? = nil
 }
 
-public extension EnvironmentValues {
-    var pinCaptureSink: (@MainActor @Sendable (String) -> Void)? {
+extension EnvironmentValues {
+    public var pinCaptureSink: (@MainActor @Sendable (String) -> Void)? {
         get { self[PinCaptureSinkKey.self] }
         set { self[PinCaptureSinkKey.self] = newValue }
     }

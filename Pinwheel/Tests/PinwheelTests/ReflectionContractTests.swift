@@ -214,7 +214,8 @@ final class ReflectionContractTests: XCTestCase {
     // filled ring with no readable width — so a bordered control (a stepper pill) captures its border editably.
     func testOverlayStrokeReflectsAsTheContainerBorder() throws {
         let bordered = HStack {
-            PinLabel("−"); PinLabel("+")
+            PinLabel("−")
+            PinLabel("+")
         }
         .overlay(Capsule().stroke(Color.red, lineWidth: 2))
         guard case .container(let container, _)? = PinViewReflector.reflect(bordered) else {

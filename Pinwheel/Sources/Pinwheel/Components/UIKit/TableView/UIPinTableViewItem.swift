@@ -7,6 +7,6 @@ public protocol UIPinTableViewItem {
     var icon: UIImage? { get }
 }
 
-public extension UIPinTableViewItem {
-    var icon: UIImage? { nil }
+extension UIPinTableViewItem {
+    public var icon: UIImage? { nil }
 }
