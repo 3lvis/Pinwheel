@@ -179,9 +179,9 @@ Write the test at the lowest rung that can hold the fact. Moving up takes a reas
 
 ## Merge gate
 
-The oida job runs on every push (`.github/workflows/lint.yml`, Linux, about a minute). The test tiers are
-local, because ci.yml stays paused while GitHub's macOS runners flake on the hostless capture tests: run
-both, and a commit merges once its message says they ran green.
+CI gates every pull request: oida on Linux, and build plus `PinwheelTests` and `DemoTests` on `xcode-27`.
+Run both tiers locally before pushing anyway — a local green predicts CI, and the trailer is what the
+hook checks.
 
 ```
 ~/bin/test-sim -s PinwheelTests

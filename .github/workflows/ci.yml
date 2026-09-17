@@ -1,21 +1,12 @@
 name: CI
 
-# CI on GitHub-hosted runners is PAUSED (manual-dispatch only). GitHub's macOS
-# runners flake on the hostless capture tests — a UIWindow activated inside a
-# hostless XCTest process crashes only there, never on any local simulator (warm
-# or cold: the exact CI command passes 24/24 in ~3.6s) — and Actions minutes are
-# scarce. The gate is now LOCAL: a commit may merge only if it states unit + UI
-# tests ran green via `xcodebuild` locally (see AGENTS.md → "Local green-commit
-# gate"). Re-enable the push/pull_request triggers once the runner issue is fixed
-# (a test host for PinwheelTests) or CI moves off Actions minutes.
 on:
+  push:
+    branches: [main]
+    paths-ignore: ['**.md', 'docs/**']
+  pull_request:
+    paths-ignore: ['**.md', 'docs/**']
   workflow_dispatch:
-  # push:
-  #   branches: [main]
-  #   paths-ignore: ['**.md', 'docs/**']
-  # pull_request:
-  #   types: [opened, synchronize, reopened, ready_for_review]
-  #   paths-ignore: ['**.md', 'docs/**']
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -34,7 +25,7 @@ jobs:
     name: Build + unit tests
     runs-on: xcode-27
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Versions
         run: xcodebuild -version && swift --version
@@ -90,50 +81,3 @@ jobs:
             -destination "id=${{ steps.sim.outputs.udid }}" \
             -parallel-testing-enabled NO -retry-tests-on-failure -test-iterations 3 \
             CODE_SIGNING_ALLOWED=NO
-
-  ui-tests:
-    name: UI tests
-    runs-on: xcode-27
-    # Slow gate: run once a PR is ready for review (and on pushes to main), not on
-    # draft pushes. A skipped required check still reports success, so drafts stay
-    # mergeable-clean.
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Select an iPhone simulator on the newest iOS runtime
-        id: sim
-        run: |
-          UDID=$(xcrun simctl list devices available --json | python3 -c '
-          import json, re, sys
-          devices = json.load(sys.stdin)["devices"]
-          best = None
-          for runtime, group in devices.items():
-              match = re.search(r"iOS-(\d+)-(\d+)", runtime)
-              if not match:
-                  continue
-              version = (int(match.group(1)), int(match.group(2)))
-              for device in group:
-                  if not device.get("isAvailable") or "iPhone" not in device.get("name", ""):
-                      continue
-                  if best is None or version > best[0]:
-                      best = (version, device["udid"])
-          print(best[1] if best else "")
-          ')
-          if [ -z "$UDID" ]; then
-            echo "::error::No available iPhone simulator found"
-            xcrun simctl list devices available
-            exit 1
-          fi
-          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
-
-      # -retry-tests-on-failure absorbs first-launch/UI-timing flake; a real
-      # failure still fails every attempt.
-      - name: UI tests (DemoUITests)
-        run: |
-          set -o pipefail
-          xcodebuild test \
-            -project Demo.xcodeproj -scheme Demo \
-            -destination "id=${{ steps.sim.outputs.udid }}" -only-testing:DemoUITests \
-            -parallel-testing-enabled NO -retry-tests-on-failure -test-iterations 3 \
-            CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY=''
