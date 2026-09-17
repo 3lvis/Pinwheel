@@ -36,8 +36,7 @@ public enum PinwheelRecorder {
     }
 
     // A facade over the private `session`, which a caller outside this type can reach no other way.
-    // oida:disable:next no_single_use_void_functions
-    static func stopFollowing() {
+    static func stopFollowing() {  // oida:disable:this no_single_use_void_functions
         session?.follow(nil)
     }
 
@@ -110,8 +109,7 @@ public enum PinwheelRecorder {
 
         // Reached through `session?` from the static facade above, so the caller holds an optional chain
         // rather than a statement it could write itself.
-        // oida:disable:next no_single_use_void_functions
-        func noteIfFollowing(_ who: String) {
+        func noteIfFollowing(_ who: String) {  // oida:disable:this no_single_use_void_functions
             guard sample != nil else { return }
             write("session", "\(who) began following while something else still was — two are on screen")
         }
@@ -120,7 +118,10 @@ public enum PinwheelRecorder {
             self.sample = sample
             previous = []
             link?.invalidate()
-            guard sample != nil else { return link = nil }
+            guard sample != nil else {
+                link = nil
+                return
+            }
             let link = CADisplayLink(target: self, selector: #selector(tick))
             link.add(to: .main, forMode: .common)
             self.link = link
@@ -193,9 +194,6 @@ public enum PinwheelRecorder {
         ) -> String? {
             var best: (area: CGFloat, name: String)?
 
-            // It walks the accessibility tree by calling itself, so there is no call site to move these
-            // statements to.
-            // oida:disable:next no_single_use_void_functions
             func consider(_ node: AnyObject) {
                 let frame = node.accessibilityFrame ?? .zero
                 let area = frame.width * frame.height
@@ -209,8 +207,8 @@ public enum PinwheelRecorder {
                         best = (area, found)
                     }
                 }
-                (node.accessibilityElements ?? nil)?.forEach { consider($0 as AnyObject) }
-                (node as? UIView)?.subviews.forEach { consider($0) }
+                for element in (node.accessibilityElements ?? nil) ?? [] { consider(element as AnyObject) }
+                for subview in (node as? UIView)?.subviews ?? [] { consider(subview) }
             }
             consider(host)
             if let best { return best.name }

@@ -185,8 +185,6 @@ enum PinViewReflector {
         var color: Color?
         var isPill = false
         var cornerRadius: CGFloat = 0
-        // It walks the reflected value by calling itself, so there is no call site to move these statements to.
-        // oida:disable:next no_single_use_void_functions
         func search(_ value: Any, _ depth: Int) {
             if depth > 8 { return }
             let typeName = String(describing: type(of: value))

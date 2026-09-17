@@ -31,7 +31,10 @@ final class PinSwiftUIListCaptureTests: XCTestCase {
             "a SwiftUI List should capture its rows, not return nil"
         )
         var texts: [String] = []
-        func collect(_ node: FigmaNode) { texts += (node.texts?.map { $0.text } ?? []); node.children.forEach(collect) }
+        func collect(_ node: FigmaNode) {
+            texts += (node.texts?.map { $0.text } ?? [])
+            node.children.forEach(collect)
+        }
         collect(document.root)
         XCTAssertTrue(texts.contains("Row 1"), "row text must capture as editable text nodes")
         XCTAssertTrue(texts.contains("Row 12"), "every realized row captures, not just the visible viewport")

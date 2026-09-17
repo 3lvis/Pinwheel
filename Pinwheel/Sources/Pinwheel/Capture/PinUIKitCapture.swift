@@ -88,8 +88,6 @@ public enum PinUIKitCapture {
     // The demo's own background (the full-bleed UIPinView), not the clear hosting layers above it.
     private static func hostedBackground(_ host: UIView) -> UIColor? {
         var best: UIColor?
-        // It walks the view tree by calling itself, so there is no call site to move these statements to.
-        // oida:disable:next no_single_use_void_functions
         func scan(_ view: UIView) {
             if let color = view.backgroundColor,
                 color.cgColor.alpha > 0.01,
@@ -445,9 +443,8 @@ public enum PinUIKitCapture {
     }
 
     private static func structureSignature(_ node: FigmaNode) -> String {
-        var texts = 0, fills = 0
-        // It walks the node tree by calling itself, so there is no call site to move these statements to.
-        // oida:disable:next no_single_use_void_functions
+        var texts = 0
+        var fills = 0
         func walk(_ node: FigmaNode) {
             if node.texts?.isEmpty == false { texts += 1 }
             if node.fill != nil { fills += 1 }

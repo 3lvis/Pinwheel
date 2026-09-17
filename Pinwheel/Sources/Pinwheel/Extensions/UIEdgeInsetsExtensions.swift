@@ -1,7 +1,7 @@
 import UIKit
 
-public extension UIEdgeInsets {
-    static func leadingInset(_ leadingInset: CGFloat) -> UIEdgeInsets {
+extension UIEdgeInsets {
+    public static func leadingInset(_ leadingInset: CGFloat) -> UIEdgeInsets {
         return UIEdgeInsets(
             top: 0,
             leading: leadingInset,

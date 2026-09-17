@@ -20,8 +20,8 @@ extension PinwheelThemeKey: UITraitBridgedEnvironmentKey {
     }
 }
 
-public extension EnvironmentValues {
-    var pinwheelTheme: PinwheelTheme {
+extension EnvironmentValues {
+    public var pinwheelTheme: PinwheelTheme {
         get { self[PinwheelThemeKey.self] }
         set { self[PinwheelThemeKey.self] = newValue }
     }

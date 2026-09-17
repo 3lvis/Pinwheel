@@ -1,7 +1,7 @@
 import UIKit
 
-public extension UIEdgeInsets {
-    init(
+extension UIEdgeInsets {
+    public init(
         top: CGFloat = 0,
         leading: CGFloat = 0,
         bottom: CGFloat = 0,
@@ -15,11 +15,11 @@ public extension UIEdgeInsets {
         )
     }
 
-    var leading: CGFloat {
+    public var leading: CGFloat {
         return left
     }
 
-    var trailing: CGFloat {
+    public var trailing: CGFloat {
         return right
     }
 }

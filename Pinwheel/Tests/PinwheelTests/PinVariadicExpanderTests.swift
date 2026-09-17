@@ -24,7 +24,9 @@ final class PinVariadicExpanderTests: XCTestCase {
     func testExpandsRowsToRealInstances() throws {
         let forEach = ForEach(["Revenue", "Orders", "Users"], id: \.self) { title in
             HStack {
-                PinLabel(title); Spacer(); PinLabel("$1")
+                PinLabel(title)
+                Spacer()
+                PinLabel("$1")
             }
         }
         let rows = try XCTUnwrap(PinVariadicExpander.expand(forEach), "healthy expander returns rows")
@@ -36,7 +38,9 @@ final class PinVariadicExpanderTests: XCTestCase {
     func testResolvesRuntimeConditionalPerRow() throws {
         let forEach = ForEach(["A", "B"], id: \.self) { name in
             HStack {
-                PinLabel(name); if name == "A" { PinLabel("SALE") }; Spacer()
+                PinLabel(name)
+                if name == "A" { PinLabel("SALE") }
+                Spacer()
             }
         }
         let rows = try XCTUnwrap(PinVariadicExpander.expand(forEach))
@@ -59,7 +63,8 @@ final class PinVariadicExpanderTests: XCTestCase {
             HStack {
                 RoundedRectangle(cornerRadius: 8).frame(width: 40, height: 40)
                 VStack(alignment: .leading) {
-                    PinLabel(name); PinLabel("$10")
+                    PinLabel(name)
+                    PinLabel("$10")
                 }
                 Spacer()
                 PinLabel("×1")

@@ -44,8 +44,8 @@ public struct PinKeyboardNotification {
     }
 }
 
-private extension Notification {
-    var keyboardNotificationAction: PinKeyboardNotification.KeyboardAction? {
+extension Notification {
+    fileprivate var keyboardNotificationAction: PinKeyboardNotification.KeyboardAction? {
         switch self.name {
         case UIResponder.keyboardWillHideNotification:
             return .willHide

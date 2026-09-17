@@ -14,7 +14,8 @@ class UIPinTweakableDemo: UIPinView, Tweakable {
                 options: alignmentTitles,
                 chosenOption: { self.alignmentIndex },
                 action: {
-                    self.alignmentIndex = $0; self.reload()
+                    self.alignmentIndex = $0
+                    self.reload()
                 }
             ),
             BoolTweak(title: "Uppercase") { isUppercase in

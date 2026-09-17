@@ -136,8 +136,6 @@ public enum PinSwiftUIListCapture {
     // its own DisplayList boundary, so all of them are needed to reassemble the row.
     private static func hostingViews(in view: UIView) -> [UIView] {
         var found: [UIView] = []
-        // It walks the view tree by calling itself, so there is no call site to move these statements to.
-        // oida:disable:next no_single_use_void_functions
         func scan(_ view: UIView) {
             for sub in view.subviews {
                 if String(describing: type(of: sub)).contains("HostingView") { found.append(sub) }

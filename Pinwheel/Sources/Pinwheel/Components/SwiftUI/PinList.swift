@@ -41,8 +41,8 @@ public struct PinList: SwiftUI.View {
     }
 }
 
-public extension PinList {
-    struct Row: SwiftUI.View {
+extension PinList {
+    public struct Row: SwiftUI.View {
         private enum Kind {
             case text(subtitle: String?, detail: String?, chevron: Bool, enabled: Bool, action: (() -> Void)?)
             case toggle(subtitle: String?, enabled: Bool, isOn: Binding<Bool>)
@@ -104,7 +104,7 @@ public extension PinList {
 
         public var body: some SwiftUI.View {
             switch kind {
-            case let .text(subtitle, detail, chevron, enabled, action):
+            case .text(let subtitle, let detail, let chevron, let enabled, let action):
                 textRow(
                     subtitle: subtitle,
                     detail: detail,
@@ -112,7 +112,7 @@ public extension PinList {
                     enabled: enabled,
                     action: action
                 )
-            case let .toggle(subtitle, enabled, isOn):
+            case .toggle(let subtitle, let enabled, let isOn):
                 Toggle(isOn: isOn) {
                     HStack(spacing: .spacing2) {
                         if let icon { iconView(icon, enabled: enabled) }

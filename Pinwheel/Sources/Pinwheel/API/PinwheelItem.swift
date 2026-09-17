@@ -179,8 +179,8 @@ public struct PinwheelItem {
 
 extension PinwheelItem: Identifiable {}
 
-public extension PinwheelItem {
-    func presentation(_ presentation: PinwheelPresentation) -> PinwheelItem {
+extension PinwheelItem {
+    public func presentation(_ presentation: PinwheelPresentation) -> PinwheelItem {
         return with(
             presentation: presentation,
             supportedInterfaceOrientations: supportedInterfaceOrientations,
@@ -190,7 +190,7 @@ public extension PinwheelItem {
         )
     }
 
-    func supportedInterfaceOrientations(_ orientations: UIInterfaceOrientationMask) -> PinwheelItem {
+    public func supportedInterfaceOrientations(_ orientations: UIInterfaceOrientationMask) -> PinwheelItem {
         return with(
             presentation: presentation,
             supportedInterfaceOrientations: orientations,
@@ -200,7 +200,7 @@ public extension PinwheelItem {
         )
     }
 
-    func safeArea(top: Bool = true, bottom: Bool = true) -> PinwheelItem {
+    public func safeArea(top: Bool = true, bottom: Bool = true) -> PinwheelItem {
         return with(
             presentation: presentation,
             supportedInterfaceOrientations: supportedInterfaceOrientations,
@@ -210,7 +210,7 @@ public extension PinwheelItem {
         )
     }
 
-    func tabletDisplayMode(_ mode: PinwheelTabletDisplayMode) -> PinwheelItem {
+    public func tabletDisplayMode(_ mode: PinwheelTabletDisplayMode) -> PinwheelItem {
         return with(
             presentation: presentation,
             supportedInterfaceOrientations: supportedInterfaceOrientations,
@@ -220,7 +220,7 @@ public extension PinwheelItem {
         )
     }
 
-    func tags(_ tags: PinTag...) -> PinwheelItem {
+    public func tags(_ tags: PinTag...) -> PinwheelItem {
         return with(
             presentation: presentation,
             supportedInterfaceOrientations: supportedInterfaceOrientations,

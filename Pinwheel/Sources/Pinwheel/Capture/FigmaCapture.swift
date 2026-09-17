@@ -158,7 +158,10 @@ enum PinFloatTokens {
 
 extension RGBA {
     init(_ uiColor: UIColor) {
-        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        var r: CGFloat = 0
+        var g: CGFloat = 0
+        var b: CGFloat = 0
+        var a: CGFloat = 0
         uiColor.getRed(
             &r,
             green: &g,
@@ -175,7 +178,10 @@ extension RGBA {
 
     init(_ color: Color, style: UIUserInterfaceStyle = .light) {
         let resolved = UIColor(color).resolvedColor(with: UITraitCollection(userInterfaceStyle: style))
-        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        var r: CGFloat = 0
+        var g: CGFloat = 0
+        var b: CGFloat = 0
+        var a: CGFloat = 0
         resolved.getRed(
             &r,
             green: &g,

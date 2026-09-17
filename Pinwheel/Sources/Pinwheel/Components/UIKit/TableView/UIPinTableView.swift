@@ -10,13 +10,13 @@ public protocol UIPinTableViewDelegate: AnyObject {
     func tableViewDidSelectFailedStateAction(_ tableView: UIPinTableView)
 }
 
-public extension UIPinTableViewDelegate {
-    func tableView(
+extension UIPinTableViewDelegate {
+    public func tableView(
         _ tableView: UIPinTableView,
         didSwitchItem boolTableViewItem: UIPinBoolTableViewItem,
         atIndex index: Int
     ) {}
-    func tableViewDidSelectFailedStateAction(_ tableView: UIPinTableView) {}
+    public func tableViewDidSelectFailedStateAction(_ tableView: UIPinTableView) {}
 }
 
 public protocol UIPinTableViewDataSource: AnyObject {

@@ -518,7 +518,8 @@ final class CaptureFidelityTests: XCTestCase {
                     VStack(spacing: .spacing3) {
                         ForEach([CGFloat(120), CGFloat(240)], id: \.self) { width in
                             VStack {
-                                PinLabel("Box").font(.title); PinLabel("sub").font(.caption)
+                                PinLabel("Box").font(.title)
+                                PinLabel("sub").font(.caption)
                             }
                             .frame(width: width)
                             .padding(.spacing4)
@@ -622,7 +623,8 @@ final class CaptureFidelityTests: XCTestCase {
             }
             func card(width: CGFloat, title: String) -> some SwiftUI.View {
                 VStack {
-                    PinLabel(title).font(.title); PinLabel("detail").font(.caption)
+                    PinLabel(title).font(.title)
+                    PinLabel("detail").font(.caption)
                 }
                 .frame(width: width)
                 .padding(.spacing4)
@@ -794,7 +796,8 @@ final class CaptureFidelityTests: XCTestCase {
 
     private func averageOpaqueBrightness(_ image: UIImage) -> Int {
         guard let cg = image.cgImage else { return -1 }
-        let width = cg.width, height = cg.height
+        let width = cg.width
+        let height = cg.height
         var pixels = [UInt8](repeating: 0, count: width * height * 4)
         let context = CGContext(
             data: &pixels,
@@ -813,7 +816,8 @@ final class CaptureFidelityTests: XCTestCase {
                 width: width,
                 height: height
             ))
-        var sum = 0, count = 0
+        var sum = 0
+        var count = 0
         for index in stride(
             from: 0,
             to: pixels.count,

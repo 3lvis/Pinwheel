@@ -57,7 +57,8 @@ enum PinDisplayList {
         liveControlsOnScreen: Bool
     ) -> [DisplayLeaf] {
         let needsCrop = leaves.contains {
-            if case .rasterizable = $0.kind, $0.image == nil { return true }; return false
+            if case .rasterizable = $0.kind, $0.image == nil { return true }
+            return false
         }
         guard needsCrop else { return leaves }
         return autoreleasepool {
@@ -78,7 +79,8 @@ enum PinDisplayList {
                         leaves[$0].frame.width > 40
                     {
                         return true
-                    }; return false
+                    }
+                    return false
                 }
                 .sorted { leaves[$0].frame.minY < leaves[$1].frame.minY }
             let controlByLeaf = matchedControlCrops(wideLeaves: wideLeaves.map { (index: $0, frame: leaves[$0].frame) }, crops: controlCrops)
@@ -117,8 +119,6 @@ enum PinDisplayList {
         // Settle layout so control frames are final — mid-layout frames sort wrong and misassign crops.
         window.layoutIfNeeded()
         var controls: [UIView] = []
-        // It walks the view tree by calling itself, so there is no call site to move these statements to.
-        // oida:disable:next no_single_use_void_functions
         func scan(_ view: UIView) {
             if view is UISwitch || view is UISegmentedControl || view is UISlider || view is UIStepper
                 || view is UIProgressView || view is UIDatePicker || view is UIActivityIndicatorView
@@ -306,8 +306,6 @@ enum PinDisplayList {
 
     private static func renderShapes(in effectPayload: Any, unitSize: CGSize) -> String? {
         var shapes: [(path: SwiftUI.Path, color: UIColor?, origin: CGPoint)] = []
-        // It walks the display list by calling itself, so there is no call site to move these statements to.
-        // oida:disable:next no_single_use_void_functions
         func collect(_ payload: Any, _ origin: CGPoint) {
             for nested in nestedLists(in: payload) {
                 guard let items = child(nested, "items") else { continue }

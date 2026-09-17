@@ -130,16 +130,16 @@ struct PinwheelTweaksPreferenceKey: PreferenceKey {
     }
 }
 
-public extension SwiftUI.View {
-    func pinwheelTweaks(@PinwheelTweakBuilder _ tweaks: @escaping () -> [PinwheelTweak]) -> some SwiftUI.View {
+extension SwiftUI.View {
+    public func pinwheelTweaks(@PinwheelTweakBuilder _ tweaks: @escaping () -> [PinwheelTweak]) -> some SwiftUI.View {
         preference(key: PinwheelTweaksPreferenceKey.self, value: tweaks())
     }
 
-    func pinwheelTweaks(_ tweaks: [PinwheelTweak]) -> some SwiftUI.View {
+    public func pinwheelTweaks(_ tweaks: [PinwheelTweak]) -> some SwiftUI.View {
         preference(key: PinwheelTweaksPreferenceKey.self, value: tweaks)
     }
 
-    func pinwheelTweak(_ tweak: PinwheelTweak) -> some SwiftUI.View {
+    public func pinwheelTweak(_ tweak: PinwheelTweak) -> some SwiftUI.View {
         preference(key: PinwheelTweaksPreferenceKey.self, value: [tweak])
     }
 }

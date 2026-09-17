@@ -57,6 +57,6 @@ public struct PinTray {
     }
 }
 
-public extension Animation {
-    static let trayContent = Animation.spring(duration: 0.30, bounce: 0.10)
+extension Animation {
+    public static let trayContent = Animation.spring(duration: 0.30, bounce: 0.10)
 }

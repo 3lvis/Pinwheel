@@ -1,7 +1,7 @@
 import Foundation
 
-public extension Bundle {
-    static var pinwheel: Bundle {
+extension Bundle {
+    public static var pinwheel: Bundle {
         return Bundle(for: UIPinTableViewCell.self)
     }
 }

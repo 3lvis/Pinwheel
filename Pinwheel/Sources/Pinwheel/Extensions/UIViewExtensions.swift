@@ -1,12 +1,12 @@
 import UIKit
 
-public extension UIView {
-    convenience init(withAutoLayout autoLayout: Bool) {
+extension UIView {
+    public convenience init(withAutoLayout autoLayout: Bool) {
         self.init(frame: .zero)
         translatesAutoresizingMaskIntoConstraints = !autoLayout
     }
 
-    var parentViewController: UIViewController? {
+    public var parentViewController: UIViewController? {
         var responder: UIResponder? = next
         while let current = responder {
             if let viewController = current as? UIViewController {
@@ -17,14 +17,14 @@ public extension UIView {
         return nil
     }
 
-    func resetDropShadow() {
+    public func resetDropShadow() {
         layer.shadowColor = nil
         layer.shadowOpacity = 0
         layer.shadowOffset = .zero
         layer.shadowRadius = 0
     }
 
-    func dropShadow(
+    public func dropShadow(
         color: UIColor,
         opacity: Float = 0.5,
         offset: CGSize = CGSize.zero,
@@ -49,12 +49,12 @@ extension UIViewController {
 }
 
 @available(iOS 15.0, *)
-public extension UIView {
-    var windowSafeAreaInsets: UIEdgeInsets {
+extension UIView {
+    public var windowSafeAreaInsets: UIEdgeInsets {
         return UIView.windowSafeAreaInsets
     }
 
-    static var windowSafeAreaInsets: UIEdgeInsets {
+    public static var windowSafeAreaInsets: UIEdgeInsets {
         return UIApplication.shared.connectedScenes.compactMap { ($0 as? UIWindowScene)?.keyWindow }.last?.safeAreaInsets ?? .zero
     }
 }
