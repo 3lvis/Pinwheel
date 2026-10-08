@@ -5,6 +5,7 @@ import UIKit
 final class PinTrayBodyView: UIView {
     private let scroll = UIScrollView()
     private let hosting: UIHostingController<AnyView>
+    private let edge: PinTrayLeafView
 
     private weak var coordinating: PinTrayBodyCoordinating?
 
@@ -19,6 +20,16 @@ final class PinTrayBodyView: UIView {
     ) {
         coordinating = to
         hosting = UIHostingController(rootView: content)
+        edge = PinTrayLeafView(
+            showing: AnyView(
+                LinearGradient(
+                    colors: [.primaryBackground, .primaryBackground.opacity(0)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            ),
+            in: parent
+        )
         super.init(frame: .zero)
 
         scroll.backgroundColor = .clear
@@ -38,7 +49,16 @@ final class PinTrayBodyView: UIView {
         scroll.addSubview(hosting.view)
         hosting.didMove(toParent: parent)
 
+        edge.alpha = 0
+        edge.isUserInteractionEnabled = false
+        edge.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(edge)
+
         NSLayoutConstraint.activate([
+            edge.leadingAnchor.constraint(equalTo: leadingAnchor),
+            edge.trailingAnchor.constraint(equalTo: trailingAnchor),
+            edge.topAnchor.constraint(equalTo: topAnchor),
+            edge.heightAnchor.constraint(equalToConstant: Self.edgeHeight),
             scroll.leadingAnchor.constraint(equalTo: leadingAnchor),
             scroll.trailingAnchor.constraint(equalTo: trailingAnchor),
             scroll.topAnchor.constraint(equalTo: topAnchor),
@@ -102,10 +122,17 @@ final class PinTrayBodyView: UIView {
     // oida:disable:next no_single_use_void_functions
     func detach() {
         hosting.detachFromParent()
+        edge.detach()
     }
 }
 
 extension PinTrayBodyView {
+    static let edgeHeight: CGFloat = 40
+
+    static func edgeOpacity(scrolled distance: CGFloat) -> CGFloat {
+        min(1, max(0, distance) / 24)
+    }
+
     static func cardTakes(_ past: CGFloat, alreadyPulling: Bool) -> Bool {
         past > 0 || alreadyPulling
     }
@@ -113,6 +140,7 @@ extension PinTrayBodyView {
 
 extension PinTrayBodyView: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        edge.alpha = Self.edgeOpacity(scrolled: scrollView.contentOffset.y + scrollView.contentInset.top)
         let past = -(scrollView.contentOffset.y + scrollView.contentInset.top)
         let alreadyPulling = coordinating?.cardIsBeingDraggedDown ?? false
         guard scrollView.isTracking, Self.cardTakes(past, alreadyPulling: alreadyPulling) else { return }

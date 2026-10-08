@@ -5,7 +5,7 @@ import XCTest
 
 @MainActor
 final class TrayHeaderHeightTests: XCTestCase {
-    func testTheTitleBarRunsFromTheTopEdgeToTheHairlineAtTheControlFloorPlusASpacingEachSide() throws {
+    func testTheTitleBarRunsFromTheTopEdgeToTheBodyAtTheControlFloorPlusASpacingEachSide() throws {
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 420, height: 912))
         let root = UIViewController()
         window.rootViewController = root
@@ -34,20 +34,15 @@ final class TrayHeaderHeightTests: XCTestCase {
         }
 
         let contents = try XCTUnwrap(first(PinTrayContentsView.self, in: tray.view), "a tray holds its contents")
-        let hairline = try XCTUnwrap(rule(in: contents), "a tray rules off its title bar")
+        let body = try XCTUnwrap(first(PinTrayBodyView.self, in: contents), "a tray holds a body")
 
         XCTAssertEqual(
-            hairline.convert(hairline.bounds, to: contents).minY,
+            body.convert(body.bounds, to: contents).minY,
             .minimumControlHeight + .spacing1 * 2,
             accuracy: 0.5,
             "the title bar is the 48pt control floor with one spacing-1 above and below"
         )
-        XCTAssertEqual(
-            hairline.bounds.height,
-            1,
-            accuracy: 0.01,
-            "and it rules off with a single point"
-        )
+        XCTAssertNil(rule(in: contents), "the title bar meets the body without a rule between them")
     }
 
     private func first<Kind: UIView>(_ kind: Kind.Type, in view: UIView) -> Kind? {

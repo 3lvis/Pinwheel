@@ -79,6 +79,29 @@ final class PinTrayBodyTests: XCTestCase {
         XCTAssertFalse(PinTrayBodyView.cardTakes(-20, alreadyPulling: false), "a drag up that never pulled is the list's")
     }
 
+    func testTheEdgeShowsOnlyOnceTheBodyScrolls() {
+        XCTAssertEqual(
+            PinTrayBodyView.edgeOpacity(scrolled: 0),
+            0,
+            "a body at rest draws nothing under the title"
+        )
+        XCTAssertEqual(
+            PinTrayBodyView.edgeOpacity(scrolled: -30),
+            0,
+            "a pull past the top is the card's, so the edge stays away"
+        )
+        XCTAssertEqual(
+            PinTrayBodyView.edgeOpacity(scrolled: 12),
+            0.5,
+            "the edge fades in over the first stretch of scroll"
+        )
+        XCTAssertEqual(
+            PinTrayBodyView.edgeOpacity(scrolled: 300),
+            1,
+            "and holds once content runs under the title"
+        )
+    }
+
     func testOnlyABodyOutgrowingItsRoomScrolls() {
         XCTAssertFalse(attachedBody(showing: rows(2)).scrolls, "rows that already fit have nowhere to go, so the body must not scroll at all")
         XCTAssertTrue(attachedBody(showing: rows(60)).scrolls, "rows that outgrow the body still scroll")
