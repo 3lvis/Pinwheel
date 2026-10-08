@@ -5,7 +5,6 @@ import UIKit
 final class PinTrayContentsView: UIView {
     private let titleBar: PinTrayLeafView
     private let body: PinTrayBodyView
-    private let divider = UIView()
 
     var clearance: CGFloat {
         get { body.clearance }
@@ -26,8 +25,7 @@ final class PinTrayContentsView: UIView {
         )
         super.init(frame: .zero)
 
-        divider.backgroundColor = .tertiaryText
-        for view in [self.titleBar, divider, body] as [UIView] {
+        for view in [self.titleBar, body] as [UIView] {
             view.translatesAutoresizingMaskIntoConstraints = false
             addSubview(view)
         }
@@ -36,11 +34,7 @@ final class PinTrayContentsView: UIView {
             self.titleBar.topAnchor.constraint(equalTo: topAnchor),
             self.titleBar.leadingAnchor.constraint(equalTo: leadingAnchor),
             self.titleBar.trailingAnchor.constraint(equalTo: trailingAnchor),
-            divider.topAnchor.constraint(equalTo: self.titleBar.bottomAnchor),
-            divider.heightAnchor.constraint(equalToConstant: 1),
-            divider.leadingAnchor.constraint(equalTo: leadingAnchor, constant: trayContentMargin),
-            divider.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -trayContentMargin),
-            body.topAnchor.constraint(equalTo: divider.bottomAnchor),
+            body.topAnchor.constraint(equalTo: self.titleBar.bottomAnchor),
             body.leadingAnchor.constraint(equalTo: leadingAnchor),
             body.trailingAnchor.constraint(equalTo: trailingAnchor),
             body.bottomAnchor.constraint(equalTo: bottomAnchor),
@@ -60,7 +54,7 @@ final class PinTrayContentsView: UIView {
     }
 
     func height(fitting width: CGFloat) -> CGFloat {
-        titleBar.height(fitting: width) + 1 + body.contentHeight(fitting: width)
+        titleBar.height(fitting: width) + body.contentHeight(fitting: width)
     }
 
     // Each tray part detaches itself and its own children, which is the vocabulary the chassis tears
