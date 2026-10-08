@@ -646,3 +646,39 @@ extension PinTrayMachineTests {
         )
     }
 }
+
+extension PinTrayMachineTests {
+    func testATrayThatOpensFillingArrivesInOneMotion() throws {
+        var machine = PinTrayMachine(room: screen)
+        let unpresented = machine.geometry
+
+        let reported = machine.handle(.fillsReported(true))
+        XCTAssertEqual(
+            reported.to,
+            unpresented,
+            "learning it fills before it has arrived moves nothing on its own"
+        )
+        XCTAssertEqual(
+            reported.timeline,
+            .carriedByKeyboard,
+            "and starts nothing of ours, which the arrival would stop a frame in with the card still flat"
+        )
+
+        let presented = machine.handle(.presented(contentHeight: 1_298))
+        XCTAssertGreaterThan(
+            try XCTUnwrap(presented.from).translation,
+            0,
+            "the arrival starts below its place"
+        )
+        XCTAssertEqual(
+            presented.to.height,
+            PinTrayGeometry(
+                contentHeight: 0,
+                fills: true,
+                room: screen
+            ).height,
+            accuracy: 1,
+            "and carries the fill it learned"
+        )
+    }
+}
