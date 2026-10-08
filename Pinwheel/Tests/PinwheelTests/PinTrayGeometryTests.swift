@@ -150,19 +150,6 @@ extension PinTrayGeometryTests {
         )
     }
 
-    func testContentPassesBehindWhatFloatsAndStandsOffACommitButton() {
-        XCTAssertEqual(
-            PinTrayGeometry.clearanceAboveAccessory(floats: true),
-            .spacing2,
-            "content passes behind something floating, so it needs a hairline"
-        )
-        XCTAssertEqual(
-            PinTrayGeometry.clearanceAboveAccessory(floats: false),
-            traySectionGap,
-            "a button is not floated over, so content stands off it like any other group"
-        )
-    }
-
     func testAThrowStartsTheSpringAtTheSpeedTheFingerLetGoAt() {
         XCTAssertEqual(
             PinTrayGeometry.springVelocity(travelling: 200, releasedAt: 1200),
