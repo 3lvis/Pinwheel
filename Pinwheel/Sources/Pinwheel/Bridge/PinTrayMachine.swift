@@ -93,7 +93,7 @@ struct PinTrayMachine: Equatable {
         var dismisses = false
     }
 
-    private(set) var phase: Phase = .standing
+    private(set) var phase: Phase = .arriving(Arriving(contentHeight: 0, fills: false))
 
     var isAwaitingKeyboard: Bool {
         if case .awaitingKeyboard = phase { return true }
@@ -180,6 +180,7 @@ struct PinTrayMachine: Equatable {
         }
         switch event {
         case .presented(let height):
+            if case .arriving(let arriving) = phase { fills = arriving.fills }
             contentHeight = height
             phase = .standing
             return Reaction(
