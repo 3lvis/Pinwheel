@@ -6,11 +6,16 @@ final class PinTrayBodyView: UIView {
     private let scroll = UIScrollView()
     private let hosting: UIHostingController<AnyView>
     private let edge: PinTrayLeafView
+    private let bottomEdge: PinTrayLeafView
+    private let bottomEdgeHeightConstraint: NSLayoutConstraint
 
     private weak var coordinating: PinTrayBodyCoordinating?
 
     var clearance: CGFloat = 0 {
-        didSet { scroll.contentInset.bottom = clearance }
+        didSet {
+            scroll.contentInset.bottom = clearance
+            bottomEdgeHeightConstraint.constant = Self.bottomEdgeHeight(clearance: clearance)
+        }
     }
 
     init(
@@ -30,13 +35,27 @@ final class PinTrayBodyView: UIView {
             ),
             in: parent
         )
+        bottomEdge = PinTrayLeafView(
+            showing: AnyView(
+                VStack(spacing: 0) {
+                    LinearGradient(
+                        colors: [.primaryBackground.opacity(0), .primaryBackground],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: Self.edgeHeight)
+                    Color.primaryBackground
+                }
+            ),
+            in: parent
+        )
+        bottomEdgeHeightConstraint = bottomEdge.heightAnchor.constraint(equalToConstant: Self.bottomEdgeHeight(clearance: 0))
         super.init(frame: .zero)
 
         scroll.backgroundColor = .clear
         scroll.alwaysBounceVertical = true
         scroll.contentInsetAdjustmentBehavior = .never
         scroll.keyboardDismissMode = .interactive
-        scroll.contentInset.top = traySectionGap
         scroll.showsVerticalScrollIndicator = true
         scroll.translatesAutoresizingMaskIntoConstraints = false
         addSubview(scroll)
@@ -54,11 +73,20 @@ final class PinTrayBodyView: UIView {
         edge.translatesAutoresizingMaskIntoConstraints = false
         addSubview(edge)
 
+        bottomEdge.alpha = 0
+        bottomEdge.isUserInteractionEnabled = false
+        bottomEdge.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(bottomEdge)
+
         NSLayoutConstraint.activate([
             edge.leadingAnchor.constraint(equalTo: leadingAnchor),
             edge.trailingAnchor.constraint(equalTo: trailingAnchor),
             edge.topAnchor.constraint(equalTo: topAnchor),
             edge.heightAnchor.constraint(equalToConstant: Self.edgeHeight),
+            bottomEdge.leadingAnchor.constraint(equalTo: leadingAnchor),
+            bottomEdge.trailingAnchor.constraint(equalTo: trailingAnchor),
+            bottomEdge.bottomAnchor.constraint(equalTo: bottomAnchor),
+            bottomEdgeHeightConstraint,
             scroll.leadingAnchor.constraint(equalTo: leadingAnchor),
             scroll.trailingAnchor.constraint(equalTo: trailingAnchor),
             scroll.topAnchor.constraint(equalTo: topAnchor),
@@ -79,6 +107,13 @@ final class PinTrayBodyView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         scroll.isScrollEnabled = overflows
+        showEdges()
+    }
+
+    private func showEdges() {
+        edge.alpha = Self.edgeOpacity(scrolled: scroll.contentOffset.y + scroll.contentInset.top)
+        let below = scroll.contentSize.height + scroll.contentInset.bottom - scroll.bounds.height - scroll.contentOffset.y
+        bottomEdge.alpha = Self.edgeOpacity(scrolled: below)
     }
 
     // The tray's parts each take their content through `show`, and each writes a stored property of
@@ -123,6 +158,7 @@ final class PinTrayBodyView: UIView {
     func detach() {
         hosting.detachFromParent()
         edge.detach()
+        bottomEdge.detach()
     }
 }
 
@@ -133,6 +169,10 @@ extension PinTrayBodyView {
         min(1, max(0, distance) / 24)
     }
 
+    static func bottomEdgeHeight(clearance: CGFloat) -> CGFloat {
+        edgeHeight + max(0, clearance - traySectionGap)
+    }
+
     static func cardTakes(_ past: CGFloat, alreadyPulling: Bool) -> Bool {
         past > 0 || alreadyPulling
     }
@@ -140,7 +180,7 @@ extension PinTrayBodyView {
 
 extension PinTrayBodyView: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        edge.alpha = Self.edgeOpacity(scrolled: scrollView.contentOffset.y + scrollView.contentInset.top)
+        showEdges()
         let past = -(scrollView.contentOffset.y + scrollView.contentInset.top)
         let alreadyPulling = coordinating?.cardIsBeingDraggedDown ?? false
         guard scrollView.isTracking, Self.cardTakes(past, alreadyPulling: alreadyPulling) else { return }

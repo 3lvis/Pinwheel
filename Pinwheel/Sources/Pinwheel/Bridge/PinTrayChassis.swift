@@ -363,11 +363,10 @@ final class PinTrayChassis: UIViewController {
         view.layoutIfNeeded()
 
         let width = view.bounds.width - trayMargin * 2
-        let clearanceAboveAccessory = PinTrayGeometry.clearanceAboveAccessory(floats: tray.floating != nil)
         let accessoryHeight = accessoryView.height(fitting: width)
         contents.clearance =
             accessoryHeight > 0
-            ? accessoryInset + accessoryHeight + clearanceAboveAccessory
+            ? accessoryInset + accessoryHeight + traySectionGap
             : contentBottomInset
         standing = Standing(description: tray, contents: contents)
         apply(machine.handle(.fillsReported(tray.detent == .filling)))

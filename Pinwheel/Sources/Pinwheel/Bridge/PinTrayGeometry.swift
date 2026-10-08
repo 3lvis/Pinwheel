@@ -56,10 +56,6 @@ struct PinTrayGeometry: Equatable {
         return 1 - min(1, max(0, gone))
     }
 
-    static func clearanceAboveAccessory(floats: Bool) -> CGFloat {
-        floats ? .spacing2 : traySectionGap
-    }
-
     init(
         contentHeight: CGFloat,
         fills: Bool = false,
